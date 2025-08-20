@@ -1,0 +1,579 @@
+{
+  "Comments": [
+    {
+      "Text": "/*\n * Example file\n */",
+      "Single": false,
+      "Position": {
+        "Start": 1,
+        "Stop": 3
+      }
+    },
+    {
+      "Text": "// ----------------------",
+      "Single": true,
+      "Position": {
+        "Start": 4,
+        "Stop": 4
+      }
+    },
+    {
+      "Text": "// Example file",
+      "Single": true,
+      "Position": {
+        "Start": 5,
+        "Stop": 5
+      }
+    },
+    {
+      "Text": "// ----------------------",
+      "Single": true,
+      "Position": {
+        "Start": 6,
+        "Stop": 6
+      }
+    }
+  ],
+  "Consts": [
+    {
+      "Type": "int",
+      "Name": "MAX_COUNT",
+      "Value": "100",
+      "Position": {
+        "Start": 9,
+        "Stop": 9
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "// ---- Const definitions ----",
+            "Single": true,
+            "Position": {
+              "Start": 8,
+              "Stop": 8
+            }
+          }
+        ],
+        "Right": {
+          "Text": "// max count",
+          "Single": true,
+          "Position": {
+            "Start": 9,
+            "Stop": 9
+          }
+        }
+      }
+    },
+    {
+      "Type": "bool",
+      "Name": "ENABLE_FEATURE",
+      "Value": "true",
+      "Position": {
+        "Start": 10,
+        "Stop": 10
+      },
+      "Comments": {
+        "Top": null,
+        "Right": {
+          "Text": "/* enable feature */",
+          "Single": false,
+          "Position": {
+            "Start": 10,
+            "Stop": 10
+          }
+        }
+      }
+    },
+    {
+      "Type": "string",
+      "Name": "DEFAULT_NAME",
+      "Value": "\"guest\"",
+      "Position": {
+        "Start": 11,
+        "Stop": 11
+      },
+      "Comments": {
+        "Top": null,
+        "Right": {
+          "Text": "/*\n * default name\n */",
+          "Single": false,
+          "Position": {
+            "Start": 11,
+            "Stop": 13
+          }
+        }
+      }
+    }
+  ],
+  "Enums": [
+    {
+      "Name": "ErrCode",
+      "Fields": [
+        {
+          "Name": "ErrOk",
+          "Value": 0,
+          "Position": {
+            "Start": 17,
+            "Stop": 17
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "Name": "PARAM_ERROR",
+          "Value": 1003,
+          "Position": {
+            "Start": 18,
+            "Stop": 18
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 16,
+        "Stop": 19
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "// ---- Enum definition ----",
+            "Single": true,
+            "Position": {
+              "Start": 15,
+              "Stop": 15
+            }
+          }
+        ],
+        "Right": null
+      }
+    }
+  ],
+  "Types": [
+    {
+      "Name": "UserReq",
+      "Redefined": null,
+      "GenericName": null,
+      "Fields": [
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "userId",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 23,
+            "Stop": 23
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 22,
+        "Stop": 24
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "// ---- Type definition ----",
+            "Single": true,
+            "Position": {
+              "Start": 21,
+              "Stop": 21
+            }
+          }
+        ],
+        "Right": null
+      }
+    },
+    {
+      "Name": "User",
+      "Redefined": null,
+      "GenericName": null,
+      "Fields": [
+        {
+          "FieldType": "any",
+          "Name": "name",
+          "Default": "\"anonymous\"",
+          "Annotations": [
+            {
+              "Key": "go.type",
+              "Value": "\"*string\"",
+              "Position": {
+                "Start": 32,
+                "Stop": 32
+              },
+              "Comments": {
+                "Top": null,
+                "Right": null
+              }
+            },
+            {
+              "Key": "a",
+              "Value": "\"123\"",
+              "Position": {
+                "Start": 32,
+                "Stop": 32
+              },
+              "Comments": {
+                "Top": null,
+                "Right": null
+              }
+            }
+          ],
+          "Position": {
+            "Start": 32,
+            "Stop": 32
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "int",
+            "Optional": true
+          },
+          "Name": "age",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 33,
+            "Stop": 33
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": "binary",
+          "Name": "avatar",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 34,
+            "Stop": 34
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "Address",
+            "Optional": true
+          },
+          "Name": "",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 36,
+            "Stop": 36
+          },
+          "Comments": {
+            "Top": [
+              {
+                "Text": "// embedded type",
+                "Single": true,
+                "Position": {
+                  "Start": 35,
+                  "Stop": 35
+                }
+              }
+            ],
+            "Right": {
+              "Text": "/* embedded */",
+              "Single": false,
+              "Position": {
+                "Start": 36,
+                "Stop": 36
+              }
+            }
+          }
+        }
+      ],
+      "Position": {
+        "Start": 31,
+        "Stop": 37
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "//---- User definition 1 ----",
+            "Single": true,
+            "Position": {
+              "Start": 26,
+              "Stop": 26
+            }
+          },
+          {
+            "Text": "/*\n * User info\n */",
+            "Single": false,
+            "Position": {
+              "Start": 27,
+              "Stop": 29
+            }
+          },
+          {
+            "Text": "//---- User definition 2 ----",
+            "Single": true,
+            "Position": {
+              "Start": 30,
+              "Stop": 30
+            }
+          }
+        ],
+        "Right": null
+      }
+    },
+    {
+      "Name": "Address",
+      "Redefined": null,
+      "GenericName": null,
+      "Fields": [
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "street",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 40,
+            "Stop": 40
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "city",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 41,
+            "Stop": 41
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "country",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 42,
+            "Stop": 42
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 39,
+        "Stop": 43
+      },
+      "Comments": {
+        "Top": null,
+        "Right": null
+      }
+    },
+    {
+      "Name": "Response",
+      "Redefined": null,
+      "GenericName": "T",
+      "Fields": [
+        {
+          "FieldType": {
+            "Name": "int",
+            "Optional": false
+          },
+          "Name": "errno",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 47,
+            "Stop": 47
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "errmsg",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 48,
+            "Stop": 48
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "T",
+            "Optional": false
+          },
+          "Name": "data",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 49,
+            "Stop": 49
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 46,
+        "Stop": 50
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "// Generic type definition",
+            "Single": true,
+            "Position": {
+              "Start": 45,
+              "Stop": 45
+            }
+          }
+        ],
+        "Right": null
+      }
+    },
+    {
+      "Name": "UserResponse",
+      "Redefined": {
+        "Name": "Response",
+        "GenericType": {
+          "Item": {
+            "Name": "User",
+            "Optional": true
+          }
+        }
+      },
+      "GenericName": null,
+      "Fields": null,
+      "Position": {
+        "Start": 60,
+        "Stop": 60
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "// ---- type re-definition ----",
+            "Single": true,
+            "Position": {
+              "Start": 59,
+              "Stop": 59
+            }
+          }
+        ],
+        "Right": null
+      }
+    }
+  ],
+  "RPCs": [
+    {
+      "Name": "GetUser",
+      "Request": "UserReq",
+      "Response": {
+        "Stream": false,
+        "TypeName": "UserResponse",
+        "UserType": null
+      },
+      "Annotations": [
+        {
+          "Key": "go.type",
+          "Value": "\"*string\"",
+          "Position": {
+            "Start": 54,
+            "Stop": 54
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "Key": "method",
+          "Value": "\"GET\"",
+          "Position": {
+            "Start": 55,
+            "Stop": 55
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "Key": "path",
+          "Value": "\"/user\"",
+          "Position": {
+            "Start": 56,
+            "Stop": 56
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 53,
+        "Stop": 57
+      },
+      "Comments": {
+        "Top": [
+          {
+            "Text": "// ---- RPC definitions ----",
+            "Single": true,
+            "Position": {
+              "Start": 52,
+              "Stop": 52
+            }
+          }
+        ],
+        "Right": null
+      }
+    }
+  ]
+}
