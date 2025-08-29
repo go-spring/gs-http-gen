@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-spring/gs-gen/gen"
-	"github.com/go-spring/gs-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/gen"
+	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/spf13/cobra"
 )
 
@@ -15,18 +15,24 @@ func main() {
 	var (
 		version  bool
 		language string
-		genMode  string
+		server   bool
+		client   bool
+		output   string
+		pkgName  string
 	)
 
 	root := &cobra.Command{
-		Use:          "gs-gen",
+		Use:          "gs-http-gen",
 		Short:        "A http code gen tool",
 		SilenceUsage: true,
 	}
 
 	root.Flags().BoolVar(&version, "version", false, "show version")
-	root.Flags().StringVar(&language, "lang", "go", "language, go/php/java")
-	root.Flags().StringVar(&genMode, "mode", "server", "server, client, type")
+	root.Flags().StringVar(&language, "language", "go", "go/php/java")
+	root.Flags().BoolVar(&server, "server", false, "gen server code")
+	root.Flags().BoolVar(&client, "client", false, "gen client code")
+	root.Flags().StringVar(&output, "output", ".", "output directory")
+	root.Flags().StringVar(&pkgName, "package", "proto", "package name")
 
 	root.RunE = func(cmd *cobra.Command, args []string) error {
 		if version {
@@ -35,15 +41,12 @@ func main() {
 			return nil
 		}
 		config := &generator.Config{
-			ProjectDir: ".",
-			Version:    Version,
-		}
-		switch genMode {
-		case "server":
-			config.Server = true
-		case "client":
-			config.Client = true
-		default:
+			IDLDir:  ".",
+			OutDir:  output,
+			Version: Version,
+			Server:  server,
+			Client:  client,
+			PkgName: pkgName,
 		}
 		return gen.Gen(language, config)
 	}

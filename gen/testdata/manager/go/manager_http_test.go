@@ -1,4 +1,4 @@
-package proto
+package go_test
 
 import (
 	"context"
@@ -7,13 +7,15 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
 )
 
 type MyManagerServer struct{}
 
-func (m *MyManagerServer) GetManager(ctx context.Context, req *ManagerReq) *ResponseManager {
-	res := NewResponseManager()
-	res.SetData(&Manager{
+func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.ResponseManager {
+	res := proto.NewResponseManager()
+	res.SetData(&proto.Manager{
 		Name: "Jim",
 	})
 	return res
@@ -21,7 +23,7 @@ func (m *MyManagerServer) GetManager(ctx context.Context, req *ManagerReq) *Resp
 
 func TestManager(t *testing.T) {
 	mux := http.NewServeMux()
-	InitRouter(mux, &MyManagerServer{})
+	proto.InitRouter(mux, &MyManagerServer{})
 	go func() {
 		fmt.Println(http.ListenAndServe(":9191", mux))
 	}()

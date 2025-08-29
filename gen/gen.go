@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-spring/gs-gen/gen/generator"
-	"github.com/go-spring/gs-gen/gen/generator/golang"
-	"github.com/go-spring/gs-gen/lib/parser"
+	"github.com/go-spring/gs-http-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/gen/generator/golang"
+	"github.com/go-spring/gs-http-gen/lib/parser"
 )
 
 func init() {
@@ -20,7 +20,7 @@ func Gen(language string, config *generator.Config) error {
 	if !ok {
 		return fmt.Errorf("unsupported language: %s", language)
 	}
-	files, meta, err := parse(config.ProjectDir)
+	files, meta, err := parse(config.IDLDir)
 	if err != nil {
 		return err
 	}

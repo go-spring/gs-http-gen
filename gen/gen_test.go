@@ -2,13 +2,11 @@ package gen
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
-	"github.com/go-spring/gs-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/gen/generator"
 )
 
 func TestGen(t *testing.T) {
@@ -42,36 +40,19 @@ func testProject(t *testing.T, dir string) {
 
 	idlDir := filepath.Join(dir, "idl")
 	for lang, c := range m {
-		projectDir := filepath.Join(dir, lang)
-		dstDir := filepath.Join(projectDir, "server")
-		copyFiles(t, idlDir, dstDir)
+		outDir := filepath.Join(dir, lang, "proto")
+		os.RemoveAll(outDir)
+		os.Mkdir(outDir, os.ModePerm)
 		config := &generator.Config{
-			ProjectDir: dstDir,
-			Version:    "v0.0.0",
-			Server:     c.Server,
-			Client:     c.Client,
+			IDLDir:  idlDir,
+			OutDir:  outDir,
+			Version: "v0.0.0",
+			Server:  c.Server,
+			Client:  c.Client,
+			PkgName: "proto",
 		}
 		if err = Gen(lang, config); err != nil {
 			t.Fatal(err)
 		}
-	}
-}
-
-func copyFiles(t *testing.T, srcDir, dstDir string) {
-	srcDir, err := filepath.Abs(srcDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	dstDir, err = filepath.Abs(dstDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	srcDir = filepath.Join(srcDir, "*")
-
-	script := fmt.Sprintf("cp %s %s", srcDir, dstDir)
-	cmd := exec.Command("/bin/bash", "-c", script)
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("%s: %s", err, b)
 	}
 }

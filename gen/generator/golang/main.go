@@ -3,8 +3,8 @@ package golang
 import (
 	"sort"
 
-	"github.com/go-spring/gs-gen/gen/generator"
-	"github.com/go-spring/gs-gen/lib/parser"
+	"github.com/go-spring/gs-http-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/lib/parser"
 )
 
 type Context struct {

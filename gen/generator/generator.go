@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-spring/gs-gen/lib/parser"
+	"github.com/go-spring/gs-http-gen/lib/parser"
 )
 
 type Config struct {
-	ProjectDir string
-	Version    string
-	Server     bool
-	Client     bool
+	IDLDir  string
+	OutDir  string
+	Version string
+	Server  bool
+	Client  bool
+	PkgName string
 }
 
 var generators = map[string]Generator{}
