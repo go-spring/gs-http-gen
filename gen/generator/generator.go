@@ -11,6 +11,7 @@ type Config struct {
 	ProjectDir string
 	Version    string
 	Server     bool
+	Client     bool
 }
 
 var generators = map[string]Generator{}

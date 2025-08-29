@@ -44,10 +44,13 @@ func (g *Generator) Gen(config *generator.Config, files map[string]parser.Docume
 		if err := g.genServer(ctx, rpcs); err != nil {
 			return err
 		}
-	} else {
+	}
+
+	if config.Client {
 		if err := g.genClient(ctx, rpcs); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }

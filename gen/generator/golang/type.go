@@ -22,9 +22,6 @@ import (
 	"fmt"
 )
 
-{{- $Server := .Server -}}
-{{"\n"}}
-
 {{ range $e := .Enums }}
 	type {{$e.Name}} int32
 
@@ -103,7 +100,6 @@ func (g *Generator) genType(ctx Context, fileName string, doc parser.Document) e
 	buf := &bytes.Buffer{}
 	err = typeTmpl.Execute(buf, map[string]interface{}{
 		"Package": "proto",
-		"Server":  ctx.config.Server,
 		"Enums":   doc.Enums,
 		"Structs": types,
 	})

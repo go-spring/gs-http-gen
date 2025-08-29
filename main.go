@@ -14,8 +14,8 @@ const Version = "v0.0.1"
 func main() {
 	var (
 		version  bool
-		server   bool
 		language string
+		genMode  string
 	)
 
 	root := &cobra.Command{
@@ -25,8 +25,8 @@ func main() {
 	}
 
 	root.Flags().BoolVar(&version, "version", false, "show version")
-	root.Flags().BoolVar(&server, "server", false, "gen server code or not")
 	root.Flags().StringVar(&language, "lang", "go", "language, go/php/java")
+	root.Flags().StringVar(&genMode, "mode", "server", "server, client, type")
 
 	root.RunE = func(cmd *cobra.Command, args []string) error {
 		if version {
@@ -36,8 +36,14 @@ func main() {
 		}
 		config := &generator.Config{
 			ProjectDir: ".",
-			Server:     server,
 			Version:    Version,
+		}
+		switch genMode {
+		case "server":
+			config.Server = true
+		case "client":
+			config.Client = true
+		default:
 		}
 		return gen.Gen(language, config)
 	}

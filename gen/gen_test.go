@@ -34,6 +34,7 @@ func testProject(t *testing.T, dir string) {
 
 	var m map[string]struct {
 		Server bool
+		Client bool
 	}
 	if err = json.Unmarshal(b, &m); err != nil {
 		t.Fatal(err)
@@ -42,18 +43,16 @@ func testProject(t *testing.T, dir string) {
 	idlDir := filepath.Join(dir, "idl")
 	for lang, c := range m {
 		projectDir := filepath.Join(dir, lang)
-
-		if c.Server {
-			dstDir := filepath.Join(projectDir, "server")
-			copyFiles(t, idlDir, dstDir)
-			config := &generator.Config{
-				ProjectDir: dstDir,
-				Version:    "v0.0.0",
-				Server:     true,
-			}
-			if err = Gen(lang, config); err != nil {
-				t.Fatal(err)
-			}
+		dstDir := filepath.Join(projectDir, "server")
+		copyFiles(t, idlDir, dstDir)
+		config := &generator.Config{
+			ProjectDir: dstDir,
+			Version:    "v0.0.0",
+			Server:     c.Server,
+			Client:     c.Client,
+		}
+		if err = Gen(lang, config); err != nil {
+			t.Fatal(err)
 		}
 	}
 }
