@@ -81,7 +81,7 @@ func (g *Generator) genServer(ctx Context, rpcs []*parser.RPC) error {
 	buf := &bytes.Buffer{}
 	err = serverTmpl.Execute(buf, map[string]interface{}{
 		"Package": ctx.config.PkgName,
-		"Service": generator.ToPascal(ctx.meta.Name),
+		"Service": ctx.meta.Name,
 		"RPCs":    newRPCs,
 	})
 	if err != nil {
