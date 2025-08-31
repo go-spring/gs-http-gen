@@ -110,7 +110,6 @@ rpc_req
 // Either an identifier, generic form (Type<T>), or stream<T>
 rpc_resp
     : IDENTIFIER
-    | IDENTIFIER LESS_THAN user_type GREATER_THAN
     | TYPE_STREAM LESS_THAN user_type GREATER_THAN
     ;
 

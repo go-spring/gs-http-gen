@@ -350,15 +350,19 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Handle response type
-	r.Response = RespType{
-		Stream:   ctx.Rpc_resp().TYPE_STREAM() != nil,
-		TypeName: ctx.Rpc_resp().IDENTIFIER().GetText(),
-	}
-	if ctx.Rpc_resp().LESS_THAN() != nil {
+	if ctx.Rpc_resp().TYPE_STREAM() != nil {
 		u := ctx.Rpc_resp().User_type()
-		r.Response.UserType = &UserType{
-			Name:     u.IDENTIFIER().GetText(),
-			Optional: u.QUESTION() != nil,
+		r.Response = RespType{
+			Stream: true,
+			UserType: &UserType{
+				Name:     u.IDENTIFIER().GetText(),
+				Optional: u.QUESTION() != nil,
+			},
+		}
+	} else {
+		r.Response = RespType{
+			Stream:   false,
+			TypeName: ctx.Rpc_resp().IDENTIFIER().GetText(),
 		}
 	}
 
