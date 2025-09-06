@@ -59,7 +59,13 @@ import (
 	}
 
 	func New{{$s.Name}}() *{{$s.Name}} {
-		return &{{$s.Name}}{}
+		return &{{$s.Name}}{
+			{{- range $f := $s.Fields}}
+				{{- if $f.Default}}
+			{{$f.Name}}: {{$f.Default}},
+				{{- end}}
+			{{- end}}
+		}
 	}
 
 	func (x *{{$s.Name}}) New() any {
@@ -218,63 +224,44 @@ func expandType(ctx Context, t *parser.Type) (Type, error) {
 		Name: generator.ToPascal(t.Name),
 	}
 	for _, f := range t.Fields {
-		field := TypeField{
-			Name:    generator.ToPascal(f.Name),
-			Default: f.Default,
-		}
-		{
-			fieldTag, err := genFieldTag(f)
+
+		// embed type
+		if ft, ok := f.FieldType.(parser.EmbedType); ok {
+			et := generator.GetType(ctx.files, ft.Name)
+			if et == nil {
+				return Type{}, fmt.Errorf("type %s not found", ft.Name)
+			}
+			rt, err := expandType(ctx, et)
 			if err != nil {
 				return Type{}, err
 			}
-			field.Tag = fieldTag
+			for _, field := range rt.Fields {
+				r.Fields = append(r.Fields, field)
+			}
+			continue
 		}
-		switch ft := f.FieldType.(type) {
-		case parser.EmbedType:
-		case parser.AnyType:
-			a, ok := generator.GetAnnotation(f.Annotations, "go.type")
-			if !ok {
-				return Type{}, fmt.Errorf("annotation go.type not found")
-			}
-			if a.Value == nil {
-				return Type{}, fmt.Errorf("annotation go.type value is nil")
-			}
-			field.Type = *a.Value
-		case parser.BaseType:
-			var typeName string
-			switch ft.Name {
-			case "string":
-				typeName = "string"
-			case "int":
-				typeName = "int64"
-			case "float":
-				typeName = "float64"
-			case "bool":
-				typeName = "bool"
-			default: // for linter
-				return Type{}, fmt.Errorf("unknown base type: %s", ft.Name)
-			}
-			if ft.Optional {
-				typeName = "*" + typeName
-			}
-			a, ok := generator.GetAnnotation(f.Annotations, "go.type")
-			if ok {
-				if a.Value == nil {
-					return Type{}, fmt.Errorf("annotation go.type value is nil")
-				}
-				typeName = *a.Value
-			}
-			field.Type = typeName
-		case parser.UserType:
-			field.Type = generator.ToPascal(ft.Name)
-			if ft.Optional {
-				field.Type = "*" + field.Type
-			}
-		case parser.BinaryType:
-		case parser.ListType:
-		case parser.MapType:
+
+		fieldTag, err := genFieldTag(f)
+		if err != nil {
+			return Type{}, err
 		}
-		r.Fields = append(r.Fields, field)
+
+		typeName, err := getTypeName(f.FieldType, f.Annotations)
+		if err != nil {
+			return Type{}, err
+		}
+
+		defVal, err := genDefault(typeName, f.Default)
+		if err != nil {
+			return Type{}, err
+		}
+
+		r.Fields = append(r.Fields, TypeField{
+			Name:    generator.ToPascal(f.Name),
+			Default: defVal,
+			Tag:     fieldTag,
+			Type:    typeName,
+		})
 	}
 	return r, nil
 }
@@ -289,4 +276,116 @@ func genFieldTag(f parser.TypeField) (string, error) {
 	}
 	tag := fmt.Sprintf("`json:\"%s\"`", json)
 	return tag, nil
+}
+
+func getTypeName(t parser.TypeDefinition, annotations []parser.Annotation) (typeName string, err error) {
+
+	a, ok := generator.GetAnnotation(annotations, "go.type")
+	if ok && a.Value != nil {
+		return *a.Value, nil
+	}
+
+	switch ft := t.(type) {
+	case parser.AnyType:
+		return "", fmt.Errorf("any type need go.type annotation")
+	case parser.BaseType:
+		switch ft.Name {
+		case "string":
+			typeName = "string"
+		case "int":
+			typeName = "int64"
+		case "float":
+			typeName = "float64"
+		case "bool":
+			typeName = "bool"
+		default: // for linter
+			return "", fmt.Errorf("unknown base type: %s", ft.Name)
+		}
+		if ft.Optional {
+			typeName = "*" + typeName
+		}
+		return typeName, nil
+	case parser.UserType:
+		typeName = generator.ToPascal(ft.Name)
+		if ft.Optional {
+			typeName = "*" + typeName
+		}
+		return typeName, nil
+	case parser.ListType:
+		typeName, err = getTypeName(ft.Item, nil)
+		if err != nil {
+			return "", err
+		}
+		typeName = "[]" + typeName
+		return typeName, nil
+	case parser.MapType:
+		typeName, err = getTypeName(ft.Value, nil)
+		if err != nil {
+			return "", err
+		}
+		typeName = "map[" + ft.Key + "]" + typeName
+		return typeName, nil
+	case parser.BinaryType:
+	default: // for linter
+	}
+	return "", fmt.Errorf("unknown type: %s", t.Text())
+}
+
+func genDefault(typeName string, v *string) (defVal *string, err error) {
+	if v == nil {
+		return
+	}
+	switch strings.TrimPrefix(typeName, "*") {
+	case "bool":
+		defVal = v
+	case "int":
+		s := "int(" + *v + ")"
+		defVal = &s
+	case "int8":
+		s := "int8(" + *v + ")"
+		defVal = &s
+	case "int16":
+		s := "int16(" + *v + ")"
+		defVal = &s
+	case "int32":
+		s := "int32(" + *v + ")"
+		defVal = &s
+	case "int64":
+		s := "int64(" + *v + ")"
+		defVal = &s
+	case "uint":
+		s := "uint(" + *v + ")"
+		defVal = &s
+	case "uint8":
+		s := "uint8(" + *v + ")"
+		defVal = &s
+	case "uint16":
+		s := "uint16(" + *v + ")"
+		defVal = &s
+	case "uint32":
+		s := "uint32(" + *v + ")"
+		defVal = &s
+	case "uint64":
+		s := "uint64(" + *v + ")"
+		defVal = &s
+	case "float32":
+		s := "float32(" + *v + ")"
+		defVal = &s
+	case "float64":
+		s := "float64(" + *v + ")"
+		defVal = &s
+	case "string":
+		defVal = v
+	default:
+		ss := strings.Split(*v, ".")
+		if len(ss) == 1 {
+			defVal = v
+		} else if len(ss) == 2 {
+			s := generator.ToPascal(ss[0]) + "_" + ss[1]
+			defVal = &s
+		} else {
+			return nil, fmt.Errorf("unknown type: %s", typeName)
+		}
+	}
+	return
 }

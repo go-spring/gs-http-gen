@@ -8,7 +8,7 @@ enum ErrCode {
 }
 
 type Response<T> {
-    ErrCode errno
+    ErrCode errno = ErrCode.PARAM_ERROR
     string errmsg
     T data
 }
@@ -20,6 +20,12 @@ type ManagerReq {
 type Manager {
     string name
     int? age
+    Address
+}
+
+type Address {
+    string city
+    string? street
 }
 
 rpc GetManager(ManagerReq) ResponseManager {

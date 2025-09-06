@@ -62,8 +62,10 @@ func (p *ManagerReq) String() string {
 }
 
 type Manager struct {
-	Name string `json:"name"`
-	Age  *int64 `json:"age"`
+	Name   string  `json:"name"`
+	Age    *int64  `json:"age"`
+	City   string  `json:"city"`
+	Street *string `json:"street"`
 }
 
 func NewManager() *Manager {
@@ -100,11 +102,83 @@ func (x *Manager) SetAge(v *int64) {
 	}
 }
 
+func (x *Manager) GetCity() (r string) {
+	if x != nil {
+		return x.City
+	}
+	return r
+}
+
+func (x *Manager) SetCity(v string) {
+	if x != nil {
+		x.City = v
+	}
+}
+
+func (x *Manager) GetStreet() (r *string) {
+	if x != nil {
+		return x.Street
+	}
+	return r
+}
+
+func (x *Manager) SetStreet(v *string) {
+	if x != nil {
+		x.Street = v
+	}
+}
+
 func (p *Manager) String() string {
 	if p == nil {
 		return "<nil>"
 	}
 	return fmt.Sprintf("Manager(%+v)", *p)
+}
+
+type Address struct {
+	City   string  `json:"city"`
+	Street *string `json:"street"`
+}
+
+func NewAddress() *Address {
+	return &Address{}
+}
+
+func (x *Address) New() any {
+	return NewAddress()
+}
+
+func (x *Address) GetCity() (r string) {
+	if x != nil {
+		return x.City
+	}
+	return r
+}
+
+func (x *Address) SetCity(v string) {
+	if x != nil {
+		x.City = v
+	}
+}
+
+func (x *Address) GetStreet() (r *string) {
+	if x != nil {
+		return x.Street
+	}
+	return r
+}
+
+func (x *Address) SetStreet(v *string) {
+	if x != nil {
+		x.Street = v
+	}
+}
+
+func (p *Address) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Address(%+v)", *p)
 }
 
 type ResponseManager struct {
@@ -114,7 +188,9 @@ type ResponseManager struct {
 }
 
 func NewResponseManager() *ResponseManager {
-	return &ResponseManager{}
+	return &ResponseManager{
+		Errno: ErrCode_PARAM_ERROR,
+	}
 }
 
 func (x *ResponseManager) New() any {
