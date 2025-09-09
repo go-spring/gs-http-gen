@@ -4,6 +4,7 @@ go 1.24
 
 require (
 	github.com/antlr4-go/antlr/v4 v4.13.1
+	github.com/go-playground/form/v4 v4.2.1
 	github.com/spf13/cobra v1.9.1
 )
 

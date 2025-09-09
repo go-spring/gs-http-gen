@@ -4,50 +4,30 @@ package proto
 
 import (
 	"context"
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
+// ManagerServer defines the interface that service must implemented.
 type ManagerServer interface {
-	GetManager(context.Context, *ManagerReq) *ResponseManager
+	// Create a new manager
+	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
+	// Delete a manager
+	DeleteManager(context.Context, *ManagerReq) *DeleteManagerResp
+	// Get manager by ID
+	GetManager(context.Context, *ManagerReq) *GetManagerResp
+	// List managers with pagination
+	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
+	Stream(context.Context, *StreamReq, chan<- *StreamResp)
+	// Update manager info
+	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
 }
 
+// InitRouter registers the service handlers into the given *http.ServeMux.
 func InitRouter(mux *http.ServeMux, server ManagerServer) {
-	mux.HandleFunc("GET /user", JSON(server.GetManager))
-}
-
-func ReadRequest(r *http.Request, i interface{}) error {
-	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-	if len(b) == 0 {
-		return nil
-	}
-	return json.Unmarshal(b, i)
-}
-
-func WriteResponse(w http.ResponseWriter, i interface{}) {
-	b, err := json.Marshal(i)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if _, err = w.Write(b); err != nil {
-		return
-	}
-}
-
-func JSON[Req interface{ New() any }, Resp any](h func(context.Context, Req) Resp) http.HandlerFunc {
-	var x Req
-	return func(w http.ResponseWriter, r *http.Request) {
-		req := x.New().(Req)
-		if err := ReadRequest(r, req); err != nil {
-			WriteResponse(w, err)
-			return
-		}
-		res := h(r.Context(), req)
-		WriteResponse(w, res)
-	}
+	mux.HandleFunc("POST /managers", HandleJSON(server.CreateManager))
+	mux.HandleFunc("DELETE /managers/{id}", HandleJSON(server.DeleteManager))
+	mux.HandleFunc("GET /managers/{id}", HandleJSON(server.GetManager))
+	mux.HandleFunc("GET /managers/page", HandleJSON(server.ListManagersByPage))
+	mux.HandleFunc("GET /stream", HandleStream(server.Stream))
+	mux.HandleFunc("PUT /managers/{id}", HandleJSON(server.UpdateManager))
 }

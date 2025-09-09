@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 The Go-Spring Authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package main
 
 import (
@@ -9,44 +25,49 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const Version = "v0.0.1"
+// ToolVersion defines the current version of this code generation tool.
+const ToolVersion = "v0.0.1"
 
 func main() {
 	var (
-		version  bool
-		language string
-		server   bool
-		client   bool
-		output   string
-		pkgName  string
+		showVersion  bool
+		language     string
+		outputDir    string
+		packageName  string
+		enableServer bool
+		enableClient bool
 	)
 
 	root := &cobra.Command{
-		Use:          "gs-http-gen",
-		Short:        "A http code gen tool",
+		Use:   "gs-http-gen",
+		Short: "A code generation tool for HTTP services based on IDL files",
+		Long: `gs-http-gen is a code generation tool that reads service definitions 
+from IDL files and generates server and/or client code in Go (default), 
+PHP, Java, or other supported languages.`,
 		SilenceUsage: true,
 	}
 
-	root.Flags().BoolVar(&version, "version", false, "show version")
-	root.Flags().StringVar(&language, "language", "go", "go/php/java")
-	root.Flags().BoolVar(&server, "server", false, "gen server code")
-	root.Flags().BoolVar(&client, "client", false, "gen client code")
-	root.Flags().StringVar(&output, "output", ".", "output directory")
-	root.Flags().StringVar(&pkgName, "package", "proto", "package name")
+	root.Flags().BoolVar(&showVersion, "version", false, "Display the version of gs-http-gen tool")
+	root.Flags().StringVar(&language, "language", "go", "Target language for code generation (go, php, java, etc.)")
+	root.Flags().BoolVar(&enableServer, "server", false, "Generate server-side code")
+	root.Flags().BoolVar(&enableClient, "client", false, "Generate client-side code")
+	root.Flags().StringVar(&outputDir, "output", ".", "Output directory for generated code (default: current directory)")
+	root.Flags().StringVar(&packageName, "package", "proto", "Package name for generated code (Go only)")
 
 	root.RunE = func(cmd *cobra.Command, args []string) error {
-		if version {
+		if showVersion {
 			fmt.Println(root.Short)
-			fmt.Println(Version)
+			fmt.Println(ToolVersion)
 			return nil
 		}
+
 		config := &generator.Config{
-			IDLDir:  ".",
-			OutDir:  output,
-			Version: Version,
-			Server:  server,
-			Client:  client,
-			PkgName: pkgName,
+			IDLSrcDir:    ".",
+			OutputDir:    outputDir,
+			EnableServer: enableServer,
+			EnableClient: enableClient,
+			PackageName:  packageName,
+			ToolVersion:  ToolVersion,
 		}
 		return gen.Gen(language, config)
 	}

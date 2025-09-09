@@ -1,4 +1,20 @@
-package parser
+/*
+ * Copyright 2025 The Go-Spring Authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package tidl
 
 import (
 	"sort"
@@ -137,7 +153,7 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 
 // dumpConst converts a Const node into its textual representation,
 // including its top comments and right-side comment if present.
-func dumpConst(c *Const) string {
+func dumpConst(c Const) string {
 	var sb strings.Builder
 	for _, s := range c.Comments.Top {
 		sb.WriteString(s.Text)
@@ -158,7 +174,7 @@ func dumpConst(c *Const) string {
 
 // dumpEnum converts an Enum node into its textual representation,
 // including field comments and inline comments.
-func dumpEnum(e *Enum) string {
+func dumpEnum(e Enum) string {
 	var sb strings.Builder
 	for _, s := range e.Comments.Top {
 		sb.WriteString(s.Text)
@@ -188,7 +204,7 @@ func dumpEnum(e *Enum) string {
 // dumpType converts a Type node into its textual representation,
 // including field definitions, generic parameter (if present),
 // and top-level comments.
-func dumpType(t *Type) string {
+func dumpType(t Type) string {
 	var sb strings.Builder
 	for _, s := range t.Comments.Top {
 		sb.WriteString(s.Text)
@@ -254,7 +270,7 @@ func dumpTypeField(f TypeField, sb *strings.Builder) {
 
 // dumpRPC converts an RPC node into textual representation,
 // including its annotations and comments.
-func dumpRPC(r *RPC) string {
+func dumpRPC(r RPC) string {
 	var sb strings.Builder
 	for _, s := range r.Comments.Top {
 		sb.WriteString(s.Text)

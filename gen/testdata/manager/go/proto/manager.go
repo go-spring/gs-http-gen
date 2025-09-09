@@ -3,77 +3,532 @@
 package proto
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 )
 
+var _ = errors.New
+var _ = strings.Count
+var _ = http.NewServeMux
+
+// years
+const MAX_AGE int64 = 150
+
+const MIN_AGE int64 = 18
+
+const DEFAULT_VIP bool = false
+
+const DEFAULT_ROLE string = "user"
+
+const DEFAULT_PAGE int64 = 1
+
+const DEFAULT_PAGE_SIZE int64 = 20
+
+const MAX_PAGE_SIZE int64 = 100
+
+const SALARY_MIN float64 = 0.0
+
+const SALARY_MAX float64 = 1000000.0
+
+// Standard error codes
 type ErrCode int32
 
 const (
-	ErrCode_ErrOk       ErrCode = 0
-	ErrCode_PARAM_ERROR ErrCode = 1003
+	ErrCode_ERR_OK            ErrCode = 0
+	ErrCode_PARAM_ERROR       ErrCode = 1003
+	ErrCode_NOT_FOUND         ErrCode = 4004
+	ErrCode_PERMISSION_DENIED ErrCode = 4003
+	ErrCode_INTERNAL_ERROR    ErrCode = 5000
 )
 
 var (
-	ErrCode_name = map[int32]string{
-		0:    "ErrOk",
+	ErrCode_name = map[ErrCode]string{
+		0:    "ERR_OK",
 		1003: "PARAM_ERROR",
+		4004: "NOT_FOUND",
+		4003: "PERMISSION_DENIED",
+		5000: "INTERNAL_ERROR",
 	}
-	ErrCode_value = map[string]int32{
-		"ErrOk":       0,
-		"PARAM_ERROR": 1003,
+	ErrCode_value = map[string]ErrCode{
+		"ERR_OK":            0,
+		"PARAM_ERROR":       1003,
+		"NOT_FOUND":         4004,
+		"PERMISSION_DENIED": 4003,
+		"INTERNAL_ERROR":    5000,
 	}
 )
 
-func OneOfErrCode(i int32) bool {
+// ErrCodeAsString wraps ErrCode to encode/decode as a JSON string
+type ErrCodeAsString ErrCode
+
+// MarshalJSON implements custom JSON encoding for the enum as a string
+func (x ErrCodeAsString) MarshalJSON() ([]byte, error) {
+	if s, ok := ErrCode_name[ErrCode(x)]; ok {
+		return []byte(fmt.Sprintf("\"%s\"", s)), nil
+	}
+	return nil, fmt.Errorf("invalid Status: %d", x)
+}
+
+// UnmarshalJSON implements custom JSON decoding for the enum from a string
+func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
+	str := strings.Trim(string(data), "\"")
+	if v, ok := ErrCode_value[str]; ok {
+		*x = ErrCodeAsString(v)
+		return nil
+	}
+	return fmt.Errorf("invalid Status value: %q", str)
+}
+
+// OneOfErrCode is usually used for validation.
+func OneOfErrCode(i ErrCode) bool {
 	_, ok := ErrCode_name[i]
 	return ok
 }
 
-type ManagerReq struct {
-	Id string `json:"id"`
+// Manager seniority levels
+type ManagerLevel int32
+
+const (
+	ManagerLevel_JUNIOR ManagerLevel = 1
+	ManagerLevel_MIDDLE ManagerLevel = 2
+	ManagerLevel_SENIOR ManagerLevel = 3
+)
+
+var (
+	ManagerLevel_name = map[ManagerLevel]string{
+		1: "JUNIOR",
+		2: "MIDDLE",
+		3: "SENIOR",
+	}
+	ManagerLevel_value = map[string]ManagerLevel{
+		"JUNIOR": 1,
+		"MIDDLE": 2,
+		"SENIOR": 3,
+	}
+)
+
+// ManagerLevelAsString wraps ManagerLevel to encode/decode as a JSON string
+type ManagerLevelAsString ManagerLevel
+
+// MarshalJSON implements custom JSON encoding for the enum as a string
+func (x ManagerLevelAsString) MarshalJSON() ([]byte, error) {
+	if s, ok := ManagerLevel_name[ManagerLevel(x)]; ok {
+		return []byte(fmt.Sprintf("\"%s\"", s)), nil
+	}
+	return nil, fmt.Errorf("invalid Status: %d", x)
 }
 
-func NewManagerReq() *ManagerReq {
-	return &ManagerReq{}
+// UnmarshalJSON implements custom JSON decoding for the enum from a string
+func (x *ManagerLevelAsString) UnmarshalJSON(data []byte) error {
+	str := strings.Trim(string(data), "\"")
+	if v, ok := ManagerLevel_value[str]; ok {
+		*x = ManagerLevelAsString(v)
+		return nil
+	}
+	return fmt.Errorf("invalid Status value: %q", str)
 }
 
-func (x *ManagerReq) New() any {
-	return NewManagerReq()
+// OneOfManagerLevel is usually used for validation.
+func OneOfManagerLevel(i ManagerLevel) bool {
+	_, ok := ManagerLevel_name[i]
+	return ok
 }
 
-func (x *ManagerReq) GetId() (r string) {
+// Company departments
+type Department int32
+
+const (
+	Department_ENGINEERING Department = 1
+	Department_MARKETING   Department = 2
+	Department_SALES       Department = 3
+	Department_HR          Department = 4
+	Department_FINANCE     Department = 5
+)
+
+var (
+	Department_name = map[Department]string{
+		1: "ENGINEERING",
+		2: "MARKETING",
+		3: "SALES",
+		4: "HR",
+		5: "FINANCE",
+	}
+	Department_value = map[string]Department{
+		"ENGINEERING": 1,
+		"MARKETING":   2,
+		"SALES":       3,
+		"HR":          4,
+		"FINANCE":     5,
+	}
+)
+
+// DepartmentAsString wraps Department to encode/decode as a JSON string
+type DepartmentAsString Department
+
+// MarshalJSON implements custom JSON encoding for the enum as a string
+func (x DepartmentAsString) MarshalJSON() ([]byte, error) {
+	if s, ok := Department_name[Department(x)]; ok {
+		return []byte(fmt.Sprintf("\"%s\"", s)), nil
+	}
+	return nil, fmt.Errorf("invalid Status: %d", x)
+}
+
+// UnmarshalJSON implements custom JSON decoding for the enum from a string
+func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
+	str := strings.Trim(string(data), "\"")
+	if v, ok := Department_value[str]; ok {
+		*x = DepartmentAsString(v)
+		return nil
+	}
+	return fmt.Errorf("invalid Status value: %q", str)
+}
+
+// OneOfDepartment is usually used for validation.
+func OneOfDepartment(i Department) bool {
+	_, ok := Department_name[i]
+	return ok
+}
+
+type PageReq struct {
+	Page int64 `json:"page" query:"page"`
+	Size int64 `json:"Size" query:"size"`
+}
+
+// NewPageReq creates a new instance of the struct and sets default values if defined
+func NewPageReq() *PageReq {
+	return &PageReq{
+		Page: int64(DEFAULT_PAGE),
+		Size: int64(DEFAULT_PAGE_SIZE),
+	}
+}
+
+// New implements the Object interface
+func (x *PageReq) New() any {
+	return NewPageReq()
+}
+
+// GetPage returns the value of Page
+func (x *PageReq) GetPage() (r int64) {
+	if x != nil {
+		return x.Page
+	}
+	return r
+}
+
+// SetPage sets the value of Page
+func (x *PageReq) SetPage(v int64) {
+	if x != nil {
+		x.Page = v
+	}
+}
+
+// GetSize returns the value of Size
+func (x *PageReq) GetSize() (r int64) {
+	if x != nil {
+		return x.Size
+	}
+	return r
+}
+
+// SetSize sets the value of Size
+func (x *PageReq) SetSize(v int64) {
+	if x != nil {
+		x.Size = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *PageReq) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{
+		{"PageReq.Page", "query", "page", &x.Page},
+		{"PageReq.Size", "query", "size", &x.Size},
+	})
+}
+
+// Validate checks field values using generated validation expressions
+func (x *PageReq) Validate() error {
+	if !(x.Page >= 1) {
+		return errors.New("validate failed on PageReq.Page")
+	}
+	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
+		return errors.New("validate failed on PageReq.Size")
+	}
+	return nil
+}
+
+func (x *PageReq) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("PageReq(%+v)", *x)
+}
+
+type Address struct {
+	City       string  `json:"City"`
+	Street     *string `json:"Street,omitempty"`
+	PostalCode *string `json:"PostalCode,omitempty"`
+}
+
+// NewAddress creates a new instance of the struct and sets default values if defined
+func NewAddress() *Address {
+	return &Address{}
+}
+
+// New implements the Object interface
+func (x *Address) New() any {
+	return NewAddress()
+}
+
+// GetCity returns the value of City
+func (x *Address) GetCity() (r string) {
+	if x != nil {
+		return x.City
+	}
+	return r
+}
+
+// SetCity sets the value of City
+func (x *Address) SetCity(v string) {
+	if x != nil {
+		x.City = v
+	}
+}
+
+// GetStreet returns the value of Street
+func (x *Address) GetStreet() (r *string) {
+	if x != nil {
+		return x.Street
+	}
+	return r
+}
+
+// SetStreet sets the value of Street
+func (x *Address) SetStreet(v string) {
+	if x != nil {
+		x.Street = &v
+	}
+}
+
+// GetPostalCode returns the value of PostalCode
+func (x *Address) GetPostalCode() (r *string) {
+	if x != nil {
+		return x.PostalCode
+	}
+	return r
+}
+
+// SetPostalCode sets the value of PostalCode
+func (x *Address) SetPostalCode(v string) {
+	if x != nil {
+		x.PostalCode = &v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *Address) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *Address) Validate() error {
+	return nil
+}
+
+func (x *Address) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Address(%+v)", *x)
+}
+
+type ContactInfo struct {
+	Email   string  `json:"Email"`
+	Phone   *string `json:"Phone,omitempty"`
+	Address Address `json:"Address"`
+}
+
+// NewContactInfo creates a new instance of the struct and sets default values if defined
+func NewContactInfo() *ContactInfo {
+	return &ContactInfo{}
+}
+
+// New implements the Object interface
+func (x *ContactInfo) New() any {
+	return NewContactInfo()
+}
+
+// GetEmail returns the value of Email
+func (x *ContactInfo) GetEmail() (r string) {
+	if x != nil {
+		return x.Email
+	}
+	return r
+}
+
+// SetEmail sets the value of Email
+func (x *ContactInfo) SetEmail(v string) {
+	if x != nil {
+		x.Email = v
+	}
+}
+
+// GetPhone returns the value of Phone
+func (x *ContactInfo) GetPhone() (r *string) {
+	if x != nil {
+		return x.Phone
+	}
+	return r
+}
+
+// SetPhone sets the value of Phone
+func (x *ContactInfo) SetPhone(v string) {
+	if x != nil {
+		x.Phone = &v
+	}
+}
+
+// GetAddress returns the value of Address
+func (x *ContactInfo) GetAddress() (r Address) {
+	if x != nil {
+		return x.Address
+	}
+	return r
+}
+
+// SetAddress sets the value of Address
+func (x *ContactInfo) SetAddress(v Address) {
+	if x != nil {
+		x.Address = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *ContactInfo) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *ContactInfo) Validate() error {
+	if !(Email(x.Email)) {
+		return errors.New("validate failed on ContactInfo.Email")
+	}
+	return nil
+}
+
+func (x *ContactInfo) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ContactInfo(%+v)", *x)
+}
+
+type DepartmentInfo struct {
+	Dept     Department `json:"Dept"`
+	DeptName string     `json:"DeptName"`
+}
+
+// NewDepartmentInfo creates a new instance of the struct and sets default values if defined
+func NewDepartmentInfo() *DepartmentInfo {
+	return &DepartmentInfo{}
+}
+
+// New implements the Object interface
+func (x *DepartmentInfo) New() any {
+	return NewDepartmentInfo()
+}
+
+// GetDept returns the value of Dept
+func (x *DepartmentInfo) GetDept() (r Department) {
+	if x != nil {
+		return x.Dept
+	}
+	return r
+}
+
+// SetDept sets the value of Dept
+func (x *DepartmentInfo) SetDept(v Department) {
+	if x != nil {
+		x.Dept = v
+	}
+}
+
+// GetDeptName returns the value of DeptName
+func (x *DepartmentInfo) GetDeptName() (r string) {
+	if x != nil {
+		return x.DeptName
+	}
+	return r
+}
+
+// SetDeptName sets the value of DeptName
+func (x *DepartmentInfo) SetDeptName(v string) {
+	if x != nil {
+		x.DeptName = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *DepartmentInfo) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *DepartmentInfo) Validate() error {
+	return nil
+}
+
+func (x *DepartmentInfo) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DepartmentInfo(%+v)", *x)
+}
+
+type Manager struct {
+	Id       string               `json:"Id"`
+	Name     string               `json:"Name"`
+	Age      *int64               `json:"Age,omitempty"`
+	Vip      bool                 `json:"Vip"`
+	Salary   float64              `json:"Salary"`
+	Role     string               `json:"Role"`
+	Level    ManagerLevelAsString `json:"Level"`
+	DeptInfo DepartmentInfo       `json:"DeptInfo"`
+	Contact  ContactInfo          `json:"Contact"`
+}
+
+// NewManager creates a new instance of the struct and sets default values if defined
+func NewManager() *Manager {
+	return &Manager{
+		Vip:    DEFAULT_VIP,
+		Salary: float64(0.0),
+		Role:   DEFAULT_ROLE,
+		Level:  ManagerLevelAsString(ManagerLevel_JUNIOR),
+	}
+}
+
+// New implements the Object interface
+func (x *Manager) New() any {
+	return NewManager()
+}
+
+// GetId returns the value of Id
+func (x *Manager) GetId() (r string) {
 	if x != nil {
 		return x.Id
 	}
 	return r
 }
 
-func (x *ManagerReq) SetId(v string) {
+// SetId sets the value of Id
+func (x *Manager) SetId(v string) {
 	if x != nil {
 		x.Id = v
 	}
 }
 
-func (p *ManagerReq) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ManagerReq(%+v)", *p)
-}
-
-type Manager struct {
-	Name string `json:"name"`
-	Age  *int64 `json:"age"`
-}
-
-func NewManager() *Manager {
-	return &Manager{}
-}
-
-func (x *Manager) New() any {
-	return NewManager()
-}
-
+// GetName returns the value of Name
 func (x *Manager) GetName() (r string) {
 	if x != nil {
 		return x.Name
@@ -81,12 +536,14 @@ func (x *Manager) GetName() (r string) {
 	return r
 }
 
+// SetName sets the value of Name
 func (x *Manager) SetName(v string) {
 	if x != nil {
 		x.Name = v
 	}
 }
 
+// GetAge returns the value of Age
 func (x *Manager) GetAge() (r *int64) {
 	if x != nil {
 		return x.Age
@@ -94,75 +551,1203 @@ func (x *Manager) GetAge() (r *int64) {
 	return r
 }
 
-func (x *Manager) SetAge(v *int64) {
+// SetAge sets the value of Age
+func (x *Manager) SetAge(v int64) {
 	if x != nil {
-		x.Age = v
+		x.Age = &v
 	}
 }
 
-func (p *Manager) String() string {
-	if p == nil {
+// GetVip returns the value of Vip
+func (x *Manager) GetVip() (r bool) {
+	if x != nil {
+		return x.Vip
+	}
+	return r
+}
+
+// SetVip sets the value of Vip
+func (x *Manager) SetVip(v bool) {
+	if x != nil {
+		x.Vip = v
+	}
+}
+
+// GetSalary returns the value of Salary
+func (x *Manager) GetSalary() (r float64) {
+	if x != nil {
+		return x.Salary
+	}
+	return r
+}
+
+// SetSalary sets the value of Salary
+func (x *Manager) SetSalary(v float64) {
+	if x != nil {
+		x.Salary = v
+	}
+}
+
+// GetRole returns the value of Role
+func (x *Manager) GetRole() (r string) {
+	if x != nil {
+		return x.Role
+	}
+	return r
+}
+
+// SetRole sets the value of Role
+func (x *Manager) SetRole(v string) {
+	if x != nil {
+		x.Role = v
+	}
+}
+
+// GetLevel returns the value of Level
+func (x *Manager) GetLevel() (r ManagerLevelAsString) {
+	if x != nil {
+		return x.Level
+	}
+	return r
+}
+
+// SetLevel sets the value of Level
+func (x *Manager) SetLevel(v ManagerLevelAsString) {
+	if x != nil {
+		x.Level = v
+	}
+}
+
+// GetDeptInfo returns the value of DeptInfo
+func (x *Manager) GetDeptInfo() (r DepartmentInfo) {
+	if x != nil {
+		return x.DeptInfo
+	}
+	return r
+}
+
+// SetDeptInfo sets the value of DeptInfo
+func (x *Manager) SetDeptInfo(v DepartmentInfo) {
+	if x != nil {
+		x.DeptInfo = v
+	}
+}
+
+// GetContact returns the value of Contact
+func (x *Manager) GetContact() (r ContactInfo) {
+	if x != nil {
+		return x.Contact
+	}
+	return r
+}
+
+// SetContact sets the value of Contact
+func (x *Manager) SetContact(v ContactInfo) {
+	if x != nil {
+		x.Contact = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *Manager) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *Manager) Validate() error {
+	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
+		return errors.New("validate failed on Manager.Name")
+	}
+	if x.Age != nil {
+		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
+			return errors.New("validate failed on Manager.Age")
+		}
+	}
+	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
+		return errors.New("validate failed on Manager.Salary")
+	}
+	return nil
+}
+
+func (x *Manager) String() string {
+	if x == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("Manager(%+v)", *p)
+	return fmt.Sprintf("Manager(%+v)", *x)
 }
 
-type ResponseManager struct {
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
-	Data   *Manager `json:"data"`
+type ManagerReq struct {
+	Id string `json:"Id" path:"id"`
 }
 
-func NewResponseManager() *ResponseManager {
-	return &ResponseManager{}
+// NewManagerReq creates a new instance of the struct and sets default values if defined
+func NewManagerReq() *ManagerReq {
+	return &ManagerReq{}
 }
 
-func (x *ResponseManager) New() any {
-	return NewResponseManager()
+// New implements the Object interface
+func (x *ManagerReq) New() any {
+	return NewManagerReq()
 }
 
-func (x *ResponseManager) GetErrno() (r ErrCode) {
+// GetId returns the value of Id
+func (x *ManagerReq) GetId() (r string) {
+	if x != nil {
+		return x.Id
+	}
+	return r
+}
+
+// SetId sets the value of Id
+func (x *ManagerReq) SetId(v string) {
+	if x != nil {
+		x.Id = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *ManagerReq) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{
+		{"ManagerReq.Id", "path", "id", &x.Id},
+	})
+}
+
+// Validate checks field values using generated validation expressions
+func (x *ManagerReq) Validate() error {
+	return nil
+}
+
+func (x *ManagerReq) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ManagerReq(%+v)", *x)
+}
+
+type CreateManagerReq struct {
+	Name     string         `json:"Name"`
+	Age      *int64         `json:"Age,omitempty"`
+	Vip      bool           `json:"Vip"`
+	Salary   float64        `json:"Salary"`
+	Role     string         `json:"Role"`
+	Level    ManagerLevel   `json:"Level"`
+	DeptInfo DepartmentInfo `json:"DeptInfo"`
+	Contact  ContactInfo    `json:"Contact"`
+}
+
+// NewCreateManagerReq creates a new instance of the struct and sets default values if defined
+func NewCreateManagerReq() *CreateManagerReq {
+	return &CreateManagerReq{
+		Vip:    DEFAULT_VIP,
+		Salary: float64(0.0),
+		Role:   DEFAULT_ROLE,
+		Level:  ManagerLevel_JUNIOR,
+	}
+}
+
+// New implements the Object interface
+func (x *CreateManagerReq) New() any {
+	return NewCreateManagerReq()
+}
+
+// GetName returns the value of Name
+func (x *CreateManagerReq) GetName() (r string) {
+	if x != nil {
+		return x.Name
+	}
+	return r
+}
+
+// SetName sets the value of Name
+func (x *CreateManagerReq) SetName(v string) {
+	if x != nil {
+		x.Name = v
+	}
+}
+
+// GetAge returns the value of Age
+func (x *CreateManagerReq) GetAge() (r *int64) {
+	if x != nil {
+		return x.Age
+	}
+	return r
+}
+
+// SetAge sets the value of Age
+func (x *CreateManagerReq) SetAge(v int64) {
+	if x != nil {
+		x.Age = &v
+	}
+}
+
+// GetVip returns the value of Vip
+func (x *CreateManagerReq) GetVip() (r bool) {
+	if x != nil {
+		return x.Vip
+	}
+	return r
+}
+
+// SetVip sets the value of Vip
+func (x *CreateManagerReq) SetVip(v bool) {
+	if x != nil {
+		x.Vip = v
+	}
+}
+
+// GetSalary returns the value of Salary
+func (x *CreateManagerReq) GetSalary() (r float64) {
+	if x != nil {
+		return x.Salary
+	}
+	return r
+}
+
+// SetSalary sets the value of Salary
+func (x *CreateManagerReq) SetSalary(v float64) {
+	if x != nil {
+		x.Salary = v
+	}
+}
+
+// GetRole returns the value of Role
+func (x *CreateManagerReq) GetRole() (r string) {
+	if x != nil {
+		return x.Role
+	}
+	return r
+}
+
+// SetRole sets the value of Role
+func (x *CreateManagerReq) SetRole(v string) {
+	if x != nil {
+		x.Role = v
+	}
+}
+
+// GetLevel returns the value of Level
+func (x *CreateManagerReq) GetLevel() (r ManagerLevel) {
+	if x != nil {
+		return x.Level
+	}
+	return r
+}
+
+// SetLevel sets the value of Level
+func (x *CreateManagerReq) SetLevel(v ManagerLevel) {
+	if x != nil {
+		x.Level = v
+	}
+}
+
+// GetDeptInfo returns the value of DeptInfo
+func (x *CreateManagerReq) GetDeptInfo() (r DepartmentInfo) {
+	if x != nil {
+		return x.DeptInfo
+	}
+	return r
+}
+
+// SetDeptInfo sets the value of DeptInfo
+func (x *CreateManagerReq) SetDeptInfo(v DepartmentInfo) {
+	if x != nil {
+		x.DeptInfo = v
+	}
+}
+
+// GetContact returns the value of Contact
+func (x *CreateManagerReq) GetContact() (r ContactInfo) {
+	if x != nil {
+		return x.Contact
+	}
+	return r
+}
+
+// SetContact sets the value of Contact
+func (x *CreateManagerReq) SetContact(v ContactInfo) {
+	if x != nil {
+		x.Contact = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *CreateManagerReq) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *CreateManagerReq) Validate() error {
+	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
+		return errors.New("validate failed on CreateManagerReq.Name")
+	}
+	if x.Age != nil {
+		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
+			return errors.New("validate failed on CreateManagerReq.Age")
+		}
+	}
+	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
+		return errors.New("validate failed on CreateManagerReq.Salary")
+	}
+	return nil
+}
+
+func (x *CreateManagerReq) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("CreateManagerReq(%+v)", *x)
+}
+
+type UpdateManagerReq struct {
+	Id       string          `json:"Id" path:"id"`
+	Name     *string         `json:"Name,omitempty"`
+	Age      *int64          `json:"Age,omitempty"`
+	Vip      *bool           `json:"Vip,omitempty"`
+	Salary   *float64        `json:"Salary,omitempty"`
+	Role     *string         `json:"Role,omitempty"`
+	Level    *ManagerLevel   `json:"Level,omitempty"`
+	DeptInfo *DepartmentInfo `json:"DeptInfo,omitempty"`
+	Contact  *ContactInfo    `json:"Contact,omitempty"`
+}
+
+// NewUpdateManagerReq creates a new instance of the struct and sets default values if defined
+func NewUpdateManagerReq() *UpdateManagerReq {
+	return &UpdateManagerReq{}
+}
+
+// New implements the Object interface
+func (x *UpdateManagerReq) New() any {
+	return NewUpdateManagerReq()
+}
+
+// GetId returns the value of Id
+func (x *UpdateManagerReq) GetId() (r string) {
+	if x != nil {
+		return x.Id
+	}
+	return r
+}
+
+// SetId sets the value of Id
+func (x *UpdateManagerReq) SetId(v string) {
+	if x != nil {
+		x.Id = v
+	}
+}
+
+// GetName returns the value of Name
+func (x *UpdateManagerReq) GetName() (r *string) {
+	if x != nil {
+		return x.Name
+	}
+	return r
+}
+
+// SetName sets the value of Name
+func (x *UpdateManagerReq) SetName(v string) {
+	if x != nil {
+		x.Name = &v
+	}
+}
+
+// GetAge returns the value of Age
+func (x *UpdateManagerReq) GetAge() (r *int64) {
+	if x != nil {
+		return x.Age
+	}
+	return r
+}
+
+// SetAge sets the value of Age
+func (x *UpdateManagerReq) SetAge(v int64) {
+	if x != nil {
+		x.Age = &v
+	}
+}
+
+// GetVip returns the value of Vip
+func (x *UpdateManagerReq) GetVip() (r *bool) {
+	if x != nil {
+		return x.Vip
+	}
+	return r
+}
+
+// SetVip sets the value of Vip
+func (x *UpdateManagerReq) SetVip(v bool) {
+	if x != nil {
+		x.Vip = &v
+	}
+}
+
+// GetSalary returns the value of Salary
+func (x *UpdateManagerReq) GetSalary() (r *float64) {
+	if x != nil {
+		return x.Salary
+	}
+	return r
+}
+
+// SetSalary sets the value of Salary
+func (x *UpdateManagerReq) SetSalary(v float64) {
+	if x != nil {
+		x.Salary = &v
+	}
+}
+
+// GetRole returns the value of Role
+func (x *UpdateManagerReq) GetRole() (r *string) {
+	if x != nil {
+		return x.Role
+	}
+	return r
+}
+
+// SetRole sets the value of Role
+func (x *UpdateManagerReq) SetRole(v string) {
+	if x != nil {
+		x.Role = &v
+	}
+}
+
+// GetLevel returns the value of Level
+func (x *UpdateManagerReq) GetLevel() (r *ManagerLevel) {
+	if x != nil {
+		return x.Level
+	}
+	return r
+}
+
+// SetLevel sets the value of Level
+func (x *UpdateManagerReq) SetLevel(v ManagerLevel) {
+	if x != nil {
+		x.Level = &v
+	}
+}
+
+// GetDeptInfo returns the value of DeptInfo
+func (x *UpdateManagerReq) GetDeptInfo() (r *DepartmentInfo) {
+	if x != nil {
+		return x.DeptInfo
+	}
+	return r
+}
+
+// SetDeptInfo sets the value of DeptInfo
+func (x *UpdateManagerReq) SetDeptInfo(v *DepartmentInfo) {
+	if x != nil {
+		x.DeptInfo = v
+	}
+}
+
+// GetContact returns the value of Contact
+func (x *UpdateManagerReq) GetContact() (r *ContactInfo) {
+	if x != nil {
+		return x.Contact
+	}
+	return r
+}
+
+// SetContact sets the value of Contact
+func (x *UpdateManagerReq) SetContact(v *ContactInfo) {
+	if x != nil {
+		x.Contact = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *UpdateManagerReq) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{
+		{"UpdateManagerReq.Id", "path", "id", &x.Id},
+	})
+}
+
+// Validate checks field values using generated validation expressions
+func (x *UpdateManagerReq) Validate() error {
+	if x.Age != nil {
+		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
+			return errors.New("validate failed on UpdateManagerReq.Age")
+		}
+	}
+	if x.Salary != nil {
+		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
+			return errors.New("validate failed on UpdateManagerReq.Salary")
+		}
+	}
+	return nil
+}
+
+func (x *UpdateManagerReq) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UpdateManagerReq(%+v)", *x)
+}
+
+type ListManagersByPageReq struct {
+	Page      int64         `json:"page" query:"page"`
+	Size      int64         `json:"Size" query:"size"`
+	Keyword   *string       `json:"Keyword,omitempty" query:"keyword"`
+	Dept      *Department   `json:"Dept,omitempty" query:"dept"`
+	MinLevel  *ManagerLevel `json:"MinLevel,omitempty" query:"minLevel"`
+	Vip       *bool         `json:"Vip,omitempty" query:"vip"`
+	AuthToken *string       `json:"AuthToken,omitempty" header:"X-Auth-Token"`
+}
+
+// NewListManagersByPageReq creates a new instance of the struct and sets default values if defined
+func NewListManagersByPageReq() *ListManagersByPageReq {
+	return &ListManagersByPageReq{
+		Page: int64(DEFAULT_PAGE),
+		Size: int64(DEFAULT_PAGE_SIZE),
+	}
+}
+
+// New implements the Object interface
+func (x *ListManagersByPageReq) New() any {
+	return NewListManagersByPageReq()
+}
+
+// GetPage returns the value of Page
+func (x *ListManagersByPageReq) GetPage() (r int64) {
+	if x != nil {
+		return x.Page
+	}
+	return r
+}
+
+// SetPage sets the value of Page
+func (x *ListManagersByPageReq) SetPage(v int64) {
+	if x != nil {
+		x.Page = v
+	}
+}
+
+// GetSize returns the value of Size
+func (x *ListManagersByPageReq) GetSize() (r int64) {
+	if x != nil {
+		return x.Size
+	}
+	return r
+}
+
+// SetSize sets the value of Size
+func (x *ListManagersByPageReq) SetSize(v int64) {
+	if x != nil {
+		x.Size = v
+	}
+}
+
+// GetKeyword returns the value of Keyword
+func (x *ListManagersByPageReq) GetKeyword() (r *string) {
+	if x != nil {
+		return x.Keyword
+	}
+	return r
+}
+
+// SetKeyword sets the value of Keyword
+func (x *ListManagersByPageReq) SetKeyword(v string) {
+	if x != nil {
+		x.Keyword = &v
+	}
+}
+
+// GetDept returns the value of Dept
+func (x *ListManagersByPageReq) GetDept() (r *Department) {
+	if x != nil {
+		return x.Dept
+	}
+	return r
+}
+
+// SetDept sets the value of Dept
+func (x *ListManagersByPageReq) SetDept(v Department) {
+	if x != nil {
+		x.Dept = &v
+	}
+}
+
+// GetMinLevel returns the value of MinLevel
+func (x *ListManagersByPageReq) GetMinLevel() (r *ManagerLevel) {
+	if x != nil {
+		return x.MinLevel
+	}
+	return r
+}
+
+// SetMinLevel sets the value of MinLevel
+func (x *ListManagersByPageReq) SetMinLevel(v ManagerLevel) {
+	if x != nil {
+		x.MinLevel = &v
+	}
+}
+
+// GetVip returns the value of Vip
+func (x *ListManagersByPageReq) GetVip() (r *bool) {
+	if x != nil {
+		return x.Vip
+	}
+	return r
+}
+
+// SetVip sets the value of Vip
+func (x *ListManagersByPageReq) SetVip(v bool) {
+	if x != nil {
+		x.Vip = &v
+	}
+}
+
+// GetAuthToken returns the value of AuthToken
+func (x *ListManagersByPageReq) GetAuthToken() (r *string) {
+	if x != nil {
+		return x.AuthToken
+	}
+	return r
+}
+
+// SetAuthToken sets the value of AuthToken
+func (x *ListManagersByPageReq) SetAuthToken(v string) {
+	if x != nil {
+		x.AuthToken = &v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *ListManagersByPageReq) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{
+		{"ListManagersByPageReq.Page", "query", "page", &x.Page},
+		{"ListManagersByPageReq.Size", "query", "size", &x.Size},
+		{"ListManagersByPageReq.Keyword", "query", "keyword", &x.Keyword},
+		{"ListManagersByPageReq.Dept", "query", "dept", &x.Dept},
+		{"ListManagersByPageReq.MinLevel", "query", "minLevel", &x.MinLevel},
+		{"ListManagersByPageReq.Vip", "query", "vip", &x.Vip},
+		{"ListManagersByPageReq.AuthToken", "header", "X-Auth-Token", &x.AuthToken},
+	})
+}
+
+// Validate checks field values using generated validation expressions
+func (x *ListManagersByPageReq) Validate() error {
+	if !(x.Page >= 1) {
+		return errors.New("validate failed on PageReq.Page")
+	}
+	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
+		return errors.New("validate failed on PageReq.Size")
+	}
+	return nil
+}
+
+func (x *ListManagersByPageReq) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListManagersByPageReq(%+v)", *x)
+}
+
+type CreateManagerResp struct {
+	Errno  ErrCode  `json:"Errno"`
+	Errmsg string   `json:"Errmsg"`
+	Data   *Manager `json:"Data,omitempty"`
+}
+
+// NewCreateManagerResp creates a new instance of the struct and sets default values if defined
+func NewCreateManagerResp() *CreateManagerResp {
+	return &CreateManagerResp{
+		Errno: ErrCode_ERR_OK,
+	}
+}
+
+// New implements the Object interface
+func (x *CreateManagerResp) New() any {
+	return NewCreateManagerResp()
+}
+
+// GetErrno returns the value of Errno
+func (x *CreateManagerResp) GetErrno() (r ErrCode) {
 	if x != nil {
 		return x.Errno
 	}
 	return r
 }
 
-func (x *ResponseManager) SetErrno(v ErrCode) {
+// SetErrno sets the value of Errno
+func (x *CreateManagerResp) SetErrno(v ErrCode) {
 	if x != nil {
 		x.Errno = v
 	}
 }
 
-func (x *ResponseManager) GetErrmsg() (r string) {
+// GetErrmsg returns the value of Errmsg
+func (x *CreateManagerResp) GetErrmsg() (r string) {
 	if x != nil {
 		return x.Errmsg
 	}
 	return r
 }
 
-func (x *ResponseManager) SetErrmsg(v string) {
+// SetErrmsg sets the value of Errmsg
+func (x *CreateManagerResp) SetErrmsg(v string) {
 	if x != nil {
 		x.Errmsg = v
 	}
 }
 
-func (x *ResponseManager) GetData() (r *Manager) {
+// GetData returns the value of Data
+func (x *CreateManagerResp) GetData() (r *Manager) {
 	if x != nil {
 		return x.Data
 	}
 	return r
 }
 
-func (x *ResponseManager) SetData(v *Manager) {
+// SetData sets the value of Data
+func (x *CreateManagerResp) SetData(v *Manager) {
 	if x != nil {
 		x.Data = v
 	}
 }
 
-func (p *ResponseManager) String() string {
-	if p == nil {
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *CreateManagerResp) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *CreateManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errors.New("validate failed on CreateManagerResp.Errno")
+	}
+	return nil
+}
+
+func (x *CreateManagerResp) String() string {
+	if x == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("ResponseManager(%+v)", *p)
+	return fmt.Sprintf("CreateManagerResp(%+v)", *x)
+}
+
+type UpdateManagerResp struct {
+	Errno  ErrCode  `json:"Errno"`
+	Errmsg string   `json:"Errmsg"`
+	Data   *Manager `json:"Data,omitempty"`
+}
+
+// NewUpdateManagerResp creates a new instance of the struct and sets default values if defined
+func NewUpdateManagerResp() *UpdateManagerResp {
+	return &UpdateManagerResp{
+		Errno: ErrCode_ERR_OK,
+	}
+}
+
+// New implements the Object interface
+func (x *UpdateManagerResp) New() any {
+	return NewUpdateManagerResp()
+}
+
+// GetErrno returns the value of Errno
+func (x *UpdateManagerResp) GetErrno() (r ErrCode) {
+	if x != nil {
+		return x.Errno
+	}
+	return r
+}
+
+// SetErrno sets the value of Errno
+func (x *UpdateManagerResp) SetErrno(v ErrCode) {
+	if x != nil {
+		x.Errno = v
+	}
+}
+
+// GetErrmsg returns the value of Errmsg
+func (x *UpdateManagerResp) GetErrmsg() (r string) {
+	if x != nil {
+		return x.Errmsg
+	}
+	return r
+}
+
+// SetErrmsg sets the value of Errmsg
+func (x *UpdateManagerResp) SetErrmsg(v string) {
+	if x != nil {
+		x.Errmsg = v
+	}
+}
+
+// GetData returns the value of Data
+func (x *UpdateManagerResp) GetData() (r *Manager) {
+	if x != nil {
+		return x.Data
+	}
+	return r
+}
+
+// SetData sets the value of Data
+func (x *UpdateManagerResp) SetData(v *Manager) {
+	if x != nil {
+		x.Data = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *UpdateManagerResp) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *UpdateManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errors.New("validate failed on UpdateManagerResp.Errno")
+	}
+	return nil
+}
+
+func (x *UpdateManagerResp) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UpdateManagerResp(%+v)", *x)
+}
+
+type GetManagerResp struct {
+	Errno  ErrCode  `json:"Errno"`
+	Errmsg string   `json:"Errmsg"`
+	Data   *Manager `json:"Data,omitempty"`
+}
+
+// NewGetManagerResp creates a new instance of the struct and sets default values if defined
+func NewGetManagerResp() *GetManagerResp {
+	return &GetManagerResp{
+		Errno: ErrCode_ERR_OK,
+	}
+}
+
+// New implements the Object interface
+func (x *GetManagerResp) New() any {
+	return NewGetManagerResp()
+}
+
+// GetErrno returns the value of Errno
+func (x *GetManagerResp) GetErrno() (r ErrCode) {
+	if x != nil {
+		return x.Errno
+	}
+	return r
+}
+
+// SetErrno sets the value of Errno
+func (x *GetManagerResp) SetErrno(v ErrCode) {
+	if x != nil {
+		x.Errno = v
+	}
+}
+
+// GetErrmsg returns the value of Errmsg
+func (x *GetManagerResp) GetErrmsg() (r string) {
+	if x != nil {
+		return x.Errmsg
+	}
+	return r
+}
+
+// SetErrmsg sets the value of Errmsg
+func (x *GetManagerResp) SetErrmsg(v string) {
+	if x != nil {
+		x.Errmsg = v
+	}
+}
+
+// GetData returns the value of Data
+func (x *GetManagerResp) GetData() (r *Manager) {
+	if x != nil {
+		return x.Data
+	}
+	return r
+}
+
+// SetData sets the value of Data
+func (x *GetManagerResp) SetData(v *Manager) {
+	if x != nil {
+		x.Data = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *GetManagerResp) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *GetManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errors.New("validate failed on GetManagerResp.Errno")
+	}
+	return nil
+}
+
+func (x *GetManagerResp) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("GetManagerResp(%+v)", *x)
+}
+
+type DeleteManagerResp struct {
+	Errno  ErrCode `json:"Errno"`
+	Errmsg string  `json:"Errmsg"`
+	Data   bool    `json:"Data"`
+}
+
+// NewDeleteManagerResp creates a new instance of the struct and sets default values if defined
+func NewDeleteManagerResp() *DeleteManagerResp {
+	return &DeleteManagerResp{
+		Errno: ErrCode_ERR_OK,
+	}
+}
+
+// New implements the Object interface
+func (x *DeleteManagerResp) New() any {
+	return NewDeleteManagerResp()
+}
+
+// GetErrno returns the value of Errno
+func (x *DeleteManagerResp) GetErrno() (r ErrCode) {
+	if x != nil {
+		return x.Errno
+	}
+	return r
+}
+
+// SetErrno sets the value of Errno
+func (x *DeleteManagerResp) SetErrno(v ErrCode) {
+	if x != nil {
+		x.Errno = v
+	}
+}
+
+// GetErrmsg returns the value of Errmsg
+func (x *DeleteManagerResp) GetErrmsg() (r string) {
+	if x != nil {
+		return x.Errmsg
+	}
+	return r
+}
+
+// SetErrmsg sets the value of Errmsg
+func (x *DeleteManagerResp) SetErrmsg(v string) {
+	if x != nil {
+		x.Errmsg = v
+	}
+}
+
+// GetData returns the value of Data
+func (x *DeleteManagerResp) GetData() (r bool) {
+	if x != nil {
+		return x.Data
+	}
+	return r
+}
+
+// SetData sets the value of Data
+func (x *DeleteManagerResp) SetData(v bool) {
+	if x != nil {
+		x.Data = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *DeleteManagerResp) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *DeleteManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errors.New("validate failed on DeleteManagerResp.Errno")
+	}
+	return nil
+}
+
+func (x *DeleteManagerResp) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("DeleteManagerResp(%+v)", *x)
+}
+
+type ManagersPageData struct {
+	Total int64      `json:"Total"`
+	Page  int64      `json:"Page"`
+	Size  int64      `json:"Size"`
+	Items []*Manager `json:"Items"`
+}
+
+// NewManagersPageData creates a new instance of the struct and sets default values if defined
+func NewManagersPageData() *ManagersPageData {
+	return &ManagersPageData{}
+}
+
+// New implements the Object interface
+func (x *ManagersPageData) New() any {
+	return NewManagersPageData()
+}
+
+// GetTotal returns the value of Total
+func (x *ManagersPageData) GetTotal() (r int64) {
+	if x != nil {
+		return x.Total
+	}
+	return r
+}
+
+// SetTotal sets the value of Total
+func (x *ManagersPageData) SetTotal(v int64) {
+	if x != nil {
+		x.Total = v
+	}
+}
+
+// GetPage returns the value of Page
+func (x *ManagersPageData) GetPage() (r int64) {
+	if x != nil {
+		return x.Page
+	}
+	return r
+}
+
+// SetPage sets the value of Page
+func (x *ManagersPageData) SetPage(v int64) {
+	if x != nil {
+		x.Page = v
+	}
+}
+
+// GetSize returns the value of Size
+func (x *ManagersPageData) GetSize() (r int64) {
+	if x != nil {
+		return x.Size
+	}
+	return r
+}
+
+// SetSize sets the value of Size
+func (x *ManagersPageData) SetSize(v int64) {
+	if x != nil {
+		x.Size = v
+	}
+}
+
+// GetItems returns the value of Items
+func (x *ManagersPageData) GetItems() (r []*Manager) {
+	if x != nil {
+		return x.Items
+	}
+	return r
+}
+
+// SetItems sets the value of Items
+func (x *ManagersPageData) SetItems(v []*Manager) {
+	if x != nil {
+		x.Items = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *ManagersPageData) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *ManagersPageData) Validate() error {
+	return nil
+}
+
+func (x *ManagersPageData) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ManagersPageData(%+v)", *x)
+}
+
+type ListManagersByPageResp struct {
+	Errno  ErrCode           `json:"Errno"`
+	Errmsg string            `json:"Errmsg"`
+	Data   *ManagersPageData `json:"Data,omitempty"`
+}
+
+// NewListManagersByPageResp creates a new instance of the struct and sets default values if defined
+func NewListManagersByPageResp() *ListManagersByPageResp {
+	return &ListManagersByPageResp{
+		Errno: ErrCode_ERR_OK,
+	}
+}
+
+// New implements the Object interface
+func (x *ListManagersByPageResp) New() any {
+	return NewListManagersByPageResp()
+}
+
+// GetErrno returns the value of Errno
+func (x *ListManagersByPageResp) GetErrno() (r ErrCode) {
+	if x != nil {
+		return x.Errno
+	}
+	return r
+}
+
+// SetErrno sets the value of Errno
+func (x *ListManagersByPageResp) SetErrno(v ErrCode) {
+	if x != nil {
+		x.Errno = v
+	}
+}
+
+// GetErrmsg returns the value of Errmsg
+func (x *ListManagersByPageResp) GetErrmsg() (r string) {
+	if x != nil {
+		return x.Errmsg
+	}
+	return r
+}
+
+// SetErrmsg sets the value of Errmsg
+func (x *ListManagersByPageResp) SetErrmsg(v string) {
+	if x != nil {
+		x.Errmsg = v
+	}
+}
+
+// GetData returns the value of Data
+func (x *ListManagersByPageResp) GetData() (r *ManagersPageData) {
+	if x != nil {
+		return x.Data
+	}
+	return r
+}
+
+// SetData sets the value of Data
+func (x *ListManagersByPageResp) SetData(v *ManagersPageData) {
+	if x != nil {
+		x.Data = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *ListManagersByPageResp) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *ListManagersByPageResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errors.New("validate failed on ListManagersByPageResp.Errno")
+	}
+	return nil
+}
+
+func (x *ListManagersByPageResp) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("ListManagersByPageResp(%+v)", *x)
 }

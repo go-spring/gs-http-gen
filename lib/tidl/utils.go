@@ -14,13 +14,19 @@
  * limitations under the License.
  */
 
-package golang
+package tidl
 
 import (
-	"github.com/go-spring/gs-http-gen/lib/tidl"
+	"slices"
 )
 
-// genClient generates the HTTP client code for a given service.
-func (g *Generator) genClient(ctx Context, rpcs []tidl.RPC) error {
-	return nil
+// GetOneOfAnnotation searches through a slice of annotations and returns
+// the first annotation whose key matches any of the provided names.
+func GetOneOfAnnotation(arr []Annotation, names ...string) (Annotation, bool) {
+	for _, a := range arr {
+		if slices.Contains(names, a.Key) {
+			return a, true
+		}
+	}
+	return Annotation{}, false
 }

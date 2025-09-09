@@ -1,6 +1,6 @@
 // Code generated from TParser.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package parser // TParser
+package tidl // TParser
 import "github.com/antlr4-go/antlr/v4"
 
 // BaseTParserListener is a complete listener for a parse tree produced by TParser.

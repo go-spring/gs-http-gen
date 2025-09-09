@@ -1,4 +1,20 @@
-package parser
+/*
+ * Copyright 2025 The Go-Spring Authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package tidl
 
 import (
 	"encoding/json"
@@ -37,6 +53,8 @@ func Parse(s string) (doc Document, err error) {
 	// Step 1. Create lexer and token stream
 	input := antlr.NewInputStream(s)
 	lexer := NewTLexer(input)
+	lexer.RemoveErrorListeners()
+	lexer.AddErrorListener(e)
 	tokens := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
 	// Step 2. Create parser and attach custom error listener
@@ -68,7 +86,7 @@ type ErrorListener struct {
 }
 
 // SyntaxError is called by ANTLR when a syntax error is encountered.
-func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, e antlr.RecognitionException) {
+func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
 	if l.err == nil {
 		l.err = fmt.Errorf("line %d:%d %s", line, column, msg)
 		return
@@ -91,7 +109,7 @@ type ParseTreeListener struct {
 
 // ExitConst_def handles const definitions in the parse tree.
 func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
-	c := &Const{
+	c := Const{
 		Type:  ctx.Const_type().GetText(),
 		Name:  ctx.IDENTIFIER().GetText(),
 		Value: ctx.Const_value().GetText(),
@@ -109,7 +127,7 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 
 // ExitEnum_def handles enum definitions and their fields.
 func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
-	e := &Enum{
+	e := Enum{
 		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
 			Start: ctx.GetStart().GetLine(),
@@ -144,7 +162,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 // ExitType_def handles type definitions, including generic parameters,
 // fields, and annotations.
 func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
-	t := &Type{
+	t := Type{
 		Name: ctx.IDENTIFIER(0).GetText(),
 		Position: Position{
 			Start: ctx.GetStart().GetLine(),
@@ -156,9 +174,9 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 	}
 
 	if ctx.LEFT_BRACE() != nil {
-		l.parseCompleteType(ctx, t)
+		l.parseCompleteType(ctx, &t)
 	} else {
-		l.parseRedefinedType(ctx, t)
+		l.parseRedefinedType(ctx, &t)
 	}
 
 	l.Document.Types = append(l.Document.Types, t)
@@ -337,7 +355,7 @@ func parseValueType(ctx IValue_typeContext) TypeDefinition {
 // ExitRpc_def handles RPC definitions, including request/response
 // types and annotations.
 func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
-	r := &RPC{
+	r := RPC{
 		Name:    ctx.IDENTIFIER().GetText(),
 		Request: ctx.Rpc_req().GetText(),
 		Position: Position{
@@ -350,15 +368,19 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Handle response type
-	r.Response = RespType{
-		Stream:   ctx.Rpc_resp().TYPE_STREAM() != nil,
-		TypeName: ctx.Rpc_resp().IDENTIFIER().GetText(),
-	}
-	if ctx.Rpc_resp().LESS_THAN() != nil {
+	if ctx.Rpc_resp().TYPE_STREAM() != nil {
 		u := ctx.Rpc_resp().User_type()
-		r.Response.UserType = &UserType{
-			Name:     u.IDENTIFIER().GetText(),
-			Optional: u.QUESTION() != nil,
+		r.Response = RespType{
+			Stream: true,
+			UserType: &UserType{
+				Name:     u.IDENTIFIER().GetText(),
+				Optional: u.QUESTION() != nil,
+			},
+		}
+	} else {
+		r.Response = RespType{
+			Stream:   false,
+			TypeName: ctx.Rpc_resp().IDENTIFIER().GetText(),
 		}
 	}
 
