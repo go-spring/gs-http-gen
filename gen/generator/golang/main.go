@@ -51,9 +51,7 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 		if err := g.genType(ctx, fileName, doc); err != nil {
 			return err
 		}
-		for _, rpc := range doc.RPCs {
-			rpcs = append(rpcs, rpc)
-		}
+		rpcs = append(rpcs, doc.RPCs...)
 	}
 
 	sort.Slice(rpcs, func(i, j int) bool {

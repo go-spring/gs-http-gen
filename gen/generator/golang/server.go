@@ -52,7 +52,7 @@ import (
 	"net/http"
 )
 
-// {{.Service}}Server defines the interface that service must implemented.
+// {{.Service}}Server defines the interface that service must implement.
 type {{.Service}}Server interface {
     {{- range $r := .RPCs}}
 		{{- if $r.Comment}}
@@ -89,11 +89,11 @@ func (g *Generator) genServer(ctx Context, rpcs []tidl.RPC) error {
 			return err
 		}
 		for _, e := range entries {
-			if !e.IsDir() {
+			if e.IsDir() {
 				continue
 			}
 			var b []byte
-			if b, err = os.ReadFile(e.Name()); err != nil {
+			if b, err = protoDir.ReadFile(filepath.Join("proto", e.Name())); err != nil {
 				return err
 			}
 			b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(ctx.config.PackageName))
@@ -164,10 +164,16 @@ func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 		if !ok {
 			return nil, fmt.Errorf("annotation path not found")
 		}
+		if path.Value == nil {
+			return nil, fmt.Errorf("annotation path value is nil")
+		}
 
 		method, ok := tidl.GetOneOfAnnotation(r.Annotations, "method")
 		if !ok {
 			return nil, fmt.Errorf("annotation method not found")
+		}
+		if method.Value == nil {
+			return nil, fmt.Errorf("annotation method value is nil")
 		}
 
 		ret = append(ret, RPC{

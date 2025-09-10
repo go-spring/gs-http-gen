@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// ManagerServer defines the interface that service must implemented.
+// ManagerServer defines the interface that service must implement.
 type ManagerServer interface {
 	// Create a new manager
 	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp

@@ -68,7 +68,7 @@ func (x ErrCodeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ErrCode_name[ErrCode(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid Status: %d", x)
+	return nil, fmt.Errorf("invalid ErrCode: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string
@@ -78,7 +78,7 @@ func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
 		*x = ErrCodeAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid Status value: %q", str)
+	return fmt.Errorf("invalid ErrCode value: %q", str)
 }
 
 // OneOfErrCode is usually used for validation.
@@ -117,7 +117,7 @@ func (x ManagerLevelAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ManagerLevel_name[ManagerLevel(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid Status: %d", x)
+	return nil, fmt.Errorf("invalid ManagerLevel: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string
@@ -127,7 +127,7 @@ func (x *ManagerLevelAsString) UnmarshalJSON(data []byte) error {
 		*x = ManagerLevelAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid Status value: %q", str)
+	return fmt.Errorf("invalid ManagerLevel value: %q", str)
 }
 
 // OneOfManagerLevel is usually used for validation.
@@ -172,7 +172,7 @@ func (x DepartmentAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := Department_name[Department(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid Status: %d", x)
+	return nil, fmt.Errorf("invalid Department: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string
@@ -182,7 +182,7 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 		*x = DepartmentAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid Status value: %q", str)
+	return fmt.Errorf("invalid Department value: %q", str)
 }
 
 // OneOfDepartment is usually used for validation.

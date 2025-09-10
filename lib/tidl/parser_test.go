@@ -49,7 +49,7 @@ func TestParser(t *testing.T) {
 		t.Fatal(err)
 	}
 	b = bytes.TrimSpace(b)
-	if bytes.Compare(v, b) != 0 {
+	if !bytes.Equal(v, b) {
 		t.Fatalf("expected:\n%s\nbut got:\n%s", string(b), string(v))
 	}
 }

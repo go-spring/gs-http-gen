@@ -97,7 +97,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		if s, ok := {{$e.Name}}_name[{{$e.Name}}(x)]; ok {
 			return []byte(fmt.Sprintf("\"%s\"", s)), nil
 		}
-		return nil, fmt.Errorf("invalid Status: %d", x)
+		return nil, fmt.Errorf("invalid {{$e.Name}}: %d", x)
 	}
 
 	// UnmarshalJSON implements custom JSON decoding for the enum from a string
@@ -107,7 +107,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			*x = {{$e.Name}}AsString(v)
 			return nil
 		}
-		return fmt.Errorf("invalid Status value: %q", str)
+		return fmt.Errorf("invalid {{$e.Name}} value: %q", str)
 	}
 
 	// OneOf{{$e.Name}} is usually used for validation.
@@ -390,7 +390,7 @@ func convertTypes(ctx Context, doc tidl.Document) (_ []Type, err error) {
 		if c.Response.Stream || c.Response.UserType == nil {
 			continue
 		}
-		r, err := convertResponseType(ctx, c.Response)
+		r, err := convertResponseType(ctx, c.Name, c.Response)
 		if err != nil {
 			return nil, err
 		}
@@ -400,13 +400,14 @@ func convertTypes(ctx Context, doc tidl.Document) (_ []Type, err error) {
 }
 
 // convertResponseType instantiates a generic response type for RPC
-func convertResponseType(ctx Context, respType tidl.RespType) (Type, error) {
+func convertResponseType(ctx Context, rpcName string, respType tidl.RespType) (Type, error) {
 	t, ok := generator.GetType(ctx.files, respType.TypeName)
 	if !ok {
 		return Type{}, fmt.Errorf("type %s not found", respType.TypeName)
 	}
 
-	typeName := generator.CapitalizeASCII(t.Name)
+	typeName := generator.CapitalizeASCII(rpcName)
+	typeName += generator.CapitalizeASCII(t.Name)
 	typeName += generator.CapitalizeASCII(respType.UserType.Name)
 
 	r := tidl.Type{
@@ -478,11 +479,11 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 		if ft, ok := f.FieldType.(tidl.EmbedType); ok {
 			et, ok := generator.GetType(ctx.files, ft.Name)
 			if !ok {
-				return Type{}, fmt.Errorf("type %s not found", ft.Name)
+				return Type{}, fmt.Errorf("embedded type %s not found for field in struct %s", ft.Name, r.Name)
 			}
 			rt, err := convertType(ctx, et)
 			if err != nil {
-				return Type{}, err
+				return Type{}, fmt.Errorf("failed to convert embedded type %s in struct %s: %w", ft.Name, r.Name, err)
 			}
 			// Append embedded type's fields
 			r.Fields = append(r.Fields, rt.Fields...)
@@ -603,6 +604,7 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 		}
 		return fmt.Sprintf("map[%s]%s", keyType, valueType), nil
 	case tidl.BinaryType:
+		// todo (lvan100) handle file
 		return "[]byte", nil
 	default:
 		return "", fmt.Errorf("unknown type: %s", t.Text())
@@ -677,23 +679,20 @@ func parseDefault(ctx Context, typeName string, v *string) (*string, error) {
 	case "string":
 		return v, nil
 	default:
-		// Handle enum values like EnumName.VALUE
-		parts := strings.Split(*v, ".")
-		if len(parts) == 1 {
-			return v, nil
-		} else if len(parts) == 2 {
+		if parts := strings.Split(*v, "."); len(parts) == 2 {
+			// Handle enum values like EnumName.VALUE
 			asString := strings.HasSuffix(typeName, "AsString")
 			typeNameTrimmed := strings.TrimSuffix(typeName, "AsString")
 			if _, ok := generator.GetEnum(ctx.files, typeNameTrimmed); !ok {
-				return nil, fmt.Errorf("unknown type: %s", typeNameTrimmed)
+				return v, nil // Treat as a regular string
 			}
 			s := generator.CapitalizeASCII(parts[0]) + "_" + parts[1]
 			if asString {
 				s = fmt.Sprintf("%sAsString(%s)", typeNameTrimmed, s)
 			}
 			return &s, nil
-		} else {
-			return nil, fmt.Errorf("unknown type: %s", typeName)
+		} else { // Treat as a regular string
+			return v, nil
 		}
 	}
 }
@@ -727,13 +726,13 @@ func genFieldTag(fieldName, typeName string, arr []tidl.Annotation, binding *Bin
 		if s == "" {
 			return "", fmt.Errorf("annotation json value is empty")
 		}
-		jsonTag = s[1 : len(s)-1] // Remove quotes
+		jsonTag = strings.Trim(s, "\"") // Remove quotes
 	}
 
 	omitZero := false
 	omitEmpty := strings.HasPrefix(typeName, "*")
 
-	for _, s := range strings.Split(jsonTag, ",") {
+	for s := range strings.SplitSeq(jsonTag, ",") {
 		switch strings.TrimSpace(s) {
 		case "omitempty":
 			omitEmpty = true
@@ -786,7 +785,10 @@ func genValidate(receiverType, fieldName, fieldType string, arr []tidl.Annotatio
 	// Unquote the validation string
 	strValue, err := strconv.Unquote(*a.Value)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("annotation validate value is not properly quoted")
+	}
+	if strValue == "" {
+		return nil, fmt.Errorf("annotation validate value is empty")
 	}
 
 	// Parse the validation expression
@@ -867,6 +869,14 @@ func genValidateExpr(fieldName, fieldType string, expr vidl.Expr, funcs map[stri
 						FieldType: fieldType,
 					}
 				}
+			}
+		} else {
+			switch x.Name {
+			case "len":
+				if len(x.Args) != 1 {
+					return "", fmt.Errorf("func len only accepts 1 argument")
+				}
+			default: // for linter
 			}
 		}
 
