@@ -491,7 +491,7 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 		}
 
 		// Get field name and Go type
-		fieldName := generator.CapitalizeASCII(f.Name)
+		fieldName := generator.ToPascal(f.Name)
 		typeName, err := getTypeName(ctx, f.FieldType, f.Annotations)
 		if err != nil {
 			return Type{}, err

@@ -26,7 +26,7 @@ import (
 )
 
 // ToolVersion defines the current version of this code generation tool.
-const ToolVersion = "v0.0.1"
+const ToolVersion = "v0.0.2"
 
 func main() {
 	var (

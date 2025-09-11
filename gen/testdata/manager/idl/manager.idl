@@ -125,7 +125,7 @@ type UpdateManagerReq {
     float? salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
     string? role
     ManagerLevel? level
-    DepartmentInfo? deptInfo
+    DepartmentInfo? dept_info
     ContactInfo? contact
 }
 

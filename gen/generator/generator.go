@@ -18,6 +18,7 @@ package generator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/go-spring/gs-http-gen/lib/tidl"
 )
@@ -88,4 +89,25 @@ func CapitalizeASCII(s string) string {
 		return string(s[0]-'a'+'A') + s[1:]
 	}
 	return s
+}
+
+// ToPascal converts a snake_case string to PascalCase.
+// For example: "hello_world" becomes "HelloWorld".
+func ToPascal(s string) string {
+	var sb strings.Builder
+	parts := strings.Split(s, "_")
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		c := part[0]
+		if 'a' <= c && c <= 'z' {
+			c = c - 'a' + 'A'
+		}
+		sb.WriteByte(c)
+		if len(part) > 1 {
+			sb.WriteString(part[1:])
+		}
+	}
+	return sb.String()
 }
