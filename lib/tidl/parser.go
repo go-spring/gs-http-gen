@@ -211,7 +211,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 			}
 		} else if f.Common_type_field() != nil {
 			// Regular field
-			typeField.FieldType = parseCommonFieldType(f.Common_type_field().Common_field_type())
+			typeField.FieldType = l.parseCommonFieldType(f.Common_type_field().Common_field_type())
 			typeField.Name = f.Common_type_field().IDENTIFIER().GetText()
 
 			// Default value
@@ -243,6 +243,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 	}
 }
 
+// parseRedefinedType handles redefined types, including generic types.
 func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 	t.Redefined = &RedefinedType{
 		Name: ctx.IDENTIFIER(1).GetText(),
@@ -263,13 +264,13 @@ func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 	if g.Container_type() != nil {
 		if g.Container_type().Map_type() != nil {
 			kt := g.Container_type().Map_type().Key_type().GetText()
-			vt := parseValueType(g.Container_type().Map_type().Value_type())
+			vt := l.parseValueType(g.Container_type().Map_type().Value_type())
 			t.Redefined.GenericType = MapType{
 				Key:   kt,
 				Value: vt,
 			}
 		} else if g.Container_type().List_type() != nil {
-			vt := parseValueType(g.Container_type().List_type().Value_type())
+			vt := l.parseValueType(g.Container_type().List_type().Value_type())
 			t.Redefined.GenericType = ListType{
 				Item: vt,
 			}
@@ -283,7 +284,7 @@ func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 
 // parseCommonFieldType resolves type definitions inside type fields.
 // It distinguishes between built-in types, user-defined types, and containers.
-func parseCommonFieldType(ctx ICommon_field_typeContext) TypeDefinition {
+func (l *ParseTreeListener) parseCommonFieldType(ctx ICommon_field_typeContext) TypeDefinition {
 	if ctx.TYPE_ANY() != nil {
 		return AnyType{}
 	}
@@ -305,13 +306,13 @@ func parseCommonFieldType(ctx ICommon_field_typeContext) TypeDefinition {
 	if ctx.Container_type() != nil {
 		if ctx.Container_type().Map_type() != nil {
 			kt := ctx.Container_type().Map_type().Key_type().GetText()
-			vt := parseValueType(ctx.Container_type().Map_type().Value_type())
+			vt := l.parseValueType(ctx.Container_type().Map_type().Value_type())
 			return MapType{
 				Key:   kt,
 				Value: vt,
 			}
 		} else if ctx.Container_type().List_type() != nil {
-			vt := parseValueType(ctx.Container_type().List_type().Value_type())
+			vt := l.parseValueType(ctx.Container_type().List_type().Value_type())
 			return ListType{
 				Item: vt,
 			}
@@ -321,7 +322,7 @@ func parseCommonFieldType(ctx ICommon_field_typeContext) TypeDefinition {
 }
 
 // parseValueType resolves value types inside container types.
-func parseValueType(ctx IValue_typeContext) TypeDefinition {
+func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext) TypeDefinition {
 	if ctx.Base_type() != nil {
 		return BaseType{
 			Name:     strings.TrimRight(ctx.Base_type().GetText(), "?"),
@@ -337,19 +338,84 @@ func parseValueType(ctx IValue_typeContext) TypeDefinition {
 	if ctx.Container_type() != nil {
 		if ctx.Container_type().Map_type() != nil {
 			kt := ctx.Container_type().Map_type().Key_type().GetText()
-			vt := parseValueType(ctx.Container_type().Map_type().Value_type())
+			vt := l.parseValueType(ctx.Container_type().Map_type().Value_type())
 			return MapType{
 				Key:   kt,
 				Value: vt,
 			}
 		} else if ctx.Container_type().List_type() != nil {
-			vt := parseValueType(ctx.Container_type().List_type().Value_type())
+			vt := l.parseValueType(ctx.Container_type().List_type().Value_type())
 			return ListType{
 				Item: vt,
 			}
 		}
 	}
 	panic(fmt.Errorf("unknown type: %s", ctx.GetText()))
+}
+
+func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
+	o := OneOf{
+		Name: ctx.IDENTIFIER().GetText(),
+		Position: Position{
+			Start: ctx.GetStart().GetLine(),
+			Stop:  ctx.GetStop().GetLine(),
+		},
+		Comments: Comments{
+			Top: l.topComment(ctx.GetStart()),
+		},
+	}
+
+	l.parseOneOfType(ctx, &o)
+
+	l.Document.OneOfs = append(l.Document.OneOfs, o)
+}
+
+// parseOneOfType handles oneof types, including fields and annotations.
+func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *OneOf) {
+
+	// Process all oneof fields
+	for _, f := range ctx.AllOneof_field() {
+		typeField := TypeField{
+			Position: Position{
+				Start: f.GetStart().GetLine(),
+				Stop:  f.GetStop().GetLine(),
+			},
+			Comments: Comments{
+				Top:   l.topComment(f.GetStart()),
+				Right: l.rightComment(f.GetStop()),
+			},
+		}
+
+		// Regular field
+		typeField.FieldType = l.parseCommonFieldType(f.Common_type_field().Common_field_type())
+		typeField.Name = f.Common_type_field().IDENTIFIER().GetText()
+
+		// Default value
+		if f.Common_type_field().Const_value() != nil {
+			s := f.Common_type_field().Const_value().GetText()
+			typeField.Default = &s
+		}
+
+		// Annotations
+		if f.Common_type_field().Type_annotations() != nil {
+			for _, aCtx := range f.Common_type_field().Type_annotations().AllAnnotation() {
+				a := Annotation{
+					Key: aCtx.IDENTIFIER().GetText(),
+					Position: Position{
+						Start: aCtx.GetStart().GetLine(),
+						Stop:  aCtx.GetStop().GetLine(),
+					},
+				}
+				if aCtx.Const_value() != nil {
+					s := aCtx.Const_value().GetText()
+					a.Value = &s
+				}
+				typeField.Annotations = append(typeField.Annotations, a)
+			}
+		}
+
+		o.Fields = append(o.Fields, typeField)
+	}
 }
 
 // ExitRpc_def handles RPC definitions, including request/response

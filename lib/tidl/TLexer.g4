@@ -13,6 +13,7 @@ channels {WS_CHAN, SL_COMMENT_CHAN, ML_COMMENT_CHAN}
 KW_CONST : 'const';
 KW_ENUM  : 'enum';
 KW_TYPE  : 'type';
+KW_ONEOF : 'oneof';
 KW_RPC   : 'rpc';
 KW_TRUE  : 'true';
 KW_FALSE : 'false';
@@ -46,6 +47,7 @@ RIGHT_BRACE  : '}';
 EQUAL        : '=';
 COMMA        : ',';
 QUESTION     : '?';
+AT           : '@';
 
 // --------------------
 // String literal

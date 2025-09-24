@@ -152,6 +152,55 @@
       }
     }
   ],
+  "OneOfs": [
+    {
+      "Name": "Payload",
+      "Fields": [
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "title",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 47,
+            "Stop": 47
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": true
+          },
+          "Name": "body",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 48,
+            "Stop": 48
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 46,
+        "Stop": 49
+      },
+      "Comments": {
+        "Top": null,
+        "Right": null
+      }
+    }
+  ],
   "Types": [
     {
       "Name": "UserReq",
@@ -301,11 +350,28 @@
               }
             }
           }
+        },
+        {
+          "FieldType": {
+            "Name": "Payload",
+            "Optional": false
+          },
+          "Name": "payload",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 37,
+            "Stop": 37
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
         }
       ],
       "Position": {
         "Start": 31,
-        "Stop": 37
+        "Stop": 38
       },
       "Comments": {
         "Top": [
@@ -351,8 +417,8 @@
           "Default": null,
           "Annotations": null,
           "Position": {
-            "Start": 40,
-            "Stop": 40
+            "Start": 41,
+            "Stop": 41
           },
           "Comments": {
             "Top": null,
@@ -368,8 +434,8 @@
           "Default": null,
           "Annotations": null,
           "Position": {
-            "Start": 41,
-            "Stop": 41
+            "Start": 42,
+            "Stop": 42
           },
           "Comments": {
             "Top": null,
@@ -385,8 +451,8 @@
           "Default": null,
           "Annotations": null,
           "Position": {
-            "Start": 42,
-            "Stop": 42
+            "Start": 43,
+            "Stop": 43
           },
           "Comments": {
             "Top": null,
@@ -395,8 +461,8 @@
         }
       ],
       "Position": {
-        "Start": 39,
-        "Stop": 43
+        "Start": 40,
+        "Stop": 44
       },
       "Comments": {
         "Top": null,
@@ -417,8 +483,8 @@
           "Default": null,
           "Annotations": null,
           "Position": {
-            "Start": 47,
-            "Stop": 47
+            "Start": 53,
+            "Stop": 53
           },
           "Comments": {
             "Top": null,
@@ -434,8 +500,8 @@
           "Default": null,
           "Annotations": null,
           "Position": {
-            "Start": 48,
-            "Stop": 48
+            "Start": 54,
+            "Stop": 54
           },
           "Comments": {
             "Top": null,
@@ -451,8 +517,8 @@
           "Default": null,
           "Annotations": null,
           "Position": {
-            "Start": 49,
-            "Stop": 49
+            "Start": 55,
+            "Stop": 55
           },
           "Comments": {
             "Top": null,
@@ -461,8 +527,8 @@
         }
       ],
       "Position": {
-        "Start": 46,
-        "Stop": 50
+        "Start": 52,
+        "Stop": 56
       },
       "Comments": {
         "Top": [
@@ -470,8 +536,8 @@
             "Text": "// Generic type definition",
             "Single": true,
             "Position": {
-              "Start": 45,
-              "Stop": 45
+              "Start": 51,
+              "Stop": 51
             }
           }
         ],
@@ -492,8 +558,8 @@
       "GenericName": null,
       "Fields": null,
       "Position": {
-        "Start": 60,
-        "Stop": 60
+        "Start": 66,
+        "Stop": 66
       },
       "Comments": {
         "Top": [
@@ -501,8 +567,8 @@
             "Text": "// ---- type re-definition ----",
             "Single": true,
             "Position": {
-              "Start": 59,
-              "Stop": 59
+              "Start": 65,
+              "Stop": 65
             }
           }
         ],
@@ -524,8 +590,8 @@
           "Key": "go.type",
           "Value": "\"*string\"",
           "Position": {
-            "Start": 54,
-            "Stop": 54
+            "Start": 60,
+            "Stop": 60
           },
           "Comments": {
             "Top": null,
@@ -536,8 +602,8 @@
           "Key": "method",
           "Value": "\"GET\"",
           "Position": {
-            "Start": 55,
-            "Stop": 55
+            "Start": 61,
+            "Stop": 61
           },
           "Comments": {
             "Top": null,
@@ -548,8 +614,8 @@
           "Key": "path",
           "Value": "\"/user\"",
           "Position": {
-            "Start": 56,
-            "Stop": 56
+            "Start": 62,
+            "Stop": 62
           },
           "Comments": {
             "Top": null,
@@ -558,8 +624,8 @@
         }
       ],
       "Position": {
-        "Start": 53,
-        "Stop": 57
+        "Start": 59,
+        "Stop": 63
       },
       "Comments": {
         "Top": [
@@ -567,8 +633,8 @@
             "Text": "// ---- RPC definitions ----",
             "Single": true,
             "Position": {
-              "Start": 52,
-              "Stop": 52
+              "Start": 58,
+              "Stop": 58
             }
           }
         ],

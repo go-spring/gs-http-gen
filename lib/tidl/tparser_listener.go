@@ -46,6 +46,12 @@ type TParserListener interface {
 	// EnterType_annotations is called when entering the type_annotations production.
 	EnterType_annotations(c *Type_annotationsContext)
 
+	// EnterOneof_def is called when entering the oneof_def production.
+	EnterOneof_def(c *Oneof_defContext)
+
+	// EnterOneof_field is called when entering the oneof_field production.
+	EnterOneof_field(c *Oneof_fieldContext)
+
 	// EnterRpc_def is called when entering the rpc_def production.
 	EnterRpc_def(c *Rpc_defContext)
 
@@ -123,6 +129,12 @@ type TParserListener interface {
 
 	// ExitType_annotations is called when exiting the type_annotations production.
 	ExitType_annotations(c *Type_annotationsContext)
+
+	// ExitOneof_def is called when exiting the oneof_def production.
+	ExitOneof_def(c *Oneof_defContext)
+
+	// ExitOneof_field is called when exiting the oneof_field production.
+	ExitOneof_field(c *Oneof_fieldContext)
 
 	// ExitRpc_def is called when exiting the rpc_def production.
 	ExitRpc_def(c *Rpc_defContext)

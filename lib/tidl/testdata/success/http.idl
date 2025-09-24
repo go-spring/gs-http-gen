@@ -33,13 +33,19 @@ type User {
     int? age
     binary avatar
     // embedded type
-    Address? /* embedded */
+    @Address? /* embedded */
+    Payload payload
 }
 
 type Address {
     string street
     string city
     string country
+}
+
+oneof Payload {
+    string title
+    string? body
 }
 
 // Generic type definition

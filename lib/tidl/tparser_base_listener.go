@@ -98,6 +98,18 @@ func (s *BaseTParserListener) EnterType_annotations(ctx *Type_annotationsContext
 // ExitType_annotations is called when production type_annotations is exited.
 func (s *BaseTParserListener) ExitType_annotations(ctx *Type_annotationsContext) {}
 
+// EnterOneof_def is called when production oneof_def is entered.
+func (s *BaseTParserListener) EnterOneof_def(ctx *Oneof_defContext) {}
+
+// ExitOneof_def is called when production oneof_def is exited.
+func (s *BaseTParserListener) ExitOneof_def(ctx *Oneof_defContext) {}
+
+// EnterOneof_field is called when production oneof_field is entered.
+func (s *BaseTParserListener) EnterOneof_field(ctx *Oneof_fieldContext) {}
+
+// ExitOneof_field is called when production oneof_field is exited.
+func (s *BaseTParserListener) ExitOneof_field(ctx *Oneof_fieldContext) {}
+
 // EnterRpc_def is called when production rpc_def is entered.
 func (s *BaseTParserListener) EnterRpc_def(ctx *Rpc_defContext) {}
 

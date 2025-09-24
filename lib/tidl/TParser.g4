@@ -16,7 +16,7 @@ document
 // Definition types: const, enum, type, rpc
 // --------------------
 definition
-    : const_def | enum_def | type_def | rpc_def
+    : const_def | enum_def | type_def | oneof_def | rpc_def
     ;
 
 // --------------------
@@ -27,7 +27,7 @@ const_def
     : KW_CONST const_type IDENTIFIER EQUAL const_value
     ;
 
-// Allowed constant types: bool, int, float, or string.
+// Allowed constant types: bool, int, float, or string
 const_type
     : TYPE_BOOL | TYPE_INT | TYPE_FLOAT | TYPE_STRING
     ;
@@ -52,19 +52,21 @@ enum_field
 //   B?
 //   string? field = "1" ( go.type="string" )
 // }
+// type Alias Map<string,User>
 // --------------------
 type_def
-    : KW_TYPE IDENTIFIER (LESS_THAN IDENTIFIER GREATER_THAN)? LEFT_BRACE type_field* RIGHT_BRACE | KW_TYPE IDENTIFIER IDENTIFIER LESS_THAN generic_type GREATER_THAN
+    : KW_TYPE IDENTIFIER (LESS_THAN IDENTIFIER GREATER_THAN)? LEFT_BRACE type_field* RIGHT_BRACE
+    | KW_TYPE IDENTIFIER IDENTIFIER LESS_THAN generic_type GREATER_THAN
     ;
 
-// A type field can be an embedded type or a normal typed field
+// A type field can be either an embedded type or a named typed field
 type_field
     : common_type_field | embed_type_field
     ;
 
-// Embedded field: just a user-defined type (optionally nullable with ?)
+// Embedded field: user-defined type (optionally nullable with '?')
 embed_type_field
-    : user_type
+    : '@'user_type
     ;
 
 // Common field: type + name + optional default value + optional annotations
@@ -81,6 +83,7 @@ common_field_type
     | TYPE_BINARY
     ;
 
+// Generic type
 generic_type
     : base_type | user_type | container_type
     ;
@@ -94,20 +97,38 @@ type_annotations
     ;
 
 // --------------------
+// OneOf definition
+// Example:
+// oneof Value {
+//     A? a
+//     B? b
+// }
+// --------------------
+oneof_def
+    : KW_ONEOF IDENTIFIER LEFT_BRACE oneof_field* RIGHT_BRACE
+    ;
+
+// OneOf fields must be normal named fields
+oneof_field
+    : common_type_field
+    ;
+
+// --------------------
 // RPC definition
-// Example: rpc GetUser (ReqType) RespType { method="GET" }
+// Example:
+// rpc GetUser (ReqType) RespType { method="GET" }
 // --------------------
 rpc_def
     : KW_RPC IDENTIFIER LEFT_PAREN rpc_req RIGHT_PAREN rpc_resp rpc_annotations
     ;
 
-// RPC request type
+// RPC request type: always an identifier
 rpc_req
     : IDENTIFIER
     ;
 
-// RPC response type
-// Either an identifier, generic form (Type<T>), or stream<T>
+// RPC response type:
+// Either an identifier, a generic form (Type<T>), or a stream<T>
 rpc_resp
     : IDENTIFIER
     | TYPE_STREAM LESS_THAN user_type GREATER_THAN
@@ -118,20 +139,21 @@ rpc_annotations
     : LEFT_BRACE annotation* RIGHT_BRACE
     ;
 
-// Annotation for type or rpc
+// Annotation for type or RPC
+// Example: method="GET"
 annotation
     : IDENTIFIER (EQUAL const_value)?
     ;
 
 // --------------------
 // Base types
-// Support nullable modifier `?`
+// Primitive base types with optional nullable modifier '?'
 // --------------------
 base_type
     : (TYPE_BOOL | TYPE_INT | TYPE_FLOAT | TYPE_STRING) QUESTION?
     ;
 
-// User-defined type (identifier, optionally nullable with ?)
+// User-defined type (identifier, optionally nullable with '?')
 user_type
     : IDENTIFIER QUESTION?
     ;

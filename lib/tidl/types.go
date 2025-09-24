@@ -39,6 +39,7 @@ type Document struct {
 	Comments []Comment
 	Consts   []Const
 	Enums    []Enum
+	OneOfs   []OneOf
 	Types    []Type
 	RPCs     []RPC
 }
@@ -128,9 +129,9 @@ type EmbedType struct {
 
 func (t EmbedType) Text() string {
 	if t.Optional {
-		return t.Name + "?"
+		return "@" + t.Name + "?"
 	}
-	return t.Name
+	return "@" + t.Name
 }
 
 // AnyType represents the special "any" type.
@@ -200,6 +201,14 @@ type ListType struct {
 
 func (t ListType) Text() string {
 	return "list<" + t.Item.Text() + ">"
+}
+
+// OneOf represents a one-of type definition.
+type OneOf struct {
+	Name     string      // Type name
+	Fields   []TypeField // Type fields
+	Position Position    // Location in source code
+	Comments Comments    // Associated comments
 }
 
 // Annotation represents metadata attached to types, fields, or RPCs.

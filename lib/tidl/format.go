@@ -111,6 +111,15 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		})
 	}
 
+	// Process oneOfs
+	for _, o := range doc.OneOfs {
+		items = append(items, docItem{
+			kind: docItemKindType,
+			pos:  o.Position.Start,
+			buf:  dumpOneOf(o),
+		})
+	}
+
 	// Process types
 	for _, t := range doc.Types {
 		items = append(items, docItem{
@@ -188,7 +197,7 @@ func dumpEnum(e Enum) string {
 			sb.WriteString(s.Text)
 			sb.WriteString("\n")
 		}
-		sb.WriteString("\n\t")
+		sb.WriteString("\n    ")
 		sb.WriteString(f.Name)
 		sb.WriteString(" = ")
 		sb.WriteString(strconv.FormatInt(f.Value, 10))
@@ -223,7 +232,7 @@ func dumpType(t Type) string {
 		}
 		sb.WriteString(" {")
 		for _, f := range t.Fields {
-			sb.WriteString("\n\t")
+			sb.WriteString("\n    ")
 			dumpTypeField(f, &sb)
 		}
 		sb.WriteString("\n}")
@@ -236,7 +245,7 @@ func dumpType(t Type) string {
 func dumpTypeField(f TypeField, sb *strings.Builder) {
 	for _, s := range f.Comments.Top {
 		sb.WriteString(s.Text)
-		sb.WriteString("\n\t")
+		sb.WriteString("\n    ")
 	}
 	sb.WriteString(f.FieldType.Text())
 	if _, ok := f.FieldType.(EmbedType); !ok {
@@ -268,6 +277,25 @@ func dumpTypeField(f TypeField, sb *strings.Builder) {
 	}
 }
 
+// dumpOneOf converts an OneOf node into textual representation,
+// including field definitions and top-level comments.
+func dumpOneOf(o OneOf) string {
+	var sb strings.Builder
+	for _, s := range o.Comments.Top {
+		sb.WriteString(s.Text)
+		sb.WriteString("\n")
+	}
+	sb.WriteString("oneof ")
+	sb.WriteString(o.Name)
+	sb.WriteString(" {")
+	for _, f := range o.Fields {
+		sb.WriteString("\n    ")
+		dumpTypeField(f, &sb)
+	}
+	sb.WriteString("\n}")
+	return sb.String()
+}
+
 // dumpRPC converts an RPC node into textual representation,
 // including its annotations and comments.
 func dumpRPC(r RPC) string {
@@ -284,7 +312,7 @@ func dumpRPC(r RPC) string {
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
 	for _, a := range r.Annotations {
-		sb.WriteString("\n\t")
+		sb.WriteString("\n    ")
 		for _, s := range a.Comments.Top {
 			sb.WriteString("\n")
 			sb.WriteString(s.Text)

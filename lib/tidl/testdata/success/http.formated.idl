@@ -15,13 +15,13 @@ const string DEFAULT_NAME = "guest" /*
 
 // ---- Enum definition ----
 enum ErrCode {
-	ErrOk = 0
-	PARAM_ERROR = 1003
+    ErrOk = 0
+    PARAM_ERROR = 1003
 }
 
 // ---- Type definition ----
 type UserReq {
-	string userId
+    string userId
 }
 
 //---- User definition 1 ----
@@ -30,31 +30,37 @@ type UserReq {
  */
 //---- User definition 2 ----
 type User {
-	any name = "anonymous" ( go.type = "*string", a = "123" )
-	int? age
-	binary avatar
-	// embedded type
-	Address? /* embedded */
+    any name = "anonymous" ( go.type = "*string", a = "123" )
+    int? age
+    binary avatar
+    // embedded type
+    @Address? /* embedded */
+    Payload payload
 }
 
 type Address {
-	string street
-	string city
-	string country
+    string street
+    string city
+    string country
+}
+
+oneof Payload {
+    string title
+    string? body
 }
 
 // Generic type definition
 type Response<T> {
-	int errno
-	string errmsg
-	T data
+    int errno
+    string errmsg
+    T data
 }
 
 // ---- RPC definitions ----
 rpc GetUser(UserReq) UserResponse {
-	go.type = "*string"
-	method = "GET"
-	path = "/user"
+    go.type = "*string"
+    method = "GET"
+    path = "/user"
 }
 
 // ---- type re-definition ----
