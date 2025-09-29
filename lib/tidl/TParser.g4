@@ -7,13 +7,15 @@ options { tokenVocab = TLexer; }
 
 // --------------------
 // Document root
+// A document consists of zero or more definitions separated by terminators
+// and ends with EOF.
 // --------------------
 document
-    : definition* EOF
+    : ((definition terminator) | terminator)* EOF
     ;
 
 // --------------------
-// Definition types: const, enum, type, rpc
+// Top-level definitions: const, enum, type, oneof, rpc
 // --------------------
 definition
     : const_def | enum_def | type_def | oneof_def | rpc_def
@@ -34,39 +36,46 @@ const_type
 
 // --------------------
 // Enum definition
-// Example: enum A { A = 1 }
+// Example:
+// enum A {
+//   RED = 1
+//   GREEN = 2
+// }
 // --------------------
 enum_def
-    : KW_ENUM IDENTIFIER LEFT_BRACE enum_field* RIGHT_BRACE
+    : KW_ENUM IDENTIFIER LEFT_BRACE terminator? (enum_field terminator)* terminator? RIGHT_BRACE
     ;
 
-// Enum field
+// Enum field: name = integer
 enum_field
     : IDENTIFIER EQUAL INTEGER
     ;
 
 // --------------------
 // Type definition
-// Example:
+// Example 1:
 // type A<T> {
 //   B?
-//   string? field = "1" ( go.type="string" )
+//   string? field = "1" (go.type="string")
 // }
+// Example 2:
 // type Alias Map<string,User>
 // --------------------
 type_def
-    : KW_TYPE IDENTIFIER (LESS_THAN IDENTIFIER GREATER_THAN)? LEFT_BRACE type_field* RIGHT_BRACE
-    | KW_TYPE IDENTIFIER IDENTIFIER LESS_THAN generic_type GREATER_THAN
+    // Structured type with optional generic parameter
+    : KW_TYPE IDENTIFIER (LESS_THAN IDENTIFIER GREATER_THAN)? LEFT_BRACE terminator? (type_field terminator)* terminator? RIGHT_BRACE
+    // Type alias to a generic container
+    | KW_TYPE IDENTIFIER IDENTIFIER LESS_THAN value_type GREATER_THAN
     ;
 
 // A type field can be either an embedded type or a named typed field
 type_field
-    : common_type_field | embed_type_field
+    : embed_type_field | common_type_field
     ;
 
 // Embedded field: user-defined type (optionally nullable with '?')
 embed_type_field
-    : '@'user_type
+    : user_type
     ;
 
 // Common field: type + name + optional default value + optional annotations
@@ -83,14 +92,9 @@ common_field_type
     | TYPE_BINARY
     ;
 
-// Generic type
-generic_type
-    : base_type | user_type | container_type
-    ;
-
 // --------------------
 // Field annotations
-// Example: ( go.type="string", db.index=true )
+// Example: (go.type="string", db.index=true)
 // --------------------
 type_annotations
     : LEFT_PAREN annotation (COMMA annotation)* RIGHT_PAREN
@@ -100,17 +104,12 @@ type_annotations
 // OneOf definition
 // Example:
 // oneof Value {
-//     A? a
-//     B? b
+//   A? a
+//   B? b
 // }
 // --------------------
 oneof_def
-    : KW_ONEOF IDENTIFIER LEFT_BRACE oneof_field* RIGHT_BRACE
-    ;
-
-// OneOf fields must be normal named fields
-oneof_field
-    : common_type_field
+    : KW_ONEOF IDENTIFIER LEFT_BRACE terminator? (common_type_field terminator)* terminator? RIGHT_BRACE
     ;
 
 // --------------------
@@ -127,8 +126,7 @@ rpc_req
     : IDENTIFIER
     ;
 
-// RPC response type:
-// Either an identifier, a generic form (Type<T>), or a stream<T>
+// RPC response type: identifier, generic form (Type<T>), or stream<T>
 rpc_resp
     : IDENTIFIER
     | TYPE_STREAM LESS_THAN user_type GREATER_THAN
@@ -136,10 +134,10 @@ rpc_resp
 
 // RPC annotations (inside { ... })
 rpc_annotations
-    : LEFT_BRACE annotation* RIGHT_BRACE
+    : LEFT_BRACE terminator? (annotation terminator)* terminator? RIGHT_BRACE
     ;
 
-// Annotation for type or RPC
+// Annotation key-value pair
 // Example: method="GET"
 annotation
     : IDENTIFIER (EQUAL const_value)?
@@ -153,21 +151,19 @@ base_type
     : (TYPE_BOOL | TYPE_INT | TYPE_FLOAT | TYPE_STRING) QUESTION?
     ;
 
-// User-defined type (identifier, optionally nullable with '?')
+// User-defined type, optionally nullable with '?'
 user_type
     : IDENTIFIER QUESTION?
     ;
 
 // --------------------
-// Container types
-// map<K,V> or list<T>
+// Container types: map<K,V> or list<T>
 // --------------------
 container_type
     : map_type | list_type
     ;
 
-// Map type
-// Example: map<string,int>
+// Map type: map<string,int>
 map_type
    : TYPE_MAP LESS_THAN key_type COMMA value_type GREATER_THAN
    ;
@@ -177,8 +173,7 @@ key_type
     : TYPE_STRING | TYPE_INT
     ;
 
-// List type
-// Example: list<User>
+// List type: list<User>
 list_type
    : TYPE_LIST LESS_THAN value_type GREATER_THAN
    ;
@@ -189,10 +184,18 @@ value_type
     ;
 
 // --------------------
-// Constant values
-// Can be literals (true, false, numbers, strings)
-// Or identifiers (e.g., enum constants)
+// Constant values: literals or identifiers (e.g., enum members)
 // --------------------
 const_value
     : KW_TRUE | KW_FALSE | INTEGER | FLOAT | STRING | IDENTIFIER
+    ;
+
+// --------------------
+// Terminator
+// Terminator is used to separate statements or fields.
+// It allows either one or more newlines, or a semicolon.
+// This provides flexibility for both newline-based and semicolon-based syntax.
+// --------------------
+terminator
+    : (NEWLINE | SEMI)+
     ;

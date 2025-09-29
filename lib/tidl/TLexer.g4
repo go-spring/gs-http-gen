@@ -4,7 +4,6 @@
 lexer grammar TLexer;
 
 // Define additional channels for whitespace and comments.
-// This ensures they don’t interfere with parsing, but can still be preserved if needed.
 channels {WS_CHAN, SL_COMMENT_CHAN, ML_COMMENT_CHAN}
 
 // --------------------
@@ -47,7 +46,7 @@ RIGHT_BRACE  : '}';
 EQUAL        : '=';
 COMMA        : ',';
 QUESTION     : '?';
-AT           : '@';
+SEMI         : ';' ;
 
 // --------------------
 // String literal
@@ -89,11 +88,17 @@ fragment LETTER    : 'A'..'Z' | 'a'..'z';
 fragment HEX_DIGIT : DIGIT | 'A'..'F' | 'a'..'f';
 
 // --------------------
+// Newline
+// --------------------
+NEWLINE
+    : '\r'? '\n'
+    ;
+
+// --------------------
 // Whitespace
-// Skipped by sending to WS_CHAN
 // --------------------
 WHITESPACE
-    : [ \t\r\n]+ -> channel(WS_CHAN)
+    : [ \t]+ -> channel(WS_CHAN)
     ;
 
 // --------------------
@@ -101,7 +106,7 @@ WHITESPACE
 // Supports both // and # styles
 // --------------------
 SINGLE_LINE_COMMENT
-    : ('//' | '#') ~[\r\n]* ('\r'? '\n')? -> channel(SL_COMMENT_CHAN)
+    : ('//' | '#') ~[\r\n]* -> channel(SL_COMMENT_CHAN)
     ;
 
 // --------------------

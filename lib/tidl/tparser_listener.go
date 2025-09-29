@@ -40,17 +40,11 @@ type TParserListener interface {
 	// EnterCommon_field_type is called when entering the common_field_type production.
 	EnterCommon_field_type(c *Common_field_typeContext)
 
-	// EnterGeneric_type is called when entering the generic_type production.
-	EnterGeneric_type(c *Generic_typeContext)
-
 	// EnterType_annotations is called when entering the type_annotations production.
 	EnterType_annotations(c *Type_annotationsContext)
 
 	// EnterOneof_def is called when entering the oneof_def production.
 	EnterOneof_def(c *Oneof_defContext)
-
-	// EnterOneof_field is called when entering the oneof_field production.
-	EnterOneof_field(c *Oneof_fieldContext)
 
 	// EnterRpc_def is called when entering the rpc_def production.
 	EnterRpc_def(c *Rpc_defContext)
@@ -91,6 +85,9 @@ type TParserListener interface {
 	// EnterConst_value is called when entering the const_value production.
 	EnterConst_value(c *Const_valueContext)
 
+	// EnterTerminator is called when entering the terminator production.
+	EnterTerminator(c *TerminatorContext)
+
 	// ExitDocument is called when exiting the document production.
 	ExitDocument(c *DocumentContext)
 
@@ -124,17 +121,11 @@ type TParserListener interface {
 	// ExitCommon_field_type is called when exiting the common_field_type production.
 	ExitCommon_field_type(c *Common_field_typeContext)
 
-	// ExitGeneric_type is called when exiting the generic_type production.
-	ExitGeneric_type(c *Generic_typeContext)
-
 	// ExitType_annotations is called when exiting the type_annotations production.
 	ExitType_annotations(c *Type_annotationsContext)
 
 	// ExitOneof_def is called when exiting the oneof_def production.
 	ExitOneof_def(c *Oneof_defContext)
-
-	// ExitOneof_field is called when exiting the oneof_field production.
-	ExitOneof_field(c *Oneof_fieldContext)
 
 	// ExitRpc_def is called when exiting the rpc_def production.
 	ExitRpc_def(c *Rpc_defContext)
@@ -174,4 +165,7 @@ type TParserListener interface {
 
 	// ExitConst_value is called when exiting the const_value production.
 	ExitConst_value(c *Const_valueContext)
+
+	// ExitTerminator is called when exiting the terminator production.
+	ExitTerminator(c *TerminatorContext)
 }

@@ -33,7 +33,7 @@ type User {
     int? age
     binary avatar
     // embedded type
-    @Address? /* embedded */
+    Address? /* embedded */
     Payload payload
 }
 

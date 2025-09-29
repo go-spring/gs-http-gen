@@ -129,9 +129,9 @@ type EmbedType struct {
 
 func (t EmbedType) Text() string {
 	if t.Optional {
-		return "@" + t.Name + "?"
+		return t.Name + "?"
 	}
-	return "@" + t.Name
+	return t.Name
 }
 
 // AnyType represents the special "any" type.

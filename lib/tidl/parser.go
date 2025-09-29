@@ -248,7 +248,7 @@ func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 	t.Redefined = &RedefinedType{
 		Name: ctx.IDENTIFIER(1).GetText(),
 	}
-	g := ctx.Generic_type()
+	g := ctx.Value_type()
 	if g.Base_type() != nil {
 		t.Redefined.GenericType = BaseType{
 			Name:     strings.TrimRight(g.Base_type().GetText(), "?"),
@@ -374,7 +374,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *OneOf) {
 
 	// Process all oneof fields
-	for _, f := range ctx.AllOneof_field() {
+	for _, f := range ctx.AllCommon_type_field() {
 		typeField := TypeField{
 			Position: Position{
 				Start: f.GetStart().GetLine(),
@@ -387,18 +387,18 @@ func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *OneOf) {
 		}
 
 		// Regular field
-		typeField.FieldType = l.parseCommonFieldType(f.Common_type_field().Common_field_type())
-		typeField.Name = f.Common_type_field().IDENTIFIER().GetText()
+		typeField.FieldType = l.parseCommonFieldType(f.Common_field_type())
+		typeField.Name = f.IDENTIFIER().GetText()
 
 		// Default value
-		if f.Common_type_field().Const_value() != nil {
-			s := f.Common_type_field().Const_value().GetText()
+		if f.Const_value() != nil {
+			s := f.Const_value().GetText()
 			typeField.Default = &s
 		}
 
 		// Annotations
-		if f.Common_type_field().Type_annotations() != nil {
-			for _, aCtx := range f.Common_type_field().Type_annotations().AllAnnotation() {
+		if f.Type_annotations() != nil {
+			for _, aCtx := range f.Type_annotations().AllAnnotation() {
 				a := Annotation{
 					Key: aCtx.IDENTIFIER().GetText(),
 					Position: Position{
@@ -473,6 +473,96 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	l.Document.RPCs = append(l.Document.RPCs, r)
 }
 
+// isTerminatorToken returns true if the token is a terminator token.
+func isTerminatorToken(t antlr.Token) bool {
+	return t.GetTokenType() == TLexerNEWLINE || t.GetTokenType() == TLexerSEMI
+
+}
+
+// previousTokenOnChannel returns the previous token on the specified channel.
+func (l *ParseTreeListener) previousTokenOnChannel(i int) int {
+	tokens := l.Tokens.GetAllTokens()
+	for i >= 0 && (isTerminatorToken(tokens[i]) || tokens[i].GetChannel() != antlr.LexerDefaultTokenChannel) {
+		i--
+	}
+	return i
+}
+
+// filterForChannel filters tokens for a specific channel.
+func (l *ParseTreeListener) filterForChannel(left, right, channel int) []antlr.Token {
+	tokens := l.Tokens.GetAllTokens()
+	hidden := make([]antlr.Token, 0)
+	for i := left; i < right+1; i++ {
+		t := tokens[i]
+		if channel == -1 {
+			if t.GetChannel() != antlr.LexerDefaultTokenChannel {
+				hidden = append(hidden, t)
+			}
+		} else if t.GetChannel() == channel {
+			hidden = append(hidden, t)
+		}
+	}
+	if len(hidden) == 0 {
+		return nil
+	}
+	return hidden
+}
+
+// GetHiddenTokensToLeft returns all hidden tokens to the left of a token.
+func (l *ParseTreeListener) GetHiddenTokensToLeft(tokenIndex, channel int) []antlr.Token {
+	tokens := l.Tokens.GetAllTokens()
+	if tokenIndex < 0 || tokenIndex >= len(tokens) {
+		panic(strconv.Itoa(tokenIndex) + " not in 0.." + strconv.Itoa(len(tokens)-1))
+	}
+
+	prevOnChannel := l.previousTokenOnChannel(tokenIndex - 1)
+	if prevOnChannel == tokenIndex-1 {
+		return nil
+	}
+
+	// If there are none on channel to the left and prevOnChannel == -1 then from = 0
+	from := prevOnChannel + 1
+	to := tokenIndex - 1
+	return l.filterForChannel(from, to, channel)
+}
+
+// nextTokenOnChannel returns the next token on the specified channel.
+func (l *ParseTreeListener) nextTokenOnChannel(i int) int {
+	tokens := l.Tokens.GetAllTokens()
+	if i >= len(tokens) {
+		return -1
+	}
+	token := tokens[i]
+	for isTerminatorToken(tokens[i]) || token.GetChannel() != antlr.LexerDefaultTokenChannel {
+		if token.GetTokenType() == antlr.TokenEOF {
+			return -1
+		}
+		i++
+		token = tokens[i]
+	}
+	return i
+}
+
+// GetHiddenTokensToRight returns all hidden tokens to the right of a token.
+func (l *ParseTreeListener) GetHiddenTokensToRight(tokenIndex, channel int) []antlr.Token {
+	tokens := l.Tokens.GetAllTokens()
+	if tokenIndex < 0 || tokenIndex >= len(tokens) {
+		panic(strconv.Itoa(tokenIndex) + " not in 0.." + strconv.Itoa(len(tokens)-1))
+	}
+
+	nextOnChannel := l.nextTokenOnChannel(tokenIndex + 1)
+	from := tokenIndex + 1
+
+	// If no onChannel to the right, then nextOnChannel == -1, so set 'to' to the last token
+	var to int
+	if nextOnChannel == -1 {
+		to = len(tokens) - 1
+	} else {
+		to = nextOnChannel
+	}
+	return l.filterForChannel(from, to, channel)
+}
+
 // topComment extracts comments immediately above a token.
 // It supports both single-line (//) and multi-line (/* */) comments.
 func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
@@ -482,7 +572,7 @@ func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
 	)
 
 	// Collect single-line comments
-	comments := l.Tokens.GetHiddenTokensToLeft(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
+	comments := l.GetHiddenTokensToLeft(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
 	for _, c := range comments {
 		if _, ok := l.Attached[c.GetLine()]; ok {
 			continue
@@ -498,7 +588,7 @@ func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
 	}
 
 	// Collect multi-line comments
-	comments = l.Tokens.GetHiddenTokensToLeft(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
+	comments = l.GetHiddenTokensToLeft(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
 	for _, c := range comments {
 		if _, ok := l.Attached[c.GetLine()]; ok {
 			continue

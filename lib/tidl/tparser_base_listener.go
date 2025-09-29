@@ -86,12 +86,6 @@ func (s *BaseTParserListener) EnterCommon_field_type(ctx *Common_field_typeConte
 // ExitCommon_field_type is called when production common_field_type is exited.
 func (s *BaseTParserListener) ExitCommon_field_type(ctx *Common_field_typeContext) {}
 
-// EnterGeneric_type is called when production generic_type is entered.
-func (s *BaseTParserListener) EnterGeneric_type(ctx *Generic_typeContext) {}
-
-// ExitGeneric_type is called when production generic_type is exited.
-func (s *BaseTParserListener) ExitGeneric_type(ctx *Generic_typeContext) {}
-
 // EnterType_annotations is called when production type_annotations is entered.
 func (s *BaseTParserListener) EnterType_annotations(ctx *Type_annotationsContext) {}
 
@@ -103,12 +97,6 @@ func (s *BaseTParserListener) EnterOneof_def(ctx *Oneof_defContext) {}
 
 // ExitOneof_def is called when production oneof_def is exited.
 func (s *BaseTParserListener) ExitOneof_def(ctx *Oneof_defContext) {}
-
-// EnterOneof_field is called when production oneof_field is entered.
-func (s *BaseTParserListener) EnterOneof_field(ctx *Oneof_fieldContext) {}
-
-// ExitOneof_field is called when production oneof_field is exited.
-func (s *BaseTParserListener) ExitOneof_field(ctx *Oneof_fieldContext) {}
 
 // EnterRpc_def is called when production rpc_def is entered.
 func (s *BaseTParserListener) EnterRpc_def(ctx *Rpc_defContext) {}
@@ -187,3 +175,9 @@ func (s *BaseTParserListener) EnterConst_value(ctx *Const_valueContext) {}
 
 // ExitConst_value is called when production const_value is exited.
 func (s *BaseTParserListener) ExitConst_value(ctx *Const_valueContext) {}
+
+// EnterTerminator is called when production terminator is entered.
+func (s *BaseTParserListener) EnterTerminator(ctx *TerminatorContext) {}
+
+// ExitTerminator is called when production terminator is exited.
+func (s *BaseTParserListener) ExitTerminator(ctx *TerminatorContext) {}
