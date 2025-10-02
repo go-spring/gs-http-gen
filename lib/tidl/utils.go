@@ -20,6 +20,41 @@ import (
 	"slices"
 )
 
+// CapitalizeASCII capitalizes the first ASCII letter of a string.
+func CapitalizeASCII(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	if s[0] >= 'a' && s[0] <= 'z' {
+		return string(s[0]-'a'+'A') + s[1:]
+	}
+	return s
+}
+
+// GetEnum searches all documents for an enum type with the given name.
+func GetEnum(files map[string]Document, name string) (Enum, bool) {
+	for _, doc := range files {
+		for _, e := range doc.Enums {
+			if CapitalizeASCII(e.Name) == name {
+				return e, true
+			}
+		}
+	}
+	return Enum{}, false
+}
+
+// GetType searches all documents for a type with the given name.
+func GetType(files map[string]Document, name string) (Type, bool) {
+	for _, doc := range files {
+		for _, t := range doc.Types {
+			if CapitalizeASCII(t.Name) == name {
+				return t, true
+			}
+		}
+	}
+	return Type{}, false
+}
+
 // GetOneOfAnnotation searches through a slice of annotations and returns
 // the first annotation whose key matches any of the provided names.
 func GetOneOfAnnotation(arr []Annotation, names ...string) (Annotation, bool) {

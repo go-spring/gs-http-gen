@@ -13,8 +13,56 @@ var _ = errors.New
 var _ = strings.Count
 var _ = http.NewServeMux
 
+type PayloadType int32
+
+const (
+	PayloadType_TextData    PayloadType = 0
+	PayloadType_NumberData  PayloadType = 1
+	PayloadType_BooleanData PayloadType = 2
+)
+
+var (
+	PayloadType_name = map[PayloadType]string{
+		0: "TextData",
+		1: "NumberData",
+		2: "BooleanData",
+	}
+	PayloadType_value = map[string]PayloadType{
+		"TextData":    0,
+		"NumberData":  1,
+		"BooleanData": 2,
+	}
+)
+
+// PayloadTypeAsString wraps PayloadType to encode/decode as a JSON string
+type PayloadTypeAsString PayloadType
+
+// MarshalJSON implements custom JSON encoding for the enum as a string
+func (x PayloadTypeAsString) MarshalJSON() ([]byte, error) {
+	if s, ok := PayloadType_name[PayloadType(x)]; ok {
+		return []byte(fmt.Sprintf("\"%s\"", s)), nil
+	}
+	return nil, fmt.Errorf("invalid PayloadType: %d", x)
+}
+
+// UnmarshalJSON implements custom JSON decoding for the enum from a string
+func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
+	str := strings.Trim(string(data), "\"")
+	if v, ok := PayloadType_value[str]; ok {
+		*x = PayloadTypeAsString(v)
+		return nil
+	}
+	return fmt.Errorf("invalid PayloadType value: %q", str)
+}
+
+// OneOfPayloadType is usually used for validation.
+func OneOfPayloadType(i PayloadType) bool {
+	_, ok := PayloadType_name[i]
+	return ok
+}
+
 type StreamReq struct {
-	Id string `json:"Id"`
+	Id string `json:"id"`
 }
 
 // NewStreamReq creates a new instance of the struct and sets default values if defined
@@ -60,8 +108,9 @@ func (x *StreamReq) String() string {
 }
 
 type StreamResp struct {
-	Id   string `json:"Id"`
-	Data string `json:"Data"`
+	Id      string  `json:"id"`
+	Data    string  `json:"data"`
+	Payload Payload `json:"payload"`
 }
 
 // NewStreamResp creates a new instance of the struct and sets default values if defined
@@ -104,6 +153,21 @@ func (x *StreamResp) SetData(v string) {
 	}
 }
 
+// GetPayload returns the value of Payload
+func (x *StreamResp) GetPayload() (r Payload) {
+	if x != nil {
+		return x.Payload
+	}
+	return r
+}
+
+// SetPayload sets the value of Payload
+func (x *StreamResp) SetPayload(v Payload) {
+	if x != nil {
+		x.Payload = v
+	}
+}
+
 // Binding extracts non-body values (header, path, query) from *http.Request
 func (x *StreamResp) Binding(r *http.Request) error {
 	return nil
@@ -119,4 +183,98 @@ func (x *StreamResp) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("StreamResp(%+v)", *x)
+}
+
+type Payload struct {
+	FieldType   PayloadType `json:"field_type"`
+	TextData    string      `json:"text_data"`
+	NumberData  *int64      `json:"number_data,omitempty"`
+	BooleanData bool        `json:"boolean_data"`
+}
+
+// NewPayload creates a new instance of the struct and sets default values if defined
+func NewPayload() *Payload {
+	return &Payload{}
+}
+
+// New implements the Object interface
+func (x *Payload) New() any {
+	return NewPayload()
+}
+
+// GetFieldType returns the value of FieldType
+func (x *Payload) GetFieldType() (r PayloadType) {
+	if x != nil {
+		return x.FieldType
+	}
+	return r
+}
+
+// SetFieldType sets the value of FieldType
+func (x *Payload) SetFieldType(v PayloadType) {
+	if x != nil {
+		x.FieldType = v
+	}
+}
+
+// GetTextData returns the value of TextData
+func (x *Payload) GetTextData() (r string) {
+	if x != nil {
+		return x.TextData
+	}
+	return r
+}
+
+// SetTextData sets the value of TextData
+func (x *Payload) SetTextData(v string) {
+	if x != nil {
+		x.TextData = v
+	}
+}
+
+// GetNumberData returns the value of NumberData
+func (x *Payload) GetNumberData() (r *int64) {
+	if x != nil {
+		return x.NumberData
+	}
+	return r
+}
+
+// SetNumberData sets the value of NumberData
+func (x *Payload) SetNumberData(v int64) {
+	if x != nil {
+		x.NumberData = &v
+	}
+}
+
+// GetBooleanData returns the value of BooleanData
+func (x *Payload) GetBooleanData() (r bool) {
+	if x != nil {
+		return x.BooleanData
+	}
+	return r
+}
+
+// SetBooleanData sets the value of BooleanData
+func (x *Payload) SetBooleanData(v bool) {
+	if x != nil {
+		x.BooleanData = v
+	}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request
+func (x *Payload) Binding(r *http.Request) error {
+	return nil
+}
+
+// Validate checks field values using generated validation expressions
+func (x *Payload) Validate() error {
+	return nil
+}
+
+func (x *Payload) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Payload(%+v)", *x)
 }

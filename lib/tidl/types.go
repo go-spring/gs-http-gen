@@ -39,7 +39,6 @@ type Document struct {
 	Comments []Comment
 	Consts   []Const
 	Enums    []Enum
-	OneOfs   []OneOf
 	Types    []Type
 	RPCs     []RPC
 }
@@ -88,12 +87,13 @@ type EnumField struct {
 
 // Type represents a custom user-defined type (struct-like).
 type Type struct {
-	Name        string // Type name
-	Redefined   *RedefinedType
-	GenericName *string     // Optional generic type parameter (if present)
-	Fields      []TypeField // Type fields
-	Position    Position    // Location in source code
-	Comments    Comments    // Associated comments
+	Name        string         // Type name
+	OneOf       bool           // oneof
+	Redefined   *RedefinedType // type a b
+	GenericName *string        // Optional generic type parameter (if present)
+	Fields      []TypeField    // Type fields
+	Position    Position       // Location in source code
+	Comments    Comments       // Associated comments
 }
 
 type RedefinedType struct {
@@ -201,14 +201,6 @@ type ListType struct {
 
 func (t ListType) Text() string {
 	return "list<" + t.Item.Text() + ">"
-}
-
-// OneOf represents a one-of type definition.
-type OneOf struct {
-	Name     string      // Type name
-	Fields   []TypeField // Type fields
-	Position Position    // Location in source code
-	Comments Comments    // Associated comments
 }
 
 // Annotation represents metadata attached to types, fields, or RPCs.

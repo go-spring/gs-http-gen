@@ -152,58 +152,10 @@
       }
     }
   ],
-  "OneOfs": [
-    {
-      "Name": "Payload",
-      "Fields": [
-        {
-          "FieldType": {
-            "Name": "string",
-            "Optional": false
-          },
-          "Name": "title",
-          "Default": null,
-          "Annotations": null,
-          "Position": {
-            "Start": 47,
-            "Stop": 47
-          },
-          "Comments": {
-            "Top": null,
-            "Right": null
-          }
-        },
-        {
-          "FieldType": {
-            "Name": "string",
-            "Optional": true
-          },
-          "Name": "body",
-          "Default": null,
-          "Annotations": null,
-          "Position": {
-            "Start": 48,
-            "Stop": 48
-          },
-          "Comments": {
-            "Top": null,
-            "Right": null
-          }
-        }
-      ],
-      "Position": {
-        "Start": 46,
-        "Stop": 49
-      },
-      "Comments": {
-        "Top": null,
-        "Right": null
-      }
-    }
-  ],
   "Types": [
     {
       "Name": "UserReq",
+      "OneOf": false,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
@@ -245,6 +197,7 @@
     },
     {
       "Name": "User",
+      "OneOf": false,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
@@ -405,6 +358,7 @@
     },
     {
       "Name": "Address",
+      "OneOf": false,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
@@ -470,7 +424,58 @@
       }
     },
     {
+      "Name": "Payload",
+      "OneOf": true,
+      "Redefined": null,
+      "GenericName": null,
+      "Fields": [
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": false
+          },
+          "Name": "title",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 47,
+            "Stop": 47
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        },
+        {
+          "FieldType": {
+            "Name": "string",
+            "Optional": true
+          },
+          "Name": "body",
+          "Default": null,
+          "Annotations": null,
+          "Position": {
+            "Start": 48,
+            "Stop": 48
+          },
+          "Comments": {
+            "Top": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 46,
+        "Stop": 49
+      },
+      "Comments": {
+        "Top": null,
+        "Right": null
+      }
+    },
+    {
       "Name": "Response",
+      "OneOf": false,
       "Redefined": null,
       "GenericName": "T",
       "Fields": [
@@ -546,6 +551,7 @@
     },
     {
       "Name": "UserResponse",
+      "OneOf": false,
       "Redefined": {
         "Name": "Response",
         "GenericType": {

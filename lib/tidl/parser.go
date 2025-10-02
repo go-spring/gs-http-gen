@@ -51,7 +51,7 @@ func Parse(s string) (doc Document, err error) {
 	}()
 
 	// Step 1. Create lexer and token stream
-	input := antlr.NewInputStream(s)
+	input := antlr.NewInputStream(s + "\n")
 	lexer := NewTLexer(input)
 	lexer.RemoveErrorListeners()
 	lexer.AddErrorListener(e)
@@ -354,8 +354,9 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext) TypeDefinitio
 }
 
 func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
-	o := OneOf{
-		Name: ctx.IDENTIFIER().GetText(),
+	o := Type{
+		Name:  ctx.IDENTIFIER().GetText(),
+		OneOf: true,
 		Position: Position{
 			Start: ctx.GetStart().GetLine(),
 			Stop:  ctx.GetStop().GetLine(),
@@ -367,11 +368,11 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 
 	l.parseOneOfType(ctx, &o)
 
-	l.Document.OneOfs = append(l.Document.OneOfs, o)
+	l.Document.Types = append(l.Document.Types, o)
 }
 
 // parseOneOfType handles oneof types, including fields and annotations.
-func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *OneOf) {
+func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *Type) {
 
 	// Process all oneof fields
 	for _, f := range ctx.AllCommon_type_field() {

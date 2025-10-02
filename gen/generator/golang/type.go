@@ -208,11 +208,11 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 // genType generates a Go type file corresponding to the IDL file.
 // It includes constants, enums, and struct types.
 func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) error {
-	consts, err := convertConsts(ctx, doc.Consts)
+	consts, err := convertConsts(ctx, doc)
 	if err != nil {
 		return err
 	}
-	enums, err := convertEnums(doc.Enums)
+	enums, err := convertEnums(ctx, doc)
 	if err != nil {
 		return err
 	}
@@ -258,9 +258,9 @@ type Const struct {
 }
 
 // convertConsts converts IDL constants to Go constants
-func convertConsts(ctx Context, consts []tidl.Const) ([]Const, error) {
+func convertConsts(ctx Context, doc tidl.Document) ([]Const, error) {
 	var ret []Const
-	for _, c := range consts {
+	for _, c := range doc.Consts {
 		typeName, err := getTypeName(ctx, tidl.BaseType{
 			Name: c.Type,
 		}, nil)
@@ -292,9 +292,9 @@ type EnumField struct {
 }
 
 // convertEnums converts IDL enums to Go enums
-func convertEnums(enums []tidl.Enum) ([]Enum, error) {
+func convertEnums(ctx Context, doc tidl.Document) ([]Enum, error) {
 	var ret []Enum
-	for _, e := range enums {
+	for _, e := range doc.Enums {
 		var fields []EnumField
 		for _, f := range e.Fields {
 			fields = append(fields, EnumField{
@@ -304,9 +304,26 @@ func convertEnums(enums []tidl.Enum) ([]Enum, error) {
 			})
 		}
 		ret = append(ret, Enum{
-			Name:    generator.CapitalizeASCII(e.Name),
+			Name:    tidl.CapitalizeASCII(e.Name),
 			Fields:  fields,
 			Comment: genComment(e.Comments),
+		})
+	}
+	for _, t := range doc.Types {
+		if !t.OneOf {
+			continue
+		}
+		name := tidl.CapitalizeASCII(t.Name) + "Type"
+		var fields []EnumField
+		for i, f := range t.Fields {
+			fields = append(fields, EnumField{
+				Name:  generator.ToPascal(f.Name),
+				Value: int64(i),
+			})
+		}
+		ret = append(ret, Enum{
+			Name:   name,
+			Fields: fields,
 		})
 	}
 	return ret, nil
@@ -401,14 +418,14 @@ func convertTypes(ctx Context, doc tidl.Document) (_ []Type, err error) {
 
 // convertResponseType instantiates a generic response type for RPC
 func convertResponseType(ctx Context, rpcName string, respType tidl.RespType) (Type, error) {
-	t, ok := generator.GetType(ctx.files, respType.TypeName)
+	t, ok := tidl.GetType(ctx.files, respType.TypeName)
 	if !ok {
 		return Type{}, fmt.Errorf("type %s not found", respType.TypeName)
 	}
 
-	typeName := generator.CapitalizeASCII(rpcName)
-	typeName += generator.CapitalizeASCII(t.Name)
-	typeName += generator.CapitalizeASCII(respType.UserType.Name)
+	typeName := tidl.CapitalizeASCII(rpcName)
+	typeName += tidl.CapitalizeASCII(t.Name)
+	typeName += tidl.CapitalizeASCII(respType.UserType.Name)
 
 	r := tidl.Type{
 		Name:     typeName,
@@ -430,7 +447,7 @@ func convertResponseType(ctx Context, rpcName string, respType tidl.RespType) (T
 
 // convertRedefinedType instantiates a redefined generic struct type
 func convertRedefinedType(ctx Context, r tidl.Type) (Type, error) {
-	t, ok := generator.GetType(ctx.files, r.Redefined.Name)
+	t, ok := tidl.GetType(ctx.files, r.Redefined.Name)
 	if !ok {
 		return Type{}, fmt.Errorf("type %s not found", r.Redefined.Name)
 	}
@@ -471,13 +488,23 @@ func resolveGenericType(t tidl.TypeDefinition, genericName string, r *tidl.Redef
 // convertType converts an IDL struct type to a Go struct type
 func convertType(ctx Context, t tidl.Type) (Type, error) {
 	r := Type{
-		Name: generator.CapitalizeASCII(t.Name),
+		Name: tidl.CapitalizeASCII(t.Name),
 	}
+
+	if t.OneOf {
+		r.Fields = append(r.Fields, TypeField{
+			Type:     r.Name + "Type",
+			TypeKind: TypeKindEnumType,
+			Name:     "FieldType",
+			Tag:      "`json:\"field_type\"`",
+		})
+	}
+
 	for _, f := range t.Fields {
 
 		// Handle embedded types (flatten their fields into the struct)
 		if ft, ok := f.FieldType.(tidl.EmbedType); ok {
-			et, ok := generator.GetType(ctx.files, ft.Name)
+			et, ok := tidl.GetType(ctx.files, ft.Name)
 			if !ok {
 				return Type{}, fmt.Errorf("embedded type %s not found for field in struct %s", ft.Name, r.Name)
 			}
@@ -516,7 +543,7 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 		}
 
 		// Generate struct tag for the field
-		fieldTag, err := genFieldTag(fieldName, typeName, f.Annotations, binding)
+		fieldTag, err := genFieldTag(f.Name, typeName, f.Annotations, binding)
 		if err != nil {
 			return Type{}, err
 		}
@@ -574,14 +601,14 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 		}
 		return typeName, nil
 	case tidl.UserType:
-		typeName := generator.CapitalizeASCII(ft.Name)
+		typeName := tidl.CapitalizeASCII(ft.Name)
 		if ft.Optional {
 			typeName = "*" + typeName
 		}
 
 		// Handle enum_as_string annotation
 		if _, ok := tidl.GetOneOfAnnotation(arr, "enum_as_string"); ok {
-			if _, ok := generator.GetEnum(ctx.files, ft.Name); !ok {
+			if _, ok := tidl.GetEnum(ctx.files, ft.Name); !ok {
 				return "", fmt.Errorf("enum %s not found", ft.Name)
 			}
 			typeName += "AsString"
@@ -641,13 +668,13 @@ func getTypeKind(ctx Context, typeName string) (TypeKind, error) {
 		}
 		return TypeKindMapType, nil
 	default:
-		if _, ok := generator.GetEnum(ctx.files, strings.TrimSuffix(typeName, "AsString")); ok {
+		if _, ok := tidl.GetEnum(ctx.files, strings.TrimSuffix(typeName, "AsString")); ok {
 			if optional {
 				return TypeKindOptionalEnumType, nil
 			}
 			return TypeKindEnumType, nil
 		}
-		if _, ok := generator.GetType(ctx.files, typeName); ok {
+		if _, ok := tidl.GetType(ctx.files, typeName); ok {
 			if optional {
 				return TypeKindOptionalStructType, nil
 			}
@@ -683,10 +710,10 @@ func parseDefault(ctx Context, typeName string, v *string) (*string, error) {
 			// Handle enum values like EnumName.VALUE
 			asString := strings.HasSuffix(typeName, "AsString")
 			typeNameTrimmed := strings.TrimSuffix(typeName, "AsString")
-			if _, ok := generator.GetEnum(ctx.files, typeNameTrimmed); !ok {
+			if _, ok := tidl.GetEnum(ctx.files, typeNameTrimmed); !ok {
 				return v, nil // Treat as a regular string
 			}
-			s := generator.CapitalizeASCII(parts[0]) + "_" + parts[1]
+			s := tidl.CapitalizeASCII(parts[0]) + "_" + parts[1]
 			if asString {
 				s = fmt.Sprintf("%sAsString(%s)", typeNameTrimmed, s)
 			}

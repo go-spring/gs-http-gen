@@ -56,41 +56,6 @@ func RegisterGenerator(language string, g Generator) {
 	generators[language] = g
 }
 
-// GetEnum searches all documents for an enum type with the given name.
-func GetEnum(files map[string]tidl.Document, name string) (tidl.Enum, bool) {
-	for _, doc := range files {
-		for _, e := range doc.Enums {
-			if CapitalizeASCII(e.Name) == name {
-				return e, true
-			}
-		}
-	}
-	return tidl.Enum{}, false
-}
-
-// GetType searches all documents for a type with the given name.
-func GetType(files map[string]tidl.Document, name string) (tidl.Type, bool) {
-	for _, doc := range files {
-		for _, t := range doc.Types {
-			if CapitalizeASCII(t.Name) == name {
-				return t, true
-			}
-		}
-	}
-	return tidl.Type{}, false
-}
-
-// CapitalizeASCII capitalizes the first ASCII letter of a string.
-func CapitalizeASCII(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	if s[0] >= 'a' && s[0] <= 'z' {
-		return string(s[0]-'a'+'A') + s[1:]
-	}
-	return s
-}
-
 // ToPascal converts a snake_case string to PascalCase.
 // For example: "hello_world" becomes "HelloWorld".
 func ToPascal(s string) string {

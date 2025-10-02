@@ -7,6 +7,13 @@ type StreamReq {
 type StreamResp {
     string id
     string data
+    Payload payload
+}
+
+oneof Payload {
+    string text_data
+    int? number_data
+    bool boolean_data
 }
 
 rpc Stream(StreamReq) stream<StreamResp> {

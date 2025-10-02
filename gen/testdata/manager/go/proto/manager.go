@@ -193,7 +193,7 @@ func OneOfDepartment(i Department) bool {
 
 type PageReq struct {
 	Page int64 `json:"page" query:"page"`
-	Size int64 `json:"Size" query:"size"`
+	Size int64 `json:"size" query:"size"`
 }
 
 // NewPageReq creates a new instance of the struct and sets default values if defined
@@ -266,9 +266,9 @@ func (x *PageReq) String() string {
 }
 
 type Address struct {
-	City       string  `json:"City"`
-	Street     *string `json:"Street,omitempty"`
-	PostalCode *string `json:"PostalCode,omitempty"`
+	City       string  `json:"city"`
+	Street     *string `json:"street,omitempty"`
+	PostalCode *string `json:"postalCode,omitempty"`
 }
 
 // NewAddress creates a new instance of the struct and sets default values if defined
@@ -344,9 +344,9 @@ func (x *Address) String() string {
 }
 
 type ContactInfo struct {
-	Email   string  `json:"Email"`
-	Phone   *string `json:"Phone,omitempty"`
-	Address Address `json:"Address"`
+	Email   string  `json:"email"`
+	Phone   *string `json:"phone,omitempty"`
+	Address Address `json:"address"`
 }
 
 // NewContactInfo creates a new instance of the struct and sets default values if defined
@@ -425,8 +425,8 @@ func (x *ContactInfo) String() string {
 }
 
 type DepartmentInfo struct {
-	Dept     Department `json:"Dept"`
-	DeptName string     `json:"DeptName"`
+	Dept     Department `json:"dept"`
+	DeptName string     `json:"deptName"`
 }
 
 // NewDepartmentInfo creates a new instance of the struct and sets default values if defined
@@ -487,15 +487,15 @@ func (x *DepartmentInfo) String() string {
 }
 
 type Manager struct {
-	Id       string               `json:"Id"`
-	Name     string               `json:"Name"`
-	Age      *int64               `json:"Age,omitempty"`
-	Vip      bool                 `json:"Vip"`
-	Salary   float64              `json:"Salary"`
-	Role     string               `json:"Role"`
-	Level    ManagerLevelAsString `json:"Level"`
-	DeptInfo DepartmentInfo       `json:"DeptInfo"`
-	Contact  ContactInfo          `json:"Contact"`
+	Id       string               `json:"id"`
+	Name     string               `json:"name"`
+	Age      *int64               `json:"age,omitempty"`
+	Vip      bool                 `json:"vip"`
+	Salary   float64              `json:"salary"`
+	Role     string               `json:"role"`
+	Level    ManagerLevelAsString `json:"level"`
+	DeptInfo DepartmentInfo       `json:"deptInfo"`
+	Contact  ContactInfo          `json:"contact"`
 }
 
 // NewManager creates a new instance of the struct and sets default values if defined
@@ -677,7 +677,7 @@ func (x *Manager) String() string {
 }
 
 type ManagerReq struct {
-	Id string `json:"Id" path:"id"`
+	Id string `json:"id" path:"id"`
 }
 
 // NewManagerReq creates a new instance of the struct and sets default values if defined
@@ -725,14 +725,14 @@ func (x *ManagerReq) String() string {
 }
 
 type CreateManagerReq struct {
-	Name     string         `json:"Name"`
-	Age      *int64         `json:"Age,omitempty"`
-	Vip      bool           `json:"Vip"`
-	Salary   float64        `json:"Salary"`
-	Role     string         `json:"Role"`
-	Level    ManagerLevel   `json:"Level"`
-	DeptInfo DepartmentInfo `json:"DeptInfo"`
-	Contact  ContactInfo    `json:"Contact"`
+	Name     string         `json:"name"`
+	Age      *int64         `json:"age,omitempty"`
+	Vip      bool           `json:"vip"`
+	Salary   float64        `json:"salary"`
+	Role     string         `json:"role"`
+	Level    ManagerLevel   `json:"level"`
+	DeptInfo DepartmentInfo `json:"deptInfo"`
+	Contact  ContactInfo    `json:"contact"`
 }
 
 // NewCreateManagerReq creates a new instance of the struct and sets default values if defined
@@ -899,15 +899,15 @@ func (x *CreateManagerReq) String() string {
 }
 
 type UpdateManagerReq struct {
-	Id       string          `json:"Id" path:"id"`
-	Name     *string         `json:"Name,omitempty"`
-	Age      *int64          `json:"Age,omitempty"`
-	Vip      *bool           `json:"Vip,omitempty"`
-	Salary   *float64        `json:"Salary,omitempty"`
-	Role     *string         `json:"Role,omitempty"`
-	Level    *ManagerLevel   `json:"Level,omitempty"`
-	DeptInfo *DepartmentInfo `json:"DeptInfo,omitempty"`
-	Contact  *ContactInfo    `json:"Contact,omitempty"`
+	Id       string          `json:"id" path:"id"`
+	Name     *string         `json:"name,omitempty"`
+	Age      *int64          `json:"age,omitempty"`
+	Vip      *bool           `json:"vip,omitempty"`
+	Salary   *float64        `json:"salary,omitempty"`
+	Role     *string         `json:"role,omitempty"`
+	Level    *ManagerLevel   `json:"level,omitempty"`
+	DeptInfo *DepartmentInfo `json:"dept_info,omitempty"`
+	Contact  *ContactInfo    `json:"contact,omitempty"`
 }
 
 // NewUpdateManagerReq creates a new instance of the struct and sets default values if defined
@@ -1086,12 +1086,12 @@ func (x *UpdateManagerReq) String() string {
 
 type ListManagersByPageReq struct {
 	Page      int64         `json:"page" query:"page"`
-	Size      int64         `json:"Size" query:"size"`
-	Keyword   *string       `json:"Keyword,omitempty" query:"keyword"`
-	Dept      *Department   `json:"Dept,omitempty" query:"dept"`
-	MinLevel  *ManagerLevel `json:"MinLevel,omitempty" query:"minLevel"`
-	Vip       *bool         `json:"Vip,omitempty" query:"vip"`
-	AuthToken *string       `json:"AuthToken,omitempty" header:"X-Auth-Token"`
+	Size      int64         `json:"size" query:"size"`
+	Keyword   *string       `json:"keyword,omitempty" query:"keyword"`
+	Dept      *Department   `json:"dept,omitempty" query:"dept"`
+	MinLevel  *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
+	Vip       *bool         `json:"vip,omitempty" query:"vip"`
+	AuthToken *string       `json:"authToken,omitempty" header:"X-Auth-Token"`
 }
 
 // NewListManagersByPageReq creates a new instance of the struct and sets default values if defined
@@ -1244,9 +1244,9 @@ func (x *ListManagersByPageReq) String() string {
 }
 
 type CreateManagerResp struct {
-	Errno  ErrCode  `json:"Errno"`
-	Errmsg string   `json:"Errmsg"`
-	Data   *Manager `json:"Data,omitempty"`
+	Errno  ErrCode  `json:"errno"`
+	Errmsg string   `json:"errmsg"`
+	Data   *Manager `json:"data,omitempty"`
 }
 
 // NewCreateManagerResp creates a new instance of the struct and sets default values if defined
@@ -1327,9 +1327,9 @@ func (x *CreateManagerResp) String() string {
 }
 
 type UpdateManagerResp struct {
-	Errno  ErrCode  `json:"Errno"`
-	Errmsg string   `json:"Errmsg"`
-	Data   *Manager `json:"Data,omitempty"`
+	Errno  ErrCode  `json:"errno"`
+	Errmsg string   `json:"errmsg"`
+	Data   *Manager `json:"data,omitempty"`
 }
 
 // NewUpdateManagerResp creates a new instance of the struct and sets default values if defined
@@ -1410,9 +1410,9 @@ func (x *UpdateManagerResp) String() string {
 }
 
 type GetManagerResp struct {
-	Errno  ErrCode  `json:"Errno"`
-	Errmsg string   `json:"Errmsg"`
-	Data   *Manager `json:"Data,omitempty"`
+	Errno  ErrCode  `json:"errno"`
+	Errmsg string   `json:"errmsg"`
+	Data   *Manager `json:"data,omitempty"`
 }
 
 // NewGetManagerResp creates a new instance of the struct and sets default values if defined
@@ -1493,9 +1493,9 @@ func (x *GetManagerResp) String() string {
 }
 
 type DeleteManagerResp struct {
-	Errno  ErrCode `json:"Errno"`
-	Errmsg string  `json:"Errmsg"`
-	Data   bool    `json:"Data"`
+	Errno  ErrCode `json:"errno"`
+	Errmsg string  `json:"errmsg"`
+	Data   bool    `json:"data"`
 }
 
 // NewDeleteManagerResp creates a new instance of the struct and sets default values if defined
@@ -1576,10 +1576,10 @@ func (x *DeleteManagerResp) String() string {
 }
 
 type ManagersPageData struct {
-	Total int64      `json:"Total"`
-	Page  int64      `json:"Page"`
-	Size  int64      `json:"Size"`
-	Items []*Manager `json:"Items"`
+	Total int64      `json:"total"`
+	Page  int64      `json:"page"`
+	Size  int64      `json:"size"`
+	Items []*Manager `json:"items"`
 }
 
 // NewManagersPageData creates a new instance of the struct and sets default values if defined
@@ -1670,9 +1670,9 @@ func (x *ManagersPageData) String() string {
 }
 
 type ListManagersByPageResp struct {
-	Errno  ErrCode           `json:"Errno"`
-	Errmsg string            `json:"Errmsg"`
-	Data   *ManagersPageData `json:"Data,omitempty"`
+	Errno  ErrCode           `json:"errno"`
+	Errmsg string            `json:"errmsg"`
+	Data   *ManagersPageData `json:"data,omitempty"`
 }
 
 // NewListManagersByPageResp creates a new instance of the struct and sets default values if defined

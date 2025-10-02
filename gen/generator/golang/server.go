@@ -25,7 +25,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
 )
 
@@ -155,9 +154,9 @@ type RPC struct {
 func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 	var ret []RPC
 	for _, r := range rpcs {
-		respType := generator.CapitalizeASCII(r.Response.TypeName)
+		respType := tidl.CapitalizeASCII(r.Response.TypeName)
 		if r.Response.UserType != nil {
-			respType += generator.CapitalizeASCII(r.Response.UserType.Name)
+			respType += tidl.CapitalizeASCII(r.Response.UserType.Name)
 		}
 
 		path, ok := tidl.GetOneOfAnnotation(r.Annotations, "path")
@@ -177,8 +176,8 @@ func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 		}
 
 		ret = append(ret, RPC{
-			Name:     generator.CapitalizeASCII(r.Name),
-			Request:  generator.CapitalizeASCII(r.Request),
+			Name:     tidl.CapitalizeASCII(r.Name),
+			Request:  tidl.CapitalizeASCII(r.Request),
 			Response: respType,
 			Stream:   r.Response.Stream,
 			Path:     strings.Trim(*path.Value, "\""),
