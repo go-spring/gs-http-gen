@@ -183,26 +183,28 @@ func parseValidateExpr(ctx IValidateExprContext) Expr {
 
 // parseLogicalOrExpr converts a LogicalOrExprContext into an Expr.
 func parseLogicalOrExpr(ctx ILogicalOrExprContext) Expr {
-	if ctx.LOGICAL_OR() != nil {
-		return BinaryExpr{
-			Left:  parseLogicalAndExpr(ctx.LogicalAndExpr(0)),
-			Op:    ctx.LOGICAL_OR().GetText(),
-			Right: parseLogicalAndExpr(ctx.LogicalAndExpr(1)),
+	left := parseLogicalAndExpr(ctx.LogicalAndExpr(0))
+	for i, o := range ctx.AllLOGICAL_OR() {
+		left = BinaryExpr{
+			Left:  left,
+			Op:    o.GetText(),
+			Right: parseLogicalAndExpr(ctx.LogicalAndExpr(i + 1)),
 		}
 	}
-	return parseLogicalAndExpr(ctx.LogicalAndExpr(0))
+	return left
 }
 
 // parseLogicalAndExpr converts a LogicalAndExprContext into an Expr.
 func parseLogicalAndExpr(ctx ILogicalAndExprContext) Expr {
-	if ctx.LOGICAL_AND() != nil {
-		return BinaryExpr{
-			Left:  parseEqualityExpr(ctx.EqualityExpr(0)),
-			Op:    ctx.LOGICAL_AND().GetText(),
-			Right: parseEqualityExpr(ctx.EqualityExpr(1)),
+	left := parseEqualityExpr(ctx.EqualityExpr(0))
+	for i, o := range ctx.AllLOGICAL_AND() {
+		left = BinaryExpr{
+			Left:  left,
+			Op:    o.GetText(),
+			Right: parseEqualityExpr(ctx.EqualityExpr(i + 1)),
 		}
 	}
-	return parseEqualityExpr(ctx.EqualityExpr(0))
+	return left
 }
 
 // parseEqualityExpr converts an EqualityExprContext into an Expr.

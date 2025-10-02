@@ -24,11 +24,11 @@ type UserReq {
     string userId
 }
 
-//---- User definition 1 ----
+// ---- User definition 1 ----
 /*
  * User info
  */
-//---- User definition 2 ----
+// ---- User definition 2 ----
 type User {
     any name = "anonymous" ( go.type = "*string", a = "123" )
     int? age

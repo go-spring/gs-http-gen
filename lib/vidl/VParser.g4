@@ -18,12 +18,12 @@ validateExpr
 
 // Logical OR (lowest precedence)
 logicalOrExpr
-    : logicalAndExpr (LOGICAL_OR logicalAndExpr)?
+    : logicalAndExpr (LOGICAL_OR logicalAndExpr)*
     ;
 
 // Logical AND
 logicalAndExpr
-    : equalityExpr (LOGICAL_AND equalityExpr)?
+    : equalityExpr (LOGICAL_AND equalityExpr)*
     ;
 
 // Equality / Inequality

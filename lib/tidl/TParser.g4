@@ -197,5 +197,5 @@ const_value
 // This provides flexibility for both newline-based and semicolon-based syntax.
 // --------------------
 terminator
-    : (NEWLINE | SEMI)+
+    : (NEWLINE | SEMICOLON)+
     ;

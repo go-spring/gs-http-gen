@@ -18,9 +18,6 @@ package gen
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/gen/generator/golang"
@@ -37,7 +34,7 @@ func Gen(language string, config *generator.Config) error {
 	if !ok {
 		return fmt.Errorf("unsupported language: %s", language)
 	}
-	files, meta, err := parse(config.IDLSrcDir)
+	files, meta, err := tidl.ParseDir(config.IDLSrcDir)
 	if err != nil {
 		return err
 	}
@@ -48,60 +45,4 @@ func Gen(language string, config *generator.Config) error {
 		return fmt.Errorf("no idl file")
 	}
 	return g.Gen(config, files, meta)
-}
-
-// parse scans the given directory for IDL files and the meta.json file.
-func parse(dir string) (files map[string]tidl.Document, meta *tidl.MetaInfo, err error) {
-	files = make(map[string]tidl.Document)
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, nil, err
-	}
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		fileName := e.Name()
-
-		// Parse meta.json file if found
-		if fileName == "meta.json" {
-			if meta, err = parseMeta(dir, fileName); err != nil {
-				return nil, nil, err
-			}
-			continue
-		}
-
-		// Skip non-IDL files
-		if !strings.HasSuffix(fileName, ".idl") {
-			continue
-		}
-
-		var doc tidl.Document
-		doc, err = parseFile(dir, fileName)
-		if err != nil {
-			return nil, nil, err
-		}
-		files[fileName] = doc
-	}
-	return
-}
-
-// parseMeta reads and parses the meta.json file to extract service metadata.
-func parseMeta(dir string, fileName string) (*tidl.MetaInfo, error) {
-	fileName = filepath.Join(dir, fileName)
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-	return tidl.ParseMeta(string(b))
-}
-
-// parseFile reads and parses a single IDL file into a document.
-func parseFile(dir string, fileName string) (tidl.Document, error) {
-	fileName = filepath.Join(dir, fileName)
-	b, err := os.ReadFile(fileName)
-	if err != nil {
-		return tidl.Document{}, err
-	}
-	return tidl.Parse(string(b))
 }

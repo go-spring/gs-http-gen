@@ -53,7 +53,7 @@ func tlexerLexerInit() {
 		"KW_FALSE", "TYPE_ANY", "TYPE_BOOL", "TYPE_INT", "TYPE_FLOAT", "TYPE_STRING",
 		"TYPE_BINARY", "TYPE_STREAM", "TYPE_MAP", "TYPE_LIST", "LESS_THAN",
 		"GREATER_THAN", "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
-		"EQUAL", "COMMA", "QUESTION", "SEMI", "STRING", "IDENTIFIER", "INTEGER",
+		"EQUAL", "COMMA", "QUESTION", "SEMICOLON", "STRING", "IDENTIFIER", "INTEGER",
 		"FLOAT", "NEWLINE", "WHITESPACE", "SINGLE_LINE_COMMENT", "MULTI_LINE_COMMENT",
 	}
 	staticData.RuleNames = []string{
@@ -61,8 +61,8 @@ func tlexerLexerInit() {
 		"TYPE_ANY", "TYPE_BOOL", "TYPE_INT", "TYPE_FLOAT", "TYPE_STRING", "TYPE_BINARY",
 		"TYPE_STREAM", "TYPE_MAP", "TYPE_LIST", "LESS_THAN", "GREATER_THAN",
 		"LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE", "EQUAL", "COMMA",
-		"QUESTION", "SEMI", "STRING", "IDENTIFIER", "INTEGER", "FLOAT", "DIGIT",
-		"LETTER", "HEX_DIGIT", "NEWLINE", "WHITESPACE", "SINGLE_LINE_COMMENT",
+		"QUESTION", "SEMICOLON", "STRING", "IDENTIFIER", "INTEGER", "FLOAT",
+		"DIGIT", "LETTER", "HEX_DIGIT", "NEWLINE", "WHITESPACE", "SINGLE_LINE_COMMENT",
 		"MULTI_LINE_COMMENT",
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
@@ -269,7 +269,7 @@ const (
 	TLexerEQUAL               = 23
 	TLexerCOMMA               = 24
 	TLexerQUESTION            = 25
-	TLexerSEMI                = 26
+	TLexerSEMICOLON           = 26
 	TLexerSTRING              = 27
 	TLexerIDENTIFIER          = 28
 	TLexerINTEGER             = 29

@@ -17,8 +17,6 @@
 package tidl
 
 // MetaInfo represents metadata about the parsed document.
-// It contains information about the document's metadata,
-// such as its name, version, and configuration.
 type MetaInfo struct {
 	Name    string         `json:"name"`
 	Version string         `json:"version"`
@@ -32,6 +30,23 @@ type Position struct {
 	Stop  int
 }
 
+// Comment represents a single comment block or line.
+// Single == true means it was parsed from a single-line comment (e.g. //).
+// Single == false means it was parsed from a multi-line block comment (e.g. /* ... */).
+type Comment struct {
+	Text     []string
+	Single   bool
+	Position Position
+}
+
+// Comments groups the two major comment placements:
+//   - Top: comments located above a declaration.
+//   - Right: comments located at the end of a declaration's line.
+type Comments struct {
+	Above []Comment
+	Right *Comment
+}
+
 // Document represents the root node of the parsed file.
 // It contains all top-level definitions such as constants, enums, types, and RPCs.
 // Additionally, it stores any global comments that are not attached to specific nodes.
@@ -41,29 +56,16 @@ type Document struct {
 	Enums    []Enum
 	Types    []Type
 	RPCs     []RPC
-}
 
-// Comment represents a single comment block or line.
-// Single == true means it was parsed from a single-line comment (e.g. //).
-// Single == false means it was parsed from a multi-line block comment (e.g. /* ... */).
-type Comment struct {
-	Text     string
-	Single   bool
-	Position Position
-}
-
-// Comments groups the two major comment placements:
-//   - Top: comments located above a declaration.
-//   - Right: comments located at the end of a declaration's line.
-type Comments struct {
-	Top   []Comment
-	Right *Comment
+	EnumTypes map[string]int // Name -> index
+	TypeTypes map[string]int // Name -> index
+	UsedTypes map[string]struct{}
 }
 
 // Const represents a constant definition in the parsed document.
 type Const struct {
 	Type     string   // Data type of the constant
-	Name     string   // Constant name
+	Name     string   // Name of the constant
 	Value    string   // Literal value
 	Position Position // Location in source code
 	Comments Comments // Associated comments
@@ -71,34 +73,41 @@ type Const struct {
 
 // Enum represents an enum type definition.
 type Enum struct {
-	Name     string      // Enum name
-	Fields   []EnumField // Enum fields
+	Name     string      // Name of the enum
+	Fields   []EnumField // List of fields
 	Position Position    // Location in source code
 	Comments Comments    // Associated comments
 }
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
-	Name     string   // Field name
-	Value    int64    // Enum constant value
+	Name     string   // Name of the enum field
+	Value    int64    // Integer value assigned to the enum field
 	Position Position // Location in source code
 	Comments Comments // Associated comments
 }
 
+// TypeDefinition is the interface implemented by all type representations.
+// The Text() method returns a human-readable representation of the type.
+type TypeDefinition interface {
+	Text() string
+}
+
 // Type represents a custom user-defined type (struct-like).
 type Type struct {
-	Name        string         // Type name
-	OneOf       bool           // oneof
-	Redefined   *RedefinedType // type a b
+	Name        string         // Name of the type
+	OneOf       bool           // Indicates whether this type is a oneof
+	Redefined   *RedefinedType // Represents a type alias (e.g., type A B<T>)
 	GenericName *string        // Optional generic type parameter (if present)
 	Fields      []TypeField    // Type fields
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments
 }
 
+// RedefinedType represents a type alias with optional generic arguments.
 type RedefinedType struct {
-	Name        string
-	GenericType TypeDefinition
+	Name        string         // Name of the aliased type
+	GenericType TypeDefinition // The generic type parameter
 }
 
 func (t RedefinedType) Text() string {
@@ -107,24 +116,18 @@ func (t RedefinedType) Text() string {
 
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
-	FieldType   TypeDefinition // The type of the field (primitive, user, container, etc.)
-	Name        string         // Field name (maybe empty for embedded types)
-	Default     *string        // Optional default value (if specified)
-	Annotations []Annotation   // Field annotations (key-value metadata)
+	FieldType   TypeDefinition // Type of the field
+	Name        string         // Name of the field
+	Default     *string        // Optional default value (if provided)
+	Annotations []Annotation   // Additional metadata (key-value pairs)
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments
 }
 
-// TypeDefinition is the interface implemented by all type representations.
-// The Text() method provides a human-readable representation of the type.
-type TypeDefinition interface {
-	Text() string
-}
-
 // EmbedType represents an embedded type field (similar to composition in Go).
 type EmbedType struct {
-	Name     string // Embedded type name
-	Optional bool   // Whether the type is optional (nullable)
+	Name     string // Name of the embedded type
+	Optional bool   // Whether the embedded type is optional (nullable)
 }
 
 func (t EmbedType) Text() string {
@@ -148,7 +151,7 @@ func (t AnyType) MarshalText() (text []byte, err error) {
 
 // BaseType represents a primitive type (e.g., int, string, bool).
 type BaseType struct {
-	Name     string // Type name
+	Name     string // Name of the primitive type
 	Optional bool   // Whether the type is optional (nullable)
 }
 
@@ -161,7 +164,7 @@ func (t BaseType) Text() string {
 
 // UserType represents a reference to a user-defined type.
 type UserType struct {
-	Name     string // Type name
+	Name     string // Name of the referenced type
 	Optional bool   // Whether the type is optional (nullable)
 }
 
@@ -206,17 +209,17 @@ func (t ListType) Text() string {
 // Annotation represents metadata attached to types, fields, or RPCs.
 type Annotation struct {
 	Key      string   // Annotation key
-	Value    *string  // Optional value
+	Value    *string  // Optional annotation value
 	Position Position // Location in source code
 	Comments Comments // Associated comments
 }
 
 // RPC represents a remote procedure call definition.
 type RPC struct {
-	Name        string       // RPC name
-	Request     string       // Request type (raw string)
+	Name        string       // Name of the RPC
+	Request     string       // Request type
 	Response    RespType     // Response type
-	Annotations []Annotation // RPC annotations (metadata)
+	Annotations []Annotation // Metadata attached to the RPC
 	Position    Position     // Location in source code
 	Comments    Comments     // Associated comments
 }
@@ -224,9 +227,9 @@ type RPC struct {
 // RespType represents the response type of an RPC.
 // It supports both streaming and generic forms.
 type RespType struct {
-	Stream   bool   // Whether the response is a stream
-	TypeName string // Base type name
-	UserType *UserType
+	Stream   bool      // Whether the response is a stream
+	TypeName string    // Base type name for non-stream responses
+	UserType *UserType // User-defined type for the response
 }
 
 // Text returns a human-readable representation of the response type.

@@ -46,7 +46,7 @@ RIGHT_BRACE  : '}';
 EQUAL        : '=';
 COMMA        : ',';
 QUESTION     : '?';
-SEMI         : ';' ;
+SEMICOLON    : ';' ;
 
 // --------------------
 // String literal

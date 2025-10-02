@@ -24,11 +24,12 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	b, err := os.ReadFile("testdata/success/http.idl")
+	fileName := "testdata/success/http.idl"
+	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc, err := Parse(string(b))
+	doc, err := Parse(b)
 	if err != nil {
 		t.Fatal(err)
 	}

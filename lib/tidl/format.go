@@ -22,6 +22,8 @@ import (
 	"strings"
 )
 
+const indent = "    "
+
 // docItemKind defines the type of items that can appear in the document.
 // This is used to help with ordering and spacing when reconstructing the output.
 type docItemKind int
@@ -33,16 +35,13 @@ const (
 	// Multi-line comment (e.g., /* ... */)
 	docItemKindMLComment
 
-	// Top-level comment attached to a const declaration
-	docItemKindConstTop
-
 	// Constant declaration
 	docItemKindConst
 
 	// Enum declaration
 	docItemKindEnum
 
-	// Type declaration (struct-like)
+	// Type declaration (struct-like or oneof)
 	docItemKindType
 
 	// RPC (remote procedure call) declaration
@@ -52,35 +51,28 @@ const (
 // docItem represents one piece of a document (comment, const, type, etc.)
 // with its source position and pre-rendered buffer content.
 type docItem struct {
-	kind docItemKind // The kind of document item
+	kind docItemKind // Kind of the document item
 	pos  int         // Position in the original source
-	buf  string      // The rendered text for this item
+	buf  string      // Rendered text of the document item
 }
 
-// Format parses the input string into a Document and then
-// pretty-prints (dumps) it back into a normalized string form.
-func Format(s string) (string, error) {
-	doc, err := Parse(s)
+// Format parses the input source string into a Document AST
+// and returns its normalized pretty-printed representation.
+func Format(data []byte) (string, error) {
+	doc, err := Parse(data)
 	if err != nil {
 		return "", err
 	}
 	return Dump(doc), nil
 }
 
-// Dump takes a Document AST and converts it into a formatted string.
-// It preserves ordering and attaches comments correctly.
+// Dump converts a parsed Document AST back into a formatted string.
+// It preserves the original order of items (using their source positions)
+// and ensures consistent blank lines and comment placement.
 func Dump(doc Document) string {
-	var sb strings.Builder
-	dumpDocument(doc, &sb)
-	return sb.String()
-}
-
-// dumpDocument collects all items (comments, consts, enums, types, RPCs),
-// sorts them by position, and then writes them into the builder with proper spacing.
-func dumpDocument(doc Document, sb *strings.Builder) {
 	var items []docItem
 
-	// Process standalone comments
+	// Collect top-level standalone comments
 	for _, c := range doc.Comments {
 		kind := docItemKindMLComment
 		if c.Single {
@@ -89,11 +81,11 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		items = append(items, docItem{
 			kind: kind,
 			pos:  c.Position.Start,
-			buf:  c.Text,
+			buf:  strings.Join(c.Text, "\n"),
 		})
 	}
 
-	// Process constants
+	// Collect constants
 	for _, c := range doc.Consts {
 		items = append(items, docItem{
 			kind: docItemKindConst,
@@ -102,7 +94,7 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		})
 	}
 
-	// Process enums
+	// Collect enums
 	for _, e := range doc.Enums {
 		items = append(items, docItem{
 			kind: docItemKindEnum,
@@ -111,7 +103,7 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		})
 	}
 
-	// Process types
+	// Collect types
 	for _, t := range doc.Types {
 		items = append(items, docItem{
 			kind: docItemKindType,
@@ -120,7 +112,7 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		})
 	}
 
-	// Process RPCs
+	// Collect RPCs
 	for _, r := range doc.RPCs {
 		items = append(items, docItem{
 			kind: docItemKindRPC,
@@ -129,16 +121,17 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		})
 	}
 
-	// Sort items by source position so they are written in the original order
+	// Sort all collected items by their original source position
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].pos < items[j].pos
 	})
 
 	// Render items with proper spacing depending on their type
+	var sb strings.Builder
 	lastKind := docItemKindSLComment
 	for i, item := range items {
 		switch lastKind {
-		case docItemKindConstTop, docItemKindEnum, docItemKindType, docItemKindRPC:
+		case docItemKindEnum, docItemKindType, docItemKindRPC:
 			sb.WriteString("\n")
 		default:
 			if i > 0 && (lastKind != item.kind || item.kind == docItemKindMLComment) {
@@ -149,85 +142,127 @@ func dumpDocument(doc Document, sb *strings.Builder) {
 		sb.WriteString("\n")
 		lastKind = item.kind
 	}
+	return sb.String()
 }
 
-// dumpConst converts a Const node into its textual representation,
-// including its top comments and right-side comment if present.
+// dumpAboveComments writes comments that appear above a declaration or field.
+// The prefix is typically indentation (e.g., indent for struct fields).
+func dumpAboveComments(comments []Comment, sb *strings.Builder, prefix string) {
+	for _, c := range comments {
+		// Single-line comment
+		if c.Single {
+			sb.WriteString(prefix)
+			sb.WriteString(c.Text[0])
+			sb.WriteString("\n")
+			continue
+		}
+
+		// Multi-line comment
+		for _, s := range c.Text {
+			sb.WriteString(prefix)
+			sb.WriteString(s)
+			sb.WriteString("\n")
+		}
+	}
+}
+
+// dumpRightComment writes a comment that appears on the same line (or to the right)
+// of a declaration. Multi-line comments continue on subsequent lines with the given prefix.
+func dumpRightComment(c *Comment, sb *strings.Builder, prefix string) {
+	if c == nil {
+		return
+	}
+
+	// Inline single-line comment
+	if c.Single {
+		sb.WriteString(" ")
+		sb.WriteString(c.Text[0])
+		return
+	}
+
+	// Multi-line right-side comment
+	for i, s := range c.Text {
+		if i == 0 {
+			sb.WriteString(" ")
+		} else {
+			sb.WriteString("\n")
+			sb.WriteString(prefix)
+		}
+		sb.WriteString(s)
+	}
+}
+
+// dumpConst formats a constant declaration, including its leading (above) comments
+// and any inline (right-side) comment.
 func dumpConst(c Const) string {
 	var sb strings.Builder
-	for _, s := range c.Comments.Top {
-		sb.WriteString(s.Text)
-		sb.WriteString("\n")
-	}
+	dumpAboveComments(c.Comments.Above, &sb, "")
+
 	sb.WriteString("const ")
 	sb.WriteString(c.Type)
 	sb.WriteString(" ")
 	sb.WriteString(c.Name)
 	sb.WriteString(" = ")
 	sb.WriteString(c.Value)
-	if c.Comments.Right != nil {
-		sb.WriteString(" ")
-		sb.WriteString(c.Comments.Right.Text)
-	}
+
+	dumpRightComment(c.Comments.Right, &sb, "")
 	return sb.String()
 }
 
-// dumpEnum converts an Enum node into its textual representation,
-// including field comments and inline comments.
+// dumpEnum formats an enum declaration and its fields,
+// preserving top-level and per-field comments.
 func dumpEnum(e Enum) string {
 	var sb strings.Builder
-	for _, s := range e.Comments.Top {
-		sb.WriteString(s.Text)
-		sb.WriteString("\n")
-	}
+	dumpAboveComments(e.Comments.Above, &sb, "")
+
 	sb.WriteString("enum ")
 	sb.WriteString(e.Name)
 	sb.WriteString(" {")
+
 	for _, f := range e.Fields {
-		for _, s := range f.Comments.Top {
-			sb.WriteString(s.Text)
-			sb.WriteString("\n")
-		}
-		sb.WriteString("\n    ")
+		sb.WriteString("\n")
+		dumpAboveComments(f.Comments.Above, &sb, indent)
+
+		sb.WriteString(indent)
 		sb.WriteString(f.Name)
 		sb.WriteString(" = ")
 		sb.WriteString(strconv.FormatInt(f.Value, 10))
-		if f.Comments.Right != nil {
-			sb.WriteString(" ")
-			sb.WriteString(f.Comments.Right.Text)
-		}
+
+		dumpRightComment(f.Comments.Right, &sb, indent)
 	}
+
 	sb.WriteString("\n}")
 	return sb.String()
 }
 
-// dumpType converts a Type node into its textual representation,
-// including field definitions, generic parameter (if present),
-// and top-level comments.
+// dumpType formats a type (or oneof) declaration, including its generic
+// parameters, fields, comments, and potential redefinition.
 func dumpType(t Type) string {
 	var sb strings.Builder
-	for _, s := range t.Comments.Top {
-		sb.WriteString(s.Text)
-		sb.WriteString("\n")
-	}
+	dumpAboveComments(t.Comments.Above, &sb, "")
+
 	if t.OneOf {
 		sb.WriteString("oneof ")
 	} else {
 		sb.WriteString("type ")
 	}
+
 	sb.WriteString(t.Name)
+
 	if t.Redefined != nil {
 		sb.WriteString(" ")
 		sb.WriteString(t.Redefined.Text())
 	} else {
+		// If the type has generic parameter(s)
 		if t.GenericName != nil {
 			sb.WriteString("<")
 			sb.WriteString(*t.GenericName)
 			sb.WriteString(">")
 		}
+
 		sb.WriteString(" {")
 		for _, f := range t.Fields {
-			sb.WriteString("\n    ")
+			sb.WriteString("\n")
 			dumpTypeField(f, &sb)
 		}
 		sb.WriteString("\n}")
@@ -235,21 +270,25 @@ func dumpType(t Type) string {
 	return sb.String()
 }
 
-// dumpTypeField converts a TypeField node into textual representation,
-// including annotations, default value, and comments.
+// dumpTypeField formats a single field in a type declaration,
+// including its type, name, default value, annotations, and comments.
 func dumpTypeField(f TypeField, sb *strings.Builder) {
-	for _, s := range f.Comments.Top {
-		sb.WriteString(s.Text)
-		sb.WriteString("\n    ")
-	}
+	dumpAboveComments(f.Comments.Above, sb, indent)
+
+	sb.WriteString(indent)
 	sb.WriteString(f.FieldType.Text())
+
 	if _, ok := f.FieldType.(EmbedType); !ok {
 		sb.WriteString(" ")
 		sb.WriteString(f.Name)
+
+		// Default value
 		if f.Default != nil {
 			sb.WriteString(" = ")
 			sb.WriteString(*f.Default)
 		}
+
+		// Annotations
 		if len(f.Annotations) > 0 {
 			sb.WriteString(" (")
 			for i, a := range f.Annotations {
@@ -266,20 +305,16 @@ func dumpTypeField(f TypeField, sb *strings.Builder) {
 			sb.WriteString(" )")
 		}
 	}
-	if f.Comments.Right != nil {
-		sb.WriteString(" ")
-		sb.WriteString(f.Comments.Right.Text)
-	}
+
+	dumpRightComment(f.Comments.Right, sb, indent)
 }
 
-// dumpRPC converts an RPC node into textual representation,
-// including its annotations and comments.
+// dumpRPC formats an RPC declaration including its request/response types,
+// annotations, and associated comments.
 func dumpRPC(r RPC) string {
 	var sb strings.Builder
-	for _, s := range r.Comments.Top {
-		sb.WriteString(s.Text)
-		sb.WriteString("\n")
-	}
+	dumpAboveComments(r.Comments.Above, &sb, "")
+
 	sb.WriteString("rpc ")
 	sb.WriteString(r.Name)
 	sb.WriteString("(")
@@ -287,22 +322,21 @@ func dumpRPC(r RPC) string {
 	sb.WriteString(") ")
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
+
 	for _, a := range r.Annotations {
-		sb.WriteString("\n    ")
-		for _, s := range a.Comments.Top {
-			sb.WriteString("\n")
-			sb.WriteString(s.Text)
-		}
+		sb.WriteString("\n")
+		dumpAboveComments(a.Comments.Above, &sb, indent)
+
+		sb.WriteString(indent)
 		sb.WriteString(a.Key)
 		if a.Value != nil {
 			sb.WriteString(" = ")
 			sb.WriteString(*a.Value)
 		}
-		if a.Comments.Right != nil {
-			sb.WriteString(" ")
-			sb.WriteString(a.Comments.Right.Text)
-		}
+
+		dumpRightComment(a.Comments.Right, &sb, indent)
 	}
+
 	sb.WriteString("\n}")
 	return sb.String()
 }

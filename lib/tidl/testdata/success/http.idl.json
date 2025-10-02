@@ -1,7 +1,11 @@
 {
   "Comments": [
     {
-      "Text": "/*\n * Example file\n */",
+      "Text": [
+        "/*",
+        " * Example file",
+        " */"
+      ],
       "Single": false,
       "Position": {
         "Start": 1,
@@ -9,7 +13,9 @@
       }
     },
     {
-      "Text": "// ----------------------",
+      "Text": [
+        "// ----------------------"
+      ],
       "Single": true,
       "Position": {
         "Start": 4,
@@ -17,7 +23,9 @@
       }
     },
     {
-      "Text": "// Example file",
+      "Text": [
+        "// Example file"
+      ],
       "Single": true,
       "Position": {
         "Start": 5,
@@ -25,7 +33,9 @@
       }
     },
     {
-      "Text": "// ----------------------",
+      "Text": [
+        "// ----------------------"
+      ],
       "Single": true,
       "Position": {
         "Start": 6,
@@ -43,9 +53,11 @@
         "Stop": 9
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "// ---- Const definitions ----",
+            "Text": [
+              "// ---- Const definitions ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 8,
@@ -54,7 +66,9 @@
           }
         ],
         "Right": {
-          "Text": "// max count",
+          "Text": [
+            "// max count"
+          ],
           "Single": true,
           "Position": {
             "Start": 9,
@@ -72,9 +86,11 @@
         "Stop": 10
       },
       "Comments": {
-        "Top": null,
+        "Above": null,
         "Right": {
-          "Text": "/* enable feature */",
+          "Text": [
+            "/* enable feature */"
+          ],
           "Single": false,
           "Position": {
             "Start": 10,
@@ -92,9 +108,13 @@
         "Stop": 11
       },
       "Comments": {
-        "Top": null,
+        "Above": null,
         "Right": {
-          "Text": "/*\n * default name\n */",
+          "Text": [
+            "/*",
+            " * default name",
+            " */"
+          ],
           "Single": false,
           "Position": {
             "Start": 11,
@@ -116,7 +136,7 @@
             "Stop": 17
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -128,7 +148,7 @@
             "Stop": 18
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -138,9 +158,11 @@
         "Stop": 19
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "// ---- Enum definition ----",
+            "Text": [
+              "// ---- Enum definition ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 15,
@@ -172,7 +194,7 @@
             "Stop": 23
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -182,9 +204,11 @@
         "Stop": 24
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "// ---- Type definition ----",
+            "Text": [
+              "// ---- Type definition ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 21,
@@ -214,7 +238,7 @@
                 "Stop": 32
               },
               "Comments": {
-                "Top": null,
+                "Above": null,
                 "Right": null
               }
             },
@@ -226,7 +250,7 @@
                 "Stop": 32
               },
               "Comments": {
-                "Top": null,
+                "Above": null,
                 "Right": null
               }
             }
@@ -236,7 +260,7 @@
             "Stop": 32
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -253,7 +277,7 @@
             "Stop": 33
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -267,7 +291,7 @@
             "Stop": 34
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -284,9 +308,11 @@
             "Stop": 36
           },
           "Comments": {
-            "Top": [
+            "Above": [
               {
-                "Text": "// embedded type",
+                "Text": [
+                  "// embedded type"
+                ],
                 "Single": true,
                 "Position": {
                   "Start": 35,
@@ -295,7 +321,9 @@
               }
             ],
             "Right": {
-              "Text": "/* embedded */",
+              "Text": [
+                "/* embedded */"
+              ],
               "Single": false,
               "Position": {
                 "Start": 36,
@@ -317,7 +345,7 @@
             "Stop": 37
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -327,9 +355,11 @@
         "Stop": 38
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "//---- User definition 1 ----",
+            "Text": [
+              "// ---- User definition 1 ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 26,
@@ -337,7 +367,11 @@
             }
           },
           {
-            "Text": "/*\n * User info\n */",
+            "Text": [
+              "/*",
+              " * User info",
+              " */"
+            ],
             "Single": false,
             "Position": {
               "Start": 27,
@@ -345,7 +379,9 @@
             }
           },
           {
-            "Text": "//---- User definition 2 ----",
+            "Text": [
+              "// ---- User definition 2 ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 30,
@@ -375,7 +411,7 @@
             "Stop": 41
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -392,7 +428,7 @@
             "Stop": 42
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -409,7 +445,7 @@
             "Stop": 43
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -419,7 +455,7 @@
         "Stop": 44
       },
       "Comments": {
-        "Top": null,
+        "Above": null,
         "Right": null
       }
     },
@@ -442,7 +478,7 @@
             "Stop": 47
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -459,7 +495,7 @@
             "Stop": 48
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -469,7 +505,7 @@
         "Stop": 49
       },
       "Comments": {
-        "Top": null,
+        "Above": null,
         "Right": null
       }
     },
@@ -492,7 +528,7 @@
             "Stop": 53
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -509,7 +545,7 @@
             "Stop": 54
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -526,7 +562,7 @@
             "Stop": 55
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -536,9 +572,11 @@
         "Stop": 56
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "// Generic type definition",
+            "Text": [
+              "// Generic type definition"
+            ],
             "Single": true,
             "Position": {
               "Start": 51,
@@ -568,9 +606,11 @@
         "Stop": 66
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "// ---- type re-definition ----",
+            "Text": [
+              "// ---- type re-definition ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 65,
@@ -600,7 +640,7 @@
             "Stop": 60
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -612,7 +652,7 @@
             "Stop": 61
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         },
@@ -624,7 +664,7 @@
             "Stop": 62
           },
           "Comments": {
-            "Top": null,
+            "Above": null,
             "Right": null
           }
         }
@@ -634,9 +674,11 @@
         "Stop": 63
       },
       "Comments": {
-        "Top": [
+        "Above": [
           {
-            "Text": "// ---- RPC definitions ----",
+            "Text": [
+              "// ---- RPC definitions ----"
+            ],
             "Single": true,
             "Position": {
               "Start": 58,
@@ -647,5 +689,23 @@
         "Right": null
       }
     }
-  ]
+  ],
+  "EnumTypes": {
+    "ErrCode": 0
+  },
+  "TypeTypes": {
+    "Address": 2,
+    "Payload": 3,
+    "Response": 4,
+    "User": 1,
+    "UserReq": 0,
+    "UserResponse": 5
+  },
+  "UsedTypes": {
+    "Address": {},
+    "Payload": {},
+    "User": {},
+    "UserReq": {},
+    "UserResponse": {}
+  }
 }

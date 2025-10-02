@@ -17,8 +17,13 @@
 package tidl
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"maps"
+	"os"
+	"path/filepath"
 	"runtime/debug"
 	"sort"
 	"strconv"
@@ -27,54 +32,131 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 )
 
-// ParseMeta parses meta information from the given input string.
-func ParseMeta(s string) (*MetaInfo, error) {
+// ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.
+// It parses each file into a Document structure and validates cross-file type references.
+func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error) {
+	files = make(map[string]Document)
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("read dir %s error: %w", dir, err)
+	}
+
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+
+		fileName := e.Name()
+
+		// Parse meta.json file if found
+		if fileName == "meta.json" {
+			var b []byte
+			fileName = filepath.Join(dir, fileName)
+			if b, err = os.ReadFile(fileName); err != nil {
+				return nil, nil, fmt.Errorf("read file %s error: %w", fileName, err)
+			}
+			if meta, err = ParseMeta(b); err != nil {
+				return nil, nil, fmt.Errorf("parse file %s error: %w", fileName, err)
+			}
+			continue
+		}
+
+		// Skip non-IDL files
+		if !strings.HasSuffix(fileName, ".idl") {
+			continue
+		}
+
+		var b []byte
+		fileName = filepath.Join(dir, fileName)
+		if b, err = os.ReadFile(fileName); err != nil {
+			return nil, nil, fmt.Errorf("read file %s error: %w", fileName, err)
+		}
+		var doc Document
+		if doc, err = Parse(b); err != nil {
+			return nil, nil, fmt.Errorf("parse file %s error: %w", fileName, err)
+		}
+		files[e.Name()] = doc
+	}
+
+	// Validate that all used types are defined
+	usedTypes := map[string]struct{}{}
+	definedTypes := make(map[string]struct{})
+	for _, doc := range files {
+		maps.Copy(usedTypes, doc.UsedTypes)
+		for k := range doc.EnumTypes {
+			definedTypes[k] = struct{}{}
+		}
+		for k := range doc.TypeTypes {
+			definedTypes[k] = struct{}{}
+		}
+	}
+	for k := range usedTypes {
+		if _, ok := definedTypes[k]; !ok {
+			return nil, nil, fmt.Errorf("type %s is used but not defined", k)
+		}
+	}
+
+	return
+}
+
+// ParseMeta parses the JSON meta-information file.
+func ParseMeta(data []byte) (*MetaInfo, error) {
 	r := &MetaInfo{}
-	if err := json.Unmarshal([]byte(s), r); err != nil {
+	if err := json.Unmarshal(data, r); err != nil {
 		return nil, err
 	}
 	return r, nil
 }
 
-// Parse runs the parsing pipeline for the given input string.
-func Parse(s string) (doc Document, err error) {
-	e := &ErrorListener{}
+// Parse runs the parsing pipeline for a single IDL input.
+func Parse(data []byte) (doc Document, err error) {
+	e := &ErrorListener{
+		Scanner: bufio.NewScanner(bytes.NewReader(data)),
+	}
 
+	// Recover from parser panics to provide better error reporting
 	defer func() {
 		if r := recover(); r != nil {
 			doc = Document{}
 			err = fmt.Errorf("[PANIC]: %v\n%s", r, debug.Stack())
-			if e.err != nil {
-				err = fmt.Errorf("%w\n%w", e.err, err)
+			if e.Error != nil {
+				err = fmt.Errorf("%w\n%w", e.Error, err)
 			}
 		}
 	}()
 
-	// Step 1. Create lexer and token stream
-	input := antlr.NewInputStream(s + "\n")
+	// Step 1: Set up lexer and token stream
+	reader := bytes.NewReader(append(data, '\n'))
+	input := antlr.NewIoStream(reader)
 	lexer := NewTLexer(input)
 	lexer.RemoveErrorListeners()
 	lexer.AddErrorListener(e)
 	tokens := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
 
-	// Step 2. Create parser and attach custom error listener
+	// Step 2: Set up parser
 	p := NewTParser(tokens)
 	p.RemoveErrorListeners()
 	p.AddErrorListener(e)
 
-	// Use SLL mode first (faster, may fall back to LL if needed).
+	// Use faster SLL prediction first (fallback to LL on failure)
 	p.GetInterpreter().SetPredictionMode(antlr.PredictionModeSLL)
 
-	// Step 3. Walk the parse tree with a custom listener
+	// Step 3: Walk the parse tree with a custom listener
 	l := &ParseTreeListener{
-		Tokens:   tokens,
+		Tokens: tokens,
+		Document: Document{
+			EnumTypes: make(map[string]int),
+			TypeTypes: make(map[string]int),
+			UsedTypes: make(map[string]struct{}),
+		},
 		Attached: make(map[int]struct{}),
 	}
 	antlr.ParseTreeWalkerDefault.Walk(l, p.Document())
 
-	// Step 4. Return results or error
-	if e.err != nil {
-		return Document{}, e.err
+	// Step 4: Return result or error
+	if e.Error != nil {
+		return Document{}, e.Error
 	}
 	return l.Document, nil
 }
@@ -82,16 +164,26 @@ func Parse(s string) (doc Document, err error) {
 // ErrorListener implements a custom ANTLR error listener.
 type ErrorListener struct {
 	*antlr.DefaultErrorListener
-	err error
+	Error   error
+	Scanner *bufio.Scanner
+	Line    int
 }
 
 // SyntaxError is called by ANTLR when a syntax error is encountered.
 func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
-	if l.err == nil {
-		l.err = fmt.Errorf("line %d:%d %s", line, column, msg)
+	var text string
+	for l.Scanner.Scan() {
+		l.Line++
+		if l.Line == line {
+			text = l.Scanner.Text()
+			break
+		}
+	}
+	if l.Error == nil {
+		l.Error = fmt.Errorf("line %d:%d %s << text: %q", line, column, msg, text)
 		return
 	}
-	l.err = fmt.Errorf("%w\nline %d:%d %s", l.err, line, column, msg)
+	l.Error = fmt.Errorf("%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, text)
 }
 
 // ParseTreeListener extends the auto-generated base listener.
@@ -118,9 +210,12 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 			Stop:  ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
-			Top:   l.topComment(ctx.GetStart()),
+			Above: l.aboveComment(ctx.GetStart()),
 			Right: l.rightComment(ctx.GetStop()),
 		},
+	}
+	if !IsPascal(c.Name) {
+		panic(fmt.Errorf("const name %s is not PascalCase in line %d", c.Name, c.Position.Start))
 	}
 	l.Document.Consts = append(l.Document.Consts, c)
 }
@@ -134,28 +229,41 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 			Stop:  ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
-			Top: l.topComment(ctx.GetStart()),
+			Above: l.aboveComment(ctx.GetStart()),
 		},
+	}
+	if !IsPascal(e.Name) {
+		panic(fmt.Errorf("enum name %s is not PascalCase in line %d", e.Name, e.Position.Start))
 	}
 
 	for _, f := range ctx.AllEnum_field() {
-		v, err := strconv.ParseInt(f.INTEGER().GetText(), 0, 64)
-		if err != nil {
-			panic(fmt.Errorf("parse enum value on line %d error: %w", f.GetStart().GetLine(), err))
+		fieldName := f.IDENTIFIER().GetText()
+		if !IsPascal(fieldName) {
+			panic(fmt.Errorf("enum field name %s is not PascalCase in line %d", fieldName, f.GetStart().GetLine()))
 		}
+
+		// Parse and validate integer value
+		fieldValue := f.INTEGER().GetText()
+		v, err := strconv.ParseInt(fieldValue, 0, 64)
+		if err != nil {
+			panic(fmt.Errorf("enum field value %s is not a valid integer in line %d", fieldValue, f.GetStart().GetLine()))
+		}
+
 		e.Fields = append(e.Fields, EnumField{
-			Name:  f.IDENTIFIER().GetText(),
+			Name:  fieldName,
 			Value: v,
 			Position: Position{
 				Start: f.GetStart().GetLine(),
 				Stop:  f.GetStop().GetLine(),
 			},
 			Comments: Comments{
-				Top:   l.topComment(f.GetStart()),
+				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
 		})
 	}
+
+	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)
 	l.Document.Enums = append(l.Document.Enums, e)
 }
 
@@ -169,19 +277,25 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 			Stop:  ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
-			Top: l.topComment(ctx.GetStart()),
+			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
+	if !IsPascal(t.Name) {
+		panic(fmt.Errorf("type name %s is not PascalCase in line %d", t.Name, t.Position.Start))
+	}
 
+	// Distinguish between a full struct definition and a type alias
 	if ctx.LEFT_BRACE() != nil {
 		l.parseCompleteType(ctx, &t)
 	} else {
 		l.parseRedefinedType(ctx, &t)
 	}
 
+	l.Document.TypeTypes[t.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, t)
 }
 
+// parseCompleteType handles a "struct-like" type with fields and optional generic parameter.
 func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 
 	// Handle generic type parameter (if any)
@@ -190,7 +304,6 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 		t.GenericName = &s
 	}
 
-	// Process all type fields
 	for _, f := range ctx.AllType_field() {
 		typeField := TypeField{
 			Position: Position{
@@ -198,45 +311,25 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 				Stop:  f.GetStop().GetLine(),
 			},
 			Comments: Comments{
-				Top:   l.topComment(f.GetStart()),
+				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
 		}
 
 		// Distinguish between embedded fields and normal fields
-		if f.Embed_type_field() != nil {
-			typeField.FieldType = EmbedType{
-				Name:     f.Embed_type_field().User_type().IDENTIFIER().GetText(),
-				Optional: f.Embed_type_field().User_type().QUESTION() != nil,
+		if etf := f.Embed_type_field(); etf != nil {
+			u := etf.User_type()
+			embedType := EmbedType{
+				Name:     u.IDENTIFIER().GetText(),
+				Optional: u.QUESTION() != nil,
 			}
-		} else if f.Common_type_field() != nil {
-			// Regular field
-			typeField.FieldType = l.parseCommonFieldType(f.Common_type_field().Common_field_type())
-			typeField.Name = f.Common_type_field().IDENTIFIER().GetText()
+			if t.GenericName == nil || embedType.Name != *t.GenericName {
+				l.Document.UsedTypes[embedType.Name] = struct{}{}
+			}
+			typeField.FieldType = embedType
 
-			// Default value
-			if f.Common_type_field().Const_value() != nil {
-				s := f.Common_type_field().Const_value().GetText()
-				typeField.Default = &s
-			}
-
-			// Annotations
-			if f.Common_type_field().Type_annotations() != nil {
-				for _, aCtx := range f.Common_type_field().Type_annotations().AllAnnotation() {
-					a := Annotation{
-						Key: aCtx.IDENTIFIER().GetText(),
-						Position: Position{
-							Start: aCtx.GetStart().GetLine(),
-							Stop:  aCtx.GetStop().GetLine(),
-						},
-					}
-					if aCtx.Const_value() != nil {
-						s := aCtx.Const_value().GetText()
-						a.Value = &s
-					}
-					typeField.Annotations = append(typeField.Annotations, a)
-				}
-			}
+		} else if ctf := f.Common_type_field(); ctf != nil {
+			l.parseCommonTypeField(ctf, &typeField, t)
 		}
 
 		t.Fields = append(t.Fields, typeField)
@@ -248,111 +341,19 @@ func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 	t.Redefined = &RedefinedType{
 		Name: ctx.IDENTIFIER(1).GetText(),
 	}
-	g := ctx.Value_type()
-	if g.Base_type() != nil {
-		t.Redefined.GenericType = BaseType{
-			Name:     strings.TrimRight(g.Base_type().GetText(), "?"),
-			Optional: g.Base_type().QUESTION() != nil,
-		}
+	if !IsPascal(t.Redefined.Name) {
+		panic(fmt.Errorf("redefined type name %s is not PascalCase in line %d", t.Redefined.Name, t.Position.Start))
 	}
-	if g.User_type() != nil {
-		t.Redefined.GenericType = UserType{
-			Name:     g.User_type().IDENTIFIER().GetText(),
-			Optional: g.User_type().QUESTION() != nil,
-		}
-	}
-	if g.Container_type() != nil {
-		if g.Container_type().Map_type() != nil {
-			kt := g.Container_type().Map_type().Key_type().GetText()
-			vt := l.parseValueType(g.Container_type().Map_type().Value_type())
-			t.Redefined.GenericType = MapType{
-				Key:   kt,
-				Value: vt,
-			}
-		} else if g.Container_type().List_type() != nil {
-			vt := l.parseValueType(g.Container_type().List_type().Value_type())
-			t.Redefined.GenericType = ListType{
-				Item: vt,
-			}
-		}
-	}
+
+	t.Redefined.GenericType = l.parseValueType(ctx.Value_type(), t)
 	if t.Redefined.GenericType != nil {
 		return
 	}
-	panic(fmt.Errorf("unknown type: %s", g.GetText()))
+
+	panic(fmt.Errorf("redefined type %s is not a valid generic type in line %d", t.Redefined.Name, t.Position.Start))
 }
 
-// parseCommonFieldType resolves type definitions inside type fields.
-// It distinguishes between built-in types, user-defined types, and containers.
-func (l *ParseTreeListener) parseCommonFieldType(ctx ICommon_field_typeContext) TypeDefinition {
-	if ctx.TYPE_ANY() != nil {
-		return AnyType{}
-	}
-	if ctx.TYPE_BINARY() != nil {
-		return BinaryType{}
-	}
-	if ctx.Base_type() != nil {
-		return BaseType{
-			Name:     strings.TrimRight(ctx.Base_type().GetText(), "?"),
-			Optional: ctx.Base_type().QUESTION() != nil,
-		}
-	}
-	if ctx.User_type() != nil {
-		return UserType{
-			Name:     ctx.User_type().IDENTIFIER().GetText(),
-			Optional: ctx.User_type().QUESTION() != nil,
-		}
-	}
-	if ctx.Container_type() != nil {
-		if ctx.Container_type().Map_type() != nil {
-			kt := ctx.Container_type().Map_type().Key_type().GetText()
-			vt := l.parseValueType(ctx.Container_type().Map_type().Value_type())
-			return MapType{
-				Key:   kt,
-				Value: vt,
-			}
-		} else if ctx.Container_type().List_type() != nil {
-			vt := l.parseValueType(ctx.Container_type().List_type().Value_type())
-			return ListType{
-				Item: vt,
-			}
-		}
-	}
-	panic(fmt.Errorf("unknown type: %s", ctx.GetText()))
-}
-
-// parseValueType resolves value types inside container types.
-func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext) TypeDefinition {
-	if ctx.Base_type() != nil {
-		return BaseType{
-			Name:     strings.TrimRight(ctx.Base_type().GetText(), "?"),
-			Optional: ctx.Base_type().QUESTION() != nil,
-		}
-	}
-	if ctx.User_type() != nil {
-		return UserType{
-			Name:     strings.TrimRight(ctx.User_type().IDENTIFIER().GetText(), "?"),
-			Optional: ctx.User_type().QUESTION() != nil,
-		}
-	}
-	if ctx.Container_type() != nil {
-		if ctx.Container_type().Map_type() != nil {
-			kt := ctx.Container_type().Map_type().Key_type().GetText()
-			vt := l.parseValueType(ctx.Container_type().Map_type().Value_type())
-			return MapType{
-				Key:   kt,
-				Value: vt,
-			}
-		} else if ctx.Container_type().List_type() != nil {
-			vt := l.parseValueType(ctx.Container_type().List_type().Value_type())
-			return ListType{
-				Item: vt,
-			}
-		}
-	}
-	panic(fmt.Errorf("unknown type: %s", ctx.GetText()))
-}
-
+// ExitOneof_def handles "oneof" type definitions.
 func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 	o := Type{
 		Name:  ctx.IDENTIFIER().GetText(),
@@ -362,19 +363,13 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 			Stop:  ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
-			Top: l.topComment(ctx.GetStart()),
+			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
+	if !IsPascal(o.Name) {
+		panic(fmt.Errorf("oneof name %s is not PascalCase in line %d", o.Name, o.Position.Start))
+	}
 
-	l.parseOneOfType(ctx, &o)
-
-	l.Document.Types = append(l.Document.Types, o)
-}
-
-// parseOneOfType handles oneof types, including fields and annotations.
-func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *Type) {
-
-	// Process all oneof fields
 	for _, f := range ctx.AllCommon_type_field() {
 		typeField := TypeField{
 			Position: Position{
@@ -382,41 +377,107 @@ func (l *ParseTreeListener) parseOneOfType(ctx *Oneof_defContext, o *Type) {
 				Stop:  f.GetStop().GetLine(),
 			},
 			Comments: Comments{
-				Top:   l.topComment(f.GetStart()),
+				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
 		}
-
-		// Regular field
-		typeField.FieldType = l.parseCommonFieldType(f.Common_field_type())
-		typeField.Name = f.IDENTIFIER().GetText()
-
-		// Default value
-		if f.Const_value() != nil {
-			s := f.Const_value().GetText()
-			typeField.Default = &s
-		}
-
-		// Annotations
-		if f.Type_annotations() != nil {
-			for _, aCtx := range f.Type_annotations().AllAnnotation() {
-				a := Annotation{
-					Key: aCtx.IDENTIFIER().GetText(),
-					Position: Position{
-						Start: aCtx.GetStart().GetLine(),
-						Stop:  aCtx.GetStop().GetLine(),
-					},
-				}
-				if aCtx.Const_value() != nil {
-					s := aCtx.Const_value().GetText()
-					a.Value = &s
-				}
-				typeField.Annotations = append(typeField.Annotations, a)
-			}
-		}
-
+		l.parseCommonTypeField(f, &typeField, &o)
 		o.Fields = append(o.Fields, typeField)
 	}
+
+	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
+	l.Document.Types = append(l.Document.Types, o)
+}
+
+// parseCommonTypeField parses a regular field (not embedded) inside a type or oneof.
+func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, typeField *TypeField, t *Type) {
+	typeField.FieldType = l.parseCommonFieldType(f.Common_field_type(), t)
+	typeField.Name = f.IDENTIFIER().GetText()
+
+	// Default value
+	if f.Const_value() != nil {
+		s := f.Const_value().GetText()
+		typeField.Default = &s
+	}
+
+	// Annotations
+	if f.Type_annotations() != nil {
+		for _, aCtx := range f.Type_annotations().AllAnnotation() {
+			a := Annotation{
+				Key: aCtx.IDENTIFIER().GetText(),
+				Position: Position{
+					Start: aCtx.GetStart().GetLine(),
+					Stop:  aCtx.GetStop().GetLine(),
+				},
+			}
+			if aCtx.Const_value() != nil {
+				s := aCtx.Const_value().GetText()
+				a.Value = &s
+			}
+			typeField.Annotations = append(typeField.Annotations, a)
+		}
+	}
+}
+
+// parseCommonFieldType distinguishes between built-in, user-defined, or container types.
+func (l *ParseTreeListener) parseCommonFieldType(ctx ICommon_field_typeContext, t *Type) TypeDefinition {
+	if ctx.TYPE_ANY() != nil {
+		return AnyType{}
+	}
+	if ctx.TYPE_BINARY() != nil {
+		return BinaryType{}
+	}
+	return l.parseValueType(ctx, t)
+}
+
+// parseValueType resolves value types inside container types.
+func (l *ParseTreeListener) parseValueType(ctx interface {
+	GetText() string
+	GetStart() antlr.Token
+	GetStop() antlr.Token
+	Base_type() IBase_typeContext
+	User_type() IUser_typeContext
+	Container_type() IContainer_typeContext
+}, t *Type) TypeDefinition {
+
+	// Built-in primitive type
+	if b := ctx.Base_type(); b != nil {
+		return BaseType{
+			Name:     strings.TrimRight(b.GetText(), "?"),
+			Optional: b.QUESTION() != nil,
+		}
+	}
+
+	// Reference to a user-defined type
+	if u := ctx.User_type(); u != nil {
+		typ := UserType{
+			Name:     u.IDENTIFIER().GetText(),
+			Optional: u.QUESTION() != nil,
+		}
+		if t.GenericName == nil || typ.Name != *t.GenericName {
+			l.Document.UsedTypes[typ.Name] = struct{}{}
+		}
+		return typ
+	}
+
+	// Container types (map / list)
+	if c := ctx.Container_type(); c != nil {
+		if c.Map_type() != nil {
+			kt := c.Map_type().Key_type().GetText()
+			vt := l.parseValueType(c.Map_type().Value_type(), t)
+			return MapType{
+				Key:   kt,
+				Value: vt,
+			}
+		} else if c.List_type() != nil {
+			vt := l.parseValueType(c.List_type().Value_type(), t)
+			return ListType{
+				Item: vt,
+			}
+		}
+	}
+
+	panic(fmt.Errorf("invalid type %s in line %d", ctx.GetText(), ctx.GetStart().GetLine()))
 }
 
 // ExitRpc_def handles RPC definitions, including request/response
@@ -430,13 +491,20 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 			Stop:  ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
-			Top: l.topComment(ctx.GetStart()),
+			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
+	if !IsPascal(r.Name) {
+		panic(fmt.Errorf("RPC name %s is not PascalCase in line %d", r.Name, r.Position.Start))
+	}
+	if !IsPascal(r.Request) {
+		panic(fmt.Errorf("RPC request type %s is not PascalCase in line %d", r.Request, r.Position.Start))
+	}
+	l.Document.UsedTypes[r.Request] = struct{}{}
 
-	// Handle response type
-	if ctx.Rpc_resp().TYPE_STREAM() != nil {
-		u := ctx.Rpc_resp().User_type()
+	// Response
+	if resp := ctx.Rpc_resp(); resp.TYPE_STREAM() != nil {
+		u := resp.User_type()
 		r.Response = RespType{
 			Stream: true,
 			UserType: &UserType{
@@ -444,14 +512,22 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 				Optional: u.QUESTION() != nil,
 			},
 		}
+		if !IsPascal(r.Response.UserType.Name) {
+			panic(fmt.Errorf("RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
+		}
+		l.Document.UsedTypes[r.Response.UserType.Name] = struct{}{}
 	} else {
 		r.Response = RespType{
 			Stream:   false,
-			TypeName: ctx.Rpc_resp().IDENTIFIER().GetText(),
+			TypeName: resp.IDENTIFIER().GetText(),
 		}
+		if !IsPascal(r.Response.TypeName) {
+			panic(fmt.Errorf("RPC response type %s is not PascalCase in line %d", r.Response.TypeName, r.Position.Start))
+		}
+		l.Document.UsedTypes[r.Response.TypeName] = struct{}{}
 	}
 
-	// Parse annotations
+	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {
 		a := Annotation{
 			Key: aCtx.IDENTIFIER().GetText(),
@@ -460,7 +536,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 				Stop:  aCtx.GetStop().GetLine(),
 			},
 			Comments: Comments{
-				Top:   l.topComment(aCtx.GetStart()),
+				Above: l.aboveComment(aCtx.GetStart()),
 				Right: l.rightComment(aCtx.GetStop()),
 			},
 		}
@@ -474,13 +550,14 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	l.Document.RPCs = append(l.Document.RPCs, r)
 }
 
-// isTerminatorToken returns true if the token is a terminator token.
+// isTerminatorToken returns true if the given token is considered a statement terminator.
+// In this parser, a newline or semicolon marks the end of a statement.
 func isTerminatorToken(t antlr.Token) bool {
-	return t.GetTokenType() == TLexerNEWLINE || t.GetTokenType() == TLexerSEMI
-
+	return t.GetTokenType() == TLexerNEWLINE || t.GetTokenType() == TLexerSEMICOLON
 }
 
-// previousTokenOnChannel returns the previous token on the specified channel.
+// previousTokenOnChannel finds the index of the previous token that is on the default channel.
+// It skips terminator tokens (newline/semicolon) and tokens on hidden channels.
 func (l *ParseTreeListener) previousTokenOnChannel(i int) int {
 	tokens := l.Tokens.GetAllTokens()
 	for i >= 0 && (isTerminatorToken(tokens[i]) || tokens[i].GetChannel() != antlr.LexerDefaultTokenChannel) {
@@ -489,7 +566,8 @@ func (l *ParseTreeListener) previousTokenOnChannel(i int) int {
 	return i
 }
 
-// filterForChannel filters tokens for a specific channel.
+// filterForChannel returns a slice of tokens between indices [left, right] that belong to the given channel.
+// channel = -1 means "all hidden channels".
 func (l *ParseTreeListener) filterForChannel(left, right, channel int) []antlr.Token {
 	tokens := l.Tokens.GetAllTokens()
 	hidden := make([]antlr.Token, 0)
@@ -509,7 +587,8 @@ func (l *ParseTreeListener) filterForChannel(left, right, channel int) []antlr.T
 	return hidden
 }
 
-// GetHiddenTokensToLeft returns all hidden tokens to the left of a token.
+// GetHiddenTokensToLeft returns all hidden tokens to the left of a given token index
+// that belong to the specified channel.
 func (l *ParseTreeListener) GetHiddenTokensToLeft(tokenIndex, channel int) []antlr.Token {
 	tokens := l.Tokens.GetAllTokens()
 	if tokenIndex < 0 || tokenIndex >= len(tokens) {
@@ -527,7 +606,9 @@ func (l *ParseTreeListener) GetHiddenTokensToLeft(tokenIndex, channel int) []ant
 	return l.filterForChannel(from, to, channel)
 }
 
-// nextTokenOnChannel returns the next token on the specified channel.
+// nextTokenOnChannel finds the next token index on the default channel,
+// skipping terminators and hidden tokens.
+// Returns -1 if no such token exists.
 func (l *ParseTreeListener) nextTokenOnChannel(i int) int {
 	tokens := l.Tokens.GetAllTokens()
 	if i >= len(tokens) {
@@ -544,7 +625,8 @@ func (l *ParseTreeListener) nextTokenOnChannel(i int) int {
 	return i
 }
 
-// GetHiddenTokensToRight returns all hidden tokens to the right of a token.
+// GetHiddenTokensToRight returns all hidden tokens to the right of a given token index
+// that belong to the specified channel.
 func (l *ParseTreeListener) GetHiddenTokensToRight(tokenIndex, channel int) []antlr.Token {
 	tokens := l.Tokens.GetAllTokens()
 	if tokenIndex < 0 || tokenIndex >= len(tokens) {
@@ -564,12 +646,47 @@ func (l *ParseTreeListener) GetHiddenTokensToRight(tokenIndex, channel int) []an
 	return l.filterForChannel(from, to, channel)
 }
 
-// topComment extracts comments immediately above a token.
-// It supports both single-line (//) and multi-line (/* */) comments.
-func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
+// formatSingleLineComment trims and normalizes a single-line comment text.
+// It ensures the comment starts with "// " and removes extra whitespace.
+func formatSingleLineComment(text string) string {
+	s := strings.TrimSpace(text)
+	s = strings.TrimSpace(strings.TrimPrefix(s, "//"))
+	return "// " + s
+}
+
+// formatMultiLineComment splits a multi-line comment (/* ... */) into normalized lines.
+// Each line is trimmed, and leading '*' is standardized.
+func formatMultiLineComment(text string) []string {
+	var lines []string
+	for i, s := range strings.Split(text, "\n") {
+		s = strings.TrimSpace(s)
+		if i == 0 {
+			s = strings.TrimSpace(strings.TrimPrefix(s, "/*"))
+			if s == "" {
+				s = "/*"
+			} else {
+				s = "/* " + s
+			}
+		} else {
+			if strings.HasSuffix(s, "*/") {
+				s = strings.TrimSpace(s[:len(s)-2]) + " */"
+			}
+			if strings.HasPrefix(s, "*") {
+				s = " * " + strings.TrimSpace(s[1:])
+			}
+		}
+		lines = append(lines, s)
+	}
+	return lines
+}
+
+// aboveComment extracts all comments immediately above a token.
+// Supports both single-line (//) and multi-line (/* */) comments.
+// Returns only the contiguous block directly attached to the token.
+func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 	var (
-		all []Comment
-		ret []Comment
+		all []Comment // all collected comments
+		ret []Comment // contiguous block directly above token
 	)
 
 	// Collect single-line comments
@@ -578,8 +695,9 @@ func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
 		if _, ok := l.Attached[c.GetLine()]; ok {
 			continue
 		}
+		line := formatSingleLineComment(c.GetText())
 		all = append(all, Comment{
-			Text:   strings.TrimSpace(c.GetText()),
+			Text:   []string{line},
 			Single: true,
 			Position: Position{
 				Start: c.GetLine(),
@@ -594,30 +712,23 @@ func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
 		if _, ok := l.Attached[c.GetLine()]; ok {
 			continue
 		}
-		s := strings.TrimSpace(c.GetText())
-		ss := strings.Split(s, "\n")
-		for i := range ss {
-			ss[i] = " " + strings.TrimSpace(ss[i])
-		}
-		ss[0] = strings.TrimSpace(ss[0])
-		s = strings.Join(ss, "\n")
-		count := len(ss)
+		lines := formatMultiLineComment(c.GetText())
 		all = append(all, Comment{
-			Text:   s,
+			Text:   lines,
 			Single: false,
 			Position: Position{
 				Start: c.GetLine(),
-				Stop:  c.GetLine() + count - 1,
+				Stop:  c.GetLine() + len(lines) - 1,
 			},
 		})
 	}
 
-	// Sort comments by starting line (descending)
+	// Sort comments by starting line in descending order
 	sort.Slice(all, func(i, j int) bool {
 		return all[i].Position.Start >= all[j].Position.Start
 	})
 
-	// Select only the contiguous block of comments directly above token
+	// Select only the contiguous block directly above the token
 	i := 0
 	lastLine := token.GetLine()
 	for ; i < len(all); i++ {
@@ -629,7 +740,7 @@ func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
 		lastLine = c.Position.Start
 	}
 
-	// Remaining comments (not directly attached) go into Document.Comments
+	// Remaining comments are stored as detached comments in the Document
 	for j := len(all) - 1; j >= i; j-- {
 		l.Document.Comments = append(l.Document.Comments, all[j])
 	}
@@ -637,8 +748,8 @@ func (l *ParseTreeListener) topComment(token antlr.Token) []Comment {
 	return ret
 }
 
-// rightComment extracts comments that appear at the end of the same line
-// as a given token.
+// rightComment extracts a comment that appears on the same line as a token.
+// Supports both single-line and multi-line comments.
 func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	// Single-line comments
 	comments := l.Tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
@@ -647,8 +758,9 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 			continue
 		}
 		l.Attached[c.GetLine()] = struct{}{}
+		line := formatSingleLineComment(c.GetText())
 		return &Comment{
-			Text:   strings.TrimSpace(c.GetText()),
+			Text:   []string{line},
 			Single: true,
 			Position: Position{
 				Start: c.GetLine(),
@@ -663,21 +775,14 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 		if c.GetLine() != token.GetLine() {
 			continue
 		}
-		s := strings.TrimSpace(c.GetText())
-		ss := strings.Split(s, "\n")
-		for i := range ss {
-			ss[i] = " " + strings.TrimSpace(ss[i])
-		}
-		ss[0] = strings.TrimSpace(ss[0])
-		s = strings.Join(ss, "\n")
-		count := len(ss)
 		l.Attached[c.GetLine()] = struct{}{}
+		lines := formatMultiLineComment(c.GetText())
 		return &Comment{
-			Text:   s,
+			Text:   lines,
 			Single: false,
 			Position: Position{
 				Start: c.GetLine(),
-				Stop:  c.GetLine() + count - 1,
+				Stop:  c.GetLine() + len(lines) - 1,
 			},
 		}
 	}

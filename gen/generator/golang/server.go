@@ -154,12 +154,12 @@ type RPC struct {
 func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 	var ret []RPC
 	for _, r := range rpcs {
-		respType := tidl.CapitalizeASCII(r.Response.TypeName)
+		respType := r.Response.TypeName
 		if r.Response.UserType != nil {
-			respType += tidl.CapitalizeASCII(r.Response.UserType.Name)
+			respType += r.Response.UserType.Name
 		}
 
-		path, ok := tidl.GetOneOfAnnotation(r.Annotations, "path")
+		path, ok := tidl.GetAnnotation(r.Annotations, "path")
 		if !ok {
 			return nil, fmt.Errorf("annotation path not found")
 		}
@@ -167,7 +167,7 @@ func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 			return nil, fmt.Errorf("annotation path value is nil")
 		}
 
-		method, ok := tidl.GetOneOfAnnotation(r.Annotations, "method")
+		method, ok := tidl.GetAnnotation(r.Annotations, "method")
 		if !ok {
 			return nil, fmt.Errorf("annotation method not found")
 		}
@@ -176,8 +176,8 @@ func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 		}
 
 		ret = append(ret, RPC{
-			Name:     tidl.CapitalizeASCII(r.Name),
-			Request:  tidl.CapitalizeASCII(r.Request),
+			Name:     r.Name,
+			Request:  r.Request,
 			Response: respType,
 			Stream:   r.Response.Stream,
 			Path:     strings.Trim(*path.Value, "\""),

@@ -24,7 +24,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/go-spring/gs-http-gen/lib/vidl"
 )
@@ -240,11 +239,14 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 // genComment generates the comment string
 func genComment(c tidl.Comments) string {
 	var comment string
-	for _, s := range c.Top {
-		comment += s.Text
+	for _, s := range c.Above {
+		comment += s.Text[0]
 	}
 	if c.Right != nil {
-		comment += "\n" + c.Right.Text
+		if c.Above != nil {
+			comment += "\n"
+		}
+		comment += strings.Join(c.Right.Text, "\n")
 	}
 	return comment
 }
@@ -304,7 +306,7 @@ func convertEnums(ctx Context, doc tidl.Document) ([]Enum, error) {
 			})
 		}
 		ret = append(ret, Enum{
-			Name:    tidl.CapitalizeASCII(e.Name),
+			Name:    e.Name,
 			Fields:  fields,
 			Comment: genComment(e.Comments),
 		})
@@ -313,11 +315,11 @@ func convertEnums(ctx Context, doc tidl.Document) ([]Enum, error) {
 		if !t.OneOf {
 			continue
 		}
-		name := tidl.CapitalizeASCII(t.Name) + "Type"
+		name := t.Name + "Type"
 		var fields []EnumField
 		for i, f := range t.Fields {
 			fields = append(fields, EnumField{
-				Name:  generator.ToPascal(f.Name),
+				Name:  tidl.ToPascal(f.Name),
 				Value: int64(i),
 			})
 		}
@@ -423,9 +425,7 @@ func convertResponseType(ctx Context, rpcName string, respType tidl.RespType) (T
 		return Type{}, fmt.Errorf("type %s not found", respType.TypeName)
 	}
 
-	typeName := tidl.CapitalizeASCII(rpcName)
-	typeName += tidl.CapitalizeASCII(t.Name)
-	typeName += tidl.CapitalizeASCII(respType.UserType.Name)
+	typeName := rpcName + t.Name + respType.UserType.Name
 
 	r := tidl.Type{
 		Name:     typeName,
@@ -488,7 +488,7 @@ func resolveGenericType(t tidl.TypeDefinition, genericName string, r *tidl.Redef
 // convertType converts an IDL struct type to a Go struct type
 func convertType(ctx Context, t tidl.Type) (Type, error) {
 	r := Type{
-		Name: tidl.CapitalizeASCII(t.Name),
+		Name: t.Name,
 	}
 
 	if t.OneOf {
@@ -518,7 +518,7 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 		}
 
 		// Get field name and Go type
-		fieldName := generator.ToPascal(f.Name)
+		fieldName := tidl.ToPascal(f.Name)
 		typeName, err := getTypeName(ctx, f.FieldType, f.Annotations)
 		if err != nil {
 			return Type{}, err
@@ -574,7 +574,7 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (string, error) {
 
 	// Handle go.type annotation
-	if a, ok := tidl.GetOneOfAnnotation(arr, "go.type"); ok && a.Value != nil {
+	if a, ok := tidl.GetAnnotation(arr, "go.type"); ok && a.Value != nil {
 		s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
 		return s, nil
 	}
@@ -601,13 +601,13 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 		}
 		return typeName, nil
 	case tidl.UserType:
-		typeName := tidl.CapitalizeASCII(ft.Name)
+		typeName := ft.Name
 		if ft.Optional {
 			typeName = "*" + typeName
 		}
 
 		// Handle enum_as_string annotation
-		if _, ok := tidl.GetOneOfAnnotation(arr, "enum_as_string"); ok {
+		if _, ok := tidl.GetAnnotation(arr, "enum_as_string"); ok {
 			if _, ok := tidl.GetEnum(ctx.files, ft.Name); !ok {
 				return "", fmt.Errorf("enum %s not found", ft.Name)
 			}
@@ -713,7 +713,7 @@ func parseDefault(ctx Context, typeName string, v *string) (*string, error) {
 			if _, ok := tidl.GetEnum(ctx.files, typeNameTrimmed); !ok {
 				return v, nil // Treat as a regular string
 			}
-			s := tidl.CapitalizeASCII(parts[0]) + "_" + parts[1]
+			s := parts[0] + "_" + parts[1]
 			if asString {
 				s = fmt.Sprintf("%sAsString(%s)", typeNameTrimmed, s)
 			}
@@ -727,7 +727,7 @@ func parseDefault(ctx Context, typeName string, v *string) (*string, error) {
 // parseBinding parses a field's binding information from annotations.
 // It supports "header", "path", or "query" annotations.
 func parseBinding(arr []tidl.Annotation) (*Binding, error) {
-	a, ok := tidl.GetOneOfAnnotation(arr, "header", "path", "query")
+	a, ok := tidl.GetAnnotation(arr, "header", "path", "query")
 	if !ok {
 		return nil, nil
 	}
@@ -745,7 +745,7 @@ func genFieldTag(fieldName, typeName string, arr []tidl.Annotation, binding *Bin
 
 	// Generate JSON tag
 	jsonTag := fieldName
-	if a, ok := tidl.GetOneOfAnnotation(arr, "json"); ok {
+	if a, ok := tidl.GetAnnotation(arr, "json"); ok {
 		if a.Value == nil {
 			return "", fmt.Errorf("annotation json value is nil")
 		}
@@ -801,7 +801,7 @@ var builtinFuncs = map[string]struct{}{
 // It returns a Go code snippet for validating the field.
 func genValidate(receiverType, fieldName, fieldType string, arr []tidl.Annotation, funcs map[string]ValidateFunc) (*string, error) {
 	optional := strings.HasPrefix(fieldType, "*")
-	a, ok := tidl.GetOneOfAnnotation(arr, "validate")
+	a, ok := tidl.GetAnnotation(arr, "validate")
 	if !ok {
 		return nil, nil
 	}

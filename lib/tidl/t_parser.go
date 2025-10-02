@@ -42,7 +42,7 @@ func tparserParserInit() {
 		"KW_FALSE", "TYPE_ANY", "TYPE_BOOL", "TYPE_INT", "TYPE_FLOAT", "TYPE_STRING",
 		"TYPE_BINARY", "TYPE_STREAM", "TYPE_MAP", "TYPE_LIST", "LESS_THAN",
 		"GREATER_THAN", "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
-		"EQUAL", "COMMA", "QUESTION", "SEMI", "STRING", "IDENTIFIER", "INTEGER",
+		"EQUAL", "COMMA", "QUESTION", "SEMICOLON", "STRING", "IDENTIFIER", "INTEGER",
 		"FLOAT", "NEWLINE", "WHITESPACE", "SINGLE_LINE_COMMENT", "MULTI_LINE_COMMENT",
 	}
 	staticData.RuleNames = []string{
@@ -232,7 +232,7 @@ const (
 	TParserEQUAL               = 23
 	TParserCOMMA               = 24
 	TParserQUESTION            = 25
-	TParserSEMI                = 26
+	TParserSEMICOLON           = 26
 	TParserSTRING              = 27
 	TParserIDENTIFIER          = 28
 	TParserINTEGER             = 29
@@ -461,7 +461,7 @@ func (p *TParser) Document() (localctx IDocumentContext) {
 				p.Terminator()
 			}
 
-		case TParserSEMI, TParserNEWLINE:
+		case TParserSEMICOLON, TParserNEWLINE:
 			{
 				p.SetState(57)
 				p.Terminator()
@@ -1238,7 +1238,7 @@ func (p *TParser) Enum_def() (localctx IEnum_defContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == TParserSEMI || _la == TParserNEWLINE {
+	if _la == TParserSEMICOLON || _la == TParserNEWLINE {
 		{
 			p.SetState(94)
 			p.Terminator()
@@ -1707,7 +1707,7 @@ func (p *TParser) Type_def() (localctx IType_defContext) {
 		}
 		_la = p.GetTokenStream().LA(1)
 
-		if _la == TParserSEMI || _la == TParserNEWLINE {
+		if _la == TParserSEMICOLON || _la == TParserNEWLINE {
 			{
 				p.SetState(122)
 				p.Terminator()
@@ -2862,7 +2862,7 @@ func (p *TParser) Oneof_def() (localctx IOneof_defContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == TParserSEMI || _la == TParserNEWLINE {
+	if _la == TParserSEMICOLON || _la == TParserNEWLINE {
 		{
 			p.SetState(182)
 			p.Terminator()
@@ -3575,7 +3575,7 @@ func (p *TParser) Rpc_annotations() (localctx IRpc_annotationsContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == TParserSEMI || _la == TParserNEWLINE {
+	if _la == TParserSEMICOLON || _la == TParserNEWLINE {
 		{
 			p.SetState(217)
 			p.Terminator()
@@ -4874,8 +4874,8 @@ type ITerminatorContext interface {
 	// Getter signatures
 	AllNEWLINE() []antlr.TerminalNode
 	NEWLINE(i int) antlr.TerminalNode
-	AllSEMI() []antlr.TerminalNode
-	SEMI(i int) antlr.TerminalNode
+	AllSEMICOLON() []antlr.TerminalNode
+	SEMICOLON(i int) antlr.TerminalNode
 
 	// IsTerminatorContext differentiates from other interfaces.
 	IsTerminatorContext()
@@ -4921,12 +4921,12 @@ func (s *TerminatorContext) NEWLINE(i int) antlr.TerminalNode {
 	return s.GetToken(TParserNEWLINE, i)
 }
 
-func (s *TerminatorContext) AllSEMI() []antlr.TerminalNode {
-	return s.GetTokens(TParserSEMI)
+func (s *TerminatorContext) AllSEMICOLON() []antlr.TerminalNode {
+	return s.GetTokens(TParserSEMICOLON)
 }
 
-func (s *TerminatorContext) SEMI(i int) antlr.TerminalNode {
-	return s.GetToken(TParserSEMI, i)
+func (s *TerminatorContext) SEMICOLON(i int) antlr.TerminalNode {
+	return s.GetToken(TParserSEMICOLON, i)
 }
 
 func (s *TerminatorContext) GetRuleContext() antlr.RuleContext {
@@ -4970,7 +4970,7 @@ func (p *TParser) Terminator() (localctx ITerminatorContext) {
 				p.SetState(260)
 				_la = p.GetTokenStream().LA(1)
 
-				if !(_la == TParserSEMI || _la == TParserNEWLINE) {
+				if !(_la == TParserSEMICOLON || _la == TParserNEWLINE) {
 					p.GetErrorHandler().RecoverInline(p)
 				} else {
 					p.GetErrorHandler().ReportMatch(p)
