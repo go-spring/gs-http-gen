@@ -29,7 +29,7 @@ type UserReq {
  */
 //---- User definition 2 ----
 type User {
-    any name = "anonymous" ( go.type="*string" , a="123")
+    any name ( go.type="*string" , a="123")
     int? age
     binary avatar
     // embedded type

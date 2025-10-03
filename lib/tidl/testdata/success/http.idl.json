@@ -187,7 +187,6 @@
             "Optional": false
           },
           "Name": "userId",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 23,
@@ -228,7 +227,6 @@
         {
           "FieldType": "any",
           "Name": "name",
-          "Default": "\"anonymous\"",
           "Annotations": [
             {
               "Key": "go.type",
@@ -270,7 +268,6 @@
             "Optional": true
           },
           "Name": "age",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 33,
@@ -284,7 +281,6 @@
         {
           "FieldType": "binary",
           "Name": "avatar",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 34,
@@ -301,7 +297,6 @@
             "Optional": true
           },
           "Name": "",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 36,
@@ -338,7 +333,6 @@
             "Optional": false
           },
           "Name": "payload",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 37,
@@ -404,7 +398,6 @@
             "Optional": false
           },
           "Name": "street",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 41,
@@ -421,7 +414,6 @@
             "Optional": false
           },
           "Name": "city",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 42,
@@ -438,7 +430,6 @@
             "Optional": false
           },
           "Name": "country",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 43,
@@ -471,7 +462,6 @@
             "Optional": false
           },
           "Name": "title",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 47,
@@ -488,7 +478,6 @@
             "Optional": true
           },
           "Name": "body",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 48,
@@ -521,7 +510,6 @@
             "Optional": false
           },
           "Name": "errno",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 53,
@@ -538,7 +526,6 @@
             "Optional": false
           },
           "Name": "errmsg",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 54,
@@ -555,7 +542,6 @@
             "Optional": false
           },
           "Name": "data",
-          "Default": null,
           "Annotations": null,
           "Position": {
             "Start": 55,

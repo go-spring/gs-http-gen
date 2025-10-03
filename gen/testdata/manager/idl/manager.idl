@@ -45,15 +45,15 @@ enum Department {
 
 // Generic response wrapper for all RPCs
 type Response<T> {
-    ErrCode errno = ErrCode.ERR_OK (validate="OneOfErrCode($)")
+    ErrCode errno (validate="OneOfErrCode($)")
     string errmsg
     T data
 }
 
 // Pagination request and response
 type PageReq {
-    int page = DEFAULT_PAGE (json="page", validate="$ >= 1", query="page")
-    int size = DEFAULT_PAGE_SIZE (validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
+    int page (json="page", validate="$ >= 1", query="page")
+    int size (validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
 }
 
 type PageResp<T> {
@@ -89,10 +89,10 @@ type Manager {
     string id
     string name (validate="len($) > 0 && len($) <= 64")
     int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
-    bool vip = DEFAULT_VIP
-    float salary = 0.0 (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
-    string role = DEFAULT_ROLE
-    ManagerLevel level = ManagerLevel.JUNIOR (enum_as_string)
+    bool vip
+    float salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
+    string role
+    ManagerLevel level (enum_as_string)
     DepartmentInfo deptInfo
     ContactInfo contact
 }
@@ -108,10 +108,10 @@ type ManagerReq {
 type CreateManagerReq {
     string name (validate="len($) > 0 && len($) <= 64")
     int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
-    bool vip = DEFAULT_VIP
-    float salary = 0.0 (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
-    string role = DEFAULT_ROLE
-    ManagerLevel level = ManagerLevel.JUNIOR
+    bool vip
+    float salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
+    string role
+    ManagerLevel level
     DepartmentInfo deptInfo
     ContactInfo contact
 }

@@ -271,7 +271,7 @@ func dumpType(t Type) string {
 }
 
 // dumpTypeField formats a single field in a type declaration,
-// including its type, name, default value, annotations, and comments.
+// including its type, name, annotations, and comments.
 func dumpTypeField(f TypeField, sb *strings.Builder) {
 	dumpAboveComments(f.Comments.Above, sb, indent)
 
@@ -281,12 +281,6 @@ func dumpTypeField(f TypeField, sb *strings.Builder) {
 	if _, ok := f.FieldType.(EmbedType); !ok {
 		sb.WriteString(" ")
 		sb.WriteString(f.Name)
-
-		// Default value
-		if f.Default != nil {
-			sb.WriteString(" = ")
-			sb.WriteString(*f.Default)
-		}
 
 		// Annotations
 		if len(f.Annotations) > 0 {

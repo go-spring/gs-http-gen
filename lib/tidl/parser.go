@@ -398,12 +398,6 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.FieldType = l.parseCommonFieldType(f.Common_field_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
 
-	// Default value
-	if f.Const_value() != nil {
-		s := f.Const_value().GetText()
-		typeField.Default = &s
-	}
-
 	// Annotations
 	if f.Type_annotations() != nil {
 		for _, aCtx := range f.Type_annotations().AllAnnotation() {

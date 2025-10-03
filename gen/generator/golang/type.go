@@ -327,7 +327,6 @@ type TypeField struct {
 	Type     string
 	TypeKind TypeKind
 	Name     string
-	Default  *string
 	Tag      string
 	Validate *string
 	Binding  *Binding
@@ -493,12 +492,6 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 			return Type{}, err
 		}
 
-		// Parse default value if specified
-		defVal, err := parseDefault(ctx, typeName, f.Default)
-		if err != nil {
-			return Type{}, err
-		}
-
 		// Parse binding information from annotations
 		binding, err := parseBinding(f.Annotations)
 		if err != nil {
@@ -522,7 +515,6 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 			Type:     typeName,
 			TypeKind: typeKind,
 			Name:     fieldName,
-			Default:  defVal,
 			Tag:      fieldTag,
 			Validate: validate,
 			Binding:  binding,
@@ -644,46 +636,6 @@ func getTypeKind(ctx Context, typeName string) (TypeKind, error) {
 			return TypeKindStructType, nil
 		}
 		return TypeKindUnknown, fmt.Errorf("unknown type: %s", typeName)
-	}
-}
-
-// parseDefault parses the default value of a field based on its type
-func parseDefault(ctx Context, typeName string, v *string) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-
-	baseType := strings.TrimPrefix(typeName, "*")
-	switch baseType {
-	case "bool":
-		return v, nil
-	case "int", "int8", "int16", "int32", "int64":
-		s := fmt.Sprintf("%s(%s)", baseType, *v)
-		return &s, nil
-	case "uint", "uint8", "uint16", "uint32", "uint64":
-		s := fmt.Sprintf("%s(%s)", baseType, *v)
-		return &s, nil
-	case "float32", "float64":
-		s := fmt.Sprintf("%s(%s)", baseType, *v)
-		return &s, nil
-	case "string":
-		return v, nil
-	default:
-		if parts := strings.Split(*v, "."); len(parts) == 2 {
-			// Handle enum values like EnumName.VALUE
-			asString := strings.HasSuffix(typeName, "AsString")
-			typeNameTrimmed := strings.TrimSuffix(typeName, "AsString")
-			if _, ok := tidl.GetEnum(ctx.files, typeNameTrimmed); !ok {
-				return v, nil // Treat as a regular string
-			}
-			s := parts[0] + "_" + parts[1]
-			if asString {
-				s = fmt.Sprintf("%sAsString(%s)", typeNameTrimmed, s)
-			}
-			return &s, nil
-		} else { // Treat as a regular string
-			return v, nil
-		}
 	}
 }
 

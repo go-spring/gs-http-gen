@@ -78,9 +78,9 @@ embed_type_field
     : user_type
     ;
 
-// Common field: type + name + optional default value + optional annotations
+// Common field: type + name + optional annotations
 common_type_field
-    : common_field_type IDENTIFIER (EQUAL const_value)? type_annotations?
+    : common_field_type IDENTIFIER type_annotations?
     ;
 
 // Field type options
