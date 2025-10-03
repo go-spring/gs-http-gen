@@ -111,6 +111,10 @@ func ParseMeta(data []byte) (*MetaInfo, error) {
 
 // Parse runs the parsing pipeline for a single IDL input.
 func Parse(data []byte) (doc Document, err error) {
+	if data = bytes.TrimSpace(data); len(data) == 0 {
+		return Document{}, nil
+	}
+
 	e := &ErrorListener{
 		Scanner: bufio.NewScanner(bytes.NewReader(data)),
 	}

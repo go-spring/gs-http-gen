@@ -15,11 +15,12 @@ import (
 type MyManagerServer struct{}
 
 func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
-	data := proto.NewManager()
-	data.SetName("Jim")
-	res := proto.NewGetManagerResp()
-	res.SetData(data)
-	return res
+	return &proto.GetManagerResp{
+		Data: &proto.Manager{
+			Name:  "Jim",
+			Level: proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR),
+		},
+	}
 }
 
 func (m *MyManagerServer) CreateManager(ctx context.Context, req *proto.CreateManagerReq) *proto.CreateManagerResp {

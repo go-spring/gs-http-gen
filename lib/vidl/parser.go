@@ -32,7 +32,7 @@ type Expr interface {
 // BinaryExpr represents a binary expression (e.g., a && b, x == y).
 type BinaryExpr struct {
 	Left  Expr   // Left-hand side expression
-	Op    string // Operator (e.g., &&, ||, ==, <)
+	Op    string // Binary operator (e.g., &&, ||, ==, <)
 	Right Expr   // Right-hand side expression
 }
 
@@ -48,7 +48,7 @@ func (e BinaryExpr) Text() string {
 
 // UnaryExpr represents a unary expression (e.g., !x).
 type UnaryExpr struct {
-	Op   string // Operator (e.g., !)
+	Op   string // Unary operator (e.g., !)
 	Expr Expr   // Operand expression
 }
 
@@ -59,10 +59,10 @@ func (e UnaryExpr) Text() string {
 	return fmt.Sprintf("%s%s", e.Op, e.Expr.Text())
 }
 
-// PrimaryExpr represents an atomic expression, which can be a literal,
-// identifier, function call, or parenthesized expression.
+// PrimaryExpr represents an atomic expression:
+// a literal, identifier, function call, or a parenthesized expression.
 type PrimaryExpr struct {
-	Value string     // Literal value or identifier
+	Value string     // Literal or identifier text
 	Call  *FuncCall  // Optional function call
 	Inner *InnerExpr // Optional parenthesized expression
 }
@@ -80,7 +80,7 @@ func (e PrimaryExpr) Text() string {
 // FuncCall represents a function call expression with arguments.
 type FuncCall struct {
 	Name string // Function name
-	Args []Expr // Arguments
+	Args []Expr // Function arguments
 }
 
 func (f FuncCall) Text() string {
@@ -94,7 +94,7 @@ func (f FuncCall) Text() string {
 	return fmt.Sprintf("%s(%s)", f.Name, strings.Join(args, ", "))
 }
 
-// InnerExpr represents a parenthesized expression.
+// InnerExpr represents a parenthesized subexpression, e.g., "(a && b)".
 type InnerExpr struct {
 	Expr Expr
 }
@@ -107,22 +107,26 @@ func (e InnerExpr) Text() string {
 }
 
 // Parse parses the input string and returns an Expr AST.
-func Parse(s string) (expr Expr, err error) {
-	e := &ErrorListener{}
+func Parse(data string) (expr Expr, err error) {
+	if data = strings.TrimSpace(data); data == "" {
+		return nil, nil
+	}
 
-	// Recover from panics to return a proper error
+	e := &ErrorListener{Data: data}
+
+	// Recover from parser panics to provide better error reporting
 	defer func() {
 		if r := recover(); r != nil {
 			expr = nil
 			err = fmt.Errorf("[PANIC]: %v\n%s", r, debug.Stack())
-			if e.err != nil {
-				err = fmt.Errorf("%w\n%w", e.err, err)
+			if e.Error != nil {
+				err = fmt.Errorf("%w\n%w", e.Error, err)
 			}
 		}
 	}()
 
 	// Step 1: Create lexer and token stream
-	input := antlr.NewInputStream(s)
+	input := antlr.NewInputStream(data)
 	lexer := NewVLexer(input)
 	lexer.RemoveErrorListeners()
 	lexer.AddErrorListener(e)
@@ -132,17 +136,14 @@ func Parse(s string) (expr Expr, err error) {
 	p := NewVParser(tokens)
 	p.RemoveErrorListeners()
 	p.AddErrorListener(e)
-	p.GetInterpreter().SetPredictionMode(antlr.PredictionModeSLL) // Use faster SLL mode
 
 	// Step 3: Walk parse tree with custom listener
-	l := &ParseTreeListener{
-		Tokens: tokens,
-	}
+	l := &ParseTreeListener{Tokens: tokens}
 	antlr.ParseTreeWalkerDefault.Walk(l, p.ValidateExpr())
 
 	// Step 4: Return parsed expression or error
-	if e.err != nil {
-		return nil, e.err
+	if e.Error != nil {
+		return nil, e.Error
 	}
 	return l.Expr, nil
 }
@@ -150,16 +151,17 @@ func Parse(s string) (expr Expr, err error) {
 // ErrorListener implements a custom ANTLR error listener that records syntax errors.
 type ErrorListener struct {
 	*antlr.DefaultErrorListener
-	err error
+	Error error
+	Data  string
 }
 
 // SyntaxError is called by ANTLR when a syntax error occurs.
 func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
-	if l.err == nil {
-		l.err = fmt.Errorf("line %d:%d %s", line, column, msg)
+	if l.Error == nil {
+		l.Error = fmt.Errorf("line %d:%d %s << text: %q", line, column, msg, l.Data)
 		return
 	}
-	l.err = fmt.Errorf("%w\nline %d:%d %s", l.err, line, column, msg)
+	l.Error = fmt.Errorf("%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, l.Data)
 }
 
 // ParseTreeListener walks the parse tree and constructs the expression AST.
@@ -181,7 +183,7 @@ func parseValidateExpr(ctx IValidateExprContext) Expr {
 	return parseLogicalOrExpr(ctx.LogicalOrExpr())
 }
 
-// parseLogicalOrExpr converts a LogicalOrExprContext into an Expr.
+// parseLogicalOrExpr handles logical OR expressions (e.g., a || b || c).
 func parseLogicalOrExpr(ctx ILogicalOrExprContext) Expr {
 	left := parseLogicalAndExpr(ctx.LogicalAndExpr(0))
 	for i, o := range ctx.AllLOGICAL_OR() {
@@ -194,7 +196,7 @@ func parseLogicalOrExpr(ctx ILogicalOrExprContext) Expr {
 	return left
 }
 
-// parseLogicalAndExpr converts a LogicalAndExprContext into an Expr.
+// parseLogicalAndExpr handles logical AND expressions (e.g., a && b && c).
 func parseLogicalAndExpr(ctx ILogicalAndExprContext) Expr {
 	left := parseEqualityExpr(ctx.EqualityExpr(0))
 	for i, o := range ctx.AllLOGICAL_AND() {
@@ -207,26 +209,30 @@ func parseLogicalAndExpr(ctx ILogicalAndExprContext) Expr {
 	return left
 }
 
-// parseEqualityExpr converts an EqualityExprContext into an Expr.
+// parseEqualityExpr handles equality and inequality comparisons (==, !=).
 func parseEqualityExpr(ctx IEqualityExprContext) Expr {
+	left := parseRelationalExpr(ctx.RelationalExpr(0))
+
 	var op antlr.TerminalNode
 	if ctx.EQUAL() != nil {
 		op = ctx.EQUAL()
 	} else if ctx.NOT_EQUAL() != nil {
 		op = ctx.NOT_EQUAL()
+	} else {
+		return left
 	}
-	if op != nil {
-		return BinaryExpr{
-			Left:  parseRelationalExpr(ctx.RelationalExpr(0)),
-			Op:    op.GetText(),
-			Right: parseRelationalExpr(ctx.RelationalExpr(1)),
-		}
+
+	return BinaryExpr{
+		Left:  left,
+		Op:    op.GetText(),
+		Right: parseRelationalExpr(ctx.RelationalExpr(1)),
 	}
-	return parseRelationalExpr(ctx.RelationalExpr(0))
 }
 
-// parseRelationalExpr converts a RelationalExprContext into an Expr.
+// parseRelationalExpr handles <, <=, >, >= expressions.
 func parseRelationalExpr(ctx IRelationalExprContext) Expr {
+	left := parseUnaryExpr(ctx.UnaryExpr(0))
+
 	var op antlr.TerminalNode
 	if ctx.LESS_THAN() != nil {
 		op = ctx.LESS_THAN()
@@ -236,18 +242,18 @@ func parseRelationalExpr(ctx IRelationalExprContext) Expr {
 		op = ctx.GREATER_THAN()
 	} else if ctx.GREATER_OR_EQUAL() != nil {
 		op = ctx.GREATER_OR_EQUAL()
+	} else {
+		return left
 	}
-	if op != nil {
-		return BinaryExpr{
-			Left:  parseUnaryExpr(ctx.UnaryExpr(0)),
-			Op:    op.GetText(),
-			Right: parseUnaryExpr(ctx.UnaryExpr(1)),
-		}
+
+	return BinaryExpr{
+		Left:  left,
+		Op:    op.GetText(),
+		Right: parseUnaryExpr(ctx.UnaryExpr(1)),
 	}
-	return parseUnaryExpr(ctx.UnaryExpr(0))
 }
 
-// parseUnaryExpr converts a UnaryExprContext into an Expr.
+// parseUnaryExpr handles unary operators like !expr.
 func parseUnaryExpr(ctx IUnaryExprContext) Expr {
 	if ctx.LOGICAL_NOT() != nil {
 		return UnaryExpr{
@@ -258,7 +264,8 @@ func parseUnaryExpr(ctx IUnaryExprContext) Expr {
 	return parsePrimaryExpr(ctx.PrimaryExpr())
 }
 
-// parsePrimaryExpr converts a PrimaryExprContext into an Expr.
+// parsePrimaryExpr handles literals, identifiers, function calls,
+// and parenthesized expressions.
 func parsePrimaryExpr(ctx IPrimaryExprContext) Expr {
 	if ctx == nil {
 		return nil

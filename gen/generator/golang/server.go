@@ -95,7 +95,7 @@ func (g *Generator) genServer(ctx Context, rpcs []tidl.RPC) error {
 			if b, err = protoDir.ReadFile(filepath.Join("proto", e.Name())); err != nil {
 				return err
 			}
-			b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(ctx.config.PackageName))
+			b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(ctx.config.GoPackage))
 			fileName := filepath.Join(ctx.config.OutputDir, e.Name())
 			err = os.WriteFile(fileName, b, os.ModePerm)
 			if err != nil {
@@ -108,7 +108,7 @@ func (g *Generator) genServer(ctx Context, rpcs []tidl.RPC) error {
 	{
 		buf := &bytes.Buffer{}
 		err := toolVersionTmpl.Execute(buf, map[string]any{
-			"Package":     ctx.config.PackageName,
+			"Package":     ctx.config.GoPackage,
 			"ToolVersion": ctx.config.ToolVersion,
 		})
 		if err != nil {
@@ -127,7 +127,7 @@ func (g *Generator) genServer(ctx Context, rpcs []tidl.RPC) error {
 	}
 	buf := &bytes.Buffer{}
 	err = serverTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.PackageName,
+		"Package": ctx.config.GoPackage,
 		"Service": ctx.meta.Name,
 		"RPCs":    newRPCs,
 	})

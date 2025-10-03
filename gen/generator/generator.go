@@ -28,7 +28,7 @@ type Config struct {
 	OutputDir    string // Directory where generated code will be written
 	EnableServer bool   // Whether to generate server code
 	EnableClient bool   // Whether to generate client code
-	PackageName  string // Go package name for generated code
+	GoPackage    string // Go package name for generated code
 	ToolVersion  string // Version of the code generation tool
 }
 

@@ -64,7 +64,7 @@ func testProject(t *testing.T, dir string) {
 			OutputDir:    outDir,
 			EnableServer: c.Server,
 			EnableClient: c.Client,
-			PackageName:  "proto",
+			GoPackage:    "proto",
 			ToolVersion:  "v0.0.1",
 		}
 		if err = Gen(lang, config); err != nil {

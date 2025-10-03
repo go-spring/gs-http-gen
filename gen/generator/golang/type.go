@@ -120,6 +120,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 {{range $s := .Structs}}
 	{{$s.Comment}}
 	type {{$s.Name}} struct {
+		ObjectBase
 		{{- range $f := $s.Fields}}
 			{{- if $f.Comment}}
 				{{$f.Comment}}
@@ -128,50 +129,14 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{- end}}
 	}
 
-	// New{{$s.Name}} creates a new instance of the struct and sets default values if defined
-	func New{{$s.Name}}() *{{$s.Name}} {
-		return &{{$s.Name}}{
-			{{- range $f := $s.Fields}}
-				{{- if $f.Default}}
-			{{$f.Name}}: {{$f.Default}},
-				{{- end}}
-			{{- end}}
-		}
-	}
-
 	// New implements the Object interface
 	func (x *{{$s.Name}}) New() any {
-		return New{{$s.Name}}()
+		return &{{$s.Name}}{}
 	}
 
-	{{range $f := $s.Fields}}
-		// Get{{$f.Name}} returns the value of {{$f.Name}}
-		func (x *{{$s.Name}}) Get{{$f.Name}}() (r {{$f.Type}}) {
-			if x != nil {
-				return x.{{$f.Name}}
-			}
-			return r
-		}
-
-		// Set{{$f.Name}} sets the value of {{$f.Name}}
-		{{- if or (OptionalBaseType $f.TypeKind) (OptionalEnumType $f.TypeKind)}}
-			func (x *{{$s.Name}}) Set{{$f.Name}}(v {{TrimPrefix $f.Type "*"}}) {
-				if x != nil {
-					x.{{$f.Name}} = &v
-				}
-			}
-		{{- else}}
-			func (x *{{$s.Name}}) Set{{$f.Name}}(v {{$f.Type}}) {
-				if x != nil {
-					x.{{$f.Name}} = v
-				}
-			}
-		{{- end}}
-	{{end}}
-
-	// Binding extracts non-body values (header, path, query) from *http.Request
-	func (x *{{$s.Name}}) Binding(r *http.Request) error {
-		{{- if $s.BindingCount}}
+	{{- if $s.BindingCount}}
+		// Binding extracts non-body values (header, path, query) from *http.Request
+		func (x *{{$s.Name}}) Binding(r *http.Request) error {
 			return Binding(r, []BindingField {
 				{{- range $f := $s.Fields}}
 					{{- if $f.Binding}}
@@ -179,10 +144,8 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 					{{- end}}
 				{{- end}}
 			})
-		{{- else}}
-			return nil
-		{{- end}}
-	}
+		}
+	{{- end}}
 
 	// Validate checks field values using generated validation expressions
 	func (x *{{$s.Name}}) Validate() error {
@@ -222,7 +185,7 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 
 	buf := &bytes.Buffer{}
 	err = typeTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.PackageName,
+		"Package": ctx.config.GoPackage,
 		"Consts":  consts,
 		"Enums":   enums,
 		"Structs": types,

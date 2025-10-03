@@ -52,7 +52,7 @@ PHP, Java, or other supported languages.`,
 	root.Flags().BoolVar(&enableServer, "server", false, "Generate server-side code")
 	root.Flags().BoolVar(&enableClient, "client", false, "Generate client-side code")
 	root.Flags().StringVar(&outputDir, "output", ".", "Output directory for generated code (default: current directory)")
-	root.Flags().StringVar(&packageName, "package", "proto", "Package name for generated code (Go only)")
+	root.Flags().StringVar(&packageName, "package", "proto", "Package name for generated code (Go only)") // todo
 
 	root.RunE = func(cmd *cobra.Command, args []string) error {
 		if showVersion {
@@ -66,7 +66,7 @@ PHP, Java, or other supported languages.`,
 			OutputDir:    outputDir,
 			EnableServer: enableServer,
 			EnableClient: enableClient,
-			PackageName:  packageName,
+			GoPackage:    packageName,
 			ToolVersion:  ToolVersion,
 		}
 		return gen.Gen(language, config)

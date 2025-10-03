@@ -280,22 +280,17 @@ func TestParse(t *testing.T) {
 		{
 			name:        "syntax_error_missing_paren",
 			input:       "(a",
-			expectError: errors.New("line 1:2 missing ')' at '<EOF>'"),
+			expectError: errors.New("line 1:2 missing ')' at '<EOF>' << text: \"(a\""),
 		},
 		{
 			name:        "syntax_error_unexpected_token",
 			input:       "a + b",
-			expectError: errors.New("line 1:2 token recognition error at: '+ '"),
-		},
-		{
-			name:        "syntax_error_empty",
-			input:       "",
-			expectError: errors.New("line 1:0 mismatched input '<EOF>' expecting {'$', 'nil', '!', '(', STRING, INTEGER, FLOAT, IDENTIFIER}"),
+			expectError: errors.New("line 1:2 token recognition error at: '+ ' << text: \"a + b\""),
 		},
 		{
 			name:        "syntax_error_missing_comma_in_function",
 			input:       "func(a b)",
-			expectError: errors.New("line 1:7 extraneous input 'b' expecting {')', ','}"),
+			expectError: errors.New("line 1:7 extraneous input 'b' expecting {')', ','} << text: \"func(a b)\""),
 		},
 	}
 

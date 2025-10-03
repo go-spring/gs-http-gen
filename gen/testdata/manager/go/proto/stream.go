@@ -62,37 +62,13 @@ func OneOfPayloadType(i PayloadType) bool {
 }
 
 type StreamReq struct {
+	ObjectBase
 	Id string `json:"id"`
-}
-
-// NewStreamReq creates a new instance of the struct and sets default values if defined
-func NewStreamReq() *StreamReq {
-	return &StreamReq{}
 }
 
 // New implements the Object interface
 func (x *StreamReq) New() any {
-	return NewStreamReq()
-}
-
-// GetId returns the value of Id
-func (x *StreamReq) GetId() (r string) {
-	if x != nil {
-		return x.Id
-	}
-	return r
-}
-
-// SetId sets the value of Id
-func (x *StreamReq) SetId(v string) {
-	if x != nil {
-		x.Id = v
-	}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request
-func (x *StreamReq) Binding(r *http.Request) error {
-	return nil
+	return &StreamReq{}
 }
 
 // Validate checks field values using generated validation expressions
@@ -108,69 +84,15 @@ func (x *StreamReq) String() string {
 }
 
 type StreamResp struct {
+	ObjectBase
 	Id      string  `json:"id"`
 	Data    string  `json:"data"`
 	Payload Payload `json:"payload"`
 }
 
-// NewStreamResp creates a new instance of the struct and sets default values if defined
-func NewStreamResp() *StreamResp {
-	return &StreamResp{}
-}
-
 // New implements the Object interface
 func (x *StreamResp) New() any {
-	return NewStreamResp()
-}
-
-// GetId returns the value of Id
-func (x *StreamResp) GetId() (r string) {
-	if x != nil {
-		return x.Id
-	}
-	return r
-}
-
-// SetId sets the value of Id
-func (x *StreamResp) SetId(v string) {
-	if x != nil {
-		x.Id = v
-	}
-}
-
-// GetData returns the value of Data
-func (x *StreamResp) GetData() (r string) {
-	if x != nil {
-		return x.Data
-	}
-	return r
-}
-
-// SetData sets the value of Data
-func (x *StreamResp) SetData(v string) {
-	if x != nil {
-		x.Data = v
-	}
-}
-
-// GetPayload returns the value of Payload
-func (x *StreamResp) GetPayload() (r Payload) {
-	if x != nil {
-		return x.Payload
-	}
-	return r
-}
-
-// SetPayload sets the value of Payload
-func (x *StreamResp) SetPayload(v Payload) {
-	if x != nil {
-		x.Payload = v
-	}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request
-func (x *StreamResp) Binding(r *http.Request) error {
-	return nil
+	return &StreamResp{}
 }
 
 // Validate checks field values using generated validation expressions
@@ -186,85 +108,16 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
+	ObjectBase
 	FieldType   PayloadType `json:"field_type"`
 	TextData    string      `json:"text_data"`
 	NumberData  *int64      `json:"number_data,omitempty"`
 	BooleanData bool        `json:"boolean_data"`
 }
 
-// NewPayload creates a new instance of the struct and sets default values if defined
-func NewPayload() *Payload {
-	return &Payload{}
-}
-
 // New implements the Object interface
 func (x *Payload) New() any {
-	return NewPayload()
-}
-
-// GetFieldType returns the value of FieldType
-func (x *Payload) GetFieldType() (r PayloadType) {
-	if x != nil {
-		return x.FieldType
-	}
-	return r
-}
-
-// SetFieldType sets the value of FieldType
-func (x *Payload) SetFieldType(v PayloadType) {
-	if x != nil {
-		x.FieldType = v
-	}
-}
-
-// GetTextData returns the value of TextData
-func (x *Payload) GetTextData() (r string) {
-	if x != nil {
-		return x.TextData
-	}
-	return r
-}
-
-// SetTextData sets the value of TextData
-func (x *Payload) SetTextData(v string) {
-	if x != nil {
-		x.TextData = v
-	}
-}
-
-// GetNumberData returns the value of NumberData
-func (x *Payload) GetNumberData() (r *int64) {
-	if x != nil {
-		return x.NumberData
-	}
-	return r
-}
-
-// SetNumberData sets the value of NumberData
-func (x *Payload) SetNumberData(v int64) {
-	if x != nil {
-		x.NumberData = &v
-	}
-}
-
-// GetBooleanData returns the value of BooleanData
-func (x *Payload) GetBooleanData() (r bool) {
-	if x != nil {
-		return x.BooleanData
-	}
-	return r
-}
-
-// SetBooleanData sets the value of BooleanData
-func (x *Payload) SetBooleanData(v bool) {
-	if x != nil {
-		x.BooleanData = v
-	}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request
-func (x *Payload) Binding(r *http.Request) error {
-	return nil
+	return &Payload{}
 }
 
 // Validate checks field values using generated validation expressions

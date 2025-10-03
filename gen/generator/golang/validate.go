@@ -41,7 +41,7 @@ var {{$f.Name}} = func ({{$f.FieldType}}) bool { return true }
 func (g *Generator) genValidate(ctx Context) error {
 	buf := &bytes.Buffer{}
 	err := validateTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.PackageName,
+		"Package": ctx.config.GoPackage,
 		"Funcs":   ctx.funcs,
 	})
 	if err != nil {
