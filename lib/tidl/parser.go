@@ -482,8 +482,7 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 // types and annotations.
 func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	r := RPC{
-		Name:    ctx.IDENTIFIER().GetText(),
-		Request: ctx.Rpc_req().GetText(),
+		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
 			Start: ctx.GetStart().GetLine(),
 			Stop:  ctx.GetStop().GetLine(),
@@ -495,35 +494,31 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	if !IsPascal(r.Name) {
 		panic(fmt.Errorf("RPC name %s is not PascalCase in line %d", r.Name, r.Position.Start))
 	}
-	if !IsPascal(r.Request) {
-		panic(fmt.Errorf("RPC request type %s is not PascalCase in line %d", r.Request, r.Position.Start))
+
+	// Request
+	reqType := ctx.Rpc_req().User_type()
+	r.Request = UserType{
+		Name:     reqType.IDENTIFIER().GetText(),
+		Optional: reqType.QUESTION() != nil,
 	}
-	l.Document.UsedTypes[r.Request] = struct{}{}
+	if !IsPascal(r.Request.Name) {
+		panic(fmt.Errorf("RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
+	}
+	l.Document.UsedTypes[r.Request.Name] = struct{}{}
 
 	// Response
-	if resp := ctx.Rpc_resp(); resp.TYPE_STREAM() != nil {
-		u := resp.User_type()
-		r.Response = RespType{
-			Stream: true,
-			UserType: &UserType{
-				Name:     u.IDENTIFIER().GetText(),
-				Optional: u.QUESTION() != nil,
-			},
-		}
-		if !IsPascal(r.Response.UserType.Name) {
-			panic(fmt.Errorf("RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
-		}
-		l.Document.UsedTypes[r.Response.UserType.Name] = struct{}{}
-	} else {
-		r.Response = RespType{
-			Stream:   false,
-			TypeName: resp.IDENTIFIER().GetText(),
-		}
-		if !IsPascal(r.Response.TypeName) {
-			panic(fmt.Errorf("RPC response type %s is not PascalCase in line %d", r.Response.TypeName, r.Position.Start))
-		}
-		l.Document.UsedTypes[r.Response.TypeName] = struct{}{}
+	respType := ctx.Rpc_resp().User_type()
+	if ctx.Rpc_resp().TYPE_STREAM() != nil {
+		r.Response.Stream = true
 	}
+	r.Response.UserType = UserType{
+		Name:     respType.IDENTIFIER().GetText(),
+		Optional: respType.QUESTION() != nil,
+	}
+	if !IsPascal(r.Response.UserType.Name) {
+		panic(fmt.Errorf("RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
+	}
+	l.Document.UsedTypes[r.Response.UserType.Name] = struct{}{}
 
 	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {

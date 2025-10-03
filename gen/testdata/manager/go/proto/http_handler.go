@@ -208,11 +208,8 @@ func ReadRequest(r *http.Request, i Object) error {
 		}
 	}
 
-	// Apply object-specific bindings and validation
-	if err := i.Binding(r); err != nil {
-		return err
-	}
-	return i.Validate()
+	// Apply bindings
+	return i.Binding(r)
 }
 
 type JSONHandler[Req, Resp Object] func(context.Context, Req) Resp

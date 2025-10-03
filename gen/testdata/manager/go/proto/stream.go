@@ -16,28 +16,34 @@ var _ = http.NewServeMux
 type PayloadType int32
 
 const (
-	PayloadType_TextData    PayloadType = 0
-	PayloadType_NumberData  PayloadType = 1
-	PayloadType_BooleanData PayloadType = 2
+	PayloadType_text_data    PayloadType = 0
+	PayloadType_number_data  PayloadType = 1
+	PayloadType_boolean_data PayloadType = 2
 )
 
 var (
 	PayloadType_name = map[PayloadType]string{
-		0: "TextData",
-		1: "NumberData",
-		2: "BooleanData",
+		0: "text_data",
+		1: "number_data",
+		2: "boolean_data",
 	}
 	PayloadType_value = map[string]PayloadType{
-		"TextData":    0,
-		"NumberData":  1,
-		"BooleanData": 2,
+		"text_data":    0,
+		"number_data":  1,
+		"boolean_data": 2,
 	}
 )
 
-// PayloadTypeAsString wraps PayloadType to encode/decode as a JSON string
+// OneOfPayloadType is usually used for validation.
+func OneOfPayloadType(i PayloadType) bool {
+	_, ok := PayloadType_name[i]
+	return ok
+}
+
+// PayloadTypeAsString wraps PayloadType to encode/decode as a JSON string.
 type PayloadTypeAsString PayloadType
 
-// MarshalJSON implements custom JSON encoding for the enum as a string
+// MarshalJSON implements custom JSON encoding for the enum as a string.
 func (x PayloadTypeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := PayloadType_name[PayloadType(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
@@ -45,7 +51,7 @@ func (x PayloadTypeAsString) MarshalJSON() ([]byte, error) {
 	return nil, fmt.Errorf("invalid PayloadType: %d", x)
 }
 
-// UnmarshalJSON implements custom JSON decoding for the enum from a string
+// UnmarshalJSON implements custom JSON decoding for the enum from a string.
 func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
 	if v, ok := PayloadType_value[str]; ok {
@@ -55,25 +61,14 @@ func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("invalid PayloadType value: %q", str)
 }
 
-// OneOfPayloadType is usually used for validation.
-func OneOfPayloadType(i PayloadType) bool {
-	_, ok := PayloadType_name[i]
-	return ok
-}
-
 type StreamReq struct {
 	ObjectBase
 	Id string `json:"id"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *StreamReq) New() any {
 	return &StreamReq{}
-}
-
-// Validate checks field values using generated validation expressions
-func (x *StreamReq) Validate() error {
-	return nil
 }
 
 func (x *StreamReq) String() string {
@@ -90,14 +85,9 @@ type StreamResp struct {
 	Payload Payload `json:"payload"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *StreamResp) New() any {
 	return &StreamResp{}
-}
-
-// Validate checks field values using generated validation expressions
-func (x *StreamResp) Validate() error {
-	return nil
 }
 
 func (x *StreamResp) String() string {
@@ -109,20 +99,15 @@ func (x *StreamResp) String() string {
 
 type Payload struct {
 	ObjectBase
-	FieldType   PayloadType `json:"field_type"`
-	TextData    string      `json:"text_data"`
-	NumberData  *int64      `json:"number_data,omitempty"`
-	BooleanData bool        `json:"boolean_data"`
+	FieldType   PayloadTypeAsString `json:"field_type"`
+	TextData    string              `json:"text_data"`
+	NumberData  *int64              `json:"number_data,omitempty"`
+	BooleanData bool                `json:"boolean_data"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *Payload) New() any {
 	return &Payload{}
-}
-
-// Validate checks field values using generated validation expressions
-func (x *Payload) Validate() error {
-	return nil
 }
 
 func (x *Payload) String() string {

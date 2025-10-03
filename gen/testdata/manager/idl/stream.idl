@@ -12,8 +12,8 @@ type StreamResp {
 
 oneof Payload {
     string text_data
-    int? number_data
-    bool boolean_data
+    int? numberData (json="number_data")
+    bool boolean_data (json="")
 }
 
 rpc Stream(StreamReq) stream<StreamResp> {

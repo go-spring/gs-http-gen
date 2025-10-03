@@ -118,10 +118,10 @@ type CreateManagerReq {
 
 // Update existing manager
 type UpdateManagerReq {
-    string id (path="id")
+    string ID (json="id", path="id")
     string? name
     int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
-    bool? vip
+    bool? vip (json=",non-omitempty")
     float? salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
     string? role
     ManagerLevel? level

@@ -17,9 +17,11 @@
 package golang
 
 import (
+	"fmt"
 	"go/format"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
@@ -49,7 +51,7 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 	// Collect all RPC definitions
 	for fileName, doc := range files {
 		if err := g.genType(ctx, fileName, doc); err != nil {
-			return err
+			return fmt.Errorf("generate type file %s error: %w", fileName, err)
 		}
 		rpcs = append(rpcs, doc.RPCs...)
 	}
@@ -61,28 +63,48 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 	// Generate server code if enabled in the configuration
 	if config.EnableServer {
 		if err := g.genValidate(ctx); err != nil {
-			return err
+			return fmt.Errorf("generate validate file error: %w", err)
 		}
 		if err := g.genServer(ctx, rpcs); err != nil {
-			return err
+			return fmt.Errorf("generate server file error: %w", err)
 		}
 	}
 
 	// Generate client code if enabled in the configuration
 	if config.EnableClient {
 		if err := g.genClient(ctx, rpcs); err != nil {
-			return err
+			return fmt.Errorf("generate client file error: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// formatFile formats the given Go source code and writes it to a file.
+// formatFile formats Go source code using `go format`
+// and writes the formatted code to the given file.
 func formatFile(fileName string, b []byte) error {
 	b, err := format.Source(b)
 	if err != nil {
-		return err
+		return fmt.Errorf("format source for file %s error: %w", fileName, err)
 	}
-	return os.WriteFile(fileName, b, os.ModePerm)
+	err = os.WriteFile(fileName, b, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("write file %s error: %w", fileName, err)
+	}
+	return nil
+}
+
+// formatComment converts a tidl.Comments into Go comments.
+func formatComment(c tidl.Comments) string {
+	var comment string
+	for _, s := range c.Above {
+		comment += s.Text[0]
+	}
+	if c.Right != nil {
+		if c.Above != nil {
+			comment += "\n"
+		}
+		comment += strings.Join(c.Right.Text, "\n")
+	}
+	return comment
 }

@@ -121,14 +121,14 @@ rpc_def
     : KW_RPC IDENTIFIER LEFT_PAREN rpc_req RIGHT_PAREN rpc_resp rpc_annotations
     ;
 
-// RPC request type: always an identifier
+// RPC request type: a user-defined type
 rpc_req
-    : IDENTIFIER
+    : user_type
     ;
 
-// RPC response type: identifier, generic form (Type<T>), or stream<T>
+// RPC response type: a user-defined type or a streamed user-defined type (stream<T>)
 rpc_resp
-    : IDENTIFIER
+    : user_type
     | TYPE_STREAM LESS_THAN user_type GREATER_THAN
     ;
 

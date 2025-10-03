@@ -216,7 +216,7 @@ type Annotation struct {
 // RPC represents a remote procedure call definition.
 type RPC struct {
 	Name        string       // Name of the RPC
-	Request     string       // Request type
+	Request     UserType     // Request type
 	Response    RespType     // Response type
 	Annotations []Annotation // Metadata attached to the RPC
 	Position    Position     // Location in source code
@@ -224,11 +224,9 @@ type RPC struct {
 }
 
 // RespType represents the response type of an RPC.
-// It supports both streaming and generic forms.
 type RespType struct {
-	Stream   bool      // Whether the response is a stream
-	TypeName string    // Base type name for non-stream responses
-	UserType *UserType // User-defined type for the response
+	Stream   bool     // Whether the response is a stream
+	UserType UserType // User-defined type for the response
 }
 
 // Text returns a human-readable representation of the response type.
@@ -236,8 +234,5 @@ func (t RespType) Text() string {
 	if t.Stream {
 		return "stream<" + t.UserType.Text() + ">"
 	}
-	if t.UserType != nil {
-		return t.TypeName + "<" + t.UserType.Text() + ">"
-	}
-	return t.TypeName
+	return t.UserType.Text()
 }

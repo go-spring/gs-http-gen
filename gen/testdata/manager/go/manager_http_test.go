@@ -44,7 +44,7 @@ func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp
 		resp <- &proto.StreamResp{
 			Id: strconv.Itoa(i),
 			Payload: proto.Payload{
-				FieldType: proto.PayloadType_TextData,
+				FieldType: proto.PayloadTypeAsString(proto.PayloadType_text_data),
 				TextData:  "123",
 			},
 		}

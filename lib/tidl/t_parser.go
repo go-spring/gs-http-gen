@@ -139,8 +139,8 @@ func tparserParserInit() {
 		1, 0, 0, 0, 181, 182, 5, 22, 0, 0, 182, 25, 1, 0, 0, 0, 183, 184, 5, 5,
 		0, 0, 184, 185, 5, 28, 0, 0, 185, 186, 5, 19, 0, 0, 186, 187, 3, 28, 14,
 		0, 187, 188, 5, 20, 0, 0, 188, 189, 3, 30, 15, 0, 189, 190, 3, 32, 16,
-		0, 190, 27, 1, 0, 0, 0, 191, 192, 5, 28, 0, 0, 192, 29, 1, 0, 0, 0, 193,
-		200, 5, 28, 0, 0, 194, 195, 5, 14, 0, 0, 195, 196, 5, 17, 0, 0, 196, 197,
+		0, 190, 27, 1, 0, 0, 0, 191, 192, 3, 38, 19, 0, 192, 29, 1, 0, 0, 0, 193,
+		200, 3, 38, 19, 0, 194, 195, 5, 14, 0, 0, 195, 196, 5, 17, 0, 0, 196, 197,
 		3, 38, 19, 0, 197, 198, 5, 18, 0, 0, 198, 200, 1, 0, 0, 0, 199, 193, 1,
 		0, 0, 0, 199, 194, 1, 0, 0, 0, 200, 31, 1, 0, 0, 0, 201, 203, 5, 21, 0,
 		0, 202, 204, 3, 52, 26, 0, 203, 202, 1, 0, 0, 0, 203, 204, 1, 0, 0, 0,
@@ -3051,7 +3051,7 @@ type IRpc_reqContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	IDENTIFIER() antlr.TerminalNode
+	User_type() IUser_typeContext
 
 	// IsRpc_reqContext differentiates from other interfaces.
 	IsRpc_reqContext()
@@ -3089,8 +3089,20 @@ func NewRpc_reqContext(parser antlr.Parser, parent antlr.ParserRuleContext, invo
 
 func (s *Rpc_reqContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *Rpc_reqContext) IDENTIFIER() antlr.TerminalNode {
-	return s.GetToken(TParserIDENTIFIER, 0)
+func (s *Rpc_reqContext) User_type() IUser_typeContext {
+	var t antlr.RuleContext
+	for _, ctx := range s.GetChildren() {
+		if _, ok := ctx.(IUser_typeContext); ok {
+			t = ctx.(antlr.RuleContext)
+			break
+		}
+	}
+
+	if t == nil {
+		return nil
+	}
+
+	return t.(IUser_typeContext)
 }
 
 func (s *Rpc_reqContext) GetRuleContext() antlr.RuleContext {
@@ -3119,11 +3131,7 @@ func (p *TParser) Rpc_req() (localctx IRpc_reqContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(191)
-		p.Match(TParserIDENTIFIER)
-		if p.HasError() {
-			// Recognition error - abort rule
-			goto errorExit
-		}
+		p.User_type()
 	}
 
 errorExit:
@@ -3147,10 +3155,9 @@ type IRpc_respContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	IDENTIFIER() antlr.TerminalNode
+	User_type() IUser_typeContext
 	TYPE_STREAM() antlr.TerminalNode
 	LESS_THAN() antlr.TerminalNode
-	User_type() IUser_typeContext
 	GREATER_THAN() antlr.TerminalNode
 
 	// IsRpc_respContext differentiates from other interfaces.
@@ -3189,18 +3196,6 @@ func NewRpc_respContext(parser antlr.Parser, parent antlr.ParserRuleContext, inv
 
 func (s *Rpc_respContext) GetParser() antlr.Parser { return s.parser }
 
-func (s *Rpc_respContext) IDENTIFIER() antlr.TerminalNode {
-	return s.GetToken(TParserIDENTIFIER, 0)
-}
-
-func (s *Rpc_respContext) TYPE_STREAM() antlr.TerminalNode {
-	return s.GetToken(TParserTYPE_STREAM, 0)
-}
-
-func (s *Rpc_respContext) LESS_THAN() antlr.TerminalNode {
-	return s.GetToken(TParserLESS_THAN, 0)
-}
-
 func (s *Rpc_respContext) User_type() IUser_typeContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
@@ -3215,6 +3210,14 @@ func (s *Rpc_respContext) User_type() IUser_typeContext {
 	}
 
 	return t.(IUser_typeContext)
+}
+
+func (s *Rpc_respContext) TYPE_STREAM() antlr.TerminalNode {
+	return s.GetToken(TParserTYPE_STREAM, 0)
+}
+
+func (s *Rpc_respContext) LESS_THAN() antlr.TerminalNode {
+	return s.GetToken(TParserLESS_THAN, 0)
 }
 
 func (s *Rpc_respContext) GREATER_THAN() antlr.TerminalNode {
@@ -3255,11 +3258,7 @@ func (p *TParser) Rpc_resp() (localctx IRpc_respContext) {
 		p.EnterOuterAlt(localctx, 1)
 		{
 			p.SetState(193)
-			p.Match(TParserIDENTIFIER)
-			if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-			}
+			p.User_type()
 		}
 
 	case TParserTYPE_STREAM:

@@ -611,11 +611,16 @@
   "RPCs": [
     {
       "Name": "GetUser",
-      "Request": "UserReq",
+      "Request": {
+        "Name": "UserReq",
+        "Optional": false
+      },
       "Response": {
         "Stream": false,
-        "TypeName": "UserResponse",
-        "UserType": null
+        "UserType": {
+          "Name": "UserResponse",
+          "Optional": false
+        }
       },
       "Annotations": [
         {

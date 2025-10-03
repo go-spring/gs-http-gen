@@ -60,10 +60,16 @@ var (
 	}
 )
 
-// ErrCodeAsString wraps ErrCode to encode/decode as a JSON string
+// OneOfErrCode is usually used for validation.
+func OneOfErrCode(i ErrCode) bool {
+	_, ok := ErrCode_name[i]
+	return ok
+}
+
+// ErrCodeAsString wraps ErrCode to encode/decode as a JSON string.
 type ErrCodeAsString ErrCode
 
-// MarshalJSON implements custom JSON encoding for the enum as a string
+// MarshalJSON implements custom JSON encoding for the enum as a string.
 func (x ErrCodeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ErrCode_name[ErrCode(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
@@ -71,7 +77,7 @@ func (x ErrCodeAsString) MarshalJSON() ([]byte, error) {
 	return nil, fmt.Errorf("invalid ErrCode: %d", x)
 }
 
-// UnmarshalJSON implements custom JSON decoding for the enum from a string
+// UnmarshalJSON implements custom JSON decoding for the enum from a string.
 func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
 	if v, ok := ErrCode_value[str]; ok {
@@ -79,12 +85,6 @@ func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	return fmt.Errorf("invalid ErrCode value: %q", str)
-}
-
-// OneOfErrCode is usually used for validation.
-func OneOfErrCode(i ErrCode) bool {
-	_, ok := ErrCode_name[i]
-	return ok
 }
 
 // Manager seniority levels
@@ -109,10 +109,16 @@ var (
 	}
 )
 
-// ManagerLevelAsString wraps ManagerLevel to encode/decode as a JSON string
+// OneOfManagerLevel is usually used for validation.
+func OneOfManagerLevel(i ManagerLevel) bool {
+	_, ok := ManagerLevel_name[i]
+	return ok
+}
+
+// ManagerLevelAsString wraps ManagerLevel to encode/decode as a JSON string.
 type ManagerLevelAsString ManagerLevel
 
-// MarshalJSON implements custom JSON encoding for the enum as a string
+// MarshalJSON implements custom JSON encoding for the enum as a string.
 func (x ManagerLevelAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ManagerLevel_name[ManagerLevel(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
@@ -120,7 +126,7 @@ func (x ManagerLevelAsString) MarshalJSON() ([]byte, error) {
 	return nil, fmt.Errorf("invalid ManagerLevel: %d", x)
 }
 
-// UnmarshalJSON implements custom JSON decoding for the enum from a string
+// UnmarshalJSON implements custom JSON decoding for the enum from a string.
 func (x *ManagerLevelAsString) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
 	if v, ok := ManagerLevel_value[str]; ok {
@@ -128,12 +134,6 @@ func (x *ManagerLevelAsString) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	return fmt.Errorf("invalid ManagerLevel value: %q", str)
-}
-
-// OneOfManagerLevel is usually used for validation.
-func OneOfManagerLevel(i ManagerLevel) bool {
-	_, ok := ManagerLevel_name[i]
-	return ok
 }
 
 // Company departments
@@ -164,10 +164,16 @@ var (
 	}
 )
 
-// DepartmentAsString wraps Department to encode/decode as a JSON string
+// OneOfDepartment is usually used for validation.
+func OneOfDepartment(i Department) bool {
+	_, ok := Department_name[i]
+	return ok
+}
+
+// DepartmentAsString wraps Department to encode/decode as a JSON string.
 type DepartmentAsString Department
 
-// MarshalJSON implements custom JSON encoding for the enum as a string
+// MarshalJSON implements custom JSON encoding for the enum as a string.
 func (x DepartmentAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := Department_name[Department(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
@@ -175,7 +181,7 @@ func (x DepartmentAsString) MarshalJSON() ([]byte, error) {
 	return nil, fmt.Errorf("invalid Department: %d", x)
 }
 
-// UnmarshalJSON implements custom JSON decoding for the enum from a string
+// UnmarshalJSON implements custom JSON decoding for the enum from a string.
 func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
 	if v, ok := Department_value[str]; ok {
@@ -185,24 +191,18 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("invalid Department value: %q", str)
 }
 
-// OneOfDepartment is usually used for validation.
-func OneOfDepartment(i Department) bool {
-	_, ok := Department_name[i]
-	return ok
-}
-
 type PageReq struct {
 	ObjectBase
 	Page int64 `json:"page" query:"page"`
 	Size int64 `json:"size" query:"size"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request
+// Binding extracts non-body values (header, path, query) from *http.Request.
 func (x *PageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"PageReq.Page", "query", "page", &x.Page},
@@ -210,7 +210,7 @@ func (x *PageReq) Binding(r *http.Request) error {
 	})
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() error {
 	if !(x.Page >= 1) {
 		return errors.New("validate failed on PageReq.Page")
@@ -235,14 +235,9 @@ type Address struct {
 	PostalCode *string `json:"postalCode,omitempty"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *Address) New() any {
 	return &Address{}
-}
-
-// Validate checks field values using generated validation expressions
-func (x *Address) Validate() error {
-	return nil
 }
 
 func (x *Address) String() string {
@@ -259,12 +254,12 @@ type ContactInfo struct {
 	Address Address `json:"address"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *ContactInfo) New() any {
 	return &ContactInfo{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *ContactInfo) Validate() error {
 	if !(Email(x.Email)) {
 		return errors.New("validate failed on ContactInfo.Email")
@@ -285,14 +280,9 @@ type DepartmentInfo struct {
 	DeptName string     `json:"deptName"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *DepartmentInfo) New() any {
 	return &DepartmentInfo{}
-}
-
-// Validate checks field values using generated validation expressions
-func (x *DepartmentInfo) Validate() error {
-	return nil
 }
 
 func (x *DepartmentInfo) String() string {
@@ -315,12 +305,12 @@ type Manager struct {
 	Contact  ContactInfo          `json:"contact"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *Manager) New() any {
 	return &Manager{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *Manager) Validate() error {
 	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
 		return errors.New("validate failed on Manager.Name")
@@ -348,21 +338,16 @@ type ManagerReq struct {
 	Id string `json:"id" path:"id"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *ManagerReq) New() any {
 	return &ManagerReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request
+// Binding extracts non-body values (header, path, query) from *http.Request.
 func (x *ManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"ManagerReq.Id", "path", "id", &x.Id},
 	})
-}
-
-// Validate checks field values using generated validation expressions
-func (x *ManagerReq) Validate() error {
-	return nil
 }
 
 func (x *ManagerReq) String() string {
@@ -384,12 +369,12 @@ type CreateManagerReq struct {
 	Contact  ContactInfo    `json:"contact"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *CreateManagerReq) New() any {
 	return &CreateManagerReq{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *CreateManagerReq) Validate() error {
 	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
 		return errors.New("validate failed on CreateManagerReq.Name")
@@ -414,10 +399,10 @@ func (x *CreateManagerReq) String() string {
 
 type UpdateManagerReq struct {
 	ObjectBase
-	Id       string          `json:"id" path:"id"`
+	ID       string          `json:"id" path:"id"`
 	Name     *string         `json:"name,omitempty"`
 	Age      *int64          `json:"age,omitempty"`
-	Vip      *bool           `json:"vip,omitempty"`
+	Vip      *bool           `json:"vip"`
 	Salary   *float64        `json:"salary,omitempty"`
 	Role     *string         `json:"role,omitempty"`
 	Level    *ManagerLevel   `json:"level,omitempty"`
@@ -425,19 +410,19 @@ type UpdateManagerReq struct {
 	Contact  *ContactInfo    `json:"contact,omitempty"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *UpdateManagerReq) New() any {
 	return &UpdateManagerReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request
+// Binding extracts non-body values (header, path, query) from *http.Request.
 func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
-		{"UpdateManagerReq.Id", "path", "id", &x.Id},
+		{"UpdateManagerReq.ID", "path", "id", &x.ID},
 	})
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *UpdateManagerReq) Validate() error {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
@@ -470,12 +455,12 @@ type ListManagersByPageReq struct {
 	AuthToken *string       `json:"authToken,omitempty" header:"X-Auth-Token"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *ListManagersByPageReq) New() any {
 	return &ListManagersByPageReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request
+// Binding extracts non-body values (header, path, query) from *http.Request.
 func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"ListManagersByPageReq.Page", "query", "page", &x.Page},
@@ -488,7 +473,7 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 	})
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReq) Validate() error {
 	if !(x.Page >= 1) {
 		return errors.New("validate failed on PageReq.Page")
@@ -513,12 +498,12 @@ type CreateManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *CreateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
 		return errors.New("validate failed on CreateManagerResp.Errno")
@@ -540,12 +525,12 @@ type UpdateManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
 		return errors.New("validate failed on UpdateManagerResp.Errno")
@@ -567,12 +552,12 @@ type GetManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
 		return errors.New("validate failed on GetManagerResp.Errno")
@@ -594,12 +579,12 @@ type DeleteManagerResp struct {
 	Data   bool    `json:"data"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *DeleteManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
 		return errors.New("validate failed on DeleteManagerResp.Errno")
@@ -622,14 +607,9 @@ type ManagersPageData struct {
 	Items []*Manager `json:"items"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
-}
-
-// Validate checks field values using generated validation expressions
-func (x *ManagersPageData) Validate() error {
-	return nil
 }
 
 func (x *ManagersPageData) String() string {
@@ -646,12 +626,12 @@ type ListManagersByPageResp struct {
 	Data   *ManagersPageData `json:"data,omitempty"`
 }
 
-// New implements the Object interface
+// New returns a new instance (implements Object interface).
 func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
 }
 
-// Validate checks field values using generated validation expressions
+// Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
 		return errors.New("validate failed on ListManagersByPageResp.Errno")
