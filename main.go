@@ -26,7 +26,7 @@ import (
 )
 
 // ToolVersion defines the current version of gs-http-gen tool.
-const ToolVersion = "v0.0.2"
+const ToolVersion = "v0.0.3"
 
 func main() {
 	var (
