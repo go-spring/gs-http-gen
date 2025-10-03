@@ -12,44 +12,78 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-## Project Overview
+> This project is under continuous development, and its features and capabilities are being actively enhanced.
 
-**gs-http-gen** is an HTTP code generation tool based on **IDL (Interface Definition Language)**, designed for the *
-*Go-Spring** framework. It can automatically generate HTTP server and client code from interface definitions, including
-data models, validation logic, and route bindings.
+`gs-http-gen` is an **IDL (Interface Definition Language)-based HTTP code generation tool**.
+It can generate **Go server-side code** and **client-side code in other languages** based on unified interface
+definitions. The server-side code includes:
 
-The tool aims to simplify the development workflow of Go web services. By using declarative IDL definitions, it
-generates boilerplate code automatically, improving development efficiency and reducing human errors.
+* Data models
+* Validation logic
+* HTTP route binding
+* Support for both regular and streaming (SSE) interfaces
 
-More importantly, IDL is not only used for code generation—it also serves as a unified contract and documentation for
-APIs across frontend-backend teams and departments. With standardized IDL definitions, key details such as request
-parameters, response formats, and validation rules become clear, reducing communication costs and ensuring API
-consistency and correctness.
+By using a declarative IDL description, developers can focus on business logic while reducing boilerplate code
+and human errors.
+
+Additionally, IDL serves as a **contract and documentation for cross-team and frontend-backend collaboration**,
+helping teams reduce communication overhead and ensure interface consistency.
 
 ## Features
 
-- **IDL-driven**: Define service interfaces and data models using a simple interface definition language.
-- **Automatic code generation**: Generate Go code from IDL files, including:
-  - Data model structs
-    - Data validation logic
-    - HTTP route bindings
-    - Server interface definitions
-    - Client call code
-- **Rich type support**: Supports basic types, structs, enums, lists, optional types, etc.
-- **Data validation**: Built-in validation rules with support for custom validators.
-- **HTTP parameter binding**: Automatically bind HTTP request parameters (path, query, header, body) to data models.
-- **Type embedding**: Supports type inheritance and field reuse to reduce redundancy.
-- **Flexible configuration**: Generate server code, client code, or both.
-- **Enum support**: Enum types with optional string serialization.
-- **Streaming support**: Generate streaming RPC interfaces.
-- **Annotation support**: Add Markdown-style comments in IDL (not yet implemented).
+### 🌟 IDL-Driven
+
+* Define services and data models using a concise interface definition language.
+* Supports:
+
+    * Constants, enums, structs, and `oneof` types
+    * Generics and type embedding (field reuse)
+    * RPC interface definitions
+    * Custom annotations (e.g., `json`, `go.type`, `enum_as_string`, etc.)
+
+### ⚙️ Automatic Code Generation
+
+Generate Go server-side code and client code in other languages from IDL files:
+
+* Data model structures
+* Parameter and data validation logic
+* Automatic HTTP request parameter binding (path, query, header, body)
+* Support for both regular and streaming (SSE) interfaces
+* Server interface definitions and route binding
+* Client-side call code
+
+### 📦 Rich Data Type Support
+
+* Basic types: `bool`, `int`, `float`, `string`
+* Advanced types: `list`, `map`, `oneof`
+* Nullable fields: supported via `?` suffix
+* Type redefinitions and generics
+
+### 🔎 Efficient Data Validation
+
+* High performance, reflection-free implementation
+* Expression-based validation rules
+* Auto-generated `OneOfXXX` validation functions for enums
+* Custom validation functions supported
+
+### 🌐 HTTP-Friendly
+
+* Automatic binding of HTTP request parameters (path, query, header, body)
+* Supports `form`, `json`, and `multipart-form` formats
+* Native support for streaming RPC (SSE) interfaces
+
+### 📝 Comments & Documentation
+
+* Supports single-line and multi-line comments
+* Planned support for Markdown comments for richer documentation generation
 
 ## Installation
 
-**Recommended**: Install via the **gs** integrated development tool,
-see [https://github.com/go-spring/gs](https://github.com/go-spring/gs).
+* **Recommended:**
 
-To install this tool separately:
+Use the [gs](https://github.com/go-spring/gs) integrated development tool.
+
+* **Standalone installation:**
 
 ```bash
 go install github.com/go-spring/gs-http-gen@latest
@@ -57,16 +91,24 @@ go install github.com/go-spring/gs-http-gen@latest
 
 ## Usage
 
-### Step 1: Define an IDL file
+### Step 1: Define IDL Files
 
-First, create an IDL file to define service interfaces and data models:
+Create `.idl` files to describe your services and data models.
+
+> **Syntax Notes:**
+>
+> * A document consists of zero or more definitions, separated by newlines or semicolons, and ends with EOF.
+> * Identifiers consist of letters, digits, and underscores, but cannot start with a digit.
+> * Use `?` to denote nullable fields.
+
+**Example:**
 
 ```idl
-// Define constants
-const int MAX_AGE = 150
-const int MIN_AGE = 18
+// Constants
+const int MAX_AGE = 150 // years
+const int MIN_AGE = 18  // years
 
-// Define enums
+// Enums
 enum ErrCode {
     ERR_OK = 0
     PARAM_ERROR = 1003
@@ -78,94 +120,108 @@ enum Department {
     SALES = 3
 }
 
-// Define data structures
+// Data structures
 type Manager {
     string id
     string name (validate="len($) > 0 && len($) <= 64")
     int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
-    Department dept
+    Department dept (enum_as_string)
 }
 
 type Response<T> {
-    ErrCode errno = ErrCode.ERR_OK (validate="OneOfErrCode($)")
+    ErrCode errno (validate="OneOfErrCode($)")
     string errmsg
     T data
 }
 
-// Define request and response
+// Request & response types
 type ManagerReq {
     string id (path="id")
 }
 
 type GetManagerResp Response<Manager?>
 
-// Define streaming types
-type StreamReq {
-    string id
-}
-
-type StreamResp {
-    string id
-    string data
-}
-
-// Define RPC interface
+// Regular RPC interface
 rpc GetManager(ManagerReq) GetManagerResp {
     method="GET"
     path="/managers/{id}"
     summary="Get manager info by ID"
 }
 
-// Example of streaming interface
+// Streaming RPC example
+type StreamReq {
+    string ID (json="id")
+}
+
+type StreamResp {
+    string id
+    string data
+    Payload payload
+}
+
+oneof Payload {
+    string text_data
+    int? numberData (json="number_data")
+    bool boolean_data (json="")
+}
+
+// Streaming RPC
 rpc Stream(StreamReq) stream<StreamResp> {
     method="GET"
     path="/stream/{id}"
-    summary="Stream data transfer"
+    summary="Stream data by ID"
 }
 ```
 
-### Step 2: Generate code
+### Step 2: Generate Code
 
-Use the CLI tool to generate code:
+Run the CLI tool to generate code:
 
 ```bash
-# Generate server code only (default)
-gs-http-gen --server --output ./generated --package myservice
+# Generate server-side code only (default)
+gs-http-gen --server --output ./generated --go_package myservice
 
-# Generate both server and client code
-gs-http-gen --server --client --output ./generated --package myservice
+# Generate both server-side and client-side code
+gs-http-gen --server --client --output ./generated --go_package myservice
 ```
 
-Command-line options:
+**Command-line options:**
 
-* `--server`: Generate server code (HTTP handlers, route bindings, etc.)
-* `--client`: Generate client code (HTTP call wrappers)
-* `--output`: Output directory for generated code (default: current directory)
-* `--package`: Go package name (default: "proto")
-* `--language`: Target language (currently only `"go"` supported)
+| Option         | Description                                         | Default |
+|----------------|-----------------------------------------------------|---------|
+| `--server`     | Generate server-side code (HTTP handlers & routing) | false   |
+| `--client`     | Generate client-side code (HTTP call wrappers)      | false   |
+| `--output`     | Output directory                                    | `.`     |
+| `--go_package` | Go package name for generated code                  | `proto` |
+| `--language`   | Target language (currently only `go`)               | `go`    |
 
-### Step 3: Use the generated code
+### Step 3: Use the Generated Code
 
-The generated code includes data models, validation logic, and HTTP handlers:
+**Example:**
 
 ```go
-// Implement service interface
+// Implement the service interface
 type MyManagerServer struct{}
 
 func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
-    // Business logic
-    data := proto.NewManager()
-    data.SetName("Jim")
-    res := proto.NewGetManagerResp()
-    res.SetData(data)
-    return res
+    // Regular response
+    return &proto.GetManagerResp{
+        Data: &proto.Manager{
+            Id:   "1",
+            Name: "Jim",
+            Dept: proto.Department_ENGINEERING,
+        },
+    }
 }
 
 func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp chan<- *proto.StreamResp) {
-    // Streaming logic
+    // Streaming response
     for i := 0; i < 5; i++ {
         resp <- &proto.StreamResp{
             Id: strconv.Itoa(i),
+            Payload: proto.Payload{
+                TextData: "data",
+            },
         }
     }
 }
@@ -173,8 +229,16 @@ func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp
 // Register routes
 mux := http.NewServeMux()
 proto.InitRouter(mux, &MyManagerServer{})
+
+http.ListenAndServe(":8080", mux)
 ```
+
+## ⚠️ Notes
+
+* Generated code does **not** enforce required fields; you must handle this in your business logic.
+* Validation logic does not automatically invoke `Validate()`; invoke it explicitly as needed for deep validation.
+* It’s recommended to manage generated code centrally and keep it in sync with IDL files to avoid divergence.
 
 ## License
 
-This project is licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the [Apache License 2.0](LICENSE).
