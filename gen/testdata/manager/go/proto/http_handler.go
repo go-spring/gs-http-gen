@@ -15,8 +15,9 @@ import (
 	"github.com/go-playground/form/v4"
 )
 
-// HandleError is the default error handler for failed requests.
-var HandleError = func(w http.ResponseWriter, err error) {
+// ErrorHandler is the default handler for reporting errors back to the client.
+// By default, it responds with an HTTP 500 status and the error message.
+var ErrorHandler = func(r *http.Request, w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
@@ -35,51 +36,50 @@ type httpReqResp struct {
 }
 
 // getHTTPReqResp retrieves the httpReqResp wrapper from context.
-func getHTTPReqResp(ctx context.Context) *httpReqResp {
-	req, _ := ctx.Value(&ctxKey).(*httpReqResp)
+func getHTTPReqResp(ctx context.Context) httpReqResp {
+	req, _ := ctx.Value(&ctxKey).(httpReqResp)
 	return req
 }
 
 // setHTTPReqResp stores the http.Request and http.ResponseWriter
 // into the context for later retrieval.
 func setHTTPReqResp(ctx context.Context, r *http.Request, w http.ResponseWriter) context.Context {
-	return context.WithValue(ctx, &ctxKey, &httpReqResp{r, w})
+	return context.WithValue(ctx, &ctxKey, httpReqResp{r, w})
 }
 
 // GetReq retrieves the *http.Request from context if available.
 func GetReq(ctx context.Context) *http.Request {
-	if s := getHTTPReqResp(ctx); s != nil {
-		return s.r
-	}
-	return nil
+	return getHTTPReqResp(ctx).r
 }
 
 // GetHeader retrieves a specific HTTP request header by key.
 func GetHeader(ctx context.Context, key string) string {
-	if s := getHTTPReqResp(ctx); s != nil {
-		return s.r.Header.Get(key)
+	if r := getHTTPReqResp(ctx).r; r != nil {
+		return r.Header.Get(key)
 	}
 	return ""
 }
 
 // SetHTTPCode sets the HTTP response status code.
 func SetHTTPCode(ctx context.Context, httpCode int) {
-	if s := getHTTPReqResp(ctx); s != nil {
-		s.w.WriteHeader(httpCode)
+	if w := getHTTPReqResp(ctx).w; w != nil {
+		w.WriteHeader(httpCode)
 	}
 }
 
 // SetHeader sets a response header key/value pair.
 func SetHeader(ctx context.Context, key, value string) {
-	if s := getHTTPReqResp(ctx); s != nil {
-		s.w.Header().Set(key, value)
+	if w := getHTTPReqResp(ctx).w; w != nil {
+		w.Header().Set(key, value)
 	}
 }
 
 // SetCookie adds a Set-Cookie header to the HTTP response.
 func SetCookie(ctx context.Context, cookie *http.Cookie) {
-	if s := getHTTPReqResp(ctx); s != nil && cookie != nil {
-		s.w.Header().Set("Set-Cookie", cookie.String())
+	if cookie != nil {
+		if w := getHTTPReqResp(ctx).w; w != nil {
+			http.SetCookie(w, cookie)
+		}
 	}
 }
 
@@ -92,15 +92,33 @@ type BindingField struct {
 	Target any    // Target struct field pointer
 }
 
+var formDecoder = form.NewDecoder()
+
 // Binding applies multiple BindingField rules to extract values
 // from a request and bind them into a target object.
 func Binding(req *http.Request, params []BindingField) error {
 	for _, p := range params {
 		if err := bindField(req, p); err != nil {
-			return err
+			return fmt.Errorf("bind field %s error: %w", p.Field, err)
 		}
 	}
 	return nil
+}
+
+// bindField extracts a single field value from a request source
+// (header, path, or query) and decodes it into the target struct field.
+func bindField(req *http.Request, f BindingField) error {
+	values := url.Values{}
+	switch f.From {
+	case "header":
+		values[f.Name] = req.Header.Values(f.Name)
+	case "path":
+		values.Set(f.Name, req.PathValue(f.Name))
+	case "query":
+		values[f.Name] = req.URL.Query()[f.Name]
+	default: // for linter
+	}
+	return formDecoder.Decode(f.Target, values)
 }
 
 // Object defines the interface that all request/response types must implement.
@@ -126,24 +144,6 @@ func (x *ObjectBase) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *ObjectBase) Validate() error {
 	return nil
-}
-
-var formDecoder = form.NewDecoder()
-
-// bindField extracts a single field value from a request source
-// (header, path, or query) and decodes it into the target struct field.
-func bindField(req *http.Request, f BindingField) error {
-	values := url.Values{}
-	switch f.From {
-	case "header":
-		values.Set(f.Name, req.Header.Get(f.Name))
-	case "path":
-		values.Set(f.Name, req.PathValue(f.Name))
-	case "query":
-		values.Set(f.Name, req.URL.Query().Get(f.Name))
-	default: // for linter
-	}
-	return formDecoder.Decode(f.Target, values)
 }
 
 // ReadRequest parses the request body based on Content-Type
@@ -185,25 +185,27 @@ func ReadRequest(r *http.Request, i Object) error {
 
 	default:
 		// Fallback: Try JSON or form decoding
-		b, err := io.ReadAll(io.LimitReader(r.Body, defaultMaxMemory+1))
+		b, err := io.ReadAll(r.Body)
 		if err != nil {
 			return fmt.Errorf("read body: %w", err)
 		}
-		if len(b) > defaultMaxMemory {
-			return fmt.Errorf("body size exceeded: %d", defaultMaxMemory)
-		}
+		var asJSON bool
 		if b = bytes.TrimSpace(b); len(b) > 0 {
 			if b[0] == '{' || b[0] == '[' { // Looks like JSON
 				if err = json.Unmarshal(b, i); err != nil {
 					return fmt.Errorf("json decode: %w", err)
 				}
-			} else { // Try form decoding
-				if err = r.ParseForm(); err != nil {
-					return fmt.Errorf("parse form: %w", err)
-				}
-				if err = formDecoder.Decode(i, r.PostForm); err != nil {
-					return fmt.Errorf("form decode: %w", err)
-				}
+				asJSON = true
+			} else {
+				r.Body = io.NopCloser(bytes.NewReader(b))
+			}
+		}
+		if !asJSON {
+			if err = r.ParseForm(); err != nil {
+				return fmt.Errorf("parse form: %w", err)
+			}
+			if err = formDecoder.Decode(i, r.PostForm); err != nil {
+				return fmt.Errorf("form decode: %w", err)
 			}
 		}
 	}
@@ -220,16 +222,16 @@ func HandleJSON[Req, Resp Object](h JSONHandler[Req, Resp]) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := x.New().(Req)
 		if err := ReadRequest(r, req); err != nil {
-			HandleError(w, err)
+			ErrorHandler(r, w, err)
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		ctx := setHTTPReqResp(r.Context(), r, w)
-		res := h(ctx, req)
+		resp := h(ctx, req)
 
-		if err := json.NewEncoder(w).Encode(res); err != nil {
-			HandleError(w, err)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			ErrorHandler(r, w, err)
 		}
 	}
 }
@@ -244,13 +246,13 @@ func HandleStream[Req, Resp Object](h StreamHandler[Req, Resp]) http.HandlerFunc
 		flusher, ok := w.(http.Flusher)
 		if !ok {
 			err := fmt.Errorf("streaming not supported")
-			HandleError(w, err)
+			ErrorHandler(r, w, err)
 			return
 		}
 
 		req := x.New().(Req)
 		if err := ReadRequest(r, req); err != nil {
-			HandleError(w, err)
+			ErrorHandler(r, w, err)
 			return
 		}
 
@@ -267,15 +269,15 @@ func HandleStream[Req, Resp Object](h StreamHandler[Req, Resp]) http.HandlerFunc
 				default: // for linter
 				}
 				if _, err := w.Write([]byte("data:")); err != nil {
-					HandleError(w, err)
+					ErrorHandler(r, w, err)
 					continue
 				}
 				if err := encoder.Encode(res); err != nil {
-					HandleError(w, err)
+					ErrorHandler(r, w, err)
 					continue
 				}
 				if _, err := w.Write([]byte("\n")); err != nil {
-					HandleError(w, err)
+					ErrorHandler(r, w, err)
 					continue
 				}
 				flusher.Flush()

@@ -25,7 +25,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ToolVersion defines the current version of this code generation tool.
+// ToolVersion defines the current version of gs-http-gen tool.
 const ToolVersion = "v0.0.2"
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 		showVersion  bool
 		language     string
 		outputDir    string
-		packageName  string
+		goPackage    string
 		enableServer bool
 		enableClient bool
 	)
@@ -41,8 +41,8 @@ func main() {
 	root := &cobra.Command{
 		Use:   "gs-http-gen",
 		Short: "A code generation tool for HTTP services based on IDL files",
-		Long: `gs-http-gen is a code generation tool that reads service definitions 
-from IDL files and generates server and/or client code in Go (default), 
+		Long: `gs-http-gen is a code generation tool that reads service definitions
+from IDL files and generates server and/or client code in Go (default),
 PHP, Java, or other supported languages.`,
 		SilenceUsage: true,
 	}
@@ -52,7 +52,7 @@ PHP, Java, or other supported languages.`,
 	root.Flags().BoolVar(&enableServer, "server", false, "Generate server-side code")
 	root.Flags().BoolVar(&enableClient, "client", false, "Generate client-side code")
 	root.Flags().StringVar(&outputDir, "output", ".", "Output directory for generated code (default: current directory)")
-	root.Flags().StringVar(&packageName, "package", "proto", "Package name for generated code (Go only)") // todo
+	root.Flags().StringVar(&goPackage, "go_package", "proto", "Go package name for generated code")
 
 	root.RunE = func(cmd *cobra.Command, args []string) error {
 		if showVersion {
@@ -66,13 +66,13 @@ PHP, Java, or other supported languages.`,
 			OutputDir:    outputDir,
 			EnableServer: enableServer,
 			EnableClient: enableClient,
-			GoPackage:    packageName,
+			GoPackage:    goPackage,
 			ToolVersion:  ToolVersion,
 		}
 		return gen.Gen(language, config)
 	}
 
 	if err := root.Execute(); err != nil {
-		os.Exit(-1)
+		os.Exit(1)
 	}
 }
