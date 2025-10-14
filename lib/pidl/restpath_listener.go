@@ -13,9 +13,21 @@ type RestPathListener interface {
 	// EnterSegment is called when entering the segment production.
 	EnterSegment(c *SegmentContext)
 
+	// EnterParamSegment is called when entering the paramSegment production.
+	EnterParamSegment(c *ParamSegmentContext)
+
+	// EnterBracedParam is called when entering the bracedParam production.
+	EnterBracedParam(c *BracedParamContext)
+
 	// ExitPath is called when exiting the path production.
 	ExitPath(c *PathContext)
 
 	// ExitSegment is called when exiting the segment production.
 	ExitSegment(c *SegmentContext)
+
+	// ExitParamSegment is called when exiting the paramSegment production.
+	ExitParamSegment(c *ParamSegmentContext)
+
+	// ExitBracedParam is called when exiting the bracedParam production.
+	ExitBracedParam(c *BracedParamContext)
 }

@@ -31,3 +31,15 @@ func (s *BaseRestPathListener) EnterSegment(ctx *SegmentContext) {}
 
 // ExitSegment is called when production segment is exited.
 func (s *BaseRestPathListener) ExitSegment(ctx *SegmentContext) {}
+
+// EnterParamSegment is called when production paramSegment is entered.
+func (s *BaseRestPathListener) EnterParamSegment(ctx *ParamSegmentContext) {}
+
+// ExitParamSegment is called when production paramSegment is exited.
+func (s *BaseRestPathListener) ExitParamSegment(ctx *ParamSegmentContext) {}
+
+// EnterBracedParam is called when production bracedParam is entered.
+func (s *BaseRestPathListener) EnterBracedParam(ctx *BracedParamContext) {}
+
+// ExitBracedParam is called when production bracedParam is exited.
+func (s *BaseRestPathListener) ExitBracedParam(ctx *BracedParamContext) {}

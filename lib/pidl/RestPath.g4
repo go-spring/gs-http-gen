@@ -12,8 +12,8 @@ path
 // ----------------------
 segment
     : STATIC_SEGMENT       // Static segment
-    | PARAM_SEGMENT        // Colon-style :param or :param* (wildcard)
-    | BRACED_PARAM         // Curly-brace style {param} or {param...} (wildcard)
+    | paramSegment         // Colon-style :param or :param* (wildcard)
+    | bracedParam          // Curly-brace style {param} or {param...} (wildcard)
     ;
 
 // ----------------------
@@ -26,15 +26,15 @@ STATIC_SEGMENT
 // ----------------------
 // Colon-style parameter :param or :param* (wildcard)
 // ----------------------
-PARAM_SEGMENT
-    : ':' IDENTIFIER ('*')?
+paramSegment
+    : ':' name=IDENTIFIER (wildcard='*')?
     ;
 
 // ----------------------
 // Curly-brace style parameter {param} or {param...} (wildcard)
 // ----------------------
-BRACED_PARAM
-    : '{' IDENTIFIER ('...' )? '}'
+bracedParam
+    : '{' name=IDENTIFIER (wildcard='...')? '}'
     ;
 
 // ----------------------

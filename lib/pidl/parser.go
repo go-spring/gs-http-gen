@@ -24,6 +24,13 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 )
 
+type SegmentStyle int
+
+const (
+	Colon SegmentStyle = iota
+	Brace
+)
+
 type SegmentType int
 
 const (
@@ -35,6 +42,36 @@ const (
 type Segment struct {
 	Type  SegmentType
 	Value string
+}
+
+func Format(path []Segment, style SegmentStyle) string {
+	var sb strings.Builder
+	for _, s := range path {
+		switch s.Type {
+		case Static:
+			sb.WriteString(s.Value)
+		case Param:
+			if style == Brace {
+				sb.WriteString("{")
+				sb.WriteString(s.Value)
+				sb.WriteString("}")
+			} else if style == Colon {
+				sb.WriteString(":")
+				sb.WriteString(s.Value)
+			}
+		case Wildcard:
+			if style == Brace {
+				sb.WriteString("{")
+				sb.WriteString(s.Value)
+				sb.WriteString("...}")
+			} else if style == Colon {
+				sb.WriteString(":")
+				sb.WriteString(s.Value)
+				sb.WriteString("*")
+			}
+		}
+	}
+	return sb.String()
 }
 
 func Parse(data string) (path []Segment, err error) {
@@ -102,4 +139,25 @@ type ParseTreeListener struct {
 }
 
 func (l *ParseTreeListener) ExitPath(ctx *PathContext) {
+	for _, s := range ctx.AllSegment() {
+		switch {
+		case s.STATIC_SEGMENT() != nil:
+			val := s.STATIC_SEGMENT().GetText()
+			l.Path = append(l.Path, Segment{Static, val})
+		case s.ParamSegment() != nil:
+			val := s.ParamSegment().GetName().GetText()
+			if s.ParamSegment().GetWildcard() != nil {
+				l.Path = append(l.Path, Segment{Wildcard, val})
+			} else {
+				l.Path = append(l.Path, Segment{Param, val})
+			}
+		case s.BracedParam() != nil:
+			val := s.BracedParam().GetName().GetText()
+			if s.BracedParam().GetWildcard() != nil {
+				l.Path = append(l.Path, Segment{Wildcard, val})
+			} else {
+				l.Path = append(l.Path, Segment{Param, val})
+			}
+		}
+	}
 }
