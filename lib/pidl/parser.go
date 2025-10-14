@@ -24,6 +24,8 @@ import (
 	"github.com/antlr4-go/antlr/v4"
 )
 
+// SegmentStyle represents the style of path parameters
+// (Colon :param :param* or Brace {param} {param...}).
 type SegmentStyle int
 
 const (
@@ -31,19 +33,22 @@ const (
 	Brace
 )
 
+// SegmentType represents the type of a path segment.
 type SegmentType int
 
 const (
-	Static SegmentType = iota
-	Param
-	Wildcard
+	Static   SegmentType = iota // fixed segment, e.g., "users"
+	Param                       // named parameter, e.g., ":id" or "{id}"
+	Wildcard                    // wildcard parameter, e.g., ":id*" or "{id...}"
 )
 
+// Segment represents a single path segment.
 type Segment struct {
 	Type  SegmentType
 	Value string
 }
 
+// Format formats a slice of segments into a path string using the given style.
 func Format(path []Segment, style SegmentStyle) string {
 	var sb strings.Builder
 	for _, s := range path {
@@ -74,6 +79,7 @@ func Format(path []Segment, style SegmentStyle) string {
 	return sb.String()
 }
 
+// Parse parses a path string into a slice of Segment.
 func Parse(data string) (path []Segment, err error) {
 	if data = strings.TrimSpace(data); data == "" {
 		return nil, nil
@@ -131,19 +137,21 @@ func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int,
 	l.Error = fmt.Errorf("%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, l.Data)
 }
 
-// ParseTreeListener walks the parse tree and constructs the expression AST.
+// ParseTreeListener walks the parse tree and constructs the slice of Segment.
 type ParseTreeListener struct {
 	BaseRestPathListener
 	Tokens *antlr.CommonTokenStream
 	Path   []Segment
 }
 
+// ExitPath is called when exiting the Path rule
 func (l *ParseTreeListener) ExitPath(ctx *PathContext) {
 	for _, s := range ctx.AllSegment() {
 		switch {
 		case s.STATIC_SEGMENT() != nil:
 			val := s.STATIC_SEGMENT().GetText()
 			l.Path = append(l.Path, Segment{Static, val})
+
 		case s.ParamSegment() != nil:
 			val := s.ParamSegment().GetName().GetText()
 			if s.ParamSegment().GetWildcard() != nil {
@@ -151,6 +159,7 @@ func (l *ParseTreeListener) ExitPath(ctx *PathContext) {
 			} else {
 				l.Path = append(l.Path, Segment{Param, val})
 			}
+
 		case s.BracedParam() != nil:
 			val := s.BracedParam().GetName().GetText()
 			if s.BracedParam().GetWildcard() != nil {
