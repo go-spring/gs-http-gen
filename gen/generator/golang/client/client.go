@@ -1,16 +1,17 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
-type Client struct {
-}
-
-func NewClient(m map[string]string) (*Client, error) {
-	return nil, nil
+type Client interface {
+	Do(req *http.Request) (*http.Response, error)
 }
 
 type Request struct {
@@ -19,23 +20,49 @@ type Request struct {
 	Err  error
 }
 
-func NewRequest(method string, url string) *Request {
-	r, err := http.NewRequest(method, url, nil)
-	return &Request{Req: r, Err: err}
+// GetForm returns a GET request with form data.
+func GetForm(ctx context.Context, url string, data url.Values) *Request {
+	return form(ctx, "GET", url, data)
 }
 
-func (r *Request) Form(data map[string]string) *Request {
-	r.Req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+// PostForm returns a POST request with form data.
+func PostForm(ctx context.Context, url string, data url.Values) *Request {
+	return form(ctx, "POST", url, data)
+}
+
+func form(ctx context.Context, method string, url string, data url.Values) *Request {
+	var body io.Reader
+	if data != nil {
+		body = strings.NewReader(data.Encode())
+	}
+	r := newRequest(ctx, method, url, body)
+	r.Header("Content-Type", "application/x-www-form-urlencoded")
 	return r
 }
 
-func (r *Request) JSON(data any) *Request {
-	r.Req.Header.Set("Content-Type", "application/json")
+// PostJSON returns a POST request with JSON data.
+func PostJSON(ctx context.Context, url string, data any) *Request {
+	var body io.Reader
+	if data != nil {
+		b, err := json.Marshal(data)
+		if err != nil {
+			return &Request{Err: err}
+		}
+		body = bytes.NewReader(b)
+	}
+	r := newRequest(ctx, "POST", url, body)
+	r.Header("Content-Type", "application/json")
 	return r
 }
 
-func (r *Request) File() *Request {
+// File returns a POST request with a file.
+func File(ctx context.Context, method string, url string) *Request {
 	panic("not implemented")
+}
+
+func newRequest(ctx context.Context, method, url string, body io.Reader) *Request {
+	r, err := http.NewRequestWithContext(ctx, method, url, body)
+	return &Request{Req: r, Err: err}
 }
 
 func (r *Request) Header(key, value string) *Request {
@@ -48,7 +75,7 @@ func (r *Request) Cookie(key, value string) *Request {
 	return r
 }
 
-func (r *Request) Send(ctx context.Context) (*http.Response, error) {
+func (r *Request) Send(ctx context.Context, client Client) (*http.Response, error) {
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -56,35 +83,5 @@ func (r *Request) Send(ctx context.Context) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	return nil, nil
-}
-
-// HEAD ...
-func (c *Client) HEAD(url string) *Request {
-	return NewRequest("HEAD", url)
-}
-
-// GET ...
-func (c *Client) GET(url string) *Request {
-	return NewRequest("GET", url)
-}
-
-// POST ...
-func (c *Client) POST(url string) *Request {
-	return NewRequest("POST", url)
-}
-
-// PUT ...
-func (c *Client) PUT(url string) *Request {
-	return NewRequest("PUT", url)
-}
-
-// PATCH ...
-func (c *Client) PATCH(url string) *Request {
-	return NewRequest("PATCH", url)
-}
-
-// DELETE ...
-func (c *Client) DELETE(url string) *Request {
-	return NewRequest("DELETE", url)
+	return client.Do(r.Req)
 }
