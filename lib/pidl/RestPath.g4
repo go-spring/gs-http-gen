@@ -1,44 +1,44 @@
 grammar RestPath;
 
 // ----------------------
-// 顶级规则：路径由多个 segment 组成
+// Top-level rule: a path consists of multiple segments
 // ----------------------
 path
     : '/' segment ( '/' segment )*
     ;
 
 // ----------------------
-// 路径段类型
+// Path segment types
 // ----------------------
 segment
-    : STATIC_SEGMENT       // 静态段
-    | PARAM_SEGMENT        // 冒号风格 :param 或 :param*
-    | BRACED_PARAM         // 花括号风格 {param} 或 {param...}
+    : STATIC_SEGMENT       // Static segment
+    | PARAM_SEGMENT        // Colon-style :param or :param* (wildcard)
+    | BRACED_PARAM         // Curly-brace style {param} or {param...} (wildcard)
     ;
 
 // ----------------------
-// 静态路径段，例如 "users"、"books"
+// Static path segment, e.g., "users", "books"
 // ----------------------
 STATIC_SEGMENT
     : [a-zA-Z0-9_-]+
     ;
 
 // ----------------------
-// 冒号风格参数 :param 或 :param*（可变长度）
+// Colon-style parameter :param or :param* (wildcard)
 // ----------------------
 PARAM_SEGMENT
     : ':' IDENTIFIER ('*')?
     ;
 
 // ----------------------
-// 花括号风格参数 {param} 或 {param...}（可变长度）
+// Curly-brace style parameter {param} or {param...} (wildcard)
 // ----------------------
 BRACED_PARAM
     : '{' IDENTIFIER ('...' )? '}'
     ;
 
 // ----------------------
-// 标识符
+// Identifier for parameters, letters, digits, or underscore
 // ----------------------
 IDENTIFIER
     : [a-zA-Z_] [a-zA-Z0-9_]*
