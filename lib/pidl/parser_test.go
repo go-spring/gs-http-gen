@@ -17,7 +17,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "static path",
-			input: "users/profile",
+			input: "/users/profile",
 			expected: []Segment{
 				{Type: Static, Value: "users"},
 				{Type: Static, Value: "profile"},
@@ -25,7 +25,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "colon param",
-			input: "users/:id",
+			input: "/users/:id",
 			expected: []Segment{
 				{Type: Static, Value: "users"},
 				{Type: Param, Value: "id"},
@@ -33,7 +33,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "colon wildcard",
-			input: "files/:path*",
+			input: "/files/:path*",
 			expected: []Segment{
 				{Type: Static, Value: "files"},
 				{Type: Wildcard, Value: "path"},
@@ -41,7 +41,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "braced param",
-			input: "users/{id}",
+			input: "/users/{id}",
 			expected: []Segment{
 				{Type: Static, Value: "users"},
 				{Type: Param, Value: "id"},
@@ -49,7 +49,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "braced wildcard",
-			input: "files/{path...}",
+			input: "/files/{path...}",
 			expected: []Segment{
 				{Type: Static, Value: "files"},
 				{Type: Wildcard, Value: "path"},
@@ -57,7 +57,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "mixed params",
-			input: "api/v1/users/{userId}/posts/:postId",
+			input: "/api/v1/users/{userId}/posts/:postId",
 			expected: []Segment{
 				{Type: Static, Value: "api"},
 				{Type: Static, Value: "v1"},
@@ -69,7 +69,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "complex path with multiple param types",
-			input: "org/{orgId}/repos/:repoId/branches/{branch...}",
+			input: "/org/{orgId}/repos/:repoId/branches/{branch...}",
 			expected: []Segment{
 				{Type: Static, Value: "org"},
 				{Type: Param, Value: "orgId"},

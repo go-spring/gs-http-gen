@@ -52,6 +52,7 @@ type Segment struct {
 func Format(path []Segment, style SegmentStyle) string {
 	var sb strings.Builder
 	for _, s := range path {
+		sb.WriteString("/")
 		switch s.Type {
 		case Static:
 			sb.WriteString(s.Value)
