@@ -7,11 +7,74 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
-type Client interface {
+type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
+}
+
+type DefaultHTTPClient struct {
+	*http.Client
+}
+
+func (c *DefaultHTTPClient) Do(req *http.Request) (*http.Response, error) {
+	return c.Client.Do(req)
+}
+
+type ExampleClient struct{}
+
+type UrlPath interface {
+	PathParams() []string
+}
+type PingReq struct{}
+
+func (r *PingReq) PathParams() []string {
+	return []string{}
+}
+
+type PingResp struct{}
+
+func (c *ExampleClient) Ping(ctx context.Context, req *PingReq) (http.Response, *PingResp, error) {
+	getQueryString(req)
+}
+
+func buildURL(uri string, req UrlPath) (string, error) {
+	if !strings.Contains(uri, "{") && !strings.Contains(uri, "*") {
+		return uri, nil
+	}
+	// todo 完成这个 uri path 解析和替换的逻辑
+
+}
+
+func getQueryString(req any) (string, error) {
+	b, err := json.Marshal(req)
+	if err != nil {
+		return "", err
+	}
+	var m map[string]json.RawMessage
+	if err = json.Unmarshal(b, &m); err != nil {
+		return "", err
+	}
+	var buf strings.Builder
+	for k, v := range m {
+		if buf.Len() > 0 {
+			buf.WriteByte('&')
+		}
+		buf.WriteString(k)
+		buf.WriteByte('=')
+		if v[0] == '"' {
+			s, err := strconv.Unquote(string(v))
+			if err != nil {
+				return "", err
+			}
+			buf.Write(s)
+		} else {
+			buf.Write(v)
+		}
+	}
+	return buf.String(), nil
 }
 
 type Request struct {
@@ -55,8 +118,11 @@ func PostJSON(ctx context.Context, url string, data any) *Request {
 	return r
 }
 
-// File returns a POST request with a file.
-func File(ctx context.Context, method string, url string) *Request {
+func GetFile(ctx context.Context, method string, url string) *Request {
+	panic("not implemented")
+}
+
+func PostFile(ctx context.Context, url string, file io.Reader) *Request {
 	panic("not implemented")
 }
 
