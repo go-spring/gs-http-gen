@@ -44,8 +44,33 @@ func buildURL(uri string, req UrlPath) (string, error) {
 	if !strings.Contains(uri, "{") && !strings.Contains(uri, "*") {
 		return uri, nil
 	}
-	// todo 完成这个 uri path 解析和替换的逻辑
 
+	// 获取路径参数
+	params := req.PathParams()
+
+	// 创建一个映射来存储路径参数
+	pathParams := make(map[string]string)
+	for i := 0; i < len(params); i += 2 {
+		if i+1 < len(params) {
+			pathParams[params[i]] = params[i+1]
+		}
+	}
+
+	// 替换路径中的参数，格式为 {param}
+	result := uri
+	for key, value := range pathParams {
+		placeholder := "{" + key + "}"
+		result = strings.ReplaceAll(result, placeholder, value)
+	}
+
+	// 处理通配符参数 *
+	if strings.Contains(result, "*") && len(params)%2 == 0 && len(params) > 0 {
+		// 通配符参数应该是最后一个参数
+		wildcardValue := params[len(params)-1]
+		result = strings.ReplaceAll(result, "*", wildcardValue)
+	}
+
+	return result, nil
 }
 
 func getQueryString(req any) (string, error) {
