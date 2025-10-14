@@ -26,7 +26,7 @@ func (c *DefaultHTTPClient) Do(req *http.Request) (*http.Response, error) {
 type ExampleClient struct{}
 
 type UrlPath interface {
-	PathParams() []string
+	PathParams() map[string]string
 }
 type PingReq struct{}
 
@@ -46,15 +46,7 @@ func buildURL(uri string, req UrlPath) (string, error) {
 	}
 
 	// 获取路径参数
-	params := req.PathParams()
-
-	// 创建一个映射来存储路径参数
-	pathParams := make(map[string]string)
-	for i := 0; i < len(params); i += 2 {
-		if i+1 < len(params) {
-			pathParams[params[i]] = params[i+1]
-		}
-	}
+	pathParams := req.PathParams()
 
 	// 替换路径中的参数，格式为 {param}
 	result := uri
