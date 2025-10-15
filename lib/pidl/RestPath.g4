@@ -27,12 +27,19 @@ STATIC_SEGMENT
 // Colon-style parameter :param or :param* (wildcard)
 // ----------------------
 paramSegment
-    : ':' name=([a-zA-Z_] [a-zA-Z0-9_]*) (wildcard='*')?
+    : ':' name=IDENTIFIER (wildcard='*')?
     ;
 
 // ----------------------
 // Curly-brace style parameter {param} or {param...} (wildcard)
 // ----------------------
 bracedParam
-    : '{' name=([a-zA-Z_] [a-zA-Z0-9_]*) (wildcard='...')? '}'
+    : '{' name=IDENTIFIER (wildcard='...')? '}'
+    ;
+
+// ----------------------
+// Identifier for parameters, letters, digits, or underscore
+// ----------------------
+IDENTIFIER
+    : [a-zA-Z_] [a-zA-Z0-9_]*
     ;
