@@ -154,20 +154,20 @@ func (l *ParseTreeListener) ExitPath(ctx *PathContext) {
 			l.Path = append(l.Path, Segment{Static, val})
 
 		case s.ParamSegment() != nil:
-			val := s.ParamSegment().GetName().GetText()
-			if s.ParamSegment().GetWildcard() != nil {
-				l.Path = append(l.Path, Segment{Wildcard, val})
-			} else {
-				l.Path = append(l.Path, Segment{Param, val})
-			}
+			val := s.ParamSegment().IDENTIFIER().GetText()
+			//if s.ParamSegment().GetWildcard() != nil {
+			//	l.Path = append(l.Path, Segment{Wildcard, val})
+			//} else {
+			l.Path = append(l.Path, Segment{Param, val})
+			//}
 
 		case s.BracedParam() != nil:
-			val := s.BracedParam().GetName().GetText()
-			if s.BracedParam().GetWildcard() != nil {
-				l.Path = append(l.Path, Segment{Wildcard, val})
-			} else {
-				l.Path = append(l.Path, Segment{Param, val})
-			}
+			val := s.BracedParam().IDENTIFIER().GetText()
+			//if s.BracedParam().GetWildcard() != nil {
+			//	l.Path = append(l.Path, Segment{Wildcard, val})
+			//} else {
+			l.Path = append(l.Path, Segment{Param, val})
+			//}
 		}
 	}
 }
