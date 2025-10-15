@@ -32,29 +32,28 @@ var RestPathParserStaticData struct {
 func restpathParserInit() {
 	staticData := &RestPathParserStaticData
 	staticData.LiteralNames = []string{
-		"", "", "", "':'", "'/'", "'{'", "'}'", "'*'", "'...'",
+		"", "'/'", "':'", "'*'", "'{'", "'...'", "'}'",
 	}
 	staticData.SymbolicNames = []string{
-		"", "STATIC_SEGMENT", "IDENTIFIER", "COLON", "SLASH", "LBRACE", "RBRACE",
-		"STAR", "ELLIPSIS",
+		"", "", "", "", "", "", "", "STATIC_SEGMENT",
 	}
 	staticData.RuleNames = []string{
 		"path", "segment", "paramSegment", "bracedParam",
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 8, 35, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 1, 0, 1, 0,
+		4, 1, 7, 35, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 1, 0, 1, 0,
 		1, 0, 1, 0, 5, 0, 13, 8, 0, 10, 0, 12, 0, 16, 9, 0, 1, 1, 1, 1, 1, 1, 3,
 		1, 21, 8, 1, 1, 2, 1, 2, 1, 2, 3, 2, 26, 8, 2, 1, 3, 1, 3, 1, 3, 3, 3,
 		31, 8, 3, 1, 3, 1, 3, 1, 3, 0, 0, 4, 0, 2, 4, 6, 0, 0, 35, 0, 8, 1, 0,
 		0, 0, 2, 20, 1, 0, 0, 0, 4, 22, 1, 0, 0, 0, 6, 27, 1, 0, 0, 0, 8, 9, 5,
-		4, 0, 0, 9, 14, 3, 2, 1, 0, 10, 11, 5, 4, 0, 0, 11, 13, 3, 2, 1, 0, 12,
+		1, 0, 0, 9, 14, 3, 2, 1, 0, 10, 11, 5, 1, 0, 0, 11, 13, 3, 2, 1, 0, 12,
 		10, 1, 0, 0, 0, 13, 16, 1, 0, 0, 0, 14, 12, 1, 0, 0, 0, 14, 15, 1, 0, 0,
-		0, 15, 1, 1, 0, 0, 0, 16, 14, 1, 0, 0, 0, 17, 21, 5, 1, 0, 0, 18, 21, 3,
+		0, 15, 1, 1, 0, 0, 0, 16, 14, 1, 0, 0, 0, 17, 21, 5, 7, 0, 0, 18, 21, 3,
 		4, 2, 0, 19, 21, 3, 6, 3, 0, 20, 17, 1, 0, 0, 0, 20, 18, 1, 0, 0, 0, 20,
-		19, 1, 0, 0, 0, 21, 3, 1, 0, 0, 0, 22, 23, 5, 3, 0, 0, 23, 25, 5, 2, 0,
-		0, 24, 26, 5, 7, 0, 0, 25, 24, 1, 0, 0, 0, 25, 26, 1, 0, 0, 0, 26, 5, 1,
-		0, 0, 0, 27, 28, 5, 5, 0, 0, 28, 30, 5, 2, 0, 0, 29, 31, 5, 8, 0, 0, 30,
+		19, 1, 0, 0, 0, 21, 3, 1, 0, 0, 0, 22, 23, 5, 2, 0, 0, 23, 25, 5, 7, 0,
+		0, 24, 26, 5, 3, 0, 0, 25, 24, 1, 0, 0, 0, 25, 26, 1, 0, 0, 0, 26, 5, 1,
+		0, 0, 0, 27, 28, 5, 4, 0, 0, 28, 30, 5, 7, 0, 0, 29, 31, 5, 5, 0, 0, 30,
 		29, 1, 0, 0, 0, 30, 31, 1, 0, 0, 0, 31, 32, 1, 0, 0, 0, 32, 33, 5, 6, 0,
 		0, 33, 7, 1, 0, 0, 0, 4, 14, 20, 25, 30,
 	}
@@ -95,14 +94,13 @@ func NewRestPathParser(input antlr.TokenStream) *RestPathParser {
 // RestPathParser tokens.
 const (
 	RestPathParserEOF            = antlr.TokenEOF
-	RestPathParserSTATIC_SEGMENT = 1
-	RestPathParserIDENTIFIER     = 2
-	RestPathParserCOLON          = 3
-	RestPathParserSLASH          = 4
-	RestPathParserLBRACE         = 5
-	RestPathParserRBRACE         = 6
-	RestPathParserSTAR           = 7
-	RestPathParserELLIPSIS       = 8
+	RestPathParserT__0           = 1
+	RestPathParserT__1           = 2
+	RestPathParserT__2           = 3
+	RestPathParserT__3           = 4
+	RestPathParserT__4           = 5
+	RestPathParserT__5           = 6
+	RestPathParserSTATIC_SEGMENT = 7
 )
 
 // RestPathParser rules.
@@ -121,8 +119,6 @@ type IPathContext interface {
 	GetParser() antlr.Parser
 
 	// Getter signatures
-	AllSLASH() []antlr.TerminalNode
-	SLASH(i int) antlr.TerminalNode
 	AllSegment() []ISegmentContext
 	Segment(i int) ISegmentContext
 
@@ -161,14 +157,6 @@ func NewPathContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokin
 }
 
 func (s *PathContext) GetParser() antlr.Parser { return s.parser }
-
-func (s *PathContext) AllSLASH() []antlr.TerminalNode {
-	return s.GetTokens(RestPathParserSLASH)
-}
-
-func (s *PathContext) SLASH(i int) antlr.TerminalNode {
-	return s.GetToken(RestPathParserSLASH, i)
-}
 
 func (s *PathContext) AllSegment() []ISegmentContext {
 	children := s.GetChildren()
@@ -239,7 +227,7 @@ func (p *RestPathParser) Path() (localctx IPathContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(8)
-		p.Match(RestPathParserSLASH)
+		p.Match(RestPathParserT__0)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -256,10 +244,10 @@ func (p *RestPathParser) Path() (localctx IPathContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for _la == RestPathParserSLASH {
+	for _la == RestPathParserT__0 {
 		{
 			p.SetState(10)
-			p.Match(RestPathParserSLASH)
+			p.Match(RestPathParserT__0)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -416,14 +404,14 @@ func (p *RestPathParser) Segment() (localctx ISegmentContext) {
 			}
 		}
 
-	case RestPathParserCOLON:
+	case RestPathParserT__1:
 		p.EnterOuterAlt(localctx, 2)
 		{
 			p.SetState(18)
 			p.ParamSegment()
 		}
 
-	case RestPathParserLBRACE:
+	case RestPathParserT__3:
 		p.EnterOuterAlt(localctx, 3)
 		{
 			p.SetState(19)
@@ -468,9 +456,7 @@ type IParamSegmentContext interface {
 	SetWildcard(antlr.Token)
 
 	// Getter signatures
-	COLON() antlr.TerminalNode
-	IDENTIFIER() antlr.TerminalNode
-	STAR() antlr.TerminalNode
+	STATIC_SEGMENT() antlr.TerminalNode
 
 	// IsParamSegmentContext differentiates from other interfaces.
 	IsParamSegmentContext()
@@ -518,16 +504,8 @@ func (s *ParamSegmentContext) SetName(v antlr.Token) { s.name = v }
 
 func (s *ParamSegmentContext) SetWildcard(v antlr.Token) { s.wildcard = v }
 
-func (s *ParamSegmentContext) COLON() antlr.TerminalNode {
-	return s.GetToken(RestPathParserCOLON, 0)
-}
-
-func (s *ParamSegmentContext) IDENTIFIER() antlr.TerminalNode {
-	return s.GetToken(RestPathParserIDENTIFIER, 0)
-}
-
-func (s *ParamSegmentContext) STAR() antlr.TerminalNode {
-	return s.GetToken(RestPathParserSTAR, 0)
+func (s *ParamSegmentContext) STATIC_SEGMENT() antlr.TerminalNode {
+	return s.GetToken(RestPathParserSTATIC_SEGMENT, 0)
 }
 
 func (s *ParamSegmentContext) GetRuleContext() antlr.RuleContext {
@@ -558,7 +536,7 @@ func (p *RestPathParser) ParamSegment() (localctx IParamSegmentContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(22)
-		p.Match(RestPathParserCOLON)
+		p.Match(RestPathParserT__1)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -567,7 +545,7 @@ func (p *RestPathParser) ParamSegment() (localctx IParamSegmentContext) {
 	{
 		p.SetState(23)
 
-		var _m = p.Match(RestPathParserIDENTIFIER)
+		var _m = p.Match(RestPathParserSTATIC_SEGMENT)
 
 		localctx.(*ParamSegmentContext).name = _m
 		if p.HasError() {
@@ -582,11 +560,11 @@ func (p *RestPathParser) ParamSegment() (localctx IParamSegmentContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == RestPathParserSTAR {
+	if _la == RestPathParserT__2 {
 		{
 			p.SetState(24)
 
-			var _m = p.Match(RestPathParserSTAR)
+			var _m = p.Match(RestPathParserT__2)
 
 			localctx.(*ParamSegmentContext).wildcard = _m
 			if p.HasError() {
@@ -630,10 +608,7 @@ type IBracedParamContext interface {
 	SetWildcard(antlr.Token)
 
 	// Getter signatures
-	LBRACE() antlr.TerminalNode
-	RBRACE() antlr.TerminalNode
-	IDENTIFIER() antlr.TerminalNode
-	ELLIPSIS() antlr.TerminalNode
+	STATIC_SEGMENT() antlr.TerminalNode
 
 	// IsBracedParamContext differentiates from other interfaces.
 	IsBracedParamContext()
@@ -681,20 +656,8 @@ func (s *BracedParamContext) SetName(v antlr.Token) { s.name = v }
 
 func (s *BracedParamContext) SetWildcard(v antlr.Token) { s.wildcard = v }
 
-func (s *BracedParamContext) LBRACE() antlr.TerminalNode {
-	return s.GetToken(RestPathParserLBRACE, 0)
-}
-
-func (s *BracedParamContext) RBRACE() antlr.TerminalNode {
-	return s.GetToken(RestPathParserRBRACE, 0)
-}
-
-func (s *BracedParamContext) IDENTIFIER() antlr.TerminalNode {
-	return s.GetToken(RestPathParserIDENTIFIER, 0)
-}
-
-func (s *BracedParamContext) ELLIPSIS() antlr.TerminalNode {
-	return s.GetToken(RestPathParserELLIPSIS, 0)
+func (s *BracedParamContext) STATIC_SEGMENT() antlr.TerminalNode {
+	return s.GetToken(RestPathParserSTATIC_SEGMENT, 0)
 }
 
 func (s *BracedParamContext) GetRuleContext() antlr.RuleContext {
@@ -725,7 +688,7 @@ func (p *RestPathParser) BracedParam() (localctx IBracedParamContext) {
 	p.EnterOuterAlt(localctx, 1)
 	{
 		p.SetState(27)
-		p.Match(RestPathParserLBRACE)
+		p.Match(RestPathParserT__3)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
@@ -734,7 +697,7 @@ func (p *RestPathParser) BracedParam() (localctx IBracedParamContext) {
 	{
 		p.SetState(28)
 
-		var _m = p.Match(RestPathParserIDENTIFIER)
+		var _m = p.Match(RestPathParserSTATIC_SEGMENT)
 
 		localctx.(*BracedParamContext).name = _m
 		if p.HasError() {
@@ -749,11 +712,11 @@ func (p *RestPathParser) BracedParam() (localctx IBracedParamContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == RestPathParserELLIPSIS {
+	if _la == RestPathParserT__4 {
 		{
 			p.SetState(29)
 
-			var _m = p.Match(RestPathParserELLIPSIS)
+			var _m = p.Match(RestPathParserT__4)
 
 			localctx.(*BracedParamContext).wildcard = _m
 			if p.HasError() {
@@ -765,7 +728,7 @@ func (p *RestPathParser) BracedParam() (localctx IBracedParamContext) {
 	}
 	{
 		p.SetState(32)
-		p.Match(RestPathParserRBRACE)
+		p.Match(RestPathParserT__5)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
