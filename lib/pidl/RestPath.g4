@@ -4,7 +4,7 @@ grammar RestPath;
 // Top-level rule: a path consists of multiple segments
 // ----------------------
 path
-    : SLASH segment ( SLASH segment )*
+    : '/' segment ( '/' segment )*
     ;
 
 // ----------------------
@@ -27,27 +27,12 @@ STATIC_SEGMENT
 // Colon-style parameter :param or :param* (wildcard)
 // ----------------------
 paramSegment
-    : COLON name=IDENTIFIER (wildcard=STAR)?
+    : ':' name=([a-zA-Z_] [a-zA-Z0-9_]*) (wildcard='*')?
     ;
 
 // ----------------------
 // Curly-brace style parameter {param} or {param...} (wildcard)
 // ----------------------
 bracedParam
-    : LBRACE name=IDENTIFIER (wildcard=ELLIPSIS)? RBRACE
+    : '{' name=([a-zA-Z_] [a-zA-Z0-9_]*) (wildcard='...')? '}'
     ;
-
-// ----------------------
-// Identifier for parameters, letters, digits, or underscore
-// ----------------------
-IDENTIFIER
-    : [a-zA-Z_] [a-zA-Z0-9_]*
-    ;
-
-// --- punctuation tokens ---
-COLON      : ':' ;
-SLASH      : '/' ;
-LBRACE     : '{' ;
-RBRACE     : '}' ;
-STAR       : '*' ;
-ELLIPSIS   : '...' ;
