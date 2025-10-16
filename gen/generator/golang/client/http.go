@@ -34,7 +34,9 @@ type HTTPClient interface {
 // DefaultHTTPClient is the default implementation of HTTPClient,
 // which delegates to the standard library http.Client.
 type DefaultHTTPClient struct {
-	*http.Client
+	Client *http.Client
+	Scheme string
+	Host   string
 }
 
 // Do executes the HTTP request using the embedded http.Client.
@@ -46,6 +48,9 @@ type DefaultHTTPClient struct {
 //
 // Note: For very large responses, this may be memory intensive.
 func (c *DefaultHTTPClient) Do(r *http.Request) (*http.Response, []byte, error) {
+	r.Host = c.Host
+	r.URL.Host = c.Host
+	r.URL.Scheme = c.Scheme
 	resp, err := c.Client.Do(r)
 	if err != nil {
 		return nil, nil, err

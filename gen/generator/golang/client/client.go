@@ -21,6 +21,5 @@ func NewClient(config map[string]any) *Client {
 		Client: &DefaultHTTPClient{
 			Client: http.DefaultClient,
 		},
-	},
-	}
+	}}
 }
