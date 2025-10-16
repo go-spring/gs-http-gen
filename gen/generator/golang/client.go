@@ -17,10 +17,12 @@
 package golang
 
 import (
-	"github.com/go-spring/gs-http-gen/lib/tidl"
+	"text/template"
 )
 
+var clientTmpl = template.Must(template.New("client").Parse(``))
+
 // genClient generates the HTTP client code for a given service.
-func (g *Generator) genClient(ctx Context, rpcs []tidl.RPC) error {
+func (g *Generator) genClient(ctx Context, rpcs []RPC) error {
 	return nil
 }

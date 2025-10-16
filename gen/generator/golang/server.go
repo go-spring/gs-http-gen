@@ -70,7 +70,7 @@ func InitRouter(mux *http.ServeMux, server {{.Service}}Server) {
 
 // genServer generates the HTTP handler and router initialization code
 // for the given service context and RPC definitions.
-func (g *Generator) genServer(ctx Context, rpcs []tidl.RPC) error {
+func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 
 	// Copy proto template files to output directory
 	{
@@ -94,16 +94,11 @@ func (g *Generator) genServer(ctx Context, rpcs []tidl.RPC) error {
 		}
 	}
 
-	// Generate a Go file containing the HTTP server wrapper
-	newRPCs, err := convertRPCs(rpcs)
-	if err != nil {
-		return fmt.Errorf("convert RPCs error: %w", err)
-	}
 	buf := &bytes.Buffer{}
-	err = serverTmpl.Execute(buf, map[string]any{
+	err := serverTmpl.Execute(buf, map[string]any{
 		"Package": ctx.config.GoPackage,
 		"Service": ctx.meta.Name,
-		"RPCs":    newRPCs,
+		"RPCs":    rpcs,
 	})
 	if err != nil {
 		return fmt.Errorf("execute template error: %w", err)

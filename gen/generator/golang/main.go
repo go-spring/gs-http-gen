@@ -72,19 +72,28 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 		return rpcs[i].Name < rpcs[j].Name
 	})
 
+	var newRPCs []RPC
+	if config.EnableServer || config.EnableClient {
+		var err error
+		newRPCs, err = convertRPCs(rpcs)
+		if err != nil {
+			return fmt.Errorf("convert RPCs error: %w", err)
+		}
+	}
+
 	// Generate server code if enabled in the configuration
 	if config.EnableServer {
 		if err := g.genValidate(ctx); err != nil {
 			return fmt.Errorf("generate validate file error: %w", err)
 		}
-		if err := g.genServer(ctx, rpcs); err != nil {
+		if err := g.genServer(ctx, newRPCs); err != nil {
 			return fmt.Errorf("generate server file error: %w", err)
 		}
 	}
 
 	// Generate client code if enabled in the configuration
 	if config.EnableClient {
-		if err := g.genClient(ctx, rpcs); err != nil {
+		if err := g.genClient(ctx, newRPCs); err != nil {
 			return fmt.Errorf("generate client file error: %w", err)
 		}
 	}
