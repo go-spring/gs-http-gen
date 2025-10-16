@@ -18,7 +18,7 @@ type Client struct {
 // NewClient 使用默认方案创建客户端
 func NewClient(config map[string]any) *Client {
 	return &Client{&ClientImpl{
-		HTTPClient: &DefaultHTTPClient{
+		Client: &DefaultHTTPClient{
 			Client: http.DefaultClient,
 		},
 	},
