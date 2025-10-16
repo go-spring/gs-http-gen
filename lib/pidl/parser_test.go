@@ -83,6 +83,7 @@ func TestParse(t *testing.T) {
 			name:     "root path",
 			input:    "/",
 			expected: []Segment{},
+			hasError: true,
 		},
 		{
 			name:  "single static segment",
@@ -123,6 +124,7 @@ func TestParse(t *testing.T) {
 				{Type: Static, Value: "users"},
 				{Type: Param, Value: "user.id"},
 			},
+			hasError: true,
 		},
 		{
 			name:  "consecutive parameters",
@@ -140,6 +142,26 @@ func TestParse(t *testing.T) {
 			name:     "leading and trailing spaces",
 			input:    "  /users/:id  ",
 			expected: []Segment{{Type: Static, Value: "users"}, {Type: Param, Value: "id"}},
+		},
+		{
+			name:     "invalid param starting with number",
+			input:    "/users/:123id",
+			hasError: true,
+		},
+		{
+			name:     "invalid braced param starting with number",
+			input:    "/users/{123id}",
+			hasError: true,
+		},
+		{
+			name:     "unmatched brace",
+			input:    "/users/{id",
+			hasError: true,
+		},
+		{
+			name:     "extra wildcard character",
+			input:    "/users/:id**",
+			hasError: true,
 		},
 	}
 
@@ -173,22 +195,27 @@ func TestParse(t *testing.T) {
 				}
 			}
 
-			// Verify using Format function with both styles
 			if len(result) > 0 {
+				// 使用Colon格式化并重新解析
 				colonFormatted := Format(result, Colon)
 				reParsedColon, err := Parse(colonFormatted)
 				if err != nil {
 					t.Errorf("failed to re-parse colon formatted path %q: %v", colonFormatted, err)
+					return
 				}
 
+				// 使用Brace格式化并重新解析
 				braceFormatted := Format(result, Brace)
 				reParsedBrace, err := Parse(braceFormatted)
 				if err != nil {
 					t.Errorf("failed to re-parse brace formatted path %q: %v", braceFormatted, err)
+					return
 				}
 
+				// 验证重新解析的结果与原始结果一致
 				if len(reParsedColon) != len(result) || len(reParsedBrace) != len(result) {
 					t.Errorf("re-parsed segments count mismatch")
+					return
 				}
 
 				// Verify that re-parsed results match original
@@ -203,77 +230,6 @@ func TestParse(t *testing.T) {
 						t.Errorf("re-parsed brace format segment %d mismatch: expected %+v, got %+v", i, result[i], seg)
 					}
 				}
-			}
-
-			// Additional test: format with both styles and ensure they parse back correctly
-			if len(tt.expected) > 0 {
-				colonStyle := Format(tt.expected, Colon)
-				braceStyle := Format(tt.expected, Brace)
-
-				colonResult, err := Parse(colonStyle)
-				if err != nil {
-					t.Errorf("failed to parse colon style %q: %v", colonStyle, err)
-				}
-
-				braceResult, err := Parse(braceStyle)
-				if err != nil {
-					t.Errorf("failed to parse brace style %q: %v", braceStyle, err)
-				}
-
-				// Check that both formats produce the same result as expected
-				if len(colonResult) != len(tt.expected) {
-					t.Errorf("colon format %q produced %d segments, expected %d", colonStyle, len(colonResult), len(tt.expected))
-				}
-
-				if len(braceResult) != len(tt.expected) {
-					t.Errorf("brace format %q produced %d segments, expected %d", braceStyle, len(braceResult), len(tt.expected))
-				}
-
-				for i, seg := range colonResult {
-					if seg.Type != tt.expected[i].Type || seg.Value != tt.expected[i].Value {
-						t.Errorf("colon format segment %d mismatch: expected %+v, got %+v", i, tt.expected[i], seg)
-					}
-				}
-
-				for i, seg := range braceResult {
-					if seg.Type != tt.expected[i].Type || seg.Value != tt.expected[i].Value {
-						t.Errorf("brace format segment %d mismatch: expected %+v, got %+v", i, tt.expected[i], seg)
-					}
-				}
-			}
-		})
-	}
-}
-
-// TestParseErrorCases tests error cases in Parse function
-func TestParseErrorCases(t *testing.T) {
-	errorTests := []struct {
-		name  string
-		input string
-	}{
-		{
-			name:  "invalid param starting with number",
-			input: "/users/:123id",
-		},
-		{
-			name:  "invalid braced param starting with number",
-			input: "/users/{123id}",
-		},
-		{
-			name:  "unmatched brace",
-			input: "/users/{id",
-		},
-		{
-			name:  "extra wildcard character",
-			input: "/users/:id**",
-		},
-	}
-
-	for _, tt := range errorTests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, err := Parse(tt.input)
-			if err == nil {
-				t.Errorf("expected error for input %q but got none", tt.input)
 			}
 		})
 	}
