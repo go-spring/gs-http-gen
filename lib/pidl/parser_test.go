@@ -1,6 +1,7 @@
 package pidl
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -9,7 +10,7 @@ func TestParse(t *testing.T) {
 		name     string
 		input    string
 		expected []Segment
-		hasError bool
+		err      string
 	}{
 		{
 			name:  "empty path",
@@ -83,7 +84,7 @@ func TestParse(t *testing.T) {
 			name:     "root path",
 			input:    "/",
 			expected: []Segment{},
-			hasError: true,
+			err:      "",
 		},
 		{
 			name:  "single static segment",
@@ -124,7 +125,7 @@ func TestParse(t *testing.T) {
 				{Type: Static, Value: "users"},
 				{Type: Param, Value: "user.id"},
 			},
-			hasError: true,
+			err: "",
 		},
 		{
 			name:  "consecutive parameters",
@@ -144,55 +145,47 @@ func TestParse(t *testing.T) {
 			expected: []Segment{{Type: Static, Value: "users"}, {Type: Param, Value: "id"}},
 		},
 		{
-			name:     "invalid param starting with number",
-			input:    "/users/:123id",
-			hasError: true,
+			name:  "invalid param starting with number",
+			input: "/users/:123id",
+			err:   "",
 		},
 		{
-			name:     "invalid braced param starting with number",
-			input:    "/users/{123id}",
-			hasError: true,
+			name:  "invalid braced param starting with number",
+			input: "/users/{123id}",
+			err:   "",
 		},
 		{
-			name:     "unmatched brace",
-			input:    "/users/{id",
-			hasError: true,
+			name:  "unmatched brace",
+			input: "/users/{id",
+			err:   "",
 		},
 		{
-			name:     "extra wildcard character",
-			input:    "/users/:id**",
-			hasError: true,
+			name:  "extra wildcard character",
+			input: "/users/:id**",
+			err:   "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := Parse(tt.input)
-
-			if tt.hasError {
+			if tt.err != "" {
 				if err == nil {
 					t.Errorf("expected error but got none")
+					return
 				}
-				return
-			}
-
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if len(result) != len(tt.expected) {
-				t.Errorf("expected %d segments, got %d", len(tt.expected), len(result))
-				return
-			}
-
-			for i, seg := range result {
-				if seg.Type != tt.expected[i].Type {
-					t.Errorf("segment %d: expected type %v, got %v", i, tt.expected[i].Type, seg.Type)
+				if err.Error() != tt.err {
+					t.Errorf("expected error %q, got %q", tt.err, err.Error())
+					return
 				}
-				if seg.Value != tt.expected[i].Value {
-					t.Errorf("segment %d: expected value %q, got %q", i, tt.expected[i].Value, seg.Value)
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+					return
 				}
+			}
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("expected %v, got %v", tt.expected, result)
 			}
 		})
 	}
