@@ -399,15 +399,8 @@ func (x *CreateManagerReq) String() string {
 
 type UpdateManagerReq struct {
 	ObjectBase
-	ID       string          `json:"id" path:"id"`
-	Name     *string         `json:"name,omitempty"`
-	Age      *int64          `json:"age,omitempty"`
-	Vip      *bool           `json:"vip"`
-	Salary   *float64        `json:"salary,omitempty"`
-	Role     *string         `json:"role,omitempty"`
-	Level    *ManagerLevel   `json:"level,omitempty"`
-	DeptInfo *DepartmentInfo `json:"dept_info,omitempty"`
-	Contact  *ContactInfo    `json:"contact,omitempty"`
+	UpdateManagerReqBody
+	ID string `json:"id" path:"id"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -422,8 +415,32 @@ func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	})
 }
 
+func (x *UpdateManagerReq) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("UpdateManagerReq(%+v)", *x)
+}
+
+type UpdateManagerReqBody struct {
+	ObjectBase
+	Name     *string         `json:"name,omitempty"`
+	Age      *int64          `json:"age,omitempty"`
+	Vip      *bool           `json:"vip"`
+	Salary   *float64        `json:"salary,omitempty"`
+	Role     *string         `json:"role,omitempty"`
+	Level    *ManagerLevel   `json:"level,omitempty"`
+	DeptInfo *DepartmentInfo `json:"dept_info,omitempty"`
+	Contact  *ContactInfo    `json:"contact,omitempty"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *UpdateManagerReqBody) New() any {
+	return &UpdateManagerReqBody{}
+}
+
 // Validate checks field values using generated validation expressions.
-func (x *UpdateManagerReq) Validate() error {
+func (x *UpdateManagerReqBody) Validate() error {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
 			return errors.New("validate failed on UpdateManagerReq.Age")
@@ -437,11 +454,11 @@ func (x *UpdateManagerReq) Validate() error {
 	return nil
 }
 
-func (x *UpdateManagerReq) String() string {
+func (x *UpdateManagerReqBody) String() string {
 	if x == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("UpdateManagerReq(%+v)", *x)
+	return fmt.Sprintf("UpdateManagerReqBody(%+v)", *x)
 }
 
 type ListManagersByPageReq struct {

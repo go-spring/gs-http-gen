@@ -124,6 +124,9 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 	{{- end}}
 	type {{$s.Name}} struct {
 		ObjectBase
+		{{- if $s.Split}}
+			{{$s.Name}}Body
+		{{- end}}
 		{{- range $f := $s.Fields}}
 			{{- if $f.Comment}}
 				{{$f.Comment}}
@@ -187,6 +190,18 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 	if err != nil {
 		return fmt.Errorf("convert types error: %w", err)
 	}
+	{
+		var temp []Type
+		for _, t := range types {
+			if c := t.BindingCount(); c == 0 || c == len(t.Fields) {
+				temp = append(temp, t)
+				continue
+			}
+			whole, body := SplitType(t)
+			temp = append(temp, whole, body)
+		}
+		types = temp
+	}
 
 	buf := &bytes.Buffer{}
 	err = typeTmpl.Execute(buf, map[string]any{
@@ -202,6 +217,22 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)
 	return formatFile(fileName, buf.Bytes())
+}
+
+// SplitType splits a type into a whole type and a body type.
+func SplitType(t Type) (whole Type, body Type) {
+	whole.Split = true
+	whole.Name = t.Name
+	whole.Comment = t.Comment
+	body.Name = t.Name + "Body"
+	for _, field := range t.Fields {
+		if field.Binding != nil {
+			whole.Fields = append(whole.Fields, field)
+		} else {
+			body.Fields = append(body.Fields, field)
+		}
+	}
+	return
 }
 
 // Const represents a Go constant
@@ -329,6 +360,7 @@ type Type struct {
 	Name    string
 	Fields  []TypeField
 	Comment string
+	Split   bool
 }
 
 // TypeField represents a field in a Go struct
