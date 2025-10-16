@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	Url  Protocol = &UrlProtocol{}
+	Form Protocol = &FormProtocol{}
 	Json Protocol = &JsonProtocol{}
 )
 
@@ -15,14 +15,14 @@ type Protocol interface {
 	Decode(data []byte, v any) error
 }
 
-// UrlProtocol 默认的 url 编码协议
-type UrlProtocol struct{}
+// FormProtocol 将内容序列话成 form 格式
+type FormProtocol struct{}
 
-func (p *UrlProtocol) Encode(v any) ([]byte, error) {
+func (p *FormProtocol) Encode(v any) ([]byte, error) {
 	panic("not implemented")
 }
 
-func (p *UrlProtocol) Decode(data []byte, v any) error {
+func (p *FormProtocol) Decode(data []byte, v any) error {
 	panic("not implemented")
 }
 
