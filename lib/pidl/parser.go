@@ -17,6 +17,7 @@
 package pidl
 
 import (
+	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
@@ -83,7 +84,7 @@ func Format(path []Segment, style SegmentStyle) string {
 // Parse parses a path string into a slice of Segment.
 func Parse(data string) (path []Segment, err error) {
 	if data = strings.TrimSpace(data); data == "" {
-		return nil, nil
+		return nil, errors.New("empty path")
 	}
 
 	e := &ErrorListener{Data: data}
