@@ -111,10 +111,22 @@ func Parse(data string) (path []Segment, err error) {
 	p := NewRestPathParser(tokens)
 	p.RemoveErrorListeners()
 	p.AddErrorListener(e)
+	tree := p.Path()
+
+	// 检查最后是否有异常字符
+	if ts := tokens.GetAllTokens(); len(ts) == 0 {
+		e.Error = errors.New("empty path")
+		return nil, e.Error
+	} else {
+		if c := ts[len(ts)-1]; c.GetTokenType() != antlr.TokenEOF {
+			e.Error = fmt.Errorf("unexpected character at the end of path: %q", c.GetText())
+			return nil, e.Error
+		}
+	}
 
 	// Step 3: Walk parse tree with custom listener
 	l := &ParseTreeListener{Tokens: tokens}
-	antlr.ParseTreeWalkerDefault.Walk(l, p.Path())
+	antlr.ParseTreeWalkerDefault.Walk(l, tree)
 
 	// Step 4: Return parsed expression or error
 	if e.Error != nil {
@@ -155,7 +167,7 @@ func (l *ParseTreeListener) ExitPath(ctx *PathContext) {
 			l.Path = append(l.Path, Segment{Static, val})
 
 		case s.ParamSegment() != nil:
-			val := s.ParamSegment().STATIC_SEGMENT().GetText()
+			val := s.ParamSegment().GetName().GetText()
 			if c := val[0]; c >= '0' && c <= '9' {
 				panic(fmt.Sprintf("invalid path parameter name: %q", val))
 			}
@@ -166,7 +178,7 @@ func (l *ParseTreeListener) ExitPath(ctx *PathContext) {
 			}
 
 		case s.BracedParam() != nil:
-			val := s.BracedParam().STATIC_SEGMENT().GetText()
+			val := s.BracedParam().GetName().GetText()
 			if c := val[0]; c >= '0' && c <= '9' {
 				panic(fmt.Sprintf("invalid path parameter name: %q", val))
 			}
