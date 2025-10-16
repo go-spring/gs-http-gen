@@ -194,42 +194,98 @@ func TestParse(t *testing.T) {
 					t.Errorf("segment %d: expected value %q, got %q", i, tt.expected[i].Value, seg.Value)
 				}
 			}
+		})
+	}
+}
 
-			if len(result) > 0 {
-				// 使用Colon格式化并重新解析
-				colonFormatted := Format(result, Colon)
-				reParsedColon, err := Parse(colonFormatted)
-				if err != nil {
-					t.Errorf("failed to re-parse colon formatted path %q: %v", colonFormatted, err)
-					return
-				}
+func TestFormat(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    []Segment
+		expected string
+		style    SegmentStyle
+	}{
+		{
+			name: "static path with colon style",
+			input: []Segment{
+				{Type: Static, Value: "users"},
+				{Type: Static, Value: "profile"},
+			},
+			expected: "/users/profile",
+			style:    Colon,
+		},
+		{
+			name: "param with colon style",
+			input: []Segment{
+				{Type: Static, Value: "users"},
+				{Type: Param, Value: "id"},
+			},
+			expected: "/users/:id",
+			style:    Colon,
+		},
+		{
+			name: "wildcard with colon style",
+			input: []Segment{
+				{Type: Static, Value: "files"},
+				{Type: Wildcard, Value: "path"},
+			},
+			expected: "/files/:path*",
+			style:    Colon,
+		},
+		{
+			name: "param with brace style",
+			input: []Segment{
+				{Type: Static, Value: "users"},
+				{Type: Param, Value: "id"},
+			},
+			expected: "/users/{id}",
+			style:    Brace,
+		},
+		{
+			name: "wildcard with brace style",
+			input: []Segment{
+				{Type: Static, Value: "files"},
+				{Type: Wildcard, Value: "path"},
+			},
+			expected: "/files/{path...}",
+			style:    Brace,
+		},
+		{
+			name: "complex path with colon style",
+			input: []Segment{
+				{
+					Type:  Static,
+					Value: "api",
+				},
+				{Type: Static, Value: "v1"},
+				{Type: Static, Value: "users"},
+				{Type: Param, Value: "userId"},
+				{Type: Static, Value: "posts"},
+				{Type: Param, Value: "postId"},
+			},
+			expected: "/api/v1/users/:userId/posts/:postId",
+			style:    Colon,
+		},
+		{
+			name: "complex path with brace style",
+			input: []Segment{
+				{Type: Static, Value: "api"},
+				{Type: Static, Value: "v1"},
+				{Type: Static, Value: "users"},
+				{Type: Param, Value: "userId"},
+				{Type: Static, Value: "posts"},
+				{Type: Param, Value: "postId"},
+			},
+			expected: "/api/v1/users/{userId}/posts/{postId}",
+			style:    Brace,
+		},
+	}
 
-				// 使用Brace格式化并重新解析
-				braceFormatted := Format(result, Brace)
-				reParsedBrace, err := Parse(braceFormatted)
-				if err != nil {
-					t.Errorf("failed to re-parse brace formatted path %q: %v", braceFormatted, err)
-					return
-				}
-
-				// 验证重新解析的结果与原始结果一致
-				if len(reParsedColon) != len(result) || len(reParsedBrace) != len(result) {
-					t.Errorf("re-parsed segments count mismatch")
-					return
-				}
-
-				// Verify that re-parsed results match original
-				for i, seg := range reParsedColon {
-					if seg.Type != result[i].Type || seg.Value != result[i].Value {
-						t.Errorf("re-parsed colon format segment %d mismatch: expected %+v, got %+v", i, result[i], seg)
-					}
-				}
-
-				for i, seg := range reParsedBrace {
-					if seg.Type != result[i].Type || seg.Value != result[i].Value {
-						t.Errorf("re-parsed brace format segment %d mismatch: expected %+v, got %+v", i, result[i], seg)
-					}
-				}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := Format(tt.input, tt.style)
+			if result != tt.expected {
+				t.Errorf("expected %q, got %q", tt.expected, result)
 			}
 		})
 	}
