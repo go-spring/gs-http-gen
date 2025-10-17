@@ -4,7 +4,6 @@ package proto
 
 import (
 	"context"
-	"net/http"
 )
 
 // ClientInterface defines an interface for implementing middleware mechanisms.
