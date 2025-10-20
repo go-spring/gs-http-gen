@@ -7,11 +7,13 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/go-spring/gs-http-gen/gen/generator/golang/httputil"
 )
 
 func TestClient(t *testing.T) {
 	c := &Client{&ClientImpl{
-		Client: &DefaultHTTPClient{
+		Client: &httputil.DefaultHTTPClient{
 			Client: http.DefaultClient,
 			Scheme: "http",
 			Host:   "127.0.0.1:9090",

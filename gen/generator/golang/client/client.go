@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 	"net/http"
+
+	"github.com/go-spring/gs-http-gen/gen/generator/golang/httputil"
 )
 
 // ClientInterface 通过接口实现中间件机制
@@ -18,7 +20,7 @@ type Client struct {
 // NewClient 使用默认方案创建客户端
 func NewClient(config map[string]any) *Client {
 	return &Client{&ClientImpl{
-		Client: &DefaultHTTPClient{
+		Client: &httputil.DefaultHTTPClient{
 			Client: http.DefaultClient,
 		},
 	}}
