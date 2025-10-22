@@ -18,11 +18,12 @@ package golang
 
 import (
 	"bytes"
-	"fmt"
 	"maps"
 	"path/filepath"
 	"slices"
 	"text/template"
+
+	"github.com/lvan100/errutil"
 )
 
 // validateTmpl is a Go template for generating default validation functions.

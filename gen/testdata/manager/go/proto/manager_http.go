@@ -29,5 +29,5 @@ func InitRouter(mux *http.ServeMux, server ManagerServer) {
 	mux.HandleFunc("GET /managers/{id}", HandleJSON(server.GetManager))
 	mux.HandleFunc("GET /managers/page", HandleJSON(server.ListManagersByPage))
 	mux.HandleFunc("GET /stream", HandleStream(server.Stream))
-	//mux.HandleFunc("PUT /managers/{id}", HandleJSON(server.UpdateManager))
+	mux.HandleFunc("PUT /managers/{id}", HandleJSON(server.UpdateManager))
 }

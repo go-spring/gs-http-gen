@@ -46,8 +46,11 @@ var typeTmpl = template.Must(template.New("type").
 package {{.Package}}
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/lvan100/errutil"
 )
 
 var _ = strings.Contains
@@ -121,7 +124,6 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{$s.Comment}}
 	{{- end}}
 	type {{$s.Name}} struct {
-		ObjectBase
 		{{- if $s.Split}}
 			{{$s.Name}}Body
 		{{- end}}
@@ -138,30 +140,26 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		return &{{$s.Name}}{}
 	}
 
-	{{- if $s.BindingCount}}
-		// Binding extracts non-body values (header, path, query) from *http.Request.
-		func (x *{{$s.Name}}) Binding(r *http.Request) error {
-			return Binding(r, []BindingField {
-				{{- range $f := $s.Fields}}
-					{{- if $f.Binding}}
-				{"{{$s.Name}}.{{$f.Name}}", "{{$f.Binding.From}}", "{{$f.Binding.Name}}", &x.{{$f.Name}}},
-					{{- end}}
-				{{- end}}
-			})
-		}
-	{{- end}}
-
-	{{- if $s.ValidateCount}}
-		// Validate checks field values using generated validation expressions.
-		func (x *{{$s.Name}}) Validate() error {
+	// Binding extracts non-body values (header, path, query) from *http.Request.
+	func (x *{{$s.Name}}) Binding(r *http.Request) error {
+		return Binding(r, []BindingField {
 			{{- range $f := $s.Fields}}
-				{{- if $f.Validate}}
-			{{$f.Validate}}
+				{{- if $f.Binding}}
+			{"{{$s.Name}}.{{$f.Name}}", "{{$f.Binding.From}}", "{{$f.Binding.Name}}", &x.{{$f.Name}}},
 				{{- end}}
 			{{- end}}
-			return nil
-		}
-	{{- end}}
+		})
+	}
+
+	// Validate checks field values using generated validation expressions.
+	func (x *{{$s.Name}}) Validate() error {
+		{{- range $f := $s.Fields}}
+			{{- if $f.Validate}}
+		{{$f.Validate}}
+			{{- end}}
+		{{- end}}
+		return nil
+	}
 
 	func (x *{{$s.Name}}) String() string {
 		if x == nil {

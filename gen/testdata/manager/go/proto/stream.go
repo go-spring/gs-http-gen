@@ -62,13 +62,22 @@ func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
 }
 
 type StreamReq struct {
-	ObjectBase
 	Id string `json:"id"`
 }
 
 // New returns a new instance (implements Object interface).
 func (x *StreamReq) New() any {
 	return &StreamReq{}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request.
+func (x *StreamReq) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{})
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *StreamReq) Validate() error {
+	return nil
 }
 
 func (x *StreamReq) String() string {
@@ -79,7 +88,6 @@ func (x *StreamReq) String() string {
 }
 
 type StreamResp struct {
-	ObjectBase
 	Id      string  `json:"id"`
 	Data    string  `json:"data"`
 	Payload Payload `json:"payload"`
@@ -90,6 +98,16 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
+// Binding extracts non-body values (header, path, query) from *http.Request.
+func (x *StreamResp) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{})
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *StreamResp) Validate() error {
+	return nil
+}
+
 func (x *StreamResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -98,7 +116,6 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
-	ObjectBase
 	FieldType   PayloadTypeAsString `json:"field_type"`
 	TextData    string              `json:"text_data"`
 	NumberData  *int64              `json:"number_data,omitempty"`
@@ -108,6 +125,16 @@ type Payload struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload) New() any {
 	return &Payload{}
+}
+
+// Binding extracts non-body values (header, path, query) from *http.Request.
+func (x *Payload) Binding(r *http.Request) error {
+	return Binding(r, []BindingField{})
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *Payload) Validate() error {
+	return nil
 }
 
 func (x *Payload) String() string {
