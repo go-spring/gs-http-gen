@@ -17,11 +17,10 @@
 package gen
 
 import (
-	"fmt"
-
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/gen/generator/golang"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
+	"github.com/lvan100/errutil"
 )
 
 func init() {
@@ -32,17 +31,17 @@ func init() {
 func Gen(language string, config *generator.Config) error {
 	g, ok := generator.GetGenerator(language)
 	if !ok {
-		return fmt.Errorf("unsupported language: %s", language)
+		return errutil.Explain(nil, "unsupported language: %s", language)
 	}
 	files, meta, err := tidl.ParseDir(config.IDLSrcDir)
 	if err != nil {
 		return err
 	}
 	if meta == nil {
-		return fmt.Errorf("no meta file")
+		return errutil.Explain(nil, "no meta file")
 	}
 	if len(files) == 0 {
-		return fmt.Errorf("no idl file")
+		return errutil.Explain(nil, "no idl file")
 	}
 	return g.Gen(config, files, meta)
 }

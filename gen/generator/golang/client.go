@@ -18,9 +18,10 @@ package golang
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
 	"text/template"
+
+	"github.com/lvan100/errutil"
 )
 
 var clientTmpl = template.Must(template.New("client").Parse(`
@@ -93,7 +94,7 @@ func (g *Generator) genClientInterface(ctx Context, rpcs []RPC) error {
 		"RPCs":    rpcs,
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 	fileName := filepath.Join(ctx.config.OutputDir, "client.go")
 	return formatFile(fileName, buf.Bytes())
@@ -106,7 +107,7 @@ func (g *Generator) genClientImplement(ctx Context, rpcs []RPC) error {
 		"RPCs":    rpcs,
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 	fileName := filepath.Join(ctx.config.OutputDir, "client_impl.go")
 	return formatFile(fileName, buf.Bytes())

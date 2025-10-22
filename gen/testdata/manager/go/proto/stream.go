@@ -3,14 +3,14 @@
 package proto
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/lvan100/errutil"
 )
 
-var _ = errors.New
-var _ = strings.Count
+var _ = strings.Contains
 var _ = http.NewServeMux
 
 type PayloadType int32
@@ -48,7 +48,7 @@ func (x PayloadTypeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := PayloadType_name[PayloadType(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid PayloadType: %d", x)
+	return nil, errutil.Explain(nil, "invalid PayloadType: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -58,7 +58,7 @@ func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
 		*x = PayloadTypeAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid PayloadType value: %q", str)
+	return errutil.Explain(nil, "invalid PayloadType value: %q", str)
 }
 
 type StreamReq struct {

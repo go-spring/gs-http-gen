@@ -19,13 +19,13 @@ package golang
 import (
 	"bytes"
 	"embed"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/lib/tidl"
+	"github.com/lvan100/errutil"
 )
 
 //go:embed proto
@@ -76,7 +76,7 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 	{
 		entries, err := protoDir.ReadDir("proto")
 		if err != nil {
-			return fmt.Errorf("read proto directory error: %w", err)
+			return errutil.Explain(nil, "read proto directory error: %w", err)
 		}
 		for _, e := range entries {
 			if e.IsDir() {
@@ -84,12 +84,12 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 			}
 			b, err := protoDir.ReadFile(filepath.Join("proto", e.Name()))
 			if err != nil {
-				return fmt.Errorf("read proto file %s error: %w", e.Name(), err)
+				return errutil.Explain(nil, "read proto file %s error: %w", e.Name(), err)
 			}
 			b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(ctx.config.GoPackage))
 			fileName := filepath.Join(ctx.config.OutputDir, e.Name())
 			if err = os.WriteFile(fileName, b, os.ModePerm); err != nil {
-				return fmt.Errorf("write proto file %s error: %w", fileName, err)
+				return errutil.Explain(nil, "write proto file %s error: %w", fileName, err)
 			}
 		}
 	}
@@ -101,7 +101,7 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 		"RPCs":    rpcs,
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 	fileName := ctx.meta.Name + "_http.go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)
@@ -127,19 +127,19 @@ func convertRPCs(rpcs []tidl.RPC) ([]RPC, error) {
 		// Retrieve the required "path" annotation
 		path, ok := tidl.GetAnnotation(r.Annotations, "path")
 		if !ok {
-			return nil, fmt.Errorf(`annotation "path" not found in rpc %s`, r.Name)
+			return nil, errutil.Explain(nil, `annotation "path" not found in rpc %s`, r.Name)
 		}
 		if path.Value == nil {
-			return nil, fmt.Errorf(`annotation "path" value is nil in rpc %s`, r.Name)
+			return nil, errutil.Explain(nil, `annotation "path" value is nil in rpc %s`, r.Name)
 		}
 
 		// Retrieve the required "method" annotation
 		method, ok := tidl.GetAnnotation(r.Annotations, "method")
 		if !ok {
-			return nil, fmt.Errorf(`annotation "method" not found in rpc %s`, r.Name)
+			return nil, errutil.Explain(nil, `annotation "method" not found in rpc %s`, r.Name)
 		}
 		if method.Value == nil {
-			return nil, fmt.Errorf(`annotation "method" value is nil in rpc %s`, r.Name)
+			return nil, errutil.Explain(nil, `annotation "method" value is nil in rpc %s`, r.Name)
 		}
 
 		ret = append(ret, RPC{

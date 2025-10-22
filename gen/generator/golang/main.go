@@ -18,7 +18,6 @@ package golang
 
 import (
 	"bytes"
-	"fmt"
 	"go/format"
 	"os"
 	"path/filepath"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
+	"github.com/lvan100/errutil"
 )
 
 // toolVersionTmpl for generating the tool version constant.
@@ -63,7 +63,7 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 	// Collect all RPC definitions
 	for fileName, doc := range files {
 		if err := g.genType(ctx, fileName, doc); err != nil {
-			return fmt.Errorf("generate type file %s error: %w", fileName, err)
+			return errutil.Explain(nil, "generate type file %s error: %w", fileName, err)
 		}
 		rpcs = append(rpcs, doc.RPCs...)
 	}
@@ -77,24 +77,24 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 		var err error
 		newRPCs, err = convertRPCs(rpcs)
 		if err != nil {
-			return fmt.Errorf("convert RPCs error: %w", err)
+			return errutil.Explain(nil, "convert RPCs error: %w", err)
 		}
 	}
 
 	// Generate server code if enabled in the configuration
 	if config.EnableServer {
 		if err := g.genValidate(ctx); err != nil {
-			return fmt.Errorf("generate validate file error: %w", err)
+			return errutil.Explain(nil, "generate validate file error: %w", err)
 		}
 		if err := g.genServer(ctx, newRPCs); err != nil {
-			return fmt.Errorf("generate server file error: %w", err)
+			return errutil.Explain(nil, "generate server file error: %w", err)
 		}
 	}
 
 	// Generate client code if enabled in the configuration
 	if config.EnableClient {
 		if err := g.genClient(ctx, newRPCs); err != nil {
-			return fmt.Errorf("generate client file error: %w", err)
+			return errutil.Explain(nil, "generate client file error: %w", err)
 		}
 	}
 
@@ -106,11 +106,11 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 			"ToolVersion": ctx.config.ToolVersion,
 		})
 		if err != nil {
-			return fmt.Errorf("generate tool version file error: %w", err)
+			return errutil.Explain(nil, "generate tool version file error: %w", err)
 		}
 		fileName := filepath.Join(ctx.config.OutputDir, "tool_version.go")
 		if err = formatFile(fileName, buf.Bytes()); err != nil {
-			return fmt.Errorf("write tool version file error: %w", err)
+			return errutil.Explain(nil, "write tool version file error: %w", err)
 		}
 	}
 
@@ -122,11 +122,11 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 func formatFile(fileName string, b []byte) error {
 	b, err := format.Source(b)
 	if err != nil {
-		return fmt.Errorf("format source for file %s error: %w", fileName, err)
+		return errutil.Explain(nil, "format source for file %s error: %w", fileName, err)
 	}
 	err = os.WriteFile(fileName, b, os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("write file %s error: %w", fileName, err)
+		return errutil.Explain(nil, "write file %s error: %w", fileName, err)
 	}
 	return nil
 }

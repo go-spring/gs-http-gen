@@ -20,7 +20,6 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -30,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/lvan100/errutil"
 )
 
 // ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.
@@ -39,7 +39,7 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, nil, fmt.Errorf("read dir %s error: %w", dir, err)
+		return nil, nil, errutil.Explain(nil, "read dir %s error: %w", dir, err)
 	}
 
 	for _, e := range entries {
@@ -54,10 +54,10 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 			var b []byte
 			fileName = filepath.Join(dir, fileName)
 			if b, err = os.ReadFile(fileName); err != nil {
-				return nil, nil, fmt.Errorf("read file %s error: %w", fileName, err)
+				return nil, nil, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 			}
 			if meta, err = ParseMeta(b); err != nil {
-				return nil, nil, fmt.Errorf("parse file %s error: %w", fileName, err)
+				return nil, nil, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 			}
 			continue
 		}
@@ -70,11 +70,11 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 		var b []byte
 		fileName = filepath.Join(dir, fileName)
 		if b, err = os.ReadFile(fileName); err != nil {
-			return nil, nil, fmt.Errorf("read file %s error: %w", fileName, err)
+			return nil, nil, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 		}
 		var doc Document
 		if doc, err = Parse(b); err != nil {
-			return nil, nil, fmt.Errorf("parse file %s error: %w", fileName, err)
+			return nil, nil, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 		}
 		files[e.Name()] = doc
 	}
@@ -93,7 +93,7 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 	}
 	for k := range usedTypes {
 		if _, ok := definedTypes[k]; !ok {
-			return nil, nil, fmt.Errorf("type %s is used but not defined", k)
+			return nil, nil, errutil.Explain(nil, "type %s is used but not defined", k)
 		}
 	}
 
@@ -123,9 +123,9 @@ func Parse(data []byte) (doc Document, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			doc = Document{}
-			err = fmt.Errorf("[PANIC]: %v\n%s", r, debug.Stack())
+			err = errutil.Explain(nil, "[PANIC]: %v\n%s", r, debug.Stack())
 			if e.Error != nil {
-				err = fmt.Errorf("%w\n%w", e.Error, err)
+				err = errutil.Explain(nil, "%w\n%w", e.Error, err)
 			}
 		}
 	}()
@@ -184,10 +184,10 @@ func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int,
 		}
 	}
 	if l.Error == nil {
-		l.Error = fmt.Errorf("line %d:%d %s << text: %q", line, column, msg, text)
+		l.Error = errutil.Explain(nil, "line %d:%d %s << text: %q", line, column, msg, text)
 		return
 	}
-	l.Error = fmt.Errorf("%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, text)
+	l.Error = errutil.Explain(nil, "%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, text)
 }
 
 // ParseTreeListener extends the auto-generated base listener.
@@ -219,7 +219,7 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 		},
 	}
 	if !IsPascal(c.Name) {
-		panic(fmt.Errorf("const name %s is not PascalCase in line %d", c.Name, c.Position.Start))
+		panic(errutil.Explain(nil, "const name %s is not PascalCase in line %d", c.Name, c.Position.Start))
 	}
 	l.Document.Consts = append(l.Document.Consts, c)
 }
@@ -237,20 +237,20 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		},
 	}
 	if !IsPascal(e.Name) {
-		panic(fmt.Errorf("enum name %s is not PascalCase in line %d", e.Name, e.Position.Start))
+		panic(errutil.Explain(nil, "enum name %s is not PascalCase in line %d", e.Name, e.Position.Start))
 	}
 
 	for _, f := range ctx.AllEnum_field() {
 		fieldName := f.IDENTIFIER().GetText()
 		if !IsPascal(fieldName) {
-			panic(fmt.Errorf("enum field name %s is not PascalCase in line %d", fieldName, f.GetStart().GetLine()))
+			panic(errutil.Explain(nil, "enum field name %s is not PascalCase in line %d", fieldName, f.GetStart().GetLine()))
 		}
 
 		// Parse and validate integer value
 		fieldValue := f.INTEGER().GetText()
 		v, err := strconv.ParseInt(fieldValue, 0, 64)
 		if err != nil {
-			panic(fmt.Errorf("enum field value %s is not a valid integer in line %d", fieldValue, f.GetStart().GetLine()))
+			panic(errutil.Explain(nil, "enum field value %s is not a valid integer in line %d", fieldValue, f.GetStart().GetLine()))
 		}
 
 		e.Fields = append(e.Fields, EnumField{
@@ -285,7 +285,7 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 		},
 	}
 	if !IsPascal(t.Name) {
-		panic(fmt.Errorf("type name %s is not PascalCase in line %d", t.Name, t.Position.Start))
+		panic(errutil.Explain(nil, "type name %s is not PascalCase in line %d", t.Name, t.Position.Start))
 	}
 
 	// Distinguish between a full struct definition and a type alias
@@ -346,7 +346,7 @@ func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 		Name: ctx.IDENTIFIER(1).GetText(),
 	}
 	if !IsPascal(t.Redefined.Name) {
-		panic(fmt.Errorf("redefined type name %s is not PascalCase in line %d", t.Redefined.Name, t.Position.Start))
+		panic(errutil.Explain(nil, "redefined type name %s is not PascalCase in line %d", t.Redefined.Name, t.Position.Start))
 	}
 
 	t.Redefined.GenericType = l.parseValueType(ctx.Value_type(), t)
@@ -354,7 +354,7 @@ func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
 		return
 	}
 
-	panic(fmt.Errorf("redefined type %s is not a valid generic type in line %d", t.Redefined.Name, t.Position.Start))
+	panic(errutil.Explain(nil, "redefined type %s is not a valid generic type in line %d", t.Redefined.Name, t.Position.Start))
 }
 
 // ExitOneof_def handles "oneof" type definitions.
@@ -371,7 +371,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		},
 	}
 	if !IsPascal(o.Name) {
-		panic(fmt.Errorf("oneof name %s is not PascalCase in line %d", o.Name, o.Position.Start))
+		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.Start))
 	}
 
 	for _, f := range ctx.AllCommon_type_field() {
@@ -475,7 +475,7 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 		}
 	}
 
-	panic(fmt.Errorf("invalid type %s in line %d", ctx.GetText(), ctx.GetStart().GetLine()))
+	panic(errutil.Explain(nil, "invalid type %s in line %d", ctx.GetText(), ctx.GetStart().GetLine()))
 }
 
 // ExitRpc_def handles RPC definitions, including request/response
@@ -492,7 +492,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		},
 	}
 	if !IsPascal(r.Name) {
-		panic(fmt.Errorf("RPC name %s is not PascalCase in line %d", r.Name, r.Position.Start))
+		panic(errutil.Explain(nil, "RPC name %s is not PascalCase in line %d", r.Name, r.Position.Start))
 	}
 
 	// Request
@@ -502,7 +502,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		Optional: reqType.QUESTION() != nil,
 	}
 	if !IsPascal(r.Request.Name) {
-		panic(fmt.Errorf("RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
+		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
 	}
 	l.Document.UsedTypes[r.Request.Name] = struct{}{}
 
@@ -516,7 +516,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		Optional: respType.QUESTION() != nil,
 	}
 	if !IsPascal(r.Response.UserType.Name) {
-		panic(fmt.Errorf("RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
+		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
 	}
 	l.Document.UsedTypes[r.Response.UserType.Name] = struct{}{}
 

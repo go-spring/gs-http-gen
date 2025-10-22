@@ -26,6 +26,7 @@ import (
 
 	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/go-spring/gs-http-gen/lib/vidl"
+	"github.com/lvan100/errutil"
 )
 
 // typeTmpl is a Go template used to generate Go source code from IDL definitions.
@@ -45,14 +46,11 @@ var typeTmpl = template.Must(template.New("type").
 package {{.Package}}
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 )
 
-var _ = errors.New
-var _ = strings.Count
+var _ = strings.Contains
 var _ = http.NewServeMux
 
 {{ range $c := .Consts }}
@@ -104,7 +102,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		if s, ok := {{$e.Name}}_name[{{$e.Name}}(x)]; ok {
 			return []byte(fmt.Sprintf("\"%s\"", s)), nil
 		}
-		return nil, fmt.Errorf("invalid {{$e.Name}}: %d", x)
+		return nil, errutil.Explain(nil,"invalid {{$e.Name}}: %d", x)
 	}
 
 	// UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -114,7 +112,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			*x = {{$e.Name}}AsString(v)
 			return nil
 		}
-		return fmt.Errorf("invalid {{$e.Name}} value: %q", str)
+		return errutil.Explain(nil,"invalid {{$e.Name}} value: %q", str)
 	}
 {{end}}
 
@@ -180,15 +178,15 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) error {
 	consts, err := convertConsts(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("convert consts error: %w", err)
+		return errutil.Explain(nil, "convert consts error: %w", err)
 	}
 	enums, err := convertEnums(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("convert enums error: %w", err)
+		return errutil.Explain(nil, "convert enums error: %w", err)
 	}
 	types, err := convertTypes(ctx, doc)
 	if err != nil {
-		return fmt.Errorf("convert types error: %w", err)
+		return errutil.Explain(nil, "convert types error: %w", err)
 	}
 	{
 		var temp []Type
@@ -211,7 +209,7 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 		"Structs": types,
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
@@ -306,7 +304,7 @@ func convertEnums(ctx Context, doc tidl.Document) ([]Enum, error) {
 		for i, f := range t.Fields {
 			fieldName, err := getJSONName(f.Name, f.Annotations)
 			if err != nil {
-				return nil, fmt.Errorf("get json name for type %s field %s error: %w", t.Name, f.Name, err)
+				return nil, errutil.Explain(nil, "get json name for type %s field %s error: %w", t.Name, f.Name, err)
 			}
 			fields = append(fields, EnumField{
 				Name:  fieldName,
@@ -325,11 +323,11 @@ func convertEnums(ctx Context, doc tidl.Document) ([]Enum, error) {
 func getJSONName(fieldName string, arr []tidl.Annotation) (string, error) {
 	if a, ok := tidl.GetAnnotation(arr, "json"); ok {
 		if a.Value == nil {
-			return "", fmt.Errorf(`annotation "json" value is nil`)
+			return "", errutil.Explain(nil, `annotation "json" value is nil`)
 		}
 		s := strings.TrimSpace(*a.Value)
 		if s == "" {
-			return "", fmt.Errorf(`annotation "json" value is empty`)
+			return "", errutil.Explain(nil, `annotation "json" value is empty`)
 		}
 		s = strings.Trim(s, "\"") // remove quotes
 		s = strings.TrimSpace(strings.SplitN(s, ",", 2)[0])
@@ -432,8 +430,8 @@ func convertRedefinedType(ctx Context, r tidl.Type) (Type, error) {
 
 	t, ok := tidl.GetType(ctx.files, r.Redefined.Name)
 	if !ok {
-		err := fmt.Errorf("type %s not found", r.Redefined.Name)
-		return Type{}, fmt.Errorf("convert redefined type %s error: %w", r.Name, err)
+		err := errutil.Explain(nil, "type %s not found", r.Redefined.Name)
+		return Type{}, errutil.Explain(nil, "convert redefined type %s error: %w", r.Name, err)
 	}
 
 	var fields []tidl.TypeField
@@ -493,11 +491,11 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 		if embedType, ok := f.FieldType.(tidl.EmbedType); ok {
 			srcType, ok := tidl.GetType(ctx.files, embedType.Name)
 			if !ok {
-				return Type{}, fmt.Errorf("embedded type %s not found for field in type %s", embedType.Name, r.Name)
+				return Type{}, errutil.Explain(nil, "embedded type %s not found for field in type %s", embedType.Name, r.Name)
 			}
 			retType, err := convertType(ctx, srcType)
 			if err != nil {
-				return Type{}, fmt.Errorf("failed to convert embedded type %s in type %s: %w", embedType.Name, r.Name, err)
+				return Type{}, errutil.Explain(nil, "failed to convert embedded type %s in type %s: %w", embedType.Name, r.Name, err)
 			}
 			// Append embedded type's fields
 			r.Fields = append(r.Fields, retType.Fields...)
@@ -510,31 +508,31 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 		// Determine Go type for the field
 		typeName, err := getTypeName(ctx, f.FieldType, f.Annotations)
 		if err != nil {
-			return Type{}, fmt.Errorf("get type name for field %s in type %s error: %w", f.Name, r.Name, err)
+			return Type{}, errutil.Explain(nil, "get type name for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
 		typeKind, err := getTypeKind(ctx, typeName)
 		if err != nil {
-			return Type{}, fmt.Errorf("get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
+			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Parse HTTP binding info from annotations (header, path, query)
 		binding, err := parseBinding(f.Annotations)
 		if err != nil {
-			return Type{}, fmt.Errorf("parse binding for field %s in type %s error: %w", f.Name, r.Name, err)
+			return Type{}, errutil.Explain(nil, "parse binding for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Generate struct tag for JSON, query/path/header bindings
 		fieldTag, err := genFieldTag(f.Name, typeName, f.Annotations, binding)
 		if err != nil {
-			return Type{}, fmt.Errorf("generate field tag for field %s in type %s error: %w", f.Name, r.Name, err)
+			return Type{}, errutil.Explain(nil, "generate field tag for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Generate validation expressions for the field
 		validate, err := genValidate(r.Name, fieldName, typeName, f.Annotations, ctx.funcs)
 		if err != nil {
-			return Type{}, fmt.Errorf("generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
+			return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Add the field to the struct
@@ -558,18 +556,18 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 	// Handle explicit "go.type" annotation
 	if a, ok := tidl.GetAnnotation(arr, "go.type"); ok {
 		if a.Value == nil {
-			return "", fmt.Errorf(`annotation "go.type" must have a value`)
+			return "", errutil.Explain(nil, `annotation "go.type" must have a value`)
 		}
 		s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
 		if s == "" {
-			return "", fmt.Errorf(`annotation "go.type" must not be empty`)
+			return "", errutil.Explain(nil, `annotation "go.type" must not be empty`)
 		}
 		return s, nil
 	}
 
 	switch typ := t.(type) {
 	case tidl.AnyType:
-		return "", fmt.Errorf(`any type must have annotation "go.type"`)
+		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case tidl.BaseType:
 		var typeName string
 		switch typ.Name {
@@ -582,7 +580,7 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 		case "bool":
 			typeName = "bool"
 		default:
-			return "", fmt.Errorf("unknown base type: %s", typ.Name)
+			return "", errutil.Explain(nil, "unknown base type: %s", typ.Name)
 		}
 		if typ.Optional {
 			typeName = "*" + typeName
@@ -593,7 +591,7 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 		// Handle enum_as_string annotation
 		if _, ok := tidl.GetAnnotation(arr, "enum_as_string"); ok {
 			if _, ok := tidl.GetEnum(ctx.files, typ.Name); !ok {
-				return "", fmt.Errorf("enum %s not found", typ.Name)
+				return "", errutil.Explain(nil, "enum %s not found", typ.Name)
 			}
 			typeName += "AsString"
 		}
@@ -620,7 +618,7 @@ func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (str
 	case tidl.BinaryType:
 		return "[]byte", nil // todo (lvan100) handle file
 	default:
-		return "", fmt.Errorf("unknown type: %s", t.Text())
+		return "", errutil.Explain(nil, "unknown type: %s", t.Text())
 	}
 }
 
@@ -642,12 +640,12 @@ func getTypeKind(ctx Context, typeName string) (TypeKind, error) {
 	switch {
 	case strings.HasPrefix(typeName, "[]"):
 		if optional {
-			return TypeKindUnknown, fmt.Errorf("list type can not be optional")
+			return TypeKindUnknown, errutil.Explain(nil, "list type can not be optional")
 		}
 		return TypeKindListType, nil
 	case strings.HasPrefix(typeName, "map["):
 		if optional {
-			return TypeKindUnknown, fmt.Errorf("map type can not be optional")
+			return TypeKindUnknown, errutil.Explain(nil, "map type can not be optional")
 		}
 		return TypeKindMapType, nil
 	default:
@@ -663,7 +661,7 @@ func getTypeKind(ctx Context, typeName string) (TypeKind, error) {
 			}
 			return TypeKindStructType, nil
 		}
-		return TypeKindUnknown, fmt.Errorf("unknown type: %s", typeName)
+		return TypeKindUnknown, errutil.Explain(nil, "unknown type: %s", typeName)
 	}
 }
 
@@ -675,11 +673,11 @@ func parseBinding(arr []tidl.Annotation) (*Binding, error) {
 		return nil, nil
 	}
 	if a.Value == nil {
-		return nil, fmt.Errorf("annotation %q value is nil", a.Key)
+		return nil, errutil.Explain(nil, "annotation %q value is nil", a.Key)
 	}
 	val := strings.TrimSpace(strings.Trim(*a.Value, "\""))
 	if val == "" {
-		return nil, fmt.Errorf("annotation %q value is empty", a.Key)
+		return nil, errutil.Explain(nil, "annotation %q value is empty", a.Key)
 	}
 	return &Binding{From: a.Key, Name: val}, nil
 }
@@ -696,11 +694,11 @@ func genFieldTag(fieldName, typeName string, arr []tidl.Annotation, binding *Bin
 	// Parse "json" annotation
 	if a, ok := tidl.GetAnnotation(arr, "json"); ok {
 		if a.Value == nil {
-			return "", fmt.Errorf(`annotation "json" value is nil`)
+			return "", errutil.Explain(nil, `annotation "json" value is nil`)
 		}
 		s := strings.TrimSpace(*a.Value)
 		if s == "" {
-			return "", fmt.Errorf(`annotation "json" value is empty`)
+			return "", errutil.Explain(nil, `annotation "json" value is empty`)
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
 		for i, v := range strings.Split(s, ",") {
@@ -761,22 +759,22 @@ func genValidate(receiverType, fieldName, fieldType string, arr []tidl.Annotatio
 		return nil, nil
 	}
 	if a.Value == nil {
-		return nil, fmt.Errorf(`annotation "validate" value is nil`)
+		return nil, errutil.Explain(nil, `annotation "validate" value is nil`)
 	}
 
 	// Unquote the validation expression string
 	strValue, err := strconv.Unquote(*a.Value)
 	if err != nil {
-		return nil, fmt.Errorf(`annotation "validate" value is not properly quoted`)
+		return nil, errutil.Explain(nil, `annotation "validate" value is not properly quoted`)
 	}
 	if strValue == "" {
-		return nil, fmt.Errorf(`annotation "validate" value is empty`)
+		return nil, errutil.Explain(nil, `annotation "validate" value is empty`)
 	}
 
 	// Parse the validation expression
 	expr, err := vidl.Parse(strValue)
 	if err != nil {
-		return nil, fmt.Errorf(`failed to parse validate expression %s: %w`, strValue, err)
+		return nil, errutil.Explain(nil, `failed to parse validate expression %s: %w`, strValue, err)
 	}
 
 	optional := strings.HasPrefix(fieldType, "*")
@@ -788,12 +786,12 @@ func genValidate(receiverType, fieldName, fieldType string, arr []tidl.Annotatio
 	// Generate the Go expression for validation
 	str, err := genValidateExpr(dollar, fieldType, expr, funcs)
 	if err != nil {
-		return nil, fmt.Errorf(`failed to generate validate expression for %s: %w`, strValue, err)
+		return nil, errutil.Explain(nil, `failed to generate validate expression for %s: %w`, strValue, err)
 	}
 
 	// Wrap in an if statement returning an error on failure
 	str = fmt.Sprintf(`if !(%s) {
-		return errors.New("validate failed on %s.%s")
+		return errutil.Explain(nil,"validate failed on %s.%s")
 	}`, str, receiverType, fieldName)
 
 	if optional {
@@ -837,12 +835,12 @@ func genValidateExpr(fieldName, fieldType string, expr vidl.Expr, funcs map[stri
 		// Register or validate custom functions
 		if _, ok := builtinFuncs[x.Name]; !ok {
 			if len(x.Args) != 1 {
-				return "", fmt.Errorf("func %s only accepts 1 argument of type %s", x.Name, fieldType)
+				return "", errutil.Explain(nil, "func %s only accepts 1 argument of type %s", x.Name, fieldType)
 			}
 			if !strings.HasPrefix(x.Name, "OneOf") {
 				if f, ok := funcs[x.Name]; ok {
 					if f.FieldType != fieldType {
-						return "", fmt.Errorf("func %s only accepts type %s", x.Name, f.FieldType)
+						return "", errutil.Explain(nil, "func %s only accepts type %s", x.Name, f.FieldType)
 					}
 				} else {
 					funcs[x.Name] = ValidateFunc{
@@ -856,7 +854,7 @@ func genValidateExpr(fieldName, fieldType string, expr vidl.Expr, funcs map[stri
 			switch x.Name {
 			case "len":
 				if len(x.Args) != 1 {
-					return "", fmt.Errorf("func len only accepts 1 argument")
+					return "", errutil.Explain(nil, "func len only accepts 1 argument")
 				}
 			default: // for linter
 			}
@@ -892,6 +890,6 @@ func genValidateExpr(fieldName, fieldType string, expr vidl.Expr, funcs map[stri
 		return x.Value, nil
 
 	default:
-		return "", fmt.Errorf("unknown expression type: %s", x.Text())
+		return "", errutil.Explain(nil, "unknown expression type: %s", x.Text())
 	}
 }

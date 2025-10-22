@@ -17,8 +17,9 @@
 package vidl
 
 import (
-	"errors"
 	"testing"
+
+	"github.com/lvan100/errutil"
 )
 
 func TestParse(t *testing.T) {
@@ -280,17 +281,17 @@ func TestParse(t *testing.T) {
 		{
 			name:        "syntax_error_missing_paren",
 			input:       "(a",
-			expectError: errors.New("line 1:2 missing ')' at '<EOF>' << text: \"(a\""),
+			expectError: errutil.Explain(nil, "line 1:2 missing ')' at '<EOF>' << text: \"(a\""),
 		},
 		{
 			name:        "syntax_error_unexpected_token",
 			input:       "a + b",
-			expectError: errors.New("line 1:2 token recognition error at: '+ ' << text: \"a + b\""),
+			expectError: errutil.Explain(nil, "line 1:2 token recognition error at: '+ ' << text: \"a + b\""),
 		},
 		{
 			name:        "syntax_error_missing_comma_in_function",
 			input:       "func(a b)",
-			expectError: errors.New("line 1:7 extraneous input 'b' expecting {')', ','} << text: \"func(a b)\""),
+			expectError: errutil.Explain(nil, "line 1:7 extraneous input 'b' expecting {')', ','} << text: \"func(a b)\""),
 		},
 	}
 

@@ -53,7 +53,7 @@ func (g *Generator) genValidate(ctx Context) error {
 		"Funcs":   funcs,
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 	fileName := ctx.meta.Name + "_validate.go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)

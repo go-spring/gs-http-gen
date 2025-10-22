@@ -17,12 +17,12 @@
 package pidl
 
 import (
-	"errors"
 	"fmt"
 	"runtime/debug"
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/lvan100/errutil"
 )
 
 // SegmentStyle represents the style of path parameters
@@ -84,7 +84,7 @@ func Format(path []Segment, style SegmentStyle) string {
 // Parse parses a path string into a slice of Segment.
 func Parse(data string) (path []Segment, err error) {
 	if data = strings.TrimSpace(data); data == "" {
-		return nil, errors.New("empty path")
+		return nil, errutil.Explain(nil, "empty path")
 	}
 
 	e := &ErrorListener{Data: data}
@@ -93,9 +93,9 @@ func Parse(data string) (path []Segment, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			path = nil
-			err = fmt.Errorf("[PANIC]: %v\n%s", r, debug.Stack())
+			err = errutil.Explain(nil, "[PANIC]: %v\n%s", r, debug.Stack())
 			if e.Error != nil {
-				err = fmt.Errorf("%w\n%w", e.Error, err)
+				err = errutil.Explain(nil, "%w\n%w", e.Error, err)
 			}
 		}
 	}()
@@ -115,11 +115,11 @@ func Parse(data string) (path []Segment, err error) {
 
 	// 检查最后是否有异常字符
 	if ts := tokens.GetAllTokens(); len(ts) == 0 {
-		e.Error = errors.New("empty path")
+		e.Error = errutil.Explain(nil, "empty path")
 		return nil, e.Error
 	} else {
 		if c := ts[len(ts)-1]; c.GetTokenType() != antlr.TokenEOF {
-			e.Error = fmt.Errorf("unexpected character at the end of path: %q", c.GetText())
+			e.Error = errutil.Explain(nil, "unexpected character at the end of path: %q", c.GetText())
 			return nil, e.Error
 		}
 	}
@@ -145,10 +145,10 @@ type ErrorListener struct {
 // SyntaxError is called by ANTLR when a syntax error occurs.
 func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
 	if l.Error == nil {
-		l.Error = fmt.Errorf("line %d:%d %s << text: %q", line, column, msg, l.Data)
+		l.Error = errutil.Explain(nil, "line %d:%d %s << text: %q", line, column, msg, l.Data)
 		return
 	}
-	l.Error = fmt.Errorf("%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, l.Data)
+	l.Error = errutil.Explain(nil, "%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, l.Data)
 }
 
 // ParseTreeListener walks the parse tree and constructs the slice of Segment.

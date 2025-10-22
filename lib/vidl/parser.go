@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/lvan100/errutil"
 )
 
 // Expr represents a generic expression node.
@@ -118,9 +119,9 @@ func Parse(data string) (expr Expr, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			expr = nil
-			err = fmt.Errorf("[PANIC]: %v\n%s", r, debug.Stack())
+			err = errutil.Explain(nil, "[PANIC]: %v\n%s", r, debug.Stack())
 			if e.Error != nil {
-				err = fmt.Errorf("%w\n%w", e.Error, err)
+				err = errutil.Explain(nil, "%w\n%w", e.Error, err)
 			}
 		}
 	}()
@@ -158,10 +159,10 @@ type ErrorListener struct {
 // SyntaxError is called by ANTLR when a syntax error occurs.
 func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
 	if l.Error == nil {
-		l.Error = fmt.Errorf("line %d:%d %s << text: %q", line, column, msg, l.Data)
+		l.Error = errutil.Explain(nil, "line %d:%d %s << text: %q", line, column, msg, l.Data)
 		return
 	}
-	l.Error = fmt.Errorf("%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, l.Data)
+	l.Error = errutil.Explain(nil, "%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, l.Data)
 }
 
 // ParseTreeListener walks the parse tree and constructs the expression AST.

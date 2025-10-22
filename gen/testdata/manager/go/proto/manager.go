@@ -3,14 +3,14 @@
 package proto
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/lvan100/errutil"
 )
 
-var _ = errors.New
-var _ = strings.Count
+var _ = strings.Contains
 var _ = http.NewServeMux
 
 // years
@@ -74,7 +74,7 @@ func (x ErrCodeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ErrCode_name[ErrCode(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid ErrCode: %d", x)
+	return nil, errutil.Explain(nil, "invalid ErrCode: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -84,7 +84,7 @@ func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
 		*x = ErrCodeAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid ErrCode value: %q", str)
+	return errutil.Explain(nil, "invalid ErrCode value: %q", str)
 }
 
 // Manager seniority levels
@@ -123,7 +123,7 @@ func (x ManagerLevelAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ManagerLevel_name[ManagerLevel(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid ManagerLevel: %d", x)
+	return nil, errutil.Explain(nil, "invalid ManagerLevel: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -133,7 +133,7 @@ func (x *ManagerLevelAsString) UnmarshalJSON(data []byte) error {
 		*x = ManagerLevelAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid ManagerLevel value: %q", str)
+	return errutil.Explain(nil, "invalid ManagerLevel value: %q", str)
 }
 
 // Company departments
@@ -178,7 +178,7 @@ func (x DepartmentAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := Department_name[Department(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid Department: %d", x)
+	return nil, errutil.Explain(nil, "invalid Department: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -188,7 +188,7 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 		*x = DepartmentAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid Department value: %q", str)
+	return errutil.Explain(nil, "invalid Department value: %q", str)
 }
 
 type PageReq struct {
@@ -213,10 +213,10 @@ func (x *PageReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() error {
 	if !(x.Page >= 1) {
-		return errors.New("validate failed on PageReq.Page")
+		return errutil.Explain(nil, "validate failed on PageReq.Page")
 	}
 	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errors.New("validate failed on PageReq.Size")
+		return errutil.Explain(nil, "validate failed on PageReq.Size")
 	}
 	return nil
 }
@@ -262,7 +262,7 @@ func (x *ContactInfo) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *ContactInfo) Validate() error {
 	if !(Email(x.Email)) {
-		return errors.New("validate failed on ContactInfo.Email")
+		return errutil.Explain(nil, "validate failed on ContactInfo.Email")
 	}
 	return nil
 }
@@ -313,15 +313,15 @@ func (x *Manager) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *Manager) Validate() error {
 	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
-		return errors.New("validate failed on Manager.Name")
+		return errutil.Explain(nil, "validate failed on Manager.Name")
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errors.New("validate failed on Manager.Age")
+			return errutil.Explain(nil, "validate failed on Manager.Age")
 		}
 	}
 	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
-		return errors.New("validate failed on Manager.Salary")
+		return errutil.Explain(nil, "validate failed on Manager.Salary")
 	}
 	return nil
 }
@@ -377,15 +377,15 @@ func (x *CreateManagerReq) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerReq) Validate() error {
 	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
-		return errors.New("validate failed on CreateManagerReq.Name")
+		return errutil.Explain(nil, "validate failed on CreateManagerReq.Name")
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errors.New("validate failed on CreateManagerReq.Age")
+			return errutil.Explain(nil, "validate failed on CreateManagerReq.Age")
 		}
 	}
 	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
-		return errors.New("validate failed on CreateManagerReq.Salary")
+		return errutil.Explain(nil, "validate failed on CreateManagerReq.Salary")
 	}
 	return nil
 }
@@ -443,12 +443,12 @@ func (x *UpdateManagerReqBody) New() any {
 func (x *UpdateManagerReqBody) Validate() error {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errors.New("validate failed on UpdateManagerReq.Age")
+			return errutil.Explain(nil, "validate failed on UpdateManagerReq.Age")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			return errors.New("validate failed on UpdateManagerReq.Salary")
+			return errutil.Explain(nil, "validate failed on UpdateManagerReq.Salary")
 		}
 	}
 	return nil
@@ -493,10 +493,10 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReq) Validate() error {
 	if !(x.Page >= 1) {
-		return errors.New("validate failed on PageReq.Page")
+		return errutil.Explain(nil, "validate failed on PageReq.Page")
 	}
 	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errors.New("validate failed on PageReq.Size")
+		return errutil.Explain(nil, "validate failed on PageReq.Size")
 	}
 	return nil
 }
@@ -523,7 +523,7 @@ func (x *CreateManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on CreateManagerResp.Errno")
+		return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
 	}
 	return nil
 }
@@ -550,7 +550,7 @@ func (x *UpdateManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on UpdateManagerResp.Errno")
+		return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
 	}
 	return nil
 }
@@ -577,7 +577,7 @@ func (x *GetManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on GetManagerResp.Errno")
+		return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
 	}
 	return nil
 }
@@ -604,7 +604,7 @@ func (x *DeleteManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *DeleteManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on DeleteManagerResp.Errno")
+		return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
 	}
 	return nil
 }
@@ -651,7 +651,7 @@ func (x *ListManagersByPageResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on ListManagersByPageResp.Errno")
+		return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
 	}
 	return nil
 }

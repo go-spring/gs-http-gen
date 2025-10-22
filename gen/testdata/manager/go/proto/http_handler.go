@@ -6,13 +6,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
 	"net/url"
 
 	"github.com/go-playground/form/v4"
+	"github.com/lvan100/errutil"
 )
 
 // ErrorHandler is the default handler for reporting errors back to the client.
@@ -99,7 +99,7 @@ var formDecoder = form.NewDecoder()
 func Binding(req *http.Request, params []BindingField) error {
 	for _, p := range params {
 		if err := bindField(req, p); err != nil {
-			return fmt.Errorf("bind field %s error: %w", p.Field, err)
+			return errutil.Explain(nil, "bind field %s error: %w", p.Field, err)
 		}
 	}
 	return nil
@@ -157,29 +157,29 @@ func ReadRequest(r *http.Request, i Object) error {
 	switch mediaType {
 	case "application/json":
 		if b, err := io.ReadAll(r.Body); err != nil {
-			return fmt.Errorf("read body: %w", err)
+			return errutil.Explain(nil, "read body: %w", err)
 		} else if len(b) > 0 {
 			if err = json.Unmarshal(b, i); err != nil {
-				return fmt.Errorf("json decode: %w", err)
+				return errutil.Explain(nil, "json decode: %w", err)
 			}
 		}
 
 	case "application/x-www-form-urlencoded":
 		if err := r.ParseForm(); err != nil {
-			return fmt.Errorf("parse form: %w", err)
+			return errutil.Explain(nil, "parse form: %w", err)
 		}
 		if err := formDecoder.Decode(i, r.PostForm); err != nil {
-			return fmt.Errorf("form decode: %w", err)
+			return errutil.Explain(nil, "form decode: %w", err)
 		}
 
 	case "multipart/form-data":
 		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil {
-			return fmt.Errorf("parse multipart form: %w", err)
+			return errutil.Explain(nil, "parse multipart form: %w", err)
 		}
 		defer func() { _ = r.MultipartForm.RemoveAll() }()
 		if r.MultipartForm != nil && len(r.MultipartForm.Value) > 0 {
 			if err := formDecoder.Decode(i, r.MultipartForm.Value); err != nil {
-				return fmt.Errorf("multipart form decode: %w", err)
+				return errutil.Explain(nil, "multipart form decode: %w", err)
 			}
 		}
 
@@ -187,13 +187,13 @@ func ReadRequest(r *http.Request, i Object) error {
 		// Fallback: Try JSON or form decoding
 		b, err := io.ReadAll(r.Body)
 		if err != nil {
-			return fmt.Errorf("read body: %w", err)
+			return errutil.Explain(nil, "read body: %w", err)
 		}
 		var asJSON bool
 		if b = bytes.TrimSpace(b); len(b) > 0 {
 			if b[0] == '{' || b[0] == '[' { // Looks like JSON
 				if err = json.Unmarshal(b, i); err != nil {
-					return fmt.Errorf("json decode: %w", err)
+					return errutil.Explain(nil, "json decode: %w", err)
 				}
 				asJSON = true
 			} else {
@@ -202,10 +202,10 @@ func ReadRequest(r *http.Request, i Object) error {
 		}
 		if !asJSON {
 			if err = r.ParseForm(); err != nil {
-				return fmt.Errorf("parse form: %w", err)
+				return errutil.Explain(nil, "parse form: %w", err)
 			}
 			if err = formDecoder.Decode(i, r.PostForm); err != nil {
-				return fmt.Errorf("form decode: %w", err)
+				return errutil.Explain(nil, "form decode: %w", err)
 			}
 		}
 	}
@@ -245,7 +245,7 @@ func HandleStream[Req, Resp Object](h StreamHandler[Req, Resp]) http.HandlerFunc
 	return func(w http.ResponseWriter, r *http.Request) {
 		flusher, ok := w.(http.Flusher)
 		if !ok {
-			err := fmt.Errorf("streaming not supported")
+			err := errutil.Explain(nil, "streaming not supported")
 			ErrorHandler(r, w, err)
 			return
 		}
