@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-spring/gs-http-gen/gen/generator/golang/httputil"
+	"github.com/lvan100/httputil"
 )
 
 func TestClient(t *testing.T) {

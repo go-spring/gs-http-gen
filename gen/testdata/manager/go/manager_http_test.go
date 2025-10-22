@@ -48,6 +48,7 @@ func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp
 				TextData:  "123",
 			},
 		}
+		time.Sleep(time.Second)
 	}
 }
 
@@ -92,7 +93,7 @@ func TestStream(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	b, err := io.ReadAll(resp.Body)
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 1025))
 	if err != nil {
 		panic(err)
 	}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-spring/gs-http-gen/gen/generator/golang/httputil"
+	"github.com/lvan100/httputil"
 )
 
 // ClientInterface 通过接口实现中间件机制
