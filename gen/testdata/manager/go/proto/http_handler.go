@@ -128,24 +128,6 @@ type Object interface {
 	Validate() error                 // Validates object fields
 }
 
-//// ObjectBase is a base struct for implementing Object.
-//type ObjectBase struct{}
-//
-//// New implements the Object interface.
-//func (x *ObjectBase) New() any {
-//	return nil
-//}
-//
-//// Binding extracts non-body values (header, path, query) from *http.Request.
-//func (x *ObjectBase) Binding(r *http.Request) error {
-//	return nil
-//}
-//
-//// Validate checks field values using generated validation expressions.
-//func (x *ObjectBase) Validate() error {
-//	return nil
-//}
-
 // ReadRequest parses the request body based on Content-Type
 // and decodes it into the given Object.
 func ReadRequest(r *http.Request, i Object) error {
