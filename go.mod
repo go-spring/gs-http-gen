@@ -6,7 +6,7 @@ require (
 	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/lvan100/errutil v0.0.1
-	github.com/lvan100/httputil v0.0.0-00010101000000-000000000000
+	github.com/lvan100/golib v0.0.0
 	github.com/spf13/cobra v1.9.1
 )
 
@@ -16,4 +16,4 @@ require (
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
 )
 
-replace github.com/lvan100/httputil => /Users/didi/httputil
+replace github.com/lvan100/golib => /Users/didi/golib

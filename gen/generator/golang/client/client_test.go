@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lvan100/httputil"
+	"github.com/lvan100/golib/httputil"
 )
 
 func TestClient(t *testing.T) {
 	c := &Client{&ClientImpl{
-		Client: &httputil.DefaultHTTPClient{
+		Client: &httputil.DefaultClient{
 			Client: http.DefaultClient,
 			Scheme: "http",
 			Host:   "127.0.0.1:9090",

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lvan100/httputil"
+	"github.com/lvan100/golib/httputil"
 )
 
 // ClientImpl 实现最终请求的 client 封装。
 type ClientImpl struct {
-	Client httputil.HTTPClient
+	Client httputil.Client
 }
 
 func (c *ClientImpl) Ping(ctx context.Context, req *PingReq) (*http.Response, *PingResp, error) {

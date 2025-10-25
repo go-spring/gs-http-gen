@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/lvan100/httputil"
+	"github.com/lvan100/golib/httputil"
 )
 
 // ClientInterface 通过接口实现中间件机制
@@ -20,7 +20,7 @@ type Client struct {
 // NewClient 使用默认方案创建客户端
 func NewClient(config map[string]any) *Client {
 	return &Client{&ClientImpl{
-		Client: &httputil.DefaultHTTPClient{
+		Client: &httputil.DefaultClient{
 			Client: http.DefaultClient,
 		},
 	}}
