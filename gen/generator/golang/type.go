@@ -189,10 +189,6 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 	{
 		var temp []Type
 		for _, t := range types {
-			if c := t.BindingCount(); c == 0 || c == len(t.Fields) {
-				temp = append(temp, t)
-				continue
-			}
 			whole, body := SplitType(t)
 			temp = append(temp, whole, body)
 		}
