@@ -59,10 +59,15 @@ package {{.Package}}
 
 import (
 	"context"
+	"net/http"
+
+	"github.com/lvan100/golib/httputil"
 )
 
-type ClientImpl struct {
-	Client HTTPClient
+type ClientImpl struct {}
+
+func (c *ClientImpl) getClient() httputil.Client {
+	return nil
 }
 
 {{- range $r := .RPCs}}
@@ -70,7 +75,13 @@ type ClientImpl struct {
 {{- if $r.Comment}}
 	{{$r.Comment}}
 {{- end}}
-func (c *ClientImpl) {{$r.Name}}(context.Context, *{{$r.Request}}) *{{$r.Response}} {
+func (c *ClientImpl) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}) (*http.Response, *{{$r.Response}}, error) {
+	url := "{{$r.Path}}"
+	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", url, httputil.FORM, req.{{$r.Request}}Body)
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.JSONResponse[{{$r.Response}}](c.getClient(), r)
 }
     {{- end}}
 {{- end}}
