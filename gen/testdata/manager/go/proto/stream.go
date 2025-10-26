@@ -114,7 +114,9 @@ func (x *StreamReqBody) String() string {
 }
 
 type StreamResp struct {
-	StreamRespBody
+	Id      string  `json:"id"`
+	Data    string  `json:"data"`
+	Payload Payload `json:"payload"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -139,36 +141,11 @@ func (x *StreamResp) String() string {
 	return fmt.Sprintf("StreamResp(%+v)", *x)
 }
 
-type StreamRespBody struct {
-	Id      string  `json:"id"`
-	Data    string  `json:"data"`
-	Payload Payload `json:"payload"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *StreamRespBody) New() any {
-	return &StreamRespBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *StreamRespBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *StreamRespBody) Validate() error {
-	return nil
-}
-
-func (x *StreamRespBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("StreamRespBody(%+v)", *x)
-}
-
 type Payload struct {
-	PayloadBody
+	FieldType   PayloadTypeAsString `json:"field_type"`
+	TextData    string              `json:"text_data"`
+	NumberData  *int64              `json:"number_data,omitempty"`
+	BooleanData bool                `json:"boolean_data"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -191,33 +168,4 @@ func (x *Payload) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("Payload(%+v)", *x)
-}
-
-type PayloadBody struct {
-	FieldType   PayloadTypeAsString `json:"field_type"`
-	TextData    string              `json:"text_data"`
-	NumberData  *int64              `json:"number_data,omitempty"`
-	BooleanData bool                `json:"boolean_data"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *PayloadBody) New() any {
-	return &PayloadBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *PayloadBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *PayloadBody) Validate() error {
-	return nil
-}
-
-func (x *PayloadBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("PayloadBody(%+v)", *x)
 }

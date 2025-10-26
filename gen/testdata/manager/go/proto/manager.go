@@ -192,7 +192,6 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 }
 
 type PageReq struct {
-	PageReqBody
 	Page int64 `json:"page" query:"page"`
 	Size int64 `json:"size" query:"size"`
 }
@@ -228,33 +227,10 @@ func (x *PageReq) String() string {
 	return fmt.Sprintf("PageReq(%+v)", *x)
 }
 
-type PageReqBody struct {
-}
-
-// New returns a new instance (implements Object interface).
-func (x *PageReqBody) New() any {
-	return &PageReqBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *PageReqBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *PageReqBody) Validate() error {
-	return nil
-}
-
-func (x *PageReqBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("PageReqBody(%+v)", *x)
-}
-
 type Address struct {
-	AddressBody
+	City       string  `json:"city"`
+	Street     *string `json:"street,omitempty"`
+	PostalCode *string `json:"postalCode,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -279,36 +255,10 @@ func (x *Address) String() string {
 	return fmt.Sprintf("Address(%+v)", *x)
 }
 
-type AddressBody struct {
-	City       string  `json:"city"`
-	Street     *string `json:"street,omitempty"`
-	PostalCode *string `json:"postalCode,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *AddressBody) New() any {
-	return &AddressBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *AddressBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *AddressBody) Validate() error {
-	return nil
-}
-
-func (x *AddressBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("AddressBody(%+v)", *x)
-}
-
 type ContactInfo struct {
-	ContactInfoBody
+	Email   string  `json:"email"`
+	Phone   *string `json:"phone,omitempty"`
+	Address Address `json:"address"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -323,6 +273,9 @@ func (x *ContactInfo) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *ContactInfo) Validate() error {
+	if !(Email(x.Email)) {
+		return errutil.Explain(nil, "validate failed on ContactInfo.Email")
+	}
 	return nil
 }
 
@@ -333,39 +286,9 @@ func (x *ContactInfo) String() string {
 	return fmt.Sprintf("ContactInfo(%+v)", *x)
 }
 
-type ContactInfoBody struct {
-	Email   string  `json:"email"`
-	Phone   *string `json:"phone,omitempty"`
-	Address Address `json:"address"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ContactInfoBody) New() any {
-	return &ContactInfoBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ContactInfoBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ContactInfoBody) Validate() error {
-	if !(Email(x.Email)) {
-		return errutil.Explain(nil, "validate failed on ContactInfo.Email")
-	}
-	return nil
-}
-
-func (x *ContactInfoBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ContactInfoBody(%+v)", *x)
-}
-
 type DepartmentInfo struct {
-	DepartmentInfoBody
+	Dept     Department `json:"dept"`
+	DeptName string     `json:"deptName"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -390,35 +313,16 @@ func (x *DepartmentInfo) String() string {
 	return fmt.Sprintf("DepartmentInfo(%+v)", *x)
 }
 
-type DepartmentInfoBody struct {
-	Dept     Department `json:"dept"`
-	DeptName string     `json:"deptName"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *DepartmentInfoBody) New() any {
-	return &DepartmentInfoBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *DepartmentInfoBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *DepartmentInfoBody) Validate() error {
-	return nil
-}
-
-func (x *DepartmentInfoBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("DepartmentInfoBody(%+v)", *x)
-}
-
 type Manager struct {
-	ManagerBody
+	Id       string               `json:"id"`
+	Name     string               `json:"name"`
+	Age      *int64               `json:"age,omitempty"`
+	Vip      bool                 `json:"vip"`
+	Salary   float64              `json:"salary"`
+	Role     string               `json:"role"`
+	Level    ManagerLevelAsString `json:"level"`
+	DeptInfo DepartmentInfo       `json:"deptInfo"`
+	Contact  ContactInfo          `json:"contact"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -433,40 +337,6 @@ func (x *Manager) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *Manager) Validate() error {
-	return nil
-}
-
-func (x *Manager) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("Manager(%+v)", *x)
-}
-
-type ManagerBody struct {
-	Id       string               `json:"id"`
-	Name     string               `json:"name"`
-	Age      *int64               `json:"age,omitempty"`
-	Vip      bool                 `json:"vip"`
-	Salary   float64              `json:"salary"`
-	Role     string               `json:"role"`
-	Level    ManagerLevelAsString `json:"level"`
-	DeptInfo DepartmentInfo       `json:"deptInfo"`
-	Contact  ContactInfo          `json:"contact"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ManagerBody) New() any {
-	return &ManagerBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ManagerBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ManagerBody) Validate() error {
 	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
 		return errutil.Explain(nil, "validate failed on Manager.Name")
 	}
@@ -481,11 +351,11 @@ func (x *ManagerBody) Validate() error {
 	return nil
 }
 
-func (x *ManagerBody) String() string {
+func (x *Manager) String() string {
 	if x == nil {
 		return "<nil>"
 	}
-	return fmt.Sprintf("ManagerBody(%+v)", *x)
+	return fmt.Sprintf("Manager(%+v)", *x)
 }
 
 type ManagerReq struct {
@@ -757,7 +627,9 @@ func (x *ListManagersByPageReqBody) String() string {
 }
 
 type CreateManagerResp struct {
-	CreateManagerRespBody
+	Errno  ErrCode  `json:"errno"`
+	Errmsg string   `json:"errmsg"`
+	Data   *Manager `json:"data,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -772,6 +644,9 @@ func (x *CreateManagerResp) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
+	}
 	return nil
 }
 
@@ -782,39 +657,10 @@ func (x *CreateManagerResp) String() string {
 	return fmt.Sprintf("CreateManagerResp(%+v)", *x)
 }
 
-type CreateManagerRespBody struct {
+type UpdateManagerResp struct {
 	Errno  ErrCode  `json:"errno"`
 	Errmsg string   `json:"errmsg"`
 	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *CreateManagerRespBody) New() any {
-	return &CreateManagerRespBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *CreateManagerRespBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *CreateManagerRespBody) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *CreateManagerRespBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("CreateManagerRespBody(%+v)", *x)
-}
-
-type UpdateManagerResp struct {
-	UpdateManagerRespBody
 }
 
 // New returns a new instance (implements Object interface).
@@ -829,6 +675,9 @@ func (x *UpdateManagerResp) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
+	}
 	return nil
 }
 
@@ -839,39 +688,10 @@ func (x *UpdateManagerResp) String() string {
 	return fmt.Sprintf("UpdateManagerResp(%+v)", *x)
 }
 
-type UpdateManagerRespBody struct {
+type GetManagerResp struct {
 	Errno  ErrCode  `json:"errno"`
 	Errmsg string   `json:"errmsg"`
 	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *UpdateManagerRespBody) New() any {
-	return &UpdateManagerRespBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *UpdateManagerRespBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *UpdateManagerRespBody) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *UpdateManagerRespBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("UpdateManagerRespBody(%+v)", *x)
-}
-
-type GetManagerResp struct {
-	GetManagerRespBody
 }
 
 // New returns a new instance (implements Object interface).
@@ -886,6 +706,9 @@ func (x *GetManagerResp) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
+	}
 	return nil
 }
 
@@ -896,39 +719,10 @@ func (x *GetManagerResp) String() string {
 	return fmt.Sprintf("GetManagerResp(%+v)", *x)
 }
 
-type GetManagerRespBody struct {
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
-	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *GetManagerRespBody) New() any {
-	return &GetManagerRespBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *GetManagerRespBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *GetManagerRespBody) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *GetManagerRespBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("GetManagerRespBody(%+v)", *x)
-}
-
 type DeleteManagerResp struct {
-	DeleteManagerRespBody
+	Errno  ErrCode `json:"errno"`
+	Errmsg string  `json:"errmsg"`
+	Data   bool    `json:"data"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -943,6 +737,9 @@ func (x *DeleteManagerResp) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *DeleteManagerResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
+	}
 	return nil
 }
 
@@ -953,39 +750,11 @@ func (x *DeleteManagerResp) String() string {
 	return fmt.Sprintf("DeleteManagerResp(%+v)", *x)
 }
 
-type DeleteManagerRespBody struct {
-	Errno  ErrCode `json:"errno"`
-	Errmsg string  `json:"errmsg"`
-	Data   bool    `json:"data"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *DeleteManagerRespBody) New() any {
-	return &DeleteManagerRespBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *DeleteManagerRespBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *DeleteManagerRespBody) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *DeleteManagerRespBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("DeleteManagerRespBody(%+v)", *x)
-}
-
 type ManagersPageData struct {
-	ManagersPageDataBody
+	Total int64      `json:"total"`
+	Page  int64      `json:"page"`
+	Size  int64      `json:"size"`
+	Items []*Manager `json:"items"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1010,37 +779,10 @@ func (x *ManagersPageData) String() string {
 	return fmt.Sprintf("ManagersPageData(%+v)", *x)
 }
 
-type ManagersPageDataBody struct {
-	Total int64      `json:"total"`
-	Page  int64      `json:"page"`
-	Size  int64      `json:"size"`
-	Items []*Manager `json:"items"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ManagersPageDataBody) New() any {
-	return &ManagersPageDataBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ManagersPageDataBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ManagersPageDataBody) Validate() error {
-	return nil
-}
-
-func (x *ManagersPageDataBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ManagersPageDataBody(%+v)", *x)
-}
-
 type ListManagersByPageResp struct {
-	ListManagersByPageRespBody
+	Errno  ErrCode           `json:"errno"`
+	Errmsg string            `json:"errmsg"`
+	Data   *ManagersPageData `json:"data,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1055,6 +797,9 @@ func (x *ListManagersByPageResp) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageResp) Validate() error {
+	if !(OneOfErrCode(x.Errno)) {
+		return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
+	}
 	return nil
 }
 
@@ -1063,35 +808,4 @@ func (x *ListManagersByPageResp) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("ListManagersByPageResp(%+v)", *x)
-}
-
-type ListManagersByPageRespBody struct {
-	Errno  ErrCode           `json:"errno"`
-	Errmsg string            `json:"errmsg"`
-	Data   *ManagersPageData `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ListManagersByPageRespBody) New() any {
-	return &ListManagersByPageRespBody{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ListManagersByPageRespBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageRespBody) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
-	}
-	return nil
-}
-
-func (x *ListManagersByPageRespBody) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ListManagersByPageRespBody(%+v)", *x)
 }

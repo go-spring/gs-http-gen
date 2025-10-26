@@ -45,7 +45,7 @@ type Context struct {
 	meta   *tidl.MetaInfo           // Service metadata (name, version, etc.)
 	files  map[string]tidl.Document // Parsed TIDL documents keyed by file name
 	funcs  map[string]ValidateFunc  // Collected validation functions
-	reqs   map[string]string        // request type name
+	reqs   map[string]struct{}      // request type name
 }
 
 type Generator struct{}
@@ -57,7 +57,7 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 		meta:   meta,
 		files:  files,
 		funcs:  make(map[string]ValidateFunc),
-		reqs:   make(map[string]string),
+		reqs:   make(map[string]struct{}),
 	}
 
 	// Collect all RPC definitions
@@ -69,6 +69,7 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 				return err
 			}
 			rpcs = append(rpcs, rpc)
+			ctx.reqs[rpc.Request] = struct{}{}
 		}
 	}
 	sort.Slice(rpcs, func(i, j int) bool {

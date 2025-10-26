@@ -189,8 +189,12 @@ func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) err
 	{
 		var temp []Type
 		for _, t := range types {
-			whole, body := SplitType(t)
-			temp = append(temp, whole, body)
+			if _, ok := ctx.reqs[t.Name]; ok {
+				whole, body := SplitType(t)
+				temp = append(temp, whole, body)
+			} else {
+				temp = append(temp, t)
+			}
 		}
 		types = temp
 	}
