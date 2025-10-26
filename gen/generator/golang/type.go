@@ -140,7 +140,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		return &{{$s.Name}}{}
 	}
 
-	// Binding extracts non-body values (header, path, query) from *http.Request.
+	// Binding extracts non-body values (path, query) from *http.Request.
 	func (x *{{$s.Name}}) Binding(r *http.Request) error {
 		return Binding(r, []BindingField {
 			{{- range $f := $s.Fields}}
@@ -370,9 +370,9 @@ type TypeField struct {
 	Comment  string
 }
 
-// Binding represents a field binding from headers, path, or query
+// Binding represents a field binding from path, or query
 type Binding struct {
-	From string // Source: header/path/query
+	From string // Source: path/query
 	Name string // Field name in the source
 }
 
@@ -515,13 +515,13 @@ func convertType(ctx Context, t tidl.Type) (Type, error) {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
-		// Parse HTTP binding info from annotations (header, path, query)
+		// Parse HTTP binding info from annotations (path, query)
 		binding, err := parseBinding(f.Annotations)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "parse binding for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
-		// Generate struct tag for JSON, query/path/header bindings
+		// Generate struct tag for JSON, query/path bindings
 		fieldTag, err := genFieldTag(f.Name, typeName, f.Annotations, binding)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "generate field tag for field %s in type %s error: %w", f.Name, r.Name, err)
@@ -664,9 +664,9 @@ func getTypeKind(ctx Context, typeName string) (TypeKind, error) {
 }
 
 // parseBinding parses a field's HTTP binding information from annotations.
-// Supported sources: header, path, query.
+// Supported sources: path, query.
 func parseBinding(arr []tidl.Annotation) (*Binding, error) {
-	a, ok := tidl.GetAnnotation(arr, "header", "path", "query")
+	a, ok := tidl.GetAnnotation(arr, "path", "query")
 	if !ok {
 		return nil, nil
 	}
@@ -681,7 +681,7 @@ func parseBinding(arr []tidl.Annotation) (*Binding, error) {
 }
 
 // genFieldTag generates the struct tag for a Go struct field.
-// It includes JSON tags and optional binding tags (header, path, query).
+// It includes JSON tags and optional binding tags (path, query).
 func genFieldTag(fieldName, typeName string, arr []tidl.Annotation, binding *Binding) (string, error) {
 	var tags []string
 

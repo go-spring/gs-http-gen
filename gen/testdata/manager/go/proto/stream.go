@@ -70,7 +70,7 @@ func (x *StreamReq) New() any {
 	return &StreamReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -96,7 +96,7 @@ func (x *StreamReqBody) New() any {
 	return &StreamReqBody{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -124,7 +124,7 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -153,7 +153,7 @@ func (x *Payload) New() any {
 	return &Payload{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *Payload) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }

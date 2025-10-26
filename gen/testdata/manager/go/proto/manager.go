@@ -201,7 +201,7 @@ func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *PageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"PageReq.Page", "query", "page", &x.Page},
@@ -238,7 +238,7 @@ func (x *Address) New() any {
 	return &Address{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *Address) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -266,7 +266,7 @@ func (x *ContactInfo) New() any {
 	return &ContactInfo{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ContactInfo) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -296,7 +296,7 @@ func (x *DepartmentInfo) New() any {
 	return &DepartmentInfo{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *DepartmentInfo) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -330,7 +330,7 @@ func (x *Manager) New() any {
 	return &Manager{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *Manager) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -368,7 +368,7 @@ func (x *ManagerReq) New() any {
 	return &ManagerReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"ManagerReq.Id", "path", "id", &x.Id},
@@ -395,7 +395,7 @@ func (x *ManagerReqBody) New() any {
 	return &ManagerReqBody{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagerReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -421,7 +421,7 @@ func (x *CreateManagerReq) New() any {
 	return &CreateManagerReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -454,7 +454,7 @@ func (x *CreateManagerReqBody) New() any {
 	return &CreateManagerReqBody{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -492,7 +492,7 @@ func (x *UpdateManagerReq) New() any {
 	return &UpdateManagerReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"UpdateManagerReq.ID", "path", "id", &x.ID},
@@ -527,7 +527,7 @@ func (x *UpdateManagerReqBody) New() any {
 	return &UpdateManagerReqBody{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -556,13 +556,12 @@ func (x *UpdateManagerReqBody) String() string {
 
 type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
-	Page      int64         `json:"page" query:"page"`
-	Size      int64         `json:"size" query:"size"`
-	Keyword   *string       `json:"keyword,omitempty" query:"keyword"`
-	Dept      *Department   `json:"dept,omitempty" query:"dept"`
-	MinLevel  *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
-	Vip       *bool         `json:"vip,omitempty" query:"vip"`
-	AuthToken *string       `json:"authToken,omitempty" header:"X-Auth-Token"`
+	Page     int64         `json:"page" query:"page"`
+	Size     int64         `json:"size" query:"size"`
+	Keyword  *string       `json:"keyword,omitempty" query:"keyword"`
+	Dept     *Department   `json:"dept,omitempty" query:"dept"`
+	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
+	Vip      *bool         `json:"vip,omitempty" query:"vip"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -570,7 +569,7 @@ func (x *ListManagersByPageReq) New() any {
 	return &ListManagersByPageReq{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
 		{"ListManagersByPageReq.Page", "query", "page", &x.Page},
@@ -579,7 +578,6 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 		{"ListManagersByPageReq.Dept", "query", "dept", &x.Dept},
 		{"ListManagersByPageReq.MinLevel", "query", "minLevel", &x.MinLevel},
 		{"ListManagersByPageReq.Vip", "query", "vip", &x.Vip},
-		{"ListManagersByPageReq.AuthToken", "header", "X-Auth-Token", &x.AuthToken},
 	})
 }
 
@@ -609,7 +607,7 @@ func (x *ListManagersByPageReqBody) New() any {
 	return &ListManagersByPageReqBody{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -637,7 +635,7 @@ func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -668,7 +666,7 @@ func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -699,7 +697,7 @@ func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *GetManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -730,7 +728,7 @@ func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *DeleteManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -762,7 +760,7 @@ func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagersPageData) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
@@ -790,7 +788,7 @@ func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
+// Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }

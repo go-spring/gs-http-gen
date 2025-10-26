@@ -47,7 +47,7 @@ Generate Go server-side code and client code in other languages from IDL files:
 
 * Data model structures
 * Parameter and data validation logic
-* Automatic HTTP request parameter binding (path, query, header, body)
+* Automatic HTTP request parameter binding (path, query, body)
 * Support for both regular and streaming (SSE) interfaces
 * Server interface definitions and route binding
 * Client-side call code
@@ -68,7 +68,7 @@ Generate Go server-side code and client code in other languages from IDL files:
 
 ### 🌐 HTTP-Friendly
 
-* Automatic binding of HTTP request parameters (path, query, header, body)
+* Automatic binding of HTTP request parameters (path, query, body)
 * Supports `form`, `json`, and `multipart-form` formats
 * Native support for streaming RPC (SSE) interfaces
 

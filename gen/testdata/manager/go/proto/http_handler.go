@@ -84,10 +84,10 @@ func SetCookie(ctx context.Context, cookie *http.Cookie) {
 }
 
 // BindingField describes a mapping rule for extracting values
-// from request headers, path parameters, or query parameters.
+// from request path parameters, or query parameters.
 type BindingField struct {
 	Field  string // Struct field name
-	From   string // "header", "path", or "query"
+	From   string // "path", or "query"
 	Name   string // Parameter name
 	Target any    // Target struct field pointer
 }
@@ -106,12 +106,10 @@ func Binding(req *http.Request, params []BindingField) error {
 }
 
 // bindField extracts a single field value from a request source
-// (header, path, or query) and decodes it into the target struct field.
+// (path, or query) and decodes it into the target struct field.
 func bindField(req *http.Request, f BindingField) error {
 	values := url.Values{}
 	switch f.From {
-	case "header":
-		values[f.Name] = req.Header.Values(f.Name)
 	case "path":
 		values.Set(f.Name, req.PathValue(f.Name))
 	case "query":

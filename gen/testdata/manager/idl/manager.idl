@@ -136,7 +136,6 @@ type ListManagersByPageReq {
     Department? dept (query="dept")
     ManagerLevel? minLevel (query="minLevel")
     bool? vip (query="vip")
-    string? authToken (header="X-Auth-Token")
 }
 
 // ---- Response types ----
