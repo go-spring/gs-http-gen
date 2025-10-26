@@ -56,11 +56,11 @@ type Response<T> {
 }
 
 // ---- RPC definitions ----
-rpc GetUser (UserReq) UserResponse {
+rpc GetUser (UserReq) UserResp {
     go.type="*string"
     method="GET"
     path="/user"
 }
 
 // ---- type re-definition ----
-type UserResponse Response<list<User?>>
+type UserResp Response<list<User?>>

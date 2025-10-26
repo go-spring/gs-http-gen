@@ -574,7 +574,7 @@
       }
     },
     {
-      "Name": "UserResponse",
+      "Name": "UserResp",
       "OneOf": false,
       "Redefined": {
         "Name": "Response",
@@ -618,7 +618,7 @@
       "Response": {
         "Stream": false,
         "UserType": {
-          "Name": "UserResponse",
+          "Name": "UserResp",
           "Optional": false
         }
       },
@@ -690,13 +690,13 @@
     "Response": 4,
     "User": 1,
     "UserReq": 0,
-    "UserResponse": 5
+    "UserResp": 5
   },
   "UsedTypes": {
     "Address": {},
     "Payload": {},
     "User": {},
     "UserReq": {},
-    "UserResponse": {}
+    "UserResp": {}
   }
 }

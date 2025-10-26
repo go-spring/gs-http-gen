@@ -504,6 +504,9 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	if !IsPascal(r.Request.Name) {
 		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
 	}
+	if !strings.HasSuffix(r.Request.Name, "Req") {
+		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request.Name, r.Position.Start))
+	}
 	l.Document.UsedTypes[r.Request.Name] = struct{}{}
 
 	// Response
@@ -517,6 +520,9 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 	if !IsPascal(r.Response.UserType.Name) {
 		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
+	}
+	if !strings.HasSuffix(r.Response.UserType.Name, "Resp") {
+		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response.UserType.Name, r.Position.Start))
 	}
 	l.Document.UsedTypes[r.Response.UserType.Name] = struct{}{}
 
