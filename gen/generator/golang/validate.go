@@ -58,5 +58,5 @@ func (g *Generator) genValidate(ctx Context, code Go) error {
 	}
 	fileName := ctx.meta.Name + "_validate.go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)
-	return formatFile(fileName, buf.Bytes())
+	return g.FormatFile(fileName, buf.Bytes())
 }

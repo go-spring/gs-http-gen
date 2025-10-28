@@ -184,5 +184,5 @@ func (g *Generator) genType(ctx Context, fileName string, code Go) error {
 
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)
-	return formatFile(fileName, buf.Bytes())
+	return g.FormatFile(fileName, buf.Bytes())
 }

@@ -108,7 +108,7 @@ func (g *Generator) genClientInterface(ctx Context, rpcs []RPC) error {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 	fileName := filepath.Join(ctx.config.OutputDir, "client.go")
-	return formatFile(fileName, buf.Bytes())
+	return g.FormatFile(fileName, buf.Bytes())
 }
 
 func (g *Generator) genClientImplement(ctx Context, rpcs []RPC) error {
@@ -121,5 +121,5 @@ func (g *Generator) genClientImplement(ctx Context, rpcs []RPC) error {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
 	fileName := filepath.Join(ctx.config.OutputDir, "client_impl.go")
-	return formatFile(fileName, buf.Bytes())
+	return g.FormatFile(fileName, buf.Bytes())
 }

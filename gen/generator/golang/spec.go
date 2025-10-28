@@ -797,3 +797,18 @@ func convertRPC(r tidl.RPC) (RPC, error) {
 		Comment:  formatComment(r.Comments),
 	}, nil
 }
+
+// formatComment converts a tidl.Comments into Go comments.
+func formatComment(c tidl.Comments) string {
+	var comment string
+	for _, s := range c.Above {
+		comment += s.Text[0]
+	}
+	if c.Right != nil {
+		if c.Above != nil {
+			comment += "\n"
+		}
+		comment += strings.Join(c.Right.Text, "\n")
+	}
+	return comment
+}

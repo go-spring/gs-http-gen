@@ -103,5 +103,5 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 	}
 	fileName := ctx.meta.Name + "_http.go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)
-	return formatFile(fileName, buf.Bytes())
+	return g.FormatFile(fileName, buf.Bytes())
 }
