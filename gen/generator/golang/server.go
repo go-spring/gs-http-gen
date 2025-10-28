@@ -23,6 +23,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/lvan100/errutil"
 )
 
@@ -68,7 +69,7 @@ func InitRouter(mux *http.ServeMux, server {{.Service}}Server) {
 
 // genServer generates the HTTP handler and router initialization code
 // for the given service context and RPC definitions.
-func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
+func (g *Generator) genServer(config *generator.Config, code Go) error {
 
 	// Copy proto template files to output directory
 	{
@@ -84,8 +85,8 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 			if err != nil {
 				return errutil.Explain(nil, "read proto file %s error: %w", e.Name(), err)
 			}
-			b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(ctx.config.GoPackage))
-			fileName := filepath.Join(ctx.config.OutputDir, e.Name())
+			b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(config.GoPackage))
+			fileName := filepath.Join(config.OutputDir, e.Name())
 			if err = os.WriteFile(fileName, b, os.ModePerm); err != nil {
 				return errutil.Explain(nil, "write proto file %s error: %w", fileName, err)
 			}
@@ -94,14 +95,14 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 
 	buf := &bytes.Buffer{}
 	err := serverTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
-		"Service": ctx.meta.Name,
-		"RPCs":    rpcs,
+		"Package": config.GoPackage,
+		"Service": code.Meta.Name,
+		"RPCs":    code.RPCs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := ctx.meta.Name + "_http.go"
-	fileName = filepath.Join(ctx.config.OutputDir, fileName)
+	fileName := code.Meta.Name + "_http.go"
+	fileName = filepath.Join(config.OutputDir, fileName)
 	return g.FormatFile(fileName, buf.Bytes())
 }

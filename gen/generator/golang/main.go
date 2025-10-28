@@ -37,12 +37,6 @@ package {{.Package}}
 const ToolVersion = "{{.ToolVersion}}"
 `))
 
-// Context holds all necessary information used during code generation.
-type Context struct {
-	config *generator.Config // Generator configuration options
-	meta   *tidl.MetaInfo    // Service metadata (name, version, etc.)
-}
-
 type Generator struct{}
 
 // formatFile formats Go source code using `go format`
@@ -61,36 +55,31 @@ func (g *Generator) FormatFile(fileName string, b []byte) error {
 
 // Gen is the main entry point for generating code.
 func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document, meta *tidl.MetaInfo) error {
-	ctx := Context{
-		config: config,
-		meta:   meta,
-	}
-
-	code, err := Convert(files)
+	code, err := Convert(files, meta)
 	if err != nil {
 		return err
 	}
 
 	// Generate type code
 	for fileName := range files {
-		if err := g.genType(ctx, fileName, code); err != nil {
+		if err := g.genType(config, fileName, code); err != nil {
 			return errutil.Explain(nil, "generate type file %s error: %w", fileName, err)
 		}
 	}
 
 	// Generate server code if enabled in the configuration
 	if config.EnableServer {
-		if err := g.genValidate(ctx, code); err != nil {
+		if err := g.genValidate(config, code); err != nil {
 			return errutil.Explain(nil, "generate validate file error: %w", err)
 		}
-		if err := g.genServer(ctx, code.RPCs); err != nil {
+		if err := g.genServer(config, code); err != nil {
 			return errutil.Explain(nil, "generate server file error: %w", err)
 		}
 	}
 
 	// Generate client code if enabled in the configuration
 	if config.EnableClient {
-		if err := g.genClient(ctx, code.RPCs); err != nil {
+		if err := g.genClient(config, code.RPCs); err != nil {
 			return errutil.Explain(nil, "generate client file error: %w", err)
 		}
 	}
@@ -99,13 +88,13 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 	{
 		buf := &bytes.Buffer{}
 		err := toolVersionTmpl.Execute(buf, map[string]any{
-			"Package":     ctx.config.GoPackage,
-			"ToolVersion": ctx.config.ToolVersion,
+			"Package":     config.GoPackage,
+			"ToolVersion": config.ToolVersion,
 		})
 		if err != nil {
 			return errutil.Explain(nil, "generate tool version file error: %w", err)
 		}
-		fileName := filepath.Join(ctx.config.OutputDir, "tool_version.go")
+		fileName := filepath.Join(config.OutputDir, "tool_version.go")
 		if err = g.FormatFile(fileName, buf.Bytes()); err != nil {
 			return errutil.Explain(nil, "write tool version file error: %w", err)
 		}

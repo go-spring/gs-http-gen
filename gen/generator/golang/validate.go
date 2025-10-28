@@ -23,6 +23,7 @@ import (
 	"slices"
 	"text/template"
 
+	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/lvan100/errutil"
 )
 
@@ -40,7 +41,7 @@ var {{$f.Name}} = func ({{$f.FieldType}}) bool { return true }
 `))
 
 // genValidate generates the Go file containing default validation functions.
-func (g *Generator) genValidate(ctx Context, code Go) error {
+func (g *Generator) genValidate(config *generator.Config, code Go) error {
 
 	// Sort the functions by name
 	var funcs []ValidateFunc
@@ -50,13 +51,13 @@ func (g *Generator) genValidate(ctx Context, code Go) error {
 
 	buf := &bytes.Buffer{}
 	err := validateTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
+		"Package": config.GoPackage,
 		"Funcs":   funcs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := ctx.meta.Name + "_validate.go"
-	fileName = filepath.Join(ctx.config.OutputDir, fileName)
+	fileName := code.Meta.Name + "_validate.go"
+	fileName = filepath.Join(config.OutputDir, fileName)
 	return g.FormatFile(fileName, buf.Bytes())
 }

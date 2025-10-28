@@ -22,6 +22,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/lvan100/errutil"
 )
 
@@ -169,11 +170,11 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 
 // genType generates a Go source file corresponding to the IDL file.
 // It includes constants, enums, and struct types.
-func (g *Generator) genType(ctx Context, fileName string, code Go) error {
+func (g *Generator) genType(config *generator.Config, fileName string, code Go) error {
 
 	buf := &bytes.Buffer{}
 	err := typeTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
+		"Package": config.GoPackage,
 		"Consts":  code.Consts[fileName],
 		"Enums":   code.Enums[fileName],
 		"Structs": code.Types[fileName],
@@ -183,6 +184,6 @@ func (g *Generator) genType(ctx Context, fileName string, code Go) error {
 	}
 
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
-	fileName = filepath.Join(ctx.config.OutputDir, fileName)
+	fileName = filepath.Join(config.OutputDir, fileName)
 	return g.FormatFile(fileName, buf.Bytes())
 }

@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/lvan100/errutil"
 )
 
@@ -88,38 +89,38 @@ func (c *ClientImpl) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}) (*htt
 `))
 
 // genClient generates the HTTP client code for a given service.
-func (g *Generator) genClient(ctx Context, rpcs []RPC) error {
-	if err := g.genClientInterface(ctx, rpcs); err != nil {
+func (g *Generator) genClient(config *generator.Config, rpcs []RPC) error {
+	if err := g.genClientInterface(config, rpcs); err != nil {
 		return err
 	}
-	if err := g.genClientImplement(ctx, rpcs); err != nil {
+	if err := g.genClientImplement(config, rpcs); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (g *Generator) genClientInterface(ctx Context, rpcs []RPC) error {
+func (g *Generator) genClientInterface(config *generator.Config, rpcs []RPC) error {
 	buf := &bytes.Buffer{}
 	err := clientTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
+		"Package": config.GoPackage,
 		"RPCs":    rpcs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := filepath.Join(ctx.config.OutputDir, "client.go")
+	fileName := filepath.Join(config.OutputDir, "client.go")
 	return g.FormatFile(fileName, buf.Bytes())
 }
 
-func (g *Generator) genClientImplement(ctx Context, rpcs []RPC) error {
+func (g *Generator) genClientImplement(config *generator.Config, rpcs []RPC) error {
 	buf := &bytes.Buffer{}
 	err := clientImplTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
+		"Package": config.GoPackage,
 		"RPCs":    rpcs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := filepath.Join(ctx.config.OutputDir, "client_impl.go")
+	fileName := filepath.Join(config.OutputDir, "client_impl.go")
 	return g.FormatFile(fileName, buf.Bytes())
 }

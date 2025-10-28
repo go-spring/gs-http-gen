@@ -108,6 +108,7 @@ type RPC struct {
 
 type Go struct {
 	Files  map[string]tidl.Document
+	Meta   *tidl.MetaInfo
 	Reqs   map[string]struct{} // request type name
 	Consts map[string][]Const
 	Enums  map[string][]Enum
@@ -116,9 +117,10 @@ type Go struct {
 	Funcs  map[string]ValidateFunc // Collected validation functions
 }
 
-func Convert(files map[string]tidl.Document) (Go, error) {
+func Convert(files map[string]tidl.Document, meta *tidl.MetaInfo) (Go, error) {
 	g := Go{
 		Files:  files,
+		Meta:   meta,
 		Reqs:   make(map[string]struct{}),
 		Consts: make(map[string][]Const),
 		Enums:  make(map[string][]Enum),
