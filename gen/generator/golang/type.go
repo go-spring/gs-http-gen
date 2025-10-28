@@ -174,9 +174,9 @@ func (g *Generator) genType(ctx Context, fileName string, code Go) error {
 	buf := &bytes.Buffer{}
 	err := typeTmpl.Execute(buf, map[string]any{
 		"Package": ctx.config.GoPackage,
-		"Consts":  code.Consts,
-		"Enums":   code.Enums,
-		"Structs": code.Types,
+		"Consts":  code.Consts[fileName],
+		"Enums":   code.Enums[fileName],
+		"Structs": code.Types[fileName],
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
