@@ -21,10 +21,8 @@ import (
 	"embed"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 
-	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/lvan100/errutil"
 )
 
@@ -106,47 +104,4 @@ func (g *Generator) genServer(ctx Context, rpcs []RPC) error {
 	fileName := ctx.meta.Name + "_http.go"
 	fileName = filepath.Join(ctx.config.OutputDir, fileName)
 	return formatFile(fileName, buf.Bytes())
-}
-
-// RPC represents a single remote procedure call with HTTP metadata.
-type RPC struct {
-	Name     string // Method name
-	Request  string // Request type name
-	Response string // Response type name
-	Stream   bool   // Whether this RPC is a streaming RPC
-	Path     string // HTTP path
-	Method   string // HTTP method (GET, POST, etc.)
-	Comment  string // Comment of the RPC
-}
-
-// convertRPC converts a TIDL RPC to a RPC.
-func convertRPC(r tidl.RPC) (RPC, error) {
-
-	// Retrieve the required "path" annotation
-	path, ok := tidl.GetAnnotation(r.Annotations, "path")
-	if !ok {
-		return RPC{}, errutil.Explain(nil, `annotation "path" not found in rpc %s`, r.Name)
-	}
-	if path.Value == nil {
-		return RPC{}, errutil.Explain(nil, `annotation "path" value is nil in rpc %s`, r.Name)
-	}
-
-	// Retrieve the required "method" annotation
-	method, ok := tidl.GetAnnotation(r.Annotations, "method")
-	if !ok {
-		return RPC{}, errutil.Explain(nil, `annotation "method" not found in rpc %s`, r.Name)
-	}
-	if method.Value == nil {
-		return RPC{}, errutil.Explain(nil, `annotation "method" value is nil in rpc %s`, r.Name)
-	}
-
-	return RPC{
-		Name:     r.Name,
-		Request:  r.Request.Name,
-		Response: r.Response.UserType.Name,
-		Stream:   r.Response.Stream,
-		Path:     strings.Trim(*path.Value, `"`),
-		Method:   strings.ToUpper(strings.Trim(*method.Value, `"`)),
-		Comment:  formatComment(r.Comments),
-	}, nil
 }

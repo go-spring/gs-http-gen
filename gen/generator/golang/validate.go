@@ -40,12 +40,12 @@ var {{$f.Name}} = func ({{$f.FieldType}}) bool { return true }
 `))
 
 // genValidate generates the Go file containing default validation functions.
-func (g *Generator) genValidate(ctx Context) error {
+func (g *Generator) genValidate(ctx Context, code Go) error {
 
 	// Sort the functions by name
 	var funcs []ValidateFunc
-	for _, s := range slices.Sorted(maps.Keys(ctx.funcs)) {
-		funcs = append(funcs, ctx.funcs[s])
+	for _, s := range slices.Sorted(maps.Keys(code.Funcs)) {
+		funcs = append(funcs, code.Funcs[s])
 	}
 
 	buf := &bytes.Buffer{}

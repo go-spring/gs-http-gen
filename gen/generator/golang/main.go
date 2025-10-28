@@ -21,7 +21,6 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"text/template"
 
@@ -41,11 +40,8 @@ const ToolVersion = "{{.ToolVersion}}"
 
 // Context holds all necessary information used during code generation.
 type Context struct {
-	config *generator.Config        // Generator configuration options
-	meta   *tidl.MetaInfo           // Service metadata (name, version, etc.)
-	files  map[string]tidl.Document // Parsed TIDL documents keyed by file name
-	funcs  map[string]ValidateFunc  // Collected validation functions
-	reqs   map[string]struct{}      // request type name
+	config *generator.Config // Generator configuration options
+	meta   *tidl.MetaInfo    // Service metadata (name, version, etc.)
 }
 
 type Generator struct{}
@@ -55,47 +51,33 @@ func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document
 	ctx := Context{
 		config: config,
 		meta:   meta,
-		files:  files,
-		funcs:  make(map[string]ValidateFunc),
-		reqs:   make(map[string]struct{}),
 	}
 
-	// Collect all RPC definitions
-	var rpcs []RPC
-	for _, doc := range files {
-		for _, r := range doc.RPCs {
-			rpc, err := convertRPC(r)
-			if err != nil {
-				return err
-			}
-			rpcs = append(rpcs, rpc)
-			ctx.reqs[rpc.Request] = struct{}{}
-		}
+	code, err := Convert(files)
+	if err != nil {
+		return err
 	}
-	sort.Slice(rpcs, func(i, j int) bool {
-		return rpcs[i].Name < rpcs[j].Name
-	})
 
 	// Generate type code
-	for fileName, doc := range files {
-		if err := g.genType(ctx, fileName, doc); err != nil {
+	for fileName := range files {
+		if err := g.genType(ctx, fileName, code); err != nil {
 			return errutil.Explain(nil, "generate type file %s error: %w", fileName, err)
 		}
 	}
 
 	// Generate server code if enabled in the configuration
 	if config.EnableServer {
-		if err := g.genValidate(ctx); err != nil {
+		if err := g.genValidate(ctx, code); err != nil {
 			return errutil.Explain(nil, "generate validate file error: %w", err)
 		}
-		if err := g.genServer(ctx, rpcs); err != nil {
+		if err := g.genServer(ctx, code.RPCs); err != nil {
 			return errutil.Explain(nil, "generate server file error: %w", err)
 		}
 	}
 
 	// Generate client code if enabled in the configuration
 	if config.EnableClient {
-		if err := g.genClient(ctx, rpcs); err != nil {
+		if err := g.genClient(ctx, code.RPCs); err != nil {
 			return errutil.Explain(nil, "generate client file error: %w", err)
 		}
 	}
