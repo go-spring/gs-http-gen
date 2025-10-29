@@ -19,7 +19,6 @@ package gen
 import (
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/gen/generator/golang"
-	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/lvan100/errutil"
 )
 
@@ -33,15 +32,5 @@ func Gen(language string, config *generator.Config) error {
 	if !ok {
 		return errutil.Explain(nil, "unsupported language: %s", language)
 	}
-	files, meta, err := tidl.ParseDir(config.IDLSrcDir)
-	if err != nil {
-		return err
-	}
-	if meta == nil {
-		return errutil.Explain(nil, "no meta file")
-	}
-	if len(files) == 0 {
-		return errutil.Explain(nil, "no idl file")
-	}
-	return g.Gen(config, files, meta)
+	return g.Gen(config)
 }

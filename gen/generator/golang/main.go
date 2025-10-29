@@ -24,7 +24,6 @@ import (
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/lvan100/errutil"
 )
 
@@ -54,14 +53,15 @@ func (g *Generator) FormatFile(fileName string, b []byte) error {
 }
 
 // Gen is the main entry point for generating code.
-func (g *Generator) Gen(config *generator.Config, files map[string]tidl.Document, meta *tidl.MetaInfo) error {
-	code, err := Convert(files, meta)
+func (g *Generator) Gen(config *generator.Config) error {
+
+	code, err := Convert(config.IDLSrcDir)
 	if err != nil {
 		return err
 	}
 
 	// Generate type code
-	for fileName := range files {
+	for fileName := range code.Files {
 		if err := g.genType(config, fileName, code); err != nil {
 			return errutil.Explain(nil, "generate type file %s error: %w", fileName, err)
 		}

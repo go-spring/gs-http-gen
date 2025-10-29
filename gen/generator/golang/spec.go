@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/go-spring/gs-http-gen/lib/vidl"
 	"github.com/lvan100/errutil"
@@ -117,7 +118,12 @@ type Go struct {
 	Funcs  map[string]ValidateFunc // Collected validation functions
 }
 
-func Convert(files map[string]tidl.Document, meta *tidl.MetaInfo) (Go, error) {
+func Convert(dir string) (Go, error) {
+	files, meta, err := generator.ParseDir(dir)
+	if err != nil {
+		return Go{}, err
+	}
+
 	g := Go{
 		Files:  files,
 		Meta:   meta,

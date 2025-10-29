@@ -37,7 +37,7 @@ var generators = map[string]Generator{}
 // must implement. The Gen method generates code based on the given
 // configuration, documents, and metadata.
 type Generator interface {
-	Gen(config *Config, files map[string]tidl.Document, meta *tidl.MetaInfo) error
+	Gen(config *Config) error
 }
 
 // GetGenerator retrieves a registered generator for a given language.
@@ -52,4 +52,18 @@ func RegisterGenerator(language string, g Generator) {
 		panic(errutil.Explain(nil, "duplicate generator for %s", language))
 	}
 	generators[language] = g
+}
+
+func ParseDir(dir string) ( /* files */ map[string]tidl.Document /* meta */, *tidl.MetaInfo, error) {
+	files, meta, err := tidl.ParseDir(dir)
+	if err != nil {
+		return nil, nil, err
+	}
+	if meta == nil {
+		return nil, nil, errutil.Explain(nil, "no meta file")
+	}
+	if len(files) == 0 {
+		return nil, nil, errutil.Explain(nil, "no idl file")
+	}
+	return files, meta, nil
 }
