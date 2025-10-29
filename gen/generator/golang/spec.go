@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/tidl"
 	"github.com/go-spring/gs-http-gen/lib/vidl"
 	"github.com/lvan100/errutil"
@@ -119,7 +118,7 @@ type Go struct {
 }
 
 func Convert(dir string) (Go, error) {
-	files, meta, err := generator.ParseDir(dir)
+	files, meta, err := tidl.ParseDir(dir)
 	if err != nil {
 		return Go{}, err
 	}

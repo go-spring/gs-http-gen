@@ -79,6 +79,13 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 		files[e.Name()] = doc
 	}
 
+	if meta == nil {
+		return nil, nil, errutil.Explain(nil, "no meta file")
+	}
+	if len(files) == 0 {
+		return nil, nil, errutil.Explain(nil, "no idl file")
+	}
+
 	// Validate that all used types are defined
 	usedTypes := map[string]struct{}{}
 	definedTypes := make(map[string]struct{})
