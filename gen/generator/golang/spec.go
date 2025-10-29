@@ -106,7 +106,7 @@ type RPC struct {
 	Comment  string // Comment of the RPC
 }
 
-type Go struct {
+type GoCode struct {
 	Files  map[string]tidl.Document
 	Meta   *tidl.MetaInfo
 	Reqs   map[string]struct{} // request type name
@@ -117,13 +117,13 @@ type Go struct {
 	Funcs  map[string]ValidateFunc // Collected validation functions
 }
 
-func Convert(dir string) (Go, error) {
+func Convert(dir string) (GoCode, error) {
 	files, meta, err := tidl.ParseDir(dir)
 	if err != nil {
-		return Go{}, err
+		return GoCode{}, err
 	}
 
-	g := Go{
+	code := GoCode{
 		Files:  files,
 		Meta:   meta,
 		Reqs:   make(map[string]struct{}),
@@ -138,33 +138,33 @@ func Convert(dir string) (Go, error) {
 		for _, r := range doc.RPCs {
 			rpc, err := convertRPC(r)
 			if err != nil {
-				return g, err
+				return code, err
 			}
-			g.RPCs = append(g.RPCs, rpc)
-			g.Reqs[rpc.Request] = struct{}{}
+			code.RPCs = append(code.RPCs, rpc)
+			code.Reqs[rpc.Request] = struct{}{}
 		}
 	}
-	sort.Slice(g.RPCs, func(i, j int) bool {
-		return g.RPCs[i].Name < g.RPCs[j].Name
+	sort.Slice(code.RPCs, func(i, j int) bool {
+		return code.RPCs[i].Name < code.RPCs[j].Name
 	})
 
 	for fileName, doc := range files {
-		consts, err := convertConsts(g, doc)
+		consts, err := convertConsts(code, doc)
 		if err != nil {
-			return g, errutil.Explain(nil, "convert consts error: %w", err)
+			return code, errutil.Explain(nil, "convert consts error: %w", err)
 		}
-		enums, err := convertEnums(g, doc)
+		enums, err := convertEnums(code, doc)
 		if err != nil {
-			return g, errutil.Explain(nil, "convert enums error: %w", err)
+			return code, errutil.Explain(nil, "convert enums error: %w", err)
 		}
-		types, err := convertTypes(g, doc)
+		types, err := convertTypes(code, doc)
 		if err != nil {
-			return g, errutil.Explain(nil, "convert types error: %w", err)
+			return code, errutil.Explain(nil, "convert types error: %w", err)
 		}
 		{
 			var temp []Type
 			for _, t := range types {
-				if _, ok := g.Reqs[t.Name]; ok {
+				if _, ok := code.Reqs[t.Name]; ok {
 					whole, body := SplitType(t)
 					temp = append(temp, whole, body)
 				} else {
@@ -173,11 +173,11 @@ func Convert(dir string) (Go, error) {
 			}
 			types = temp
 		}
-		g.Consts[fileName] = consts
-		g.Enums[fileName] = enums
-		g.Types[fileName] = types
+		code.Consts[fileName] = consts
+		code.Enums[fileName] = enums
+		code.Types[fileName] = types
 	}
-	return g, nil
+	return code, nil
 }
 
 // SplitType splits a type into a whole type and a body type.
@@ -197,11 +197,11 @@ func SplitType(t Type) (whole Type, body Type) {
 }
 
 // convertConsts converts IDL constants to Go constants
-func convertConsts(g Go, doc tidl.Document) ([]Const, error) {
+func convertConsts(code GoCode, doc tidl.Document) ([]Const, error) {
 	var ret []Const
 	for _, c := range doc.Consts {
 		t := tidl.BaseType{Name: c.Type}
-		typeName, err := getTypeName(g, t, nil)
+		typeName, err := getTypeName(code, t, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -216,7 +216,7 @@ func convertConsts(g Go, doc tidl.Document) ([]Const, error) {
 }
 
 // convertEnums converts IDL enums to Go enums
-func convertEnums(g Go, doc tidl.Document) ([]Enum, error) {
+func convertEnums(code GoCode, doc tidl.Document) ([]Enum, error) {
 	var ret []Enum
 
 	// Convert standard enums
@@ -280,7 +280,7 @@ func getJSONName(fieldName string, arr []tidl.Annotation) (string, error) {
 }
 
 // convertTypes converts IDL struct types to Go struct types
-func convertTypes(g Go, doc tidl.Document) ([]Type, error) {
+func convertTypes(code GoCode, doc tidl.Document) ([]Type, error) {
 	var ret []Type
 	for _, t := range doc.Types {
 		// Skip generic types (they need instantiation via Redefined)
@@ -292,9 +292,9 @@ func convertTypes(g Go, doc tidl.Document) ([]Type, error) {
 			err error
 		)
 		if t.Redefined != nil {
-			typ, err = convertRedefinedType(g, t)
+			typ, err = convertRedefinedType(code, t)
 		} else {
-			typ, err = convertType(g, t)
+			typ, err = convertType(code, t)
 		}
 		if err != nil {
 			return nil, err
@@ -305,9 +305,9 @@ func convertTypes(g Go, doc tidl.Document) ([]Type, error) {
 }
 
 // convertRedefinedType instantiates a redefined generic struct type
-func convertRedefinedType(g Go, r tidl.Type) (Type, error) {
+func convertRedefinedType(code GoCode, r tidl.Type) (Type, error) {
 
-	t, ok := tidl.GetType(g.Files, r.Redefined.Name)
+	t, ok := tidl.GetType(code.Files, r.Redefined.Name)
 	if !ok {
 		err := errutil.Explain(nil, "type %s not found", r.Redefined.Name)
 		return Type{}, errutil.Explain(nil, "convert redefined type %s error: %w", r.Name, err)
@@ -320,7 +320,7 @@ func convertRedefinedType(g Go, r tidl.Type) (Type, error) {
 		fields = append(fields, f)
 	}
 
-	return convertType(g, tidl.Type{
+	return convertType(code, tidl.Type{
 		Name:     r.Name,
 		Fields:   fields,
 		Position: r.Position,
@@ -348,7 +348,7 @@ func replaceGenericType(t tidl.TypeDefinition, genericName string, genericType t
 }
 
 // convertType converts an IDL struct type to a Go struct type
-func convertType(g Go, t tidl.Type) (Type, error) {
+func convertType(code GoCode, t tidl.Type) (Type, error) {
 	r := Type{
 		Name: t.Name,
 	}
@@ -368,11 +368,11 @@ func convertType(g Go, t tidl.Type) (Type, error) {
 
 		// Handle embedded types (flatten their fields into the struct)
 		if embedType, ok := f.FieldType.(tidl.EmbedType); ok {
-			srcType, ok := tidl.GetType(g.Files, embedType.Name)
+			srcType, ok := tidl.GetType(code.Files, embedType.Name)
 			if !ok {
 				return Type{}, errutil.Explain(nil, "embedded type %s not found for field in type %s", embedType.Name, r.Name)
 			}
-			retType, err := convertType(g, srcType)
+			retType, err := convertType(code, srcType)
 			if err != nil {
 				return Type{}, errutil.Explain(nil, "failed to convert embedded type %s in type %s: %w", embedType.Name, r.Name, err)
 			}
@@ -385,13 +385,13 @@ func convertType(g Go, t tidl.Type) (Type, error) {
 		fieldName := tidl.ToPascal(f.Name)
 
 		// Determine Go type for the field
-		typeName, err := getTypeName(g, f.FieldType, f.Annotations)
+		typeName, err := getTypeName(code, f.FieldType, f.Annotations)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type name for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
-		typeKind, err := getTypeKind(g, typeName)
+		typeKind, err := getTypeKind(code, typeName)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
@@ -409,7 +409,7 @@ func convertType(g Go, t tidl.Type) (Type, error) {
 		}
 
 		// Generate validation expressions for the field
-		validate, err := genValidate(r.Name, fieldName, typeName, f.Annotations, g.Funcs)
+		validate, err := genValidate(r.Name, fieldName, typeName, f.Annotations, code.Funcs)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
@@ -430,7 +430,7 @@ func convertType(g Go, t tidl.Type) (Type, error) {
 
 // getTypeName returns the Go type name for a given IDL type.
 // It also respects the "go.type" annotation, which overrides the default type.
-func getTypeName(g Go, t tidl.TypeDefinition, arr []tidl.Annotation) (string, error) {
+func getTypeName(code GoCode, t tidl.TypeDefinition, arr []tidl.Annotation) (string, error) {
 
 	// Handle explicit "go.type" annotation
 	if a, ok := tidl.GetAnnotation(arr, "go.type"); ok {
@@ -469,7 +469,7 @@ func getTypeName(g Go, t tidl.TypeDefinition, arr []tidl.Annotation) (string, er
 		typeName := typ.Name
 		// Handle enum_as_string annotation
 		if _, ok := tidl.GetAnnotation(arr, "enum_as_string"); ok {
-			if _, ok := tidl.GetEnum(g.Files, typ.Name); !ok {
+			if _, ok := tidl.GetEnum(code.Files, typ.Name); !ok {
 				return "", errutil.Explain(nil, "enum %s not found", typ.Name)
 			}
 			typeName += "AsString"
@@ -479,7 +479,7 @@ func getTypeName(g Go, t tidl.TypeDefinition, arr []tidl.Annotation) (string, er
 		}
 		return typeName, nil
 	case tidl.ListType:
-		itemType, err := getTypeName(g, typ.Item, nil)
+		itemType, err := getTypeName(code, typ.Item, nil)
 		if err != nil {
 			return "", err
 		}
@@ -489,7 +489,7 @@ func getTypeName(g Go, t tidl.TypeDefinition, arr []tidl.Annotation) (string, er
 		if typ.Key == "int" {
 			keyType = "int64"
 		}
-		valueType, err := getTypeName(g, typ.Value, nil)
+		valueType, err := getTypeName(code, typ.Value, nil)
 		if err != nil {
 			return "", err
 		}
@@ -502,7 +502,7 @@ func getTypeName(g Go, t tidl.TypeDefinition, arr []tidl.Annotation) (string, er
 }
 
 // getTypeKind categorizes a Go type for code generation purposes.
-func getTypeKind(g Go, typeName string) (TypeKind, error) {
+func getTypeKind(code GoCode, typeName string) (TypeKind, error) {
 	typeName, optional := strings.CutPrefix(typeName, "*")
 
 	switch typeName {
@@ -528,13 +528,13 @@ func getTypeKind(g Go, typeName string) (TypeKind, error) {
 		}
 		return TypeKindMapType, nil
 	default:
-		if _, ok := tidl.GetEnum(g.Files, strings.TrimSuffix(typeName, "AsString")); ok {
+		if _, ok := tidl.GetEnum(code.Files, strings.TrimSuffix(typeName, "AsString")); ok {
 			if optional {
 				return TypeKindOptionalEnumType, nil
 			}
 			return TypeKindEnumType, nil
 		}
-		if _, ok := tidl.GetType(g.Files, typeName); ok {
+		if _, ok := tidl.GetType(code.Files, typeName); ok {
 			if optional {
 				return TypeKindOptionalStructType, nil
 			}

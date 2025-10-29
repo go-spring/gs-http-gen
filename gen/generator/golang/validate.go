@@ -41,7 +41,7 @@ var {{$f.Name}} = func ({{$f.FieldType}}) bool { return true }
 `))
 
 // genValidate generates the Go file containing default validation functions.
-func (g *Generator) genValidate(config *generator.Config, code Go) error {
+func (g *Generator) genValidate(config *generator.Config, code GoCode) error {
 
 	// Sort the functions by name
 	var funcs []ValidateFunc

@@ -170,7 +170,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 
 // genType generates a Go source file corresponding to the IDL file.
 // It includes constants, enums, and struct types.
-func (g *Generator) genType(config *generator.Config, fileName string, code Go) error {
+func (g *Generator) genType(config *generator.Config, fileName string, code GoCode) error {
 
 	buf := &bytes.Buffer{}
 	err := typeTmpl.Execute(buf, map[string]any{

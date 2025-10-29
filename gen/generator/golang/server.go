@@ -69,7 +69,7 @@ func InitRouter(mux *http.ServeMux, server {{.Service}}Server) {
 
 // genServer generates the HTTP handler and router initialization code
 // for the given service context and RPC definitions.
-func (g *Generator) genServer(config *generator.Config, code Go) error {
+func (g *Generator) genServer(config *generator.Config, code GoCode) error {
 
 	// Copy proto template files to output directory
 	{
