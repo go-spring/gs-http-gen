@@ -5,6 +5,8 @@ package proto
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/lvan100/errutil"
@@ -70,6 +72,10 @@ func (x *StreamReq) New() any {
 	return &StreamReq{}
 }
 
+func (x *StreamReq) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -94,6 +100,10 @@ type StreamReqBody struct {
 // New returns a new instance (implements Object interface).
 func (x *StreamReqBody) New() any {
 	return &StreamReqBody{}
+}
+
+func (x *StreamReqBody) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -124,6 +134,10 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
+func (x *StreamResp) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -151,6 +165,10 @@ type Payload struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload) New() any {
 	return &Payload{}
+}
+
+func (x *Payload) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.

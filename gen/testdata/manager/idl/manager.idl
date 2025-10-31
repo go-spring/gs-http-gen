@@ -132,7 +132,7 @@ type UpdateManagerReq {
 // Paginated manager query
 type ListManagersByPageReq {
     PageReq
-    string? keyword (query="keyword")
+    list<string?> keyword (query="keyword")
     Department? dept (query="dept")
     ManagerLevel? minLevel (query="minLevel")
     bool? vip (query="vip")

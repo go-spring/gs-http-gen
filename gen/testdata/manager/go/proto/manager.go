@@ -5,6 +5,8 @@ package proto
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/lvan100/errutil"
@@ -201,6 +203,13 @@ func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
+func (x *PageReq) FormValues() (url.Values, error) {
+	m := make(url.Values)
+	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
+	m.Add("size", strconv.FormatInt(int64(x.Size), 10))
+	return m, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *PageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -238,6 +247,10 @@ func (x *Address) New() any {
 	return &Address{}
 }
 
+func (x *Address) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *Address) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -264,6 +277,10 @@ type ContactInfo struct {
 // New returns a new instance (implements Object interface).
 func (x *ContactInfo) New() any {
 	return &ContactInfo{}
+}
+
+func (x *ContactInfo) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -294,6 +311,10 @@ type DepartmentInfo struct {
 // New returns a new instance (implements Object interface).
 func (x *DepartmentInfo) New() any {
 	return &DepartmentInfo{}
+}
+
+func (x *DepartmentInfo) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -328,6 +349,10 @@ type Manager struct {
 // New returns a new instance (implements Object interface).
 func (x *Manager) New() any {
 	return &Manager{}
+}
+
+func (x *Manager) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -368,6 +393,10 @@ func (x *ManagerReq) New() any {
 	return &ManagerReq{}
 }
 
+func (x *ManagerReq) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -395,6 +424,10 @@ func (x *ManagerReqBody) New() any {
 	return &ManagerReqBody{}
 }
 
+func (x *ManagerReqBody) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagerReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -419,6 +452,10 @@ type CreateManagerReq struct {
 // New returns a new instance (implements Object interface).
 func (x *CreateManagerReq) New() any {
 	return &CreateManagerReq{}
+}
+
+func (x *CreateManagerReq) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -452,6 +489,10 @@ type CreateManagerReqBody struct {
 // New returns a new instance (implements Object interface).
 func (x *CreateManagerReqBody) New() any {
 	return &CreateManagerReqBody{}
+}
+
+func (x *CreateManagerReqBody) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -492,6 +533,10 @@ func (x *UpdateManagerReq) New() any {
 	return &UpdateManagerReq{}
 }
 
+func (x *UpdateManagerReq) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -527,6 +572,10 @@ func (x *UpdateManagerReqBody) New() any {
 	return &UpdateManagerReqBody{}
 }
 
+func (x *UpdateManagerReqBody) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -558,7 +607,7 @@ type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
 	Page     int64         `json:"page" query:"page"`
 	Size     int64         `json:"size" query:"size"`
-	Keyword  *string       `json:"keyword,omitempty" query:"keyword"`
+	Keyword  []*string     `json:"keyword" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
 	Vip      *bool         `json:"vip,omitempty" query:"vip"`
@@ -567,6 +616,27 @@ type ListManagersByPageReq struct {
 // New returns a new instance (implements Object interface).
 func (x *ListManagersByPageReq) New() any {
 	return &ListManagersByPageReq{}
+}
+
+func (x *ListManagersByPageReq) FormValues() (url.Values, error) {
+	m := make(url.Values)
+	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
+	m.Add("size", strconv.FormatInt(int64(x.Size), 10))
+	for i := range len(x.Keyword) {
+		if x.Keyword[i] != nil {
+			m.Add("keyword", *x.Keyword[i])
+		}
+	}
+	if x.Dept != nil {
+		m.Add("dept", strconv.FormatInt(int64(*x.Dept), 10))
+	}
+	if x.MinLevel != nil {
+		m.Add("minLevel", strconv.FormatInt(int64(*x.MinLevel), 10))
+	}
+	if x.Vip != nil {
+		m.Add("vip", strconv.FormatBool(*x.Vip))
+	}
+	return m, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -607,6 +677,10 @@ func (x *ListManagersByPageReqBody) New() any {
 	return &ListManagersByPageReqBody{}
 }
 
+func (x *ListManagersByPageReqBody) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageReqBody) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -633,6 +707,10 @@ type CreateManagerResp struct {
 // New returns a new instance (implements Object interface).
 func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
+}
+
+func (x *CreateManagerResp) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -666,6 +744,10 @@ func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
 }
 
+func (x *UpdateManagerResp) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -697,6 +779,10 @@ func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
 }
 
+func (x *GetManagerResp) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *GetManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -726,6 +812,10 @@ type DeleteManagerResp struct {
 // New returns a new instance (implements Object interface).
 func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
+}
+
+func (x *DeleteManagerResp) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -760,6 +850,10 @@ func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
 }
 
+func (x *ManagersPageData) FormValues() (url.Values, error) {
+	return nil, nil
+}
+
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagersPageData) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -786,6 +880,10 @@ type ListManagersByPageResp struct {
 // New returns a new instance (implements Object interface).
 func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
+}
+
+func (x *ListManagersByPageResp) FormValues() (url.Values, error) {
+	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
