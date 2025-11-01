@@ -129,66 +129,59 @@ type Object interface {
 // ReadRequest parses the request body based on Content-Type
 // and decodes it into the given Object.
 func ReadRequest(r *http.Request, i Object) error {
-	defer func() { _ = r.Body.Close() }()
+	maxBodySize := int64(10 << 20) // 10 MB is a lot of text
+
+	oldBody := r.Body
+	defer func() { _ = oldBody.Close() }()
+
+	reader := io.LimitReader(oldBody, maxBodySize+1)
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		return errutil.Explain(nil, "read body: %w", err)
+	}
+	if int64(len(b)) > maxBodySize {
+		return errutil.Explain(nil, "body too large")
+	}
 
 	contentType := r.Header.Get("Content-Type")
 	mediaType, _, _ := mime.ParseMediaType(contentType)
 
+	var asJSON bool
 	switch mediaType {
 	case "application/json":
-		if b, err := io.ReadAll(r.Body); err != nil {
-			return errutil.Explain(nil, "read body: %w", err)
-		} else if len(b) > 0 {
+		asJSON = true
+	case "application/x-www-form-urlencoded":
+		asJSON = false
+	default:
+		if b = bytes.TrimSpace(b); len(b) > 0 {
+			if b[0] == '{' || b[0] == '[' { // Looks like JSON
+				asJSON = true
+			} else {
+				asJSON = false
+			}
+		}
+	}
+
+	if asJSON {
+		if b = bytes.TrimSpace(b); len(b) > 0 {
 			if err = json.Unmarshal(b, i); err != nil {
 				return errutil.Explain(nil, "json decode: %w", err)
 			}
 		}
-
-	case "application/x-www-form-urlencoded":
-		if err := r.ParseForm(); err != nil {
-			return errutil.Explain(nil, "parse form: %w", err)
-		}
-		if err := formDecoder.Decode(i, r.PostForm); err != nil {
-			return errutil.Explain(nil, "form decode: %w", err)
-		}
-
-	case "multipart/form-data":
-		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil {
-			return errutil.Explain(nil, "parse multipart form: %w", err)
-		}
-		defer func() { _ = r.MultipartForm.RemoveAll() }()
-		if r.MultipartForm != nil && len(r.MultipartForm.Value) > 0 {
-			if err := formDecoder.Decode(i, r.MultipartForm.Value); err != nil {
-				return errutil.Explain(nil, "multipart form decode: %w", err)
-			}
-		}
-
-	default:
-		// Fallback: Try JSON or form decoding
-		b, err := io.ReadAll(r.Body)
+	} else {
+		var values url.Values
+		values, err = url.ParseQuery(string(b))
 		if err != nil {
-			return errutil.Explain(nil, "read body: %w", err)
+			return errutil.Explain(nil, "parse query: %w", err)
 		}
-		var asJSON bool
-		if b = bytes.TrimSpace(b); len(b) > 0 {
-			if b[0] == '{' || b[0] == '[' { // Looks like JSON
-				if err = json.Unmarshal(b, i); err != nil {
-					return errutil.Explain(nil, "json decode: %w", err)
-				}
-				asJSON = true
-			} else {
-				r.Body = io.NopCloser(bytes.NewReader(b))
-			}
-		}
-		if !asJSON {
-			if err = r.ParseForm(); err != nil {
-				return errutil.Explain(nil, "parse form: %w", err)
-			}
-			if err = formDecoder.Decode(i, r.PostForm); err != nil {
+		if len(values) > 0 {
+			if err = formDecoder.Decode(i, values); err != nil {
 				return errutil.Explain(nil, "form decode: %w", err)
 			}
 		}
 	}
+
+	r.Body = io.NopCloser(bytes.NewReader(b))
 
 	// Apply bindings
 	return i.Binding(r)
