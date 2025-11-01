@@ -1,6 +1,6 @@
 // Code generated from RestPath.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package pidl // RestPath
+package pathidl // RestPath
 import "github.com/antlr4-go/antlr/v4"
 
 // RestPathListener is a complete listener for a parse tree produced by RestPathParser.

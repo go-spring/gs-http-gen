@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package tidl
+package httpidl
 
 import (
 	"bufio"
@@ -29,7 +29,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 // ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.

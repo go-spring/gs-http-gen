@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package tidl
+package httpidl
 
 // MetaInfo represents metadata about the parsed document.
 type MetaInfo struct {

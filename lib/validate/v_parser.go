@@ -1,6 +1,6 @@
 // Code generated from VParser.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package vidl // VParser
+package validate // VParser
 import (
 	"fmt"
 	"strconv"

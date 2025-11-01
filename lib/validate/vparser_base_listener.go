@@ -1,6 +1,6 @@
 // Code generated from VParser.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package vidl // VParser
+package validate // VParser
 import "github.com/antlr4-go/antlr/v4"
 
 // BaseVParserListener is a complete listener for a parse tree produced by VParser.

@@ -22,7 +22,7 @@ import (
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 var clientTmpl = template.Must(template.New("client").Parse(`

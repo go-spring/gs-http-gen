@@ -24,7 +24,7 @@ import (
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 func AddFormValue(fieldName string, typeKind []TypeKind, binding *Binding) string {
@@ -84,7 +84,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 var _ = strings.Contains

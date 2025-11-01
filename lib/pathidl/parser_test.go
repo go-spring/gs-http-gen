@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package pidl
+package pathidl
 
 import (
 	"reflect"

@@ -19,7 +19,7 @@ package gen
 import (
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/gen/generator/golang"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 func init() {

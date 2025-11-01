@@ -1,6 +1,6 @@
 // Code generated from TParser.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package tidl // TParser
+package httpidl // TParser
 import (
 	"fmt"
 	"strconv"

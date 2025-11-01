@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package vidl
+package validate
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 // Expr represents a generic expression node.

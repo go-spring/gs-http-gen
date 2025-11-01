@@ -17,7 +17,7 @@
 package generator
 
 import (
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 // Config holds the configuration options for the code generator.

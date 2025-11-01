@@ -1,6 +1,6 @@
 // Code generated from RestPath.g4 by ANTLR 4.13.2. DO NOT EDIT.
 
-package pidl // RestPath
+package pathidl // RestPath
 import (
 	"fmt"
 	"strconv"

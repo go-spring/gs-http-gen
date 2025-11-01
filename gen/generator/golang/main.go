@@ -24,7 +24,7 @@ import (
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 // toolVersionTmpl for generating the tool version constant.

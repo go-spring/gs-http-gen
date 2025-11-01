@@ -12,7 +12,7 @@ import (
 	"net/url"
 
 	"github.com/go-playground/form/v4"
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 // ErrorHandler is the default handler for reporting errors back to the client.

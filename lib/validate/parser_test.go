@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package vidl
+package validate
 
 import (
 	"testing"
 
-	"github.com/lvan100/errutil"
+	"github.com/lvan100/golib/errutil"
 )
 
 func TestParse(t *testing.T) {
