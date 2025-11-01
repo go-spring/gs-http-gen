@@ -129,13 +129,12 @@ type Object interface {
 // ReadRequest parses the request body based on Content-Type
 // and decodes it into the given Object.
 func ReadRequest(r *http.Request, i Object) error {
-	defer func() { _ = r.Body.Close() }()
-
-	contentType := r.Header.Get("Content-Type")
-	mediaType, _, _ := mime.ParseMediaType(contentType)
-
 	maxBodySize := int64(10 << 20) // 10 MB is a lot of text
-	reader := io.LimitReader(r.Body, maxBodySize+1)
+
+	oldBody := r.Body
+	defer func() { _ = oldBody.Close() }()
+
+	reader := io.LimitReader(oldBody, maxBodySize+1)
 	b, err := io.ReadAll(reader)
 	if err != nil {
 		return errutil.Explain(nil, "read body: %w", err)
@@ -143,6 +142,9 @@ func ReadRequest(r *http.Request, i Object) error {
 	if int64(len(b)) > maxBodySize {
 		return errutil.Explain(nil, "body too large")
 	}
+
+	contentType := r.Header.Get("Content-Type")
+	mediaType, _, _ := mime.ParseMediaType(contentType)
 
 	var asJSON bool
 	switch mediaType {
@@ -161,20 +163,24 @@ func ReadRequest(r *http.Request, i Object) error {
 	}
 
 	if asJSON {
-		if err = json.Unmarshal(b, i); err != nil {
-			return errutil.Explain(nil, "json decode: %w", err)
+		if b = bytes.TrimSpace(b); len(b) > 0 {
+			if err = json.Unmarshal(b, i); err != nil {
+				return errutil.Explain(nil, "json decode: %w", err)
+			}
 		}
 	} else {
-		values, err := url.ParseQuery(string(b))
+		var values url.Values
+		values, err = url.ParseQuery(string(b))
 		if err != nil {
 			return errutil.Explain(nil, "parse query: %w", err)
 		}
-		if err = formDecoder.Decode(i, values); err != nil {
-			return errutil.Explain(nil, "form decode: %w", err)
+		if len(values) > 0 {
+			if err = formDecoder.Decode(i, values); err != nil {
+				return errutil.Explain(nil, "form decode: %w", err)
+			}
 		}
 	}
 
-	r.Body.Close()
 	r.Body = io.NopCloser(bytes.NewReader(b))
 
 	// Apply bindings
