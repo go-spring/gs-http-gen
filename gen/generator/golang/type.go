@@ -174,6 +174,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		return &{{$s.Name}}{}
 	}
 
+	// FormValues returns the form values of the object.
 	func (x *{{$s.Name}}) FormValues() (url.Values, error) {
 		{{- if $s.QueryCount}}
 			m := make(url.Values)

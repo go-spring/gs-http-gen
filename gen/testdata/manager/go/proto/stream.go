@@ -72,6 +72,7 @@ func (x *StreamReq) New() any {
 	return &StreamReq{}
 }
 
+// FormValues returns the form values of the object.
 func (x *StreamReq) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -102,6 +103,7 @@ func (x *StreamReqBody) New() any {
 	return &StreamReqBody{}
 }
 
+// FormValues returns the form values of the object.
 func (x *StreamReqBody) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -134,6 +136,7 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
+// FormValues returns the form values of the object.
 func (x *StreamResp) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -167,6 +170,7 @@ func (x *Payload) New() any {
 	return &Payload{}
 }
 
+// FormValues returns the form values of the object.
 func (x *Payload) FormValues() (url.Values, error) {
 	return nil, nil
 }

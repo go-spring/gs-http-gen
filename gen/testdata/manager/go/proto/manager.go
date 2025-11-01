@@ -203,6 +203,7 @@ func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
+// FormValues returns the form values of the object.
 func (x *PageReq) FormValues() (url.Values, error) {
 	m := make(url.Values)
 	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
@@ -247,6 +248,7 @@ func (x *Address) New() any {
 	return &Address{}
 }
 
+// FormValues returns the form values of the object.
 func (x *Address) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -279,6 +281,7 @@ func (x *ContactInfo) New() any {
 	return &ContactInfo{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ContactInfo) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -313,6 +316,7 @@ func (x *DepartmentInfo) New() any {
 	return &DepartmentInfo{}
 }
 
+// FormValues returns the form values of the object.
 func (x *DepartmentInfo) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -351,6 +355,7 @@ func (x *Manager) New() any {
 	return &Manager{}
 }
 
+// FormValues returns the form values of the object.
 func (x *Manager) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -393,6 +398,7 @@ func (x *ManagerReq) New() any {
 	return &ManagerReq{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ManagerReq) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -424,6 +430,7 @@ func (x *ManagerReqBody) New() any {
 	return &ManagerReqBody{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ManagerReqBody) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -454,6 +461,7 @@ func (x *CreateManagerReq) New() any {
 	return &CreateManagerReq{}
 }
 
+// FormValues returns the form values of the object.
 func (x *CreateManagerReq) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -491,6 +499,7 @@ func (x *CreateManagerReqBody) New() any {
 	return &CreateManagerReqBody{}
 }
 
+// FormValues returns the form values of the object.
 func (x *CreateManagerReqBody) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -533,6 +542,7 @@ func (x *UpdateManagerReq) New() any {
 	return &UpdateManagerReq{}
 }
 
+// FormValues returns the form values of the object.
 func (x *UpdateManagerReq) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -572,6 +582,7 @@ func (x *UpdateManagerReqBody) New() any {
 	return &UpdateManagerReqBody{}
 }
 
+// FormValues returns the form values of the object.
 func (x *UpdateManagerReqBody) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -618,6 +629,7 @@ func (x *ListManagersByPageReq) New() any {
 	return &ListManagersByPageReq{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ListManagersByPageReq) FormValues() (url.Values, error) {
 	m := make(url.Values)
 	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
@@ -677,6 +689,7 @@ func (x *ListManagersByPageReqBody) New() any {
 	return &ListManagersByPageReqBody{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ListManagersByPageReqBody) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -709,6 +722,7 @@ func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
 }
 
+// FormValues returns the form values of the object.
 func (x *CreateManagerResp) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -744,6 +758,7 @@ func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
 }
 
+// FormValues returns the form values of the object.
 func (x *UpdateManagerResp) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -779,6 +794,7 @@ func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
 }
 
+// FormValues returns the form values of the object.
 func (x *GetManagerResp) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -814,6 +830,7 @@ func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
 }
 
+// FormValues returns the form values of the object.
 func (x *DeleteManagerResp) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -850,6 +867,7 @@ func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ManagersPageData) FormValues() (url.Values, error) {
 	return nil, nil
 }
@@ -882,6 +900,7 @@ func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
 }
 
+// FormValues returns the form values of the object.
 func (x *ListManagersByPageResp) FormValues() (url.Values, error) {
 	return nil, nil
 }
