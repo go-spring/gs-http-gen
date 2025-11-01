@@ -54,7 +54,7 @@ type Type struct {
 	Name    string
 	Fields  []TypeField
 	Comment string
-	Split   bool
+	Request bool
 }
 
 // TypeField represents a field in a Go struct
@@ -177,8 +177,8 @@ func Convert(dir string) (GoCode, error) {
 			var temp []Type
 			for _, t := range types {
 				if _, ok := code.Reqs[t.Name]; ok {
-					whole, body := SplitType(t)
-					temp = append(temp, whole, body)
+					req, body := SplitRequestType(t)
+					temp = append(temp, req, body)
 				} else {
 					temp = append(temp, t)
 				}
@@ -192,15 +192,15 @@ func Convert(dir string) (GoCode, error) {
 	return code, nil
 }
 
-// SplitType splits a type into a whole type and a body type.
-func SplitType(t Type) (whole Type, body Type) {
-	whole.Split = true
-	whole.Name = t.Name
-	whole.Comment = t.Comment
+// SplitRequestType splits a type into a whole type and a body type.
+func SplitRequestType(t Type) (req Type, body Type) {
+	req.Request = true
+	req.Name = t.Name
+	req.Comment = t.Comment
 	body.Name = t.Name + "Body"
 	for _, field := range t.Fields {
 		if field.Binding != nil {
-			whole.Fields = append(whole.Fields, field)
+			req.Fields = append(req.Fields, field)
 		} else {
 			body.Fields = append(body.Fields, field)
 		}

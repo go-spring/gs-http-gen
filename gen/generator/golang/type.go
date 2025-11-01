@@ -158,7 +158,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{$s.Comment}}
 	{{- end}}
 	type {{$s.Name}} struct {
-		{{- if $s.Split}}
+		{{- if $s.Request}}
 			{{$s.Name}}Body
 		{{- end}}
 		{{- range $f := $s.Fields}}
