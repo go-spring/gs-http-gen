@@ -109,13 +109,14 @@ func (t *Type) ValidateCount() int {
 
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
-	Name     string // Method name
-	Request  string // Request type name
-	Response string // Response type name
-	Stream   bool   // Whether this RPC is a streaming RPC
-	Path     string // HTTP path
-	Method   string // HTTP method (GET, POST, etc.)
-	Comment  string // Comment of the RPC
+	Name        string // Method name
+	Request     string // Request type name
+	Response    string // Response type name
+	Stream      bool   // Whether this RPC is a streaming RPC
+	Path        string // HTTP path
+	Method      string // HTTP method (GET, POST, etc.)
+	ContentType string // HTTP Content-Type
+	Comment     string // Comment of the RPC
 }
 
 type GoCode struct {
@@ -828,14 +829,34 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 		return RPC{}, errutil.Explain(nil, `annotation "method" value is nil in rpc %s`, r.Name)
 	}
 
+	// Retrieve the optional "contentType" annotation
+	contentType, ok := httpidl.GetAnnotation(r.Annotations, "contentType")
+	if !ok {
+		return RPC{}, errutil.Explain(nil, `annotation "contentType" not found in rpc %s`, r.Name)
+	}
+	if contentType.Value == nil {
+		return RPC{}, errutil.Explain(nil, `annotation "contentType" value is nil in rpc %s`, r.Name)
+	}
+
+	var ct string
+	switch s := strings.TrimSpace(strings.Trim(*contentType.Value, `"`)); s {
+	case "form":
+		ct = "application/x-www-form-urlencoded"
+	case "json":
+		ct = "application/json"
+	default:
+		ct = s
+	}
+
 	return RPC{
-		Name:     r.Name,
-		Request:  r.Request.Name,
-		Response: r.Response.UserType.Name,
-		Stream:   r.Response.Stream,
-		Path:     strings.Trim(*path.Value, `"`),
-		Method:   strings.ToUpper(strings.Trim(*method.Value, `"`)),
-		Comment:  formatComment(r.Comments),
+		Name:        r.Name,
+		Request:     r.Request.Name,
+		Response:    r.Response.UserType.Name,
+		Stream:      r.Response.Stream,
+		Path:        strings.Trim(*path.Value, `"`),
+		Method:      strings.ToUpper(strings.Trim(*method.Value, `"`)),
+		ContentType: ct,
+		Comment:     formatComment(r.Comments),
 	}, nil
 }
 

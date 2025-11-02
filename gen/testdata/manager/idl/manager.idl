@@ -156,6 +156,7 @@ type ListManagersByPageResp Response<ManagersPageData?>
 rpc CreateManager(CreateManagerReq) CreateManagerResp {
     method="POST"
     path="/managers"
+    contentType="json"
     summary="Create a new manager"
 }
 
@@ -163,6 +164,7 @@ rpc CreateManager(CreateManagerReq) CreateManagerResp {
 rpc GetManager(ManagerReq) GetManagerResp {
     method="GET"
     path="/managers/{id}"
+    contentType="form"
     summary="Get manager by ID"
 }
 
@@ -170,6 +172,7 @@ rpc GetManager(ManagerReq) GetManagerResp {
 rpc UpdateManager(UpdateManagerReq) UpdateManagerResp {
     method="PUT"
     path="/managers/{id}"
+    contentType="json"
     summary="Update a manager"
 }
 
@@ -177,6 +180,7 @@ rpc UpdateManager(UpdateManagerReq) UpdateManagerResp {
 rpc DeleteManager(ManagerReq) DeleteManagerResp {
     method="DELETE"
     path="/managers/{id}"
+    contentType="form"
     summary="Delete a manager"
 }
 
@@ -184,5 +188,6 @@ rpc DeleteManager(ManagerReq) DeleteManagerResp {
 rpc ListManagersByPage(ListManagersByPageReq) ListManagersByPageResp {
     method="GET"
     path="/managers/page"
+    contentType="form"
     summary="List managers with pagination"
 }

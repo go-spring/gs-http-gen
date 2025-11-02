@@ -19,4 +19,6 @@ oneof Payload {
 rpc Stream(StreamReq) stream<StreamResp> {
     method="GET"
     path="/stream"
+    contentType="form"
+    summary="Streaming"
 }

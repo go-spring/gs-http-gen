@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/go-spring/gs-http-gen/lib/httputil"
 )
@@ -20,15 +19,17 @@ type Client struct {
 
 // Create a new manager
 func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts ...httputil.RequestOption) (*http.Response, *CreateManagerResp, error) {
-	q := url.Values{}
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
 	path := "/managers"
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "POST", urlPath, nil)
 	if err != nil {
 		return nil, nil, err
 	}
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Set("Accept", "application/json")
+	r.Header.Set("Content-Type", "application/json")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -38,7 +39,10 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 
 // Delete a manager
 func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *DeleteManagerResp, error) {
-	q := url.Values{}
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
 	path := "/managers/{id}"
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "DELETE", urlPath, nil)
@@ -46,7 +50,6 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 		return nil, nil, err
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Set("Accept", "application/json")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -56,7 +59,10 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 
 // Get manager by ID
 func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *GetManagerResp, error) {
-	q := url.Values{}
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
 	path := "/managers/{id}"
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
@@ -64,7 +70,6 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 		return nil, nil, err
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Set("Accept", "application/json")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -74,7 +79,10 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 
 // List managers with pagination
 func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPageReq, opts ...httputil.RequestOption) (*http.Response, *ListManagersByPageResp, error) {
-	q := url.Values{}
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
 	path := "/managers/page"
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
@@ -82,7 +90,6 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 		return nil, nil, err
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Set("Accept", "application/json")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -92,15 +99,17 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 
 // Update manager info
 func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, *UpdateManagerResp, error) {
-	q := url.Values{}
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
 	path := "/managers/{id}"
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "PUT", urlPath, nil)
 	if err != nil {
 		return nil, nil, err
 	}
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Set("Accept", "application/json")
+	r.Header.Set("Content-Type", "application/json")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err

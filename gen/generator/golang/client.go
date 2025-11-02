@@ -34,7 +34,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
 
 	"github.com/go-spring/gs-http-gen/lib/httputil"
 )
@@ -52,15 +51,17 @@ type Client struct {
 	{{$r.Comment}}
 {{- end}}
 func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$r.Response}}, error) {
-	q := url.Values{}
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
 	path := "{{$r.Path}}"
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", urlPath, nil)
 	if err != nil {
 		return nil, nil, err
 	}
-	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Set("Accept", "application/json")
+	r.Header.Set("Content-Type", "{{$r.ContentType}}")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
