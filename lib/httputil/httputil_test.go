@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -107,22 +108,22 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...Requ
 	m := url.Values{}
 
 	// Encode scalar values using the key format (e.g. a=1)
-	m.Add("int", ToString(req.Int))
-	m.Add("string", ToString(req.String))
+	m.Add("int", strconv.FormatInt(int64(req.Int), 10))
+	m.Add("string", req.String)
 	if req.IntPtr != nil {
-		m.Add("int_ptr", ToString(*req.IntPtr))
+		m.Add("int_ptr", strconv.FormatInt(int64(*req.IntPtr), 10))
 	}
 	if req.StringPtr != nil {
-		m.Add("string_ptr", ToString(*req.StringPtr))
+		m.Add("string_ptr", *req.StringPtr)
 	}
 
 	// Encode arrays using the repeated key format (e.g. a=1&a=2)
 	for _, v := range req.IntSlice {
-		m.Add("int_slice", ToString(v))
+		m.Add("int_slice", strconv.FormatInt(int64(v), 10))
 	}
 	// Encode arrays using the repeated key format (e.g. a=1&a=2)
 	for _, v := range req.StringSlice {
-		m.Add("string_slice", ToString(v))
+		m.Add("string_slice", v)
 	}
 
 	// Encode byte slices using base64 encoding (e.g., a=YWJj)
@@ -206,15 +207,15 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...Re
 	m := url.Values{}
 
 	// Encode scalar values using the key format (e.g. a=1).
-	m.Add("int", ToString(req.Int))
-	m.Add("string", ToString(req.String))
+	m.Add("int", strconv.FormatInt(int64(req.Int), 10))
+	m.Add("string", req.String)
 	// Nil is omitted and not transmitted.
 	if req.IntPtr != nil {
-		m.Add("int_ptr", ToString(*req.IntPtr))
+		m.Add("int_ptr", strconv.FormatInt(int64(*req.IntPtr), 10))
 	}
 	// Nil is omitted and not transmitted.
 	if req.StringPtr != nil {
-		m.Add("string_ptr", ToString(*req.StringPtr))
+		m.Add("string_ptr", *req.StringPtr)
 	}
 
 	// Encode slices using JSON array format (e.g., a=[1,2]),

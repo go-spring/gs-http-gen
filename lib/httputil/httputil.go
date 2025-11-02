@@ -27,23 +27,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	"github.com/spf13/cast"
 )
-
-// Stringable is a generic constraint that represents all basic types
-// which can be safely converted to a string.
-type Stringable interface {
-	~bool | ~int | ~int8 | ~int16 | ~int32 | ~int64 |
-		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
-		~uintptr | ~float32 | ~float64 | ~string
-}
-
-// ToString converts a value of any type that satisfies the
-// Stringable constraint into its string representation.
-func ToString[T Stringable](v T) string {
-	return cast.ToString(v)
-}
 
 // Message represents a single message unit read from the stream.
 type Message struct {
