@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package httputil
+package httputil_test
 
 import (
 	"context"
@@ -29,6 +29,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-spring/gs-http-gen/lib/httputil"
 	"github.com/lvan100/golib/testing/assert"
 )
 
@@ -39,11 +40,11 @@ func ptr[T any](v T) *T {
 
 // LogTransport is a Transport implementation that logs all requests and responses.
 type LogTransport struct {
-	SimpleTransport
+	httputil.SimpleTransport
 }
 
 // GetConn returns a 可以打印日志的 Connection instance for the given target and schema.
-func (c *LogTransport) GetConn(target, schema string) (Connection, error) {
+func (c *LogTransport) GetConn(target, schema string) (httputil.Connection, error) {
 	conn, err := c.SimpleTransport.GetConn(target, schema)
 	if err != nil {
 		return nil, err
@@ -53,23 +54,23 @@ func (c *LogTransport) GetConn(target, schema string) (Connection, error) {
 
 // LogConnection is a Connection implementation that logs all requests and responses.
 type LogConnection struct {
-	Connection
+	httputil.Connection
 }
 
 // JSON executes the given HTTP request using the provided Client.
-func (c *LogConnection) JSON(req *http.Request, meta RequestContext) (*http.Response, []byte, error) {
+func (c *LogConnection) JSON(req *http.Request, meta httputil.RequestContext) (*http.Response, []byte, error) {
 	fmt.Printf("%#v\n", meta)
 	return c.Connection.JSON(req, meta)
 }
 
 // Stream executes the given HTTP request using the provided Client.
-func (c *LogConnection) Stream(req *http.Request, meta RequestContext) (*http.Response, *Stream, error) {
+func (c *LogConnection) Stream(req *http.Request, meta httputil.RequestContext) (*http.Response, *httputil.Stream, error) {
 	fmt.Printf("%#v\n", meta)
 	return c.Connection.Stream(req, meta)
 }
 
 type HelloClient struct {
-	Transport   Transport
+	Transport   httputil.Transport
 	ServiceName string
 }
 
@@ -104,7 +105,7 @@ type HelloResponse struct {
 }
 
 // Hello sends a GET request to the /v1/hello endpoint with the given request body.
-func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...RequestOption) (*http.Response, *HelloResponse, error) {
+func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...httputil.RequestOption) (*http.Response, *HelloResponse, error) {
 	m := url.Values{}
 
 	// Encode scalar values using the key format (e.g. a=1)
@@ -170,17 +171,17 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...Requ
 
 	path := "/v1/hello"
 	urlPath := fmt.Sprintf("%s?%s", path, m.Encode())
-	httpReq, err := NewRequest(ctx, "GET", urlPath, nil)
+	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
 	if err != nil {
 		return nil, nil, err
 	}
-	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	httpReq.Header.Set("Accept", "application/json")
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Accept", "application/json")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
 	}
-	return JSONResponse[HelloResponse](conn, httpReq, path, opts...)
+	return httputil.JSONResponse[HelloResponse](conn, r, path, opts...)
 }
 
 type StreamRequest struct {
@@ -203,7 +204,7 @@ type StreamRequestBody struct {
 }
 
 // Stream sends a POST request to the /v1/stream endpoint with the given request body.
-func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...RequestOption) (*http.Response, *Stream, error) {
+func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...httputil.RequestOption) (*http.Response, *httputil.Stream, error) {
 	m := url.Values{}
 
 	// Encode scalar values using the key format (e.g. a=1).
@@ -292,17 +293,17 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...Re
 
 	path := "/v1/stream"
 	urlPath := fmt.Sprintf("%s?%s", path, m.Encode())
-	httpReq, err := NewRequest(ctx, "POST", urlPath, body)
+	r, err := httputil.NewRequest(ctx, "POST", urlPath, body)
 	if err != nil {
 		return nil, nil, err
 	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Accept", "text/event-stream")
+	r.Header.Set("Content-Type", "application/json")
+	r.Header.Set("Accept", "text/event-stream")
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
 	}
-	return StreamResponse(conn, httpReq, path, opts...)
+	return httputil.StreamResponse(conn, r, path, opts...)
 }
 
 func TestHello(t *testing.T) {
@@ -362,7 +363,7 @@ func TestHello(t *testing.T) {
 				Text: "message",
 			},
 		},
-	}, WithHeader(h))
+	}, httputil.WithHeader(h))
 	assert.Error(t, err).Nil()
 	assert.That(t, data).Equal(&HelloResponse{Message: "hello world"})
 
@@ -437,7 +438,7 @@ func TestStream(t *testing.T) {
 				Text: "message",
 			},
 		},
-	}, WithHeader(h))
+	}, httputil.WithHeader(h))
 	defer resp.Close()
 	assert.Error(t, err).Nil()
 

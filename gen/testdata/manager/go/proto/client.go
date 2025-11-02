@@ -4,24 +4,106 @@ package proto
 
 import (
 	"context"
-)
+	"fmt"
+	"net/http"
+	"net/url"
 
-// ClientInterface defines an interface for implementing middleware mechanisms.
-type ClientInterface interface {
-	// Create a new manager
-	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
-	// Delete a manager
-	DeleteManager(context.Context, *ManagerReq) *DeleteManagerResp
-	// Get manager by ID
-	GetManager(context.Context, *ManagerReq) *GetManagerResp
-	// List managers with pagination
-	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
-	// Update manager info
-	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
-}
+	"github.com/go-spring/gs-http-gen/lib/httputil"
+)
 
 // Client is a wrapper struct that embeds ClientInterface.
 // It can be used to track or extend the construction process of the client.
 type Client struct {
-	ClientInterface
+	Transport   httputil.Transport
+	ServiceName string
+}
+
+// Create a new manager
+func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts ...httputil.RequestOption) (*http.Response, *CreateManagerResp, error) {
+	q := url.Values{}
+	path := "/managers"
+	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
+	r, err := httputil.NewRequest(ctx, "POST", urlPath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Accept", "application/json")
+	conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.JSONResponse[CreateManagerResp](conn, r, path, opts...)
+}
+
+// Delete a manager
+func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *DeleteManagerResp, error) {
+	q := url.Values{}
+	path := "/managers/{id}"
+	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
+	r, err := httputil.NewRequest(ctx, "DELETE", urlPath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Accept", "application/json")
+	conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.JSONResponse[DeleteManagerResp](conn, r, path, opts...)
+}
+
+// Get manager by ID
+func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *GetManagerResp, error) {
+	q := url.Values{}
+	path := "/managers/{id}"
+	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
+	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Accept", "application/json")
+	conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.JSONResponse[GetManagerResp](conn, r, path, opts...)
+}
+
+// List managers with pagination
+func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPageReq, opts ...httputil.RequestOption) (*http.Response, *ListManagersByPageResp, error) {
+	q := url.Values{}
+	path := "/managers/page"
+	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
+	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Accept", "application/json")
+	conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.JSONResponse[ListManagersByPageResp](conn, r, path, opts...)
+}
+
+// Update manager info
+func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, *UpdateManagerResp, error) {
+	q := url.Values{}
+	path := "/managers/{id}"
+	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
+	r, err := httputil.NewRequest(ctx, "PUT", urlPath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Accept", "application/json")
+	conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.JSONResponse[UpdateManagerResp](conn, r, path, opts...)
 }
