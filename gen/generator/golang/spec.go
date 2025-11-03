@@ -115,6 +115,7 @@ type RPC struct {
 	Response    string   // Response type name
 	Stream      bool     // Whether this RPC is a streaming RPC
 	Path        string   // HTTP path
+	FormatPath  string   // Formatted HTTP path
 	PathParams  []string // HTTP path parameters
 	Method      string   // HTTP method (GET, POST, etc.)
 	ContentType string   // HTTP Content-Type
@@ -866,10 +867,14 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 	if err != nil {
 		return RPC{}, errutil.Explain(err, `failed to parse path %s`, urlPath)
 	}
+	var formatPath strings.Builder
 	for _, seg := range segments {
+		formatPath.WriteString("/")
 		if seg.Type == pathidl.Static {
+			formatPath.WriteString(seg.Value)
 			continue
 		}
+		formatPath.WriteString("%s")
 		pathParams = append(pathParams, seg.Value)
 	}
 
@@ -906,7 +911,8 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 		Request:     r.Request.Name,
 		Response:    r.Response.UserType.Name,
 		Stream:      r.Response.Stream,
-		Path:        strings.Trim(*path.Value, `"`),
+		Path:        urlPath,
+		FormatPath:  formatPath.String(),
 		PathParams:  pathParams,
 		Method:      strings.ToUpper(strings.Trim(*method.Value, `"`)),
 		ContentType: ct,
