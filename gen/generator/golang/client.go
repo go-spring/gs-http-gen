@@ -55,7 +55,13 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 	if err != nil {
 		return nil, nil, err
 	}
-	path := "{{$r.Path}}"
+	path := fmt.Sprintf("{{$r.Path}}",
+		{{- range $p := $r.PathParams}}
+			req.{{$p}},
+		{{- end}}
+	)
+
+
 	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
 	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", urlPath, nil)
 	if err != nil {

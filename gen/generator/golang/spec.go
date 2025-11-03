@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-spring/gs-http-gen/lib/httpidl"
+	"github.com/go-spring/gs-http-gen/lib/pathidl"
 	"github.com/go-spring/gs-http-gen/lib/validate"
 	"github.com/lvan100/golib/errutil"
 )
@@ -109,20 +110,26 @@ func (t *Type) ValidateCount() int {
 
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
-	Name        string // Method name
-	Request     string // Request type name
-	Response    string // Response type name
-	Stream      bool   // Whether this RPC is a streaming RPC
-	Path        string // HTTP path
-	Method      string // HTTP method (GET, POST, etc.)
-	ContentType string // HTTP Content-Type
-	Comment     string // Comment of the RPC
+	Name        string   // Method name
+	Request     string   // Request type name
+	Response    string   // Response type name
+	Stream      bool     // Whether this RPC is a streaming RPC
+	Path        string   // HTTP path
+	PathParams  []string // HTTP path parameters
+	Method      string   // HTTP method (GET, POST, etc.)
+	ContentType string   // HTTP Content-Type
+	Comment     string   // Comment of the RPC
+}
+
+type ReqIndex struct {
+	File  string
+	Index int
 }
 
 type GoCode struct {
 	Files  map[string]httpidl.Document
 	Meta   *httpidl.MetaInfo
-	Reqs   map[string]struct{} // request type name
+	Reqs   map[string]ReqIndex // request type name
 	Consts map[string][]Const
 	Enums  map[string][]Enum
 	Types  map[string][]Type
@@ -139,7 +146,7 @@ func Convert(dir string) (GoCode, error) {
 	code := GoCode{
 		Files:  files,
 		Meta:   meta,
-		Reqs:   make(map[string]struct{}),
+		Reqs:   make(map[string]ReqIndex),
 		Consts: make(map[string][]Const),
 		Enums:  make(map[string][]Enum),
 		Types:  make(map[string][]Type),
@@ -154,7 +161,7 @@ func Convert(dir string) (GoCode, error) {
 				return code, err
 			}
 			code.RPCs = append(code.RPCs, rpc)
-			code.Reqs[rpc.Request] = struct{}{}
+			code.Reqs[rpc.Request] = ReqIndex{}
 		}
 	}
 	sort.Slice(code.RPCs, func(i, j int) bool {
@@ -179,6 +186,7 @@ func Convert(dir string) (GoCode, error) {
 			for _, t := range types {
 				if _, ok := code.Reqs[t.Name]; ok {
 					req, body := SplitRequestType(t)
+					code.Reqs[t.Name] = ReqIndex{File: fileName, Index: len(temp)}
 					temp = append(temp, req, body)
 				} else {
 					temp = append(temp, t)
@@ -189,6 +197,37 @@ func Convert(dir string) (GoCode, error) {
 		code.Consts[fileName] = consts
 		code.Enums[fileName] = enums
 		code.Types[fileName] = types
+	}
+	for rpcIndex, rpc := range code.RPCs {
+		if len(rpc.PathParams) == 0 {
+			continue
+		}
+		params := make(map[string]string)
+		for _, p := range rpc.PathParams {
+			params[p] = ""
+		}
+		reqIndex := code.Reqs[rpc.Request]
+		t := code.Types[reqIndex.File][reqIndex.Index]
+		for _, f := range t.Fields {
+			if f.Binding == nil || f.Binding.From != "path" {
+				continue
+			}
+			if _, ok := params[f.Binding.Name]; !ok {
+				err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Name, rpc.Request)
+				return GoCode{}, err
+			}
+			params[f.Binding.Name] = f.Name
+		}
+		var paramNames []string
+		for _, p := range rpc.PathParams {
+			if params[p] == "" {
+				err = errutil.Explain(nil, "path parameter %s not found in request type %s", p, rpc.Request)
+				return GoCode{}, err
+			}
+			paramNames = append(paramNames, params[p])
+		}
+		rpc.PathParams = paramNames
+		code.RPCs[rpcIndex] = rpc
 	}
 	return code, nil
 }
@@ -820,6 +859,20 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 		return RPC{}, errutil.Explain(nil, `annotation "path" value is nil in rpc %s`, r.Name)
 	}
 
+	// Parse the path (source)
+	var pathParams []string
+	urlPath := strings.Trim(*path.Value, `"`)
+	segments, err := pathidl.Parse(urlPath)
+	if err != nil {
+		return RPC{}, errutil.Explain(err, `failed to parse path %s`, urlPath)
+	}
+	for _, seg := range segments {
+		if seg.Type == pathidl.Static {
+			continue
+		}
+		pathParams = append(pathParams, seg.Value)
+	}
+
 	// Retrieve the required "method" annotation
 	method, ok := httpidl.GetAnnotation(r.Annotations, "method")
 	if !ok {
@@ -854,6 +907,7 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 		Response:    r.Response.UserType.Name,
 		Stream:      r.Response.Stream,
 		Path:        strings.Trim(*path.Value, `"`),
+		PathParams:  pathParams,
 		Method:      strings.ToUpper(strings.Trim(*method.Value, `"`)),
 		ContentType: ct,
 		Comment:     formatComment(r.Comments),
