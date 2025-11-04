@@ -31,7 +31,9 @@ var clientTmpl = template.Must(template.New("client").Parse(`
 package {{.Package}}
 
 import (
+	//"bytes"
 	"context"
+	//"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -63,7 +65,7 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
 	}
-	q, err := req.FormValues()
+	q, err := req.QueryValues()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -71,6 +73,16 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 	if len(q) > 0 {
 		path += "?" + q.Encode()
 	}
+	//var buf bytes.Buffer
+	//body := req.{{$r.Request}}Body
+	//{{- if eq $r.ContentType "application/json"}}
+	//	err= json.NewEncoder(&buf).Encode(body)
+	//	if err != nil {
+	//		return nil, nil, err
+	//	}
+	//{{- else}}
+	//	
+	//{{- end}}
 	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", path, nil)
 	if err != nil {
 		return nil, nil, err

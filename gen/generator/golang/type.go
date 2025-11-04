@@ -174,8 +174,8 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		return &{{$s.Name}}{}
 	}
 
-	// FormValues returns the form values of the object.
-	func (x *{{$s.Name}}) FormValues() (url.Values, error) {
+	// QueryValues returns the form values of the object.
+	func (x *{{$s.Name}}) QueryValues() (url.Values, error) {
 		{{- if $s.QueryCount}}
 			m := make(url.Values)
 			{{- range $f := $s.Fields}}
@@ -191,6 +191,12 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			return nil, nil
 		{{- end}}
 	}
+
+	//func (x *{{$s.Name}}) Encode() error {
+	//}
+	//
+	//func (x *{{$s.Name}}) Decode() error {
+	//} 
 
 	// Binding extracts non-body values (path, query) from *http.Request.
 	func (x *{{$s.Name}}) Binding(r *http.Request) error {

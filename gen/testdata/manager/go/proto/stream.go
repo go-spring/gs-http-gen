@@ -72,10 +72,16 @@ func (x *StreamReq) New() any {
 	return &StreamReq{}
 }
 
-// FormValues returns the form values of the object.
-func (x *StreamReq) FormValues() (url.Values, error) {
+// QueryValues returns the form values of the object.
+func (x *StreamReq) QueryValues() (url.Values, error) {
 	return nil, nil
 }
+
+//func (x *StreamReq) Encode() error {
+//}
+//
+//func (x *StreamReq) Decode() error {
+//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReq) Binding(r *http.Request) error {
@@ -103,10 +109,16 @@ func (x *StreamReqBody) New() any {
 	return &StreamReqBody{}
 }
 
-// FormValues returns the form values of the object.
-func (x *StreamReqBody) FormValues() (url.Values, error) {
+// QueryValues returns the form values of the object.
+func (x *StreamReqBody) QueryValues() (url.Values, error) {
 	return nil, nil
 }
+
+//func (x *StreamReqBody) Encode() error {
+//}
+//
+//func (x *StreamReqBody) Decode() error {
+//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReqBody) Binding(r *http.Request) error {
@@ -136,10 +148,16 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
-// FormValues returns the form values of the object.
-func (x *StreamResp) FormValues() (url.Values, error) {
+// QueryValues returns the form values of the object.
+func (x *StreamResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
+
+//func (x *StreamResp) Encode() error {
+//}
+//
+//func (x *StreamResp) Decode() error {
+//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamResp) Binding(r *http.Request) error {
@@ -170,10 +188,16 @@ func (x *Payload) New() any {
 	return &Payload{}
 }
 
-// FormValues returns the form values of the object.
-func (x *Payload) FormValues() (url.Values, error) {
+// QueryValues returns the form values of the object.
+func (x *Payload) QueryValues() (url.Values, error) {
 	return nil, nil
 }
+
+//func (x *Payload) Encode() error {
+//}
+//
+//func (x *Payload) Decode() error {
+//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *Payload) Binding(r *http.Request) error {
