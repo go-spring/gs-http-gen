@@ -68,8 +68,10 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $p := $r.PathParams}} req.{{$p}}, {{- end}})
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}

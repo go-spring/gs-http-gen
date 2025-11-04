@@ -31,8 +31,10 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("/managers")
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "POST", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "POST", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -54,8 +56,10 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("/managers/%s", req.Id)
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "DELETE", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "DELETE", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -77,8 +81,10 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("/managers/%s", req.Id)
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,8 +106,10 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("/managers/page")
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -123,8 +131,10 @@ func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.Re
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("/stream")
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,8 +156,10 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 		return nil, nil, err
 	}
 	path := fmt.Sprintf("/managers/%s", req.ID)
-	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
-	r, err := httputil.NewRequest(ctx, "PUT", urlPath, nil)
+	if len(q) > 0 {
+		path += "?" + q.Encode()
+	}
+	r, err := httputil.NewRequest(ctx, "PUT", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
