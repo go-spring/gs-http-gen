@@ -97,6 +97,26 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 	return httputil.JSONResponse[ListManagersByPageResp](conn, r, path, opts...)
 }
 
+// Streaming ...
+func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.RequestOption) (*http.Response, *httputil.Stream, error) {
+	q, err := req.FormValues()
+	if err != nil {
+		return nil, nil, err
+	}
+	path := fmt.Sprintf("/stream")
+	urlPath := fmt.Sprintf("%s?%s", path, q.Encode())
+	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	if err != nil {
+		return nil, nil, err
+	}
+	return httputil.StreamResponse(conn, r, path, opts...)
+}
+
 // Update manager info
 func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, *UpdateManagerResp, error) {
 	q, err := req.FormValues()

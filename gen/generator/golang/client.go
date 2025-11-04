@@ -46,11 +46,16 @@ type Client struct {
 }
 
 {{- range $r := .RPCs}}
-	{{- if not $r.Stream}}
-{{- if $r.Comment}}
-	{{$r.Comment}}
+	{{- if $r.Comment}}
+{{$r.Comment}}
+	{{- end}}
+{{- $respType := "" }}
+{{- if $r.Stream}}
+	{{- $respType = "httputil.Stream" }}
+{{- else}}
+	{{- $respType = $r.Response }}
 {{- end}}
-func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$r.Response}}, error) {
+func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$respType}}, error) {
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err
@@ -66,10 +71,13 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 	if err != nil {
 		return nil, nil, err
 	}
-	return httputil.JSONResponse[{{$r.Response}}](conn, r, path, opts...)
+	{{- if $r.Stream}}
+		return httputil.StreamResponse(conn, r, path, opts...)
+	{{- else}}
+		return httputil.JSONResponse[{{$r.Response}}](conn, r, path, opts...)
+	{{- end}}
 }
-    {{- end}}
-{{- end}}
+{{end}}
 `))
 
 // genClient generates the HTTP client code for a given service.

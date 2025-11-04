@@ -16,6 +16,7 @@ oneof Payload {
     bool boolean_data (json="")
 }
 
+// Streaming ...
 rpc Stream(StreamReq) stream<StreamResp> {
     method="GET"
     path="/stream"
