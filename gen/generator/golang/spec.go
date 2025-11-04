@@ -75,6 +75,11 @@ type Binding struct {
 	Name string // Field name in the source
 }
 
+// IsRequestBody returns true if the struct is a request body
+func (t *Type) IsRequestBody() bool {
+	return strings.HasSuffix(t.Name, "Body")
+}
+
 // BindingCount returns the number of fields in the struct that have binding info
 func (t *Type) BindingCount() int {
 	var count int

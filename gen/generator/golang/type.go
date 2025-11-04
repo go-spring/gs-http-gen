@@ -192,11 +192,17 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{- end}}
 	}
 
-	//func (x *{{$s.Name}}) Encode() error {
-	//}
-	//
-	//func (x *{{$s.Name}}) Decode() error {
-	//} 
+{{if $s.IsRequestBody}}
+	// EncodeToForm encodes the object to form data.
+	func (x *{{$s.Name}}) EncodeToForm() ([]byte, error) {
+		return nil, nil
+	}
+
+	// DecodeFromForm decodes the object from form data.
+	func (x *{{$s.Name}}) DecodeFromForm(b []byte) error {
+		return nil
+	}
+{{end}}
 
 	// Binding extracts non-body values (path, query) from *http.Request.
 	func (x *{{$s.Name}}) Binding(r *http.Request) error {

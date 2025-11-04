@@ -77,12 +77,6 @@ func (x *StreamReq) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *StreamReq) Encode() error {
-//}
-//
-//func (x *StreamReq) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -114,11 +108,15 @@ func (x *StreamReqBody) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *StreamReqBody) Encode() error {
-//}
-//
-//func (x *StreamReqBody) Decode() error {
-//}
+// EncodeToForm encodes the object to form data.
+func (x *StreamReqBody) EncodeToForm() ([]byte, error) {
+	return nil, nil
+}
+
+// DecodeFromForm decodes the object from form data.
+func (x *StreamReqBody) DecodeFromForm(b []byte) error {
+	return nil
+}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamReqBody) Binding(r *http.Request) error {
@@ -153,12 +151,6 @@ func (x *StreamResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *StreamResp) Encode() error {
-//}
-//
-//func (x *StreamResp) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -192,12 +184,6 @@ func (x *Payload) New() any {
 func (x *Payload) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *Payload) Encode() error {
-//}
-//
-//func (x *Payload) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *Payload) Binding(r *http.Request) error {

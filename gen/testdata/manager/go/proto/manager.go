@@ -211,12 +211,6 @@ func (x *PageReq) QueryValues() (url.Values, error) {
 	return m, nil
 }
 
-//func (x *PageReq) Encode() error {
-//}
-//
-//func (x *PageReq) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *PageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -259,12 +253,6 @@ func (x *Address) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *Address) Encode() error {
-//}
-//
-//func (x *Address) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *Address) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -297,12 +285,6 @@ func (x *ContactInfo) New() any {
 func (x *ContactInfo) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *ContactInfo) Encode() error {
-//}
-//
-//func (x *ContactInfo) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ContactInfo) Binding(r *http.Request) error {
@@ -338,12 +320,6 @@ func (x *DepartmentInfo) New() any {
 func (x *DepartmentInfo) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *DepartmentInfo) Encode() error {
-//}
-//
-//func (x *DepartmentInfo) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *DepartmentInfo) Binding(r *http.Request) error {
@@ -383,12 +359,6 @@ func (x *Manager) New() any {
 func (x *Manager) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *Manager) Encode() error {
-//}
-//
-//func (x *Manager) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *Manager) Binding(r *http.Request) error {
@@ -433,12 +403,6 @@ func (x *ManagerReq) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *ManagerReq) Encode() error {
-//}
-//
-//func (x *ManagerReq) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -471,11 +435,15 @@ func (x *ManagerReqBody) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *ManagerReqBody) Encode() error {
-//}
-//
-//func (x *ManagerReqBody) Decode() error {
-//}
+// EncodeToForm encodes the object to form data.
+func (x *ManagerReqBody) EncodeToForm() ([]byte, error) {
+	return nil, nil
+}
+
+// DecodeFromForm decodes the object from form data.
+func (x *ManagerReqBody) DecodeFromForm(b []byte) error {
+	return nil
+}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagerReqBody) Binding(r *http.Request) error {
@@ -507,12 +475,6 @@ func (x *CreateManagerReq) New() any {
 func (x *CreateManagerReq) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *CreateManagerReq) Encode() error {
-//}
-//
-//func (x *CreateManagerReq) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerReq) Binding(r *http.Request) error {
@@ -552,11 +514,15 @@ func (x *CreateManagerReqBody) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *CreateManagerReqBody) Encode() error {
-//}
-//
-//func (x *CreateManagerReqBody) Decode() error {
-//}
+// EncodeToForm encodes the object to form data.
+func (x *CreateManagerReqBody) EncodeToForm() ([]byte, error) {
+	return nil, nil
+}
+
+// DecodeFromForm decodes the object from form data.
+func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
+	return nil
+}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerReqBody) Binding(r *http.Request) error {
@@ -601,12 +567,6 @@ func (x *UpdateManagerReq) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *UpdateManagerReq) Encode() error {
-//}
-//
-//func (x *UpdateManagerReq) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -647,11 +607,15 @@ func (x *UpdateManagerReqBody) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *UpdateManagerReqBody) Encode() error {
-//}
-//
-//func (x *UpdateManagerReqBody) Decode() error {
-//}
+// EncodeToForm encodes the object to form data.
+func (x *UpdateManagerReqBody) EncodeToForm() ([]byte, error) {
+	return nil, nil
+}
+
+// DecodeFromForm decodes the object from form data.
+func (x *UpdateManagerReqBody) DecodeFromForm(b []byte) error {
+	return nil
+}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerReqBody) Binding(r *http.Request) error {
@@ -717,12 +681,6 @@ func (x *ListManagersByPageReq) QueryValues() (url.Values, error) {
 	return m, nil
 }
 
-//func (x *ListManagersByPageReq) Encode() error {
-//}
-//
-//func (x *ListManagersByPageReq) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{
@@ -766,11 +724,15 @@ func (x *ListManagersByPageReqBody) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *ListManagersByPageReqBody) Encode() error {
-//}
-//
-//func (x *ListManagersByPageReqBody) Decode() error {
-//}
+// EncodeToForm encodes the object to form data.
+func (x *ListManagersByPageReqBody) EncodeToForm() ([]byte, error) {
+	return nil, nil
+}
+
+// DecodeFromForm decodes the object from form data.
+func (x *ListManagersByPageReqBody) DecodeFromForm(b []byte) error {
+	return nil
+}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageReqBody) Binding(r *http.Request) error {
@@ -804,12 +766,6 @@ func (x *CreateManagerResp) New() any {
 func (x *CreateManagerResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *CreateManagerResp) Encode() error {
-//}
-//
-//func (x *CreateManagerResp) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerResp) Binding(r *http.Request) error {
@@ -847,12 +803,6 @@ func (x *UpdateManagerResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *UpdateManagerResp) Encode() error {
-//}
-//
-//func (x *UpdateManagerResp) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *UpdateManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -889,12 +839,6 @@ func (x *GetManagerResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *GetManagerResp) Encode() error {
-//}
-//
-//func (x *GetManagerResp) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *GetManagerResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -930,12 +874,6 @@ func (x *DeleteManagerResp) New() any {
 func (x *DeleteManagerResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *DeleteManagerResp) Encode() error {
-//}
-//
-//func (x *DeleteManagerResp) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *DeleteManagerResp) Binding(r *http.Request) error {
@@ -974,12 +912,6 @@ func (x *ManagersPageData) QueryValues() (url.Values, error) {
 	return nil, nil
 }
 
-//func (x *ManagersPageData) Encode() error {
-//}
-//
-//func (x *ManagersPageData) Decode() error {
-//}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ManagersPageData) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -1012,12 +944,6 @@ func (x *ListManagersByPageResp) New() any {
 func (x *ListManagersByPageResp) QueryValues() (url.Values, error) {
 	return nil, nil
 }
-
-//func (x *ListManagersByPageResp) Encode() error {
-//}
-//
-//func (x *ListManagersByPageResp) Decode() error {
-//}
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *ListManagersByPageResp) Binding(r *http.Request) error {
