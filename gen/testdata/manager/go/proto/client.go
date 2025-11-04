@@ -6,9 +6,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-mock/gsmock"
 )
+
+var clientType = reflect.TypeFor[Client]()
 
 // Client is a wrapper struct that embeds ClientInterface.
 // It can be used to track or extend the construction process of the client.
@@ -19,6 +23,9 @@ type Client struct {
 
 // Create a new manager
 func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts ...httputil.RequestOption) (*http.Response, *CreateManagerResp, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "CreateManager", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *CreateManagerResp, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err
@@ -39,6 +46,9 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 
 // Delete a manager
 func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *DeleteManagerResp, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "DeleteManager", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *DeleteManagerResp, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err
@@ -59,6 +69,9 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 
 // Get manager by ID
 func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *GetManagerResp, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "GetManager", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *GetManagerResp, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err
@@ -79,6 +92,9 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 
 // List managers with pagination
 func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPageReq, opts ...httputil.RequestOption) (*http.Response, *ListManagersByPageResp, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "ListManagersByPage", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *ListManagersByPageResp, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err
@@ -99,6 +115,9 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 
 // Streaming ...
 func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.RequestOption) (*http.Response, *httputil.Stream, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "Stream", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *httputil.Stream, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err
@@ -119,6 +138,9 @@ func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.Re
 
 // Update manager info
 func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, *UpdateManagerResp, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "UpdateManager", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *UpdateManagerResp, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err

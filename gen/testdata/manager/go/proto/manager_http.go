@@ -17,6 +17,7 @@ type ManagerServer interface {
 	GetManager(context.Context, *ManagerReq) *GetManagerResp
 	// List managers with pagination
 	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
+	// Streaming ...
 	Stream(context.Context, *StreamReq, chan<- *StreamResp)
 	// Update manager info
 	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp

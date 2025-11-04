@@ -34,9 +34,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 
 	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-mock/gsmock"
 )
+
+var clientType = reflect.TypeFor[Client]()
 
 // Client is a wrapper struct that embeds ClientInterface.
 // It can be used to track or extend the construction process of the client.
@@ -56,6 +60,9 @@ type Client struct {
 	{{- $respType = $r.Response }}
 {{- end}}
 func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$respType}}, error) {
+	if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
+		return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
+	}
 	q, err := req.FormValues()
 	if err != nil {
 		return nil, nil, err

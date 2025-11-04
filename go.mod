@@ -5,8 +5,8 @@ go 1.24
 require (
 	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/go-playground/form/v4 v4.2.1
+	github.com/go-spring/gs-mock v0.0.5
 	github.com/lvan100/golib v0.0.1
-	github.com/spf13/cast v1.10.0
 	github.com/spf13/cobra v1.9.1
 )
 

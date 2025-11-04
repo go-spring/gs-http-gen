@@ -108,9 +108,9 @@ func (s *Stream) Next(ctx context.Context, timeout time.Duration) bool {
 	}
 }
 
-// send pushes a Message into the internal channel.
+// Send pushes a Message into the internal channel.
 // Returns false if the stream is closed or already done.
-func (s *Stream) send(msg Message) bool {
+func (s *Stream) Send(msg Message) bool {
 	if s.closed.Load() {
 		return false
 	}
@@ -237,14 +237,14 @@ func (c *SimpleConnection) Stream(r *http.Request, meta RequestContext) (*http.R
 			if text == "" {
 				continue
 			}
-			if !respStream.send(Message{data: text}) {
+			if !respStream.Send(Message{data: text}) {
 				return
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			respStream.send(Message{err: err})
+			respStream.Send(Message{err: err})
 		} else {
-			respStream.send(Message{err: io.EOF})
+			respStream.Send(Message{err: io.EOF})
 		}
 	}()
 	return resp, respStream, nil
