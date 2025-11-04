@@ -27,40 +27,44 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
-func AddFormValue(fieldName string, typeKind []TypeKind, binding *Binding) string {
+func AddFormValue(fieldName string, typeKind []TypeKind, formName string) string {
 	var sb strings.Builder
 
 	// pointer
 	if typeKind[0] == TypeKindPointer {
 		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(AddFormValue("*"+fieldName, typeKind[1:], binding))
+		sb.WriteString(AddFormValue("*"+fieldName, typeKind[1:], formName))
 		sb.WriteString(fmt.Sprintf("\n}"))
 		return sb.String()
 	}
 
 	switch typeKind[0] {
 	case TypeKindBool:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, binding.Name, fieldName))
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, fieldName))
 	case TypeKindInt:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, binding.Name, fieldName))
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
 	case TypeKindUint:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, binding.Name, fieldName))
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, fieldName))
 	case TypeKindFloat:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, binding.Name, fieldName))
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, fieldName))
 	case TypeKindString:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, binding.Name, fieldName))
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, fieldName))
 	case TypeKindEnum:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, binding.Name, fieldName))
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
 	case TypeKindStruct, TypeKindMap:
-		sb.WriteString(fmt.Sprintf(`b, err := json.Marshal(%s)`, fieldName))
+		sb.WriteString(fmt.Sprintf("b, err := json.Marshal(%s)", fieldName))
+		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf(`if err != nil {
 			return nil, err
 		}`))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, binding.Name))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, formName))
 	case TypeKindList:
-		sb.WriteString(fmt.Sprintf("for i := range len(%s) {\n", fieldName))
-		sb.WriteString(AddFormValue(fieldName+"[i]", typeKind[1:], binding))
-		sb.WriteString(fmt.Sprintf("\n}"))
+		sb.WriteString(fmt.Sprintf("for i := range len(%s) {", fieldName))
+		sb.WriteString("\n")
+		sb.WriteString(AddFormValue(fieldName+"[i]", typeKind[1:], formName))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("}"))
 	default: // for linter
 	}
 
@@ -174,6 +178,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		return &{{$s.Name}}{}
 	}
 
+{{if $s.Request}}
 	// QueryValues returns the form values of the object.
 	func (x *{{$s.Name}}) QueryValues() (url.Values, error) {
 		{{- if $s.QueryCount}}
@@ -182,7 +187,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 				{{- if $f.Binding}}
 					{{- if eq $f.Binding.From "query"}}
 						{{$fieldName := printf "x.%s" $f.Name}}
-						{{- AddFormValue $fieldName $f.TypeKind $f.Binding}}
+						{{- AddFormValue $fieldName $f.TypeKind $f.Binding.Name}}
 					{{- end}}
 				{{- end}}
 			{{- end}}
@@ -191,11 +196,17 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			return nil, nil
 		{{- end}}
 	}
+{{end}}
 
 {{if $s.IsRequestBody}}
 	// EncodeToForm encodes the object to form data.
-	func (x *{{$s.Name}}) EncodeToForm() ([]byte, error) {
-		return nil, nil
+	func (x *{{$s.Name}}) EncodeToForm() (string, error) {
+		m := make(url.Values)
+		{{- range $f := $s.Fields}}
+			{{$fieldName := printf "x.%s" $f.Name}}
+			{{- AddFormValue $fieldName $f.TypeKind "aaa"}}
+		{{- end}}
+		return m.Encode(), nil
 	}
 
 	// DecodeFromForm decodes the object from form data.

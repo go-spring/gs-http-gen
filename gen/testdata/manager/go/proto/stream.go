@@ -103,14 +103,11 @@ func (x *StreamReqBody) New() any {
 	return &StreamReqBody{}
 }
 
-// QueryValues returns the form values of the object.
-func (x *StreamReqBody) QueryValues() (url.Values, error) {
-	return nil, nil
-}
-
 // EncodeToForm encodes the object to form data.
-func (x *StreamReqBody) EncodeToForm() ([]byte, error) {
-	return nil, nil
+func (x *StreamReqBody) EncodeToForm() (string, error) {
+	m := make(url.Values)
+	m.Add("aaa", x.Id)
+	return m.Encode(), nil
 }
 
 // DecodeFromForm decodes the object from form data.
@@ -146,11 +143,6 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
-// QueryValues returns the form values of the object.
-func (x *StreamResp) QueryValues() (url.Values, error) {
-	return nil, nil
-}
-
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *StreamResp) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
@@ -178,11 +170,6 @@ type Payload struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload) New() any {
 	return &Payload{}
-}
-
-// QueryValues returns the form values of the object.
-func (x *Payload) QueryValues() (url.Values, error) {
-	return nil, nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.

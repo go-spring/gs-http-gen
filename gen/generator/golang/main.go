@@ -38,7 +38,7 @@ const ToolVersion = "{{.ToolVersion}}"
 
 type Generator struct{}
 
-// formatFile formats Go source code using `go format`
+// FormatFile formats Go source code using `go format`
 // and writes the formatted code to the given file.
 func (g *Generator) FormatFile(fileName string, b []byte) error {
 	b, err := format.Source(b)
