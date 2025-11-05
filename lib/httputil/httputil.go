@@ -122,8 +122,8 @@ func (s *Stream) Close() {
 	}
 }
 
-// RequestContext holds contextual information for an HTTP request.
-type RequestContext struct {
+// RequestMeta holds contextual information for an HTTP request.
+type RequestMeta struct {
 	Target string
 	Schema string
 	Path   string
@@ -135,8 +135,8 @@ type RequestContext struct {
 // Implementing this interface allows users to provide their own
 // HTTP execution logic (for example, to add retry, logging, or tracing).
 type HTTPClient interface {
-	JSON(req *http.Request, meta RequestContext) (*http.Response, []byte, error)
-	Stream(req *http.Request, meta RequestContext) (*http.Response, *Stream, error)
+	JSON(req *http.Request, meta RequestMeta) (*http.Response, []byte, error)
+	Stream(req *http.Request, meta RequestMeta) (*http.Response, *Stream, error)
 }
 
 var DefaultHTTPClient HTTPClient = &SimpleHTTPClient{http.DefaultClient}
@@ -156,7 +156,7 @@ type SimpleHTTPClient struct {
 // it can be read again by the caller if needed.
 //
 // Note: For very large responses, this may be memory intensive.
-func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestContext) (*http.Response, []byte, error) {
+func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestMeta) (*http.Response, []byte, error) {
 	resp, err := c.doRequest(r, meta)
 	if err != nil {
 		return nil, nil, err
@@ -174,7 +174,7 @@ func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestContext) (*http.Res
 
 // Stream executes an HTTP request and continuously reads lines from the response body.
 // Each line is sent into the returned Stream channel asynchronously.
-func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestContext) (*http.Response, *Stream, error) {
+func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestMeta) (*http.Response, *Stream, error) {
 	resp, err := c.doRequest(r, meta)
 	if err != nil {
 		return nil, nil, err
@@ -203,7 +203,7 @@ func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestContext) (*http.R
 }
 
 // doRequest executes the given HTTP request using the embedded http.Client.
-func (c *SimpleHTTPClient) doRequest(r *http.Request, meta RequestContext) (*http.Response, error) {
+func (c *SimpleHTTPClient) doRequest(r *http.Request, meta RequestMeta) (*http.Response, error) {
 	r.Host = meta.Target
 	r.URL.Host = meta.Target
 	r.URL.Scheme = meta.Schema
@@ -215,33 +215,33 @@ func (c *SimpleHTTPClient) doRequest(r *http.Request, meta RequestContext) (*htt
 	return c.Client.Do(r)
 }
 
-// RequestOption is a function type that modifies the RequestContext.
-type RequestOption func(info *RequestContext)
+// RequestOption is a function type that modifies the RequestMeta.
+type RequestOption func(info *RequestMeta)
 
-// WithTarget sets the target to the RequestContext.
+// WithTarget sets the target to the RequestMeta.
 func WithTarget(target string) RequestOption {
-	return func(info *RequestContext) {
+	return func(info *RequestMeta) {
 		info.Target = target
 	}
 }
 
-// WithSchema sets the schema to the RequestContext.
+// WithSchema sets the schema to the RequestMeta.
 func WithSchema(schema string) RequestOption {
-	return func(info *RequestContext) {
+	return func(info *RequestMeta) {
 		info.Schema = schema
 	}
 }
 
-// WithPath sets the path to the RequestContext.
+// WithPath sets the path to the RequestMeta.
 func WithPath(path string) RequestOption {
-	return func(info *RequestContext) {
+	return func(info *RequestMeta) {
 		info.Path = path
 	}
 }
 
-// WithHeader sets the given HTTP headers to the RequestContext.
+// WithHeader sets the given HTTP headers to the RequestMeta.
 func WithHeader(header http.Header) RequestOption {
-	return func(meta *RequestContext) {
+	return func(meta *RequestMeta) {
 		if meta.Header == nil {
 			meta.Header = http.Header{}
 		}
@@ -249,9 +249,9 @@ func WithHeader(header http.Header) RequestOption {
 	}
 }
 
-// WithConfig sets the given configuration map to the RequestContext.
+// WithConfig sets the given configuration map to the RequestMeta.
 func WithConfig(config map[string]string) RequestOption {
-	return func(meta *RequestContext) {
+	return func(meta *RequestMeta) {
 		if meta.Config == nil {
 			meta.Config = map[string]string{}
 		}
@@ -259,9 +259,9 @@ func WithConfig(config map[string]string) RequestOption {
 	}
 }
 
-// makeMeta creates a RequestContext with the given options.
-func makeMeta(opts []RequestOption) RequestContext {
-	meta := RequestContext{
+// buildMeta creates a RequestMeta with the given options.
+func buildMeta(opts []RequestOption) RequestMeta {
+	meta := RequestMeta{
 		Header: http.Header{},
 		Config: map[string]string{},
 	}
@@ -274,7 +274,7 @@ func makeMeta(opts []RequestOption) RequestContext {
 // JSONResponse executes the given HTTP request using the provided HTTPClient,
 // reads the response body, and unmarshals it into a value of type RespType.
 func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
-	resp, b, err := DefaultHTTPClient.JSON(r, makeMeta(opts))
+	resp, b, err := DefaultHTTPClient.JSON(r, buildMeta(opts))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -288,5 +288,5 @@ func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.R
 // StreamResponse executes the given HTTP request using the provided HTTPClient,
 // and returns a Stream instance for streaming the response body.
 func StreamResponse(r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
-	return DefaultHTTPClient.Stream(r, makeMeta(opts))
+	return DefaultHTTPClient.Stream(r, buildMeta(opts))
 }

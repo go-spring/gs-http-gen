@@ -45,13 +45,13 @@ type LogHTTPClient struct {
 }
 
 // JSON executes the given HTTP request using the provided Client.
-func (c *LogHTTPClient) JSON(req *http.Request, meta httputil.RequestContext) (*http.Response, []byte, error) {
+func (c *LogHTTPClient) JSON(req *http.Request, meta httputil.RequestMeta) (*http.Response, []byte, error) {
 	fmt.Printf("%#v\n", meta)
 	return c.HTTPClient.JSON(req, meta)
 }
 
 // Stream executes the given HTTP request using the provided Client.
-func (c *LogHTTPClient) Stream(req *http.Request, meta httputil.RequestContext) (*http.Response, *httputil.Stream, error) {
+func (c *LogHTTPClient) Stream(req *http.Request, meta httputil.RequestMeta) (*http.Response, *httputil.Stream, error) {
 	fmt.Printf("%#v\n", meta)
 	return c.HTTPClient.Stream(req, meta)
 }
