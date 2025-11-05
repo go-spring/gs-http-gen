@@ -28,13 +28,11 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "CreateManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *CreateManagerResp, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("/managers")
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.CreateManagerReqBody
@@ -61,13 +59,11 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "DeleteManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *DeleteManagerResp, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("/managers/%s", req.Id)
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.ManagerReqBody
@@ -91,13 +87,11 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "GetManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *GetManagerResp, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("/managers/%s", req.Id)
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.ManagerReqBody
@@ -121,13 +115,11 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "ListManagersByPage", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *ListManagersByPageResp, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("/managers/page")
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.ListManagersByPageReqBody
@@ -151,13 +143,11 @@ func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.Re
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "Stream", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *httputil.Stream, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("/stream")
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.StreamReqBody
@@ -181,13 +171,11 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "UpdateManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *UpdateManagerResp, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("/managers/%s", req.ID)
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.UpdateManagerReqBody

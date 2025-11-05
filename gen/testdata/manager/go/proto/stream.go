@@ -73,8 +73,8 @@ func (x *StreamReq) New() any {
 }
 
 // QueryValues returns the form values of the object.
-func (x *StreamReq) QueryValues() (url.Values, error) {
-	return nil, nil
+func (x *StreamReq) QueryString() (string, error) {
+	return "", nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.

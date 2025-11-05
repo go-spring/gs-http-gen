@@ -3,7 +3,6 @@
 package proto
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -372,8 +371,8 @@ func (x *ManagerReq) New() any {
 }
 
 // QueryValues returns the form values of the object.
-func (x *ManagerReq) QueryValues() (url.Values, error) {
-	return nil, nil
+func (x *ManagerReq) QueryString() (string, error) {
+	return "", nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -441,8 +440,8 @@ func (x *CreateManagerReq) New() any {
 }
 
 // QueryValues returns the form values of the object.
-func (x *CreateManagerReq) QueryValues() (url.Values, error) {
-	return nil, nil
+func (x *CreateManagerReq) QueryString() (string, error) {
+	return "", nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -546,8 +545,8 @@ func (x *UpdateManagerReq) New() any {
 }
 
 // QueryValues returns the form values of the object.
-func (x *UpdateManagerReq) QueryValues() (url.Values, error) {
-	return nil, nil
+func (x *UpdateManagerReq) QueryString() (string, error) {
+	return "", nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.
@@ -671,7 +670,7 @@ func (x *ListManagersByPageReq) New() any {
 }
 
 // QueryValues returns the form values of the object.
-func (x *ListManagersByPageReq) QueryValues() (url.Values, error) {
+func (x *ListManagersByPageReq) QueryString() (string, error) {
 	m := make(url.Values)
 	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
 	m.Add("size", strconv.FormatInt(int64(x.Size), 10))
@@ -689,7 +688,7 @@ func (x *ListManagersByPageReq) QueryValues() (url.Values, error) {
 	if x.Vip != nil {
 		m.Add("vip", strconv.FormatBool(*x.Vip))
 	}
-	return m, nil
+	return m.Encode(), nil
 }
 
 // Binding extracts non-body values (path, query) from *http.Request.

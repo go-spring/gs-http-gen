@@ -65,13 +65,11 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
 	}
-	q, err := req.QueryValues()
-	if err != nil {
-		return nil, nil, err
-	}
 	path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $p := $r.PathParams}} req.{{$p}}, {{- end}})
-	if len(q) > 0 {
-		path += "?" + q.Encode()
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 	//var buf bytes.Buffer
 	//body := req.{{$r.Request}}Body

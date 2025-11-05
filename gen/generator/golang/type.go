@@ -180,7 +180,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 
 {{if $s.Request}}
 	// QueryValues returns the form values of the object.
-	func (x *{{$s.Name}}) QueryValues() (url.Values, error) {
+	func (x *{{$s.Name}}) QueryString() (string, error) {
 		{{- if $s.QueryCount}}
 			m := make(url.Values)
 			{{- range $f := $s.Fields}}
@@ -191,9 +191,9 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 					{{- end}}
 				{{- end}}
 			{{- end}}
-			return m, nil
+			return m.Encode(), nil
 		{{- else}}
-			return nil, nil
+			return "", nil
 		{{- end}}
 	}
 {{end}}
