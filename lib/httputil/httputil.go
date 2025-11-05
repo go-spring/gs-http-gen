@@ -175,25 +175,25 @@ func WithConfig(config map[string]string) RequestOption {
 	}
 }
 
-// Connection defines a customizable HTTP executor interface.
+// HTTPClient defines a customizable HTTP executor interface.
 // Implementing this interface allows users to provide their own
 // HTTP execution logic (for example, to add retry, logging, or tracing).
-type Connection interface {
+type HTTPClient interface {
 	JSON(req *http.Request, meta RequestContext) (*http.Response, []byte, error)
 	Stream(req *http.Request, meta RequestContext) (*http.Response, *Stream, error)
 }
 
-var _ Connection = (*SimpleConnection)(nil)
+var _ HTTPClient = (*SimpleHTTPClient)(nil)
 
-// SimpleConnection is the default implementation of Connection,
+// SimpleHTTPClient is the default implementation of HTTPClient,
 // which delegates to the standard library http.Client.
 // Target must be a static IP:port or domain name.
-type SimpleConnection struct {
+type SimpleHTTPClient struct {
 	Client *http.Client
 }
 
 // do executes the given HTTP request using the embedded http.Client.
-func (c *SimpleConnection) do(r *http.Request, meta RequestContext) (*http.Response, error) {
+func (c *SimpleHTTPClient) do(r *http.Request, meta RequestContext) (*http.Response, error) {
 	r.Host = meta.Target
 	r.URL.Host = meta.Target
 	r.URL.Scheme = meta.Schema
@@ -209,7 +209,7 @@ func (c *SimpleConnection) do(r *http.Request, meta RequestContext) (*http.Respo
 // it can be read again by the caller if needed.
 //
 // Note: For very large responses, this may be memory intensive.
-func (c *SimpleConnection) JSON(r *http.Request, meta RequestContext) (*http.Response, []byte, error) {
+func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestContext) (*http.Response, []byte, error) {
 	resp, err := c.do(r, meta)
 	if err != nil {
 		return nil, nil, err
@@ -227,7 +227,7 @@ func (c *SimpleConnection) JSON(r *http.Request, meta RequestContext) (*http.Res
 
 // Stream executes an HTTP request and continuously reads lines from the response body.
 // Each line is sent into the returned Stream channel asynchronously.
-func (c *SimpleConnection) Stream(r *http.Request, meta RequestContext) (*http.Response, *Stream, error) {
+func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestContext) (*http.Response, *Stream, error) {
 	resp, err := c.do(r, meta)
 	if err != nil {
 		return nil, nil, err
@@ -255,9 +255,9 @@ func (c *SimpleConnection) Stream(r *http.Request, meta RequestContext) (*http.R
 	return resp, respStream, nil
 }
 
-// JSONResponse executes the given HTTP request using the provided Connection,
+// JSONResponse executes the given HTTP request using the provided HTTPClient,
 // reads the response body, and unmarshals it into a value of type RespType.
-func JSONResponse[RespType any](c Connection, r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
+func JSONResponse[RespType any](c HTTPClient, r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
 	meta := RequestContext{
 		Header: http.Header{},
 		Config: map[string]string{},
@@ -276,9 +276,9 @@ func JSONResponse[RespType any](c Connection, r *http.Request, opts ...RequestOp
 	return resp, &ret, nil
 }
 
-// StreamResponse executes the given HTTP request using the provided Connection,
+// StreamResponse executes the given HTTP request using the provided HTTPClient,
 // and returns a Stream instance for streaming the response body.
-func StreamResponse(c Connection, r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
+func StreamResponse(c HTTPClient, r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
 	meta := RequestContext{
 		Header: http.Header{},
 		Config: map[string]string{},

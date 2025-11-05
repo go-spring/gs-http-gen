@@ -39,25 +39,25 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-// LogConnection is a Connection implementation that logs all requests and responses.
-type LogConnection struct {
-	httputil.Connection
+// LogHTTPClient is a HTTPClient implementation that logs all requests and responses.
+type LogHTTPClient struct {
+	httputil.HTTPClient
 }
 
 // JSON executes the given HTTP request using the provided Client.
-func (c *LogConnection) JSON(req *http.Request, meta httputil.RequestContext) (*http.Response, []byte, error) {
+func (c *LogHTTPClient) JSON(req *http.Request, meta httputil.RequestContext) (*http.Response, []byte, error) {
 	fmt.Printf("%#v\n", meta)
-	return c.Connection.JSON(req, meta)
+	return c.HTTPClient.JSON(req, meta)
 }
 
 // Stream executes the given HTTP request using the provided Client.
-func (c *LogConnection) Stream(req *http.Request, meta httputil.RequestContext) (*http.Response, *httputil.Stream, error) {
+func (c *LogHTTPClient) Stream(req *http.Request, meta httputil.RequestContext) (*http.Response, *httputil.Stream, error) {
 	fmt.Printf("%#v\n", meta)
-	return c.Connection.Stream(req, meta)
+	return c.HTTPClient.Stream(req, meta)
 }
 
 type HelloClient struct {
-	Connection  httputil.Connection
+	HTTPClient  httputil.HTTPClient
 	ServiceName string
 }
 
@@ -168,7 +168,7 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.JSONResponse[HelloResponse](c.Connection, r, opts...)
+	return httputil.JSONResponse[HelloResponse](c.HTTPClient, r, opts...)
 }
 
 type StreamRequest struct {
@@ -290,7 +290,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.StreamResponse(c.Connection, r, opts...)
+	return httputil.StreamResponse(c.HTTPClient, r, opts...)
 }
 
 func TestHello(t *testing.T) {
@@ -313,8 +313,8 @@ func TestHello(t *testing.T) {
 	h.Set("X-Request-ID", "12345678")
 
 	client := &HelloClient{
-		Connection: &LogConnection{
-			Connection: &httputil.SimpleConnection{
+		HTTPClient: &LogHTTPClient{
+			HTTPClient: &httputil.SimpleHTTPClient{
 				Client: http.DefaultClient,
 			},
 		},
@@ -390,8 +390,8 @@ func TestStream(t *testing.T) {
 	h.Set("X-Request-ID", "12345678")
 
 	client := &HelloClient{
-		Connection: &LogConnection{
-			Connection: &httputil.SimpleConnection{
+		HTTPClient: &LogHTTPClient{
+			HTTPClient: &httputil.SimpleHTTPClient{
 				Client: http.DefaultClient,
 			},
 		},
