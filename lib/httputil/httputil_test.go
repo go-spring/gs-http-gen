@@ -39,21 +39,6 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-//
-//// LogTransport is a Transport implementation that logs all requests and responses.
-//type LogTransport struct {
-//	httputil.SimpleTransport
-//}
-//
-//// GetConn returns a 可以打印日志的 Connection instance for the given target and schema.
-//func (c *LogTransport) GetConn(target, schema string) (httputil.Connection, error) {
-//	conn, err := c.SimpleTransport.GetConn(target, schema)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &LogConnection{Connection: conn}, nil
-//}
-
 // LogConnection is a Connection implementation that logs all requests and responses.
 type LogConnection struct {
 	httputil.Connection
@@ -179,14 +164,11 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Set("Accept", "application/json")
-	//conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	//if err != nil {
-	//	return nil, nil, err
-	//}
+
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.JSONResponse[HelloResponse](c.Connection, r, path, opts...)
+	return httputil.JSONResponse[HelloResponse](c.Connection, r, opts...)
 }
 
 type StreamRequest struct {
@@ -304,15 +286,11 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	}
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Accept", "text/event-stream")
-	//conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	//if err != nil {
-	//	return nil, nil, err
-	//}
 
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.StreamResponse(c.Connection, r, path, opts...)
+	return httputil.StreamResponse(c.Connection, r, opts...)
 }
 
 func TestHello(t *testing.T) {

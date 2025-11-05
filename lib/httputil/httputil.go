@@ -175,11 +175,6 @@ func WithConfig(config map[string]string) RequestOption {
 	}
 }
 
-//// Transport defines a customizable HTTP transport interface.
-//type Transport interface {
-//	GetConn(target, schema string) (Connection, error)
-//}
-
 // Connection defines a customizable HTTP executor interface.
 // Implementing this interface allows users to provide their own
 // HTTP execution logic (for example, to add retry, logging, or tracing).
@@ -188,19 +183,7 @@ type Connection interface {
 	Stream(req *http.Request, meta RequestContext) (*http.Response, *Stream, error)
 }
 
-// var _ Transport = (*SimpleTransport)(nil)
 var _ Connection = (*SimpleConnection)(nil)
-
-//// SimpleTransport is the default implementation of Transport.
-//type SimpleTransport struct{}
-//
-//// GetConn returns a default connection for the transport.
-//func (f *SimpleTransport) GetConn(target, schema string) (Connection, error) {
-//	return &SimpleConnection{
-//		Client: http.DefaultClient,
-//		Target: target,
-//	}, nil
-//}
 
 // SimpleConnection is the default implementation of Connection,
 // which delegates to the standard library http.Client.
