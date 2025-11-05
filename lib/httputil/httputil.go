@@ -29,6 +29,8 @@ import (
 	"time"
 )
 
+////////////////////////////////// stream /////////////////////////////////////
+
 // Message represents a single message unit read from the stream.
 type Message struct {
 	Data string
@@ -122,6 +124,8 @@ func (s *Stream) Close() {
 	}
 }
 
+///////////////////////////////// interface ///////////////////////////////////
+
 // RequestMeta holds contextual information for an HTTP request.
 type RequestMeta struct {
 	Target string
@@ -139,13 +143,27 @@ type HTTPClient interface {
 	Stream(req *http.Request, meta RequestMeta) (*http.Response, *Stream, error)
 }
 
-var DefaultHTTPClient HTTPClient = &SimpleHTTPClient{http.DefaultClient}
+// DefaultClient is the default HTTPClient implementation.
+var DefaultClient HTTPClient = &SimpleHTTPClient{http.DefaultClient}
 
 // SimpleHTTPClient is the default implementation of HTTPClient,
 // which delegates to the standard library http.Client.
 // Target must be a static IP:port or domain name.
 type SimpleHTTPClient struct {
 	Client *http.Client
+}
+
+// do executes the given HTTP request using the embedded http.Client.
+func (c *SimpleHTTPClient) do(r *http.Request, meta RequestMeta) (*http.Response, error) {
+	r.Host = meta.Target
+	r.URL.Host = meta.Target
+	r.URL.Scheme = meta.Schema
+	for k, values := range meta.Header {
+		for _, v := range values {
+			r.Header.Add(k, v)
+		}
+	}
+	return c.Client.Do(r)
 }
 
 // JSON executes the HTTP request using the embedded http.Client.
@@ -157,7 +175,7 @@ type SimpleHTTPClient struct {
 //
 // Note: For very large responses, this may be memory intensive.
 func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestMeta) (*http.Response, []byte, error) {
-	resp, err := c.doRequest(r, meta)
+	resp, err := c.do(r, meta)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -175,7 +193,7 @@ func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestMeta) (*http.Respon
 // Stream executes an HTTP request and continuously reads lines from the response body.
 // Each line is sent into the returned Stream channel asynchronously.
 func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestMeta) (*http.Response, *Stream, error) {
-	resp, err := c.doRequest(r, meta)
+	resp, err := c.do(r, meta)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -202,18 +220,7 @@ func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestMeta) (*http.Resp
 	return resp, respStream, nil
 }
 
-// doRequest executes the given HTTP request using the embedded http.Client.
-func (c *SimpleHTTPClient) doRequest(r *http.Request, meta RequestMeta) (*http.Response, error) {
-	r.Host = meta.Target
-	r.URL.Host = meta.Target
-	r.URL.Scheme = meta.Schema
-	for k, values := range meta.Header {
-		for _, v := range values {
-			r.Header.Add(k, v)
-		}
-	}
-	return c.Client.Do(r)
-}
+////////////////////////////////// response ///////////////////////////////////
 
 // RequestOption is a function type that modifies the RequestMeta.
 type RequestOption func(info *RequestMeta)
@@ -274,7 +281,7 @@ func buildMeta(opts []RequestOption) RequestMeta {
 // JSONResponse executes the given HTTP request using the provided HTTPClient,
 // reads the response body, and unmarshals it into a value of type RespType.
 func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
-	resp, b, err := DefaultHTTPClient.JSON(r, buildMeta(opts))
+	resp, b, err := DefaultClient.JSON(r, buildMeta(opts))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -288,5 +295,5 @@ func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.R
 // StreamResponse executes the given HTTP request using the provided HTTPClient,
 // and returns a Stream instance for streaming the response body.
 func StreamResponse(r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
-	return DefaultHTTPClient.Stream(r, buildMeta(opts))
+	return DefaultClient.Stream(r, buildMeta(opts))
 }

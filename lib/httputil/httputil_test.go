@@ -311,8 +311,8 @@ func TestHello(t *testing.T) {
 	h := http.Header{}
 	h.Set("X-Request-ID", "12345678")
 
-	httputil.DefaultHTTPClient = &LogHTTPClient{
-		HTTPClient: httputil.DefaultHTTPClient,
+	httputil.DefaultClient = &LogHTTPClient{
+		HTTPClient: httputil.DefaultClient,
 	}
 
 	client := &HelloClient{
@@ -387,8 +387,8 @@ func TestStream(t *testing.T) {
 	h := http.Header{}
 	h.Set("X-Request-ID", "12345678")
 
-	httputil.DefaultHTTPClient = &LogHTTPClient{
-		HTTPClient: httputil.DefaultHTTPClient,
+	httputil.DefaultClient = &LogHTTPClient{
+		HTTPClient: httputil.DefaultClient,
 	}
 
 	client := &HelloClient{
