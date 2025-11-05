@@ -57,7 +57,6 @@ func (c *LogHTTPClient) Stream(req *http.Request, meta httputil.RequestContext) 
 }
 
 type HelloClient struct {
-	HTTPClient  httputil.HTTPClient
 	ServiceName string
 }
 
@@ -168,7 +167,7 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.JSONResponse[HelloResponse](c.HTTPClient, r, opts...)
+	return httputil.JSONResponse[HelloResponse](r, opts...)
 }
 
 type StreamRequest struct {
@@ -290,7 +289,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.StreamResponse(c.HTTPClient, r, opts...)
+	return httputil.StreamResponse(r, opts...)
 }
 
 func TestHello(t *testing.T) {
@@ -312,12 +311,11 @@ func TestHello(t *testing.T) {
 	h := http.Header{}
 	h.Set("X-Request-ID", "12345678")
 
+	httputil.DefaultHTTPClient = &LogHTTPClient{
+		HTTPClient: httputil.DefaultHTTPClient,
+	}
+
 	client := &HelloClient{
-		HTTPClient: &LogHTTPClient{
-			HTTPClient: &httputil.SimpleHTTPClient{
-				Client: http.DefaultClient,
-			},
-		},
 		ServiceName: "127.0.0.1:9090",
 	}
 
@@ -389,12 +387,11 @@ func TestStream(t *testing.T) {
 	h := http.Header{}
 	h.Set("X-Request-ID", "12345678")
 
+	httputil.DefaultHTTPClient = &LogHTTPClient{
+		HTTPClient: httputil.DefaultHTTPClient,
+	}
+
 	client := &HelloClient{
-		HTTPClient: &LogHTTPClient{
-			HTTPClient: &httputil.SimpleHTTPClient{
-				Client: http.DefaultClient,
-			},
-		},
 		ServiceName: "127.0.0.1:9090",
 	}
 

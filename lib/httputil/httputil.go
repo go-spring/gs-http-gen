@@ -183,7 +183,7 @@ type HTTPClient interface {
 	Stream(req *http.Request, meta RequestContext) (*http.Response, *Stream, error)
 }
 
-var _ HTTPClient = (*SimpleHTTPClient)(nil)
+var DefaultHTTPClient HTTPClient = &SimpleHTTPClient{http.DefaultClient}
 
 // SimpleHTTPClient is the default implementation of HTTPClient,
 // which delegates to the standard library http.Client.
@@ -257,7 +257,7 @@ func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestContext) (*http.R
 
 // JSONResponse executes the given HTTP request using the provided HTTPClient,
 // reads the response body, and unmarshals it into a value of type RespType.
-func JSONResponse[RespType any](c HTTPClient, r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
+func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
 	meta := RequestContext{
 		Header: http.Header{},
 		Config: map[string]string{},
@@ -265,7 +265,7 @@ func JSONResponse[RespType any](c HTTPClient, r *http.Request, opts ...RequestOp
 	for _, opt := range opts {
 		opt(&meta)
 	}
-	resp, b, err := c.JSON(r, meta)
+	resp, b, err := DefaultHTTPClient.JSON(r, meta)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -278,7 +278,7 @@ func JSONResponse[RespType any](c HTTPClient, r *http.Request, opts ...RequestOp
 
 // StreamResponse executes the given HTTP request using the provided HTTPClient,
 // and returns a Stream instance for streaming the response body.
-func StreamResponse(c HTTPClient, r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
+func StreamResponse(r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
 	meta := RequestContext{
 		Header: http.Header{},
 		Config: map[string]string{},
@@ -286,5 +286,5 @@ func StreamResponse(c HTTPClient, r *http.Request, opts ...RequestOption) (*http
 	for _, opt := range opts {
 		opt(&meta)
 	}
-	return c.Stream(r, meta)
+	return DefaultHTTPClient.Stream(r, meta)
 }
