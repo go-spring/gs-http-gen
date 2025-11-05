@@ -17,6 +17,7 @@
 package httputil_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -38,19 +39,20 @@ func ptr[T any](v T) *T {
 	return &v
 }
 
-// LogTransport is a Transport implementation that logs all requests and responses.
-type LogTransport struct {
-	httputil.SimpleTransport
-}
-
-// GetConn returns a 可以打印日志的 Connection instance for the given target and schema.
-func (c *LogTransport) GetConn(target, schema string) (httputil.Connection, error) {
-	conn, err := c.SimpleTransport.GetConn(target, schema)
-	if err != nil {
-		return nil, err
-	}
-	return &LogConnection{Connection: conn}, nil
-}
+//
+//// LogTransport is a Transport implementation that logs all requests and responses.
+//type LogTransport struct {
+//	httputil.SimpleTransport
+//}
+//
+//// GetConn returns a 可以打印日志的 Connection instance for the given target and schema.
+//func (c *LogTransport) GetConn(target, schema string) (httputil.Connection, error) {
+//	conn, err := c.SimpleTransport.GetConn(target, schema)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return &LogConnection{Connection: conn}, nil
+//}
 
 // LogConnection is a Connection implementation that logs all requests and responses.
 type LogConnection struct {
@@ -70,7 +72,7 @@ func (c *LogConnection) Stream(req *http.Request, meta httputil.RequestContext) 
 }
 
 type HelloClient struct {
-	Transport   httputil.Transport
+	Connection  httputil.Connection
 	ServiceName string
 }
 
@@ -171,17 +173,20 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 
 	path := "/v1/hello"
 	urlPath := fmt.Sprintf("%s?%s", path, m.Encode())
-	r, err := httputil.NewRequest(ctx, "GET", urlPath, nil)
+	r, err := http.NewRequestWithContext(ctx, "GET", urlPath, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Set("Accept", "application/json")
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.JSONResponse[HelloResponse](conn, r, path, opts...)
+	//conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/v1/hello"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.JSONResponse[HelloResponse](c.Connection, r, path, opts...)
 }
 
 type StreamRequest struct {
@@ -293,17 +298,21 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 
 	path := "/v1/stream"
 	urlPath := fmt.Sprintf("%s?%s", path, m.Encode())
-	r, err := httputil.NewRequest(ctx, "POST", urlPath, body)
+	r, err := http.NewRequestWithContext(ctx, "POST", urlPath, bytes.NewReader(body))
 	if err != nil {
 		return nil, nil, err
 	}
 	r.Header.Set("Content-Type", "application/json")
 	r.Header.Set("Accept", "text/event-stream")
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.StreamResponse(conn, r, path, opts...)
+	//conn, err := c.Transport.GetConn(c.ServiceName, "http")
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/v1/hello"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.StreamResponse(c.Connection, r, path, opts...)
 }
 
 func TestHello(t *testing.T) {
@@ -326,7 +335,11 @@ func TestHello(t *testing.T) {
 	h.Set("X-Request-ID", "12345678")
 
 	client := &HelloClient{
-		Transport:   &LogTransport{},
+		Connection: &LogConnection{
+			Connection: &httputil.SimpleConnection{
+				Client: http.DefaultClient,
+			},
+		},
 		ServiceName: "127.0.0.1:9090",
 	}
 
@@ -399,7 +412,11 @@ func TestStream(t *testing.T) {
 	h.Set("X-Request-ID", "12345678")
 
 	client := &HelloClient{
-		Transport:   &LogTransport{},
+		Connection: &LogConnection{
+			Connection: &httputil.SimpleConnection{
+				Client: http.DefaultClient,
+			},
+		},
 		ServiceName: "127.0.0.1:9090",
 	}
 

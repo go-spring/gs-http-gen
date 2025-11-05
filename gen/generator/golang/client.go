@@ -73,7 +73,7 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 		path += "?" + s
 	}
 
-	{{- if eq $r.ContentType "application/json"}}
+	{{if eq $r.ContentType "application/json"}}
 		buf := bytes.NewBuffer(nil)
 		if err := json.NewEncoder(buf).Encode(req.{{$r.Request}}Body); err != nil {
 			return nil, nil, err

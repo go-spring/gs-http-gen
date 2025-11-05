@@ -35,6 +35,7 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 	} else if s != "" {
 		path += "?" + s
 	}
+
 	buf := bytes.NewBuffer(nil)
 	if err := json.NewEncoder(buf).Encode(req.CreateManagerReqBody); err != nil {
 		return nil, nil, err
@@ -66,6 +67,7 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 	} else if s != "" {
 		path += "?" + s
 	}
+
 	var buf *bytes.Buffer
 	if s, err := req.ManagerReqBody.EncodeToForm(); err != nil {
 		return nil, nil, err
@@ -99,6 +101,7 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 	} else if s != "" {
 		path += "?" + s
 	}
+
 	var buf *bytes.Buffer
 	if s, err := req.ManagerReqBody.EncodeToForm(); err != nil {
 		return nil, nil, err
@@ -132,6 +135,7 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 	} else if s != "" {
 		path += "?" + s
 	}
+
 	var buf *bytes.Buffer
 	if s, err := req.ListManagersByPageReqBody.EncodeToForm(); err != nil {
 		return nil, nil, err
@@ -165,6 +169,7 @@ func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.Re
 	} else if s != "" {
 		path += "?" + s
 	}
+
 	var buf *bytes.Buffer
 	if s, err := req.StreamReqBody.EncodeToForm(); err != nil {
 		return nil, nil, err
@@ -198,6 +203,7 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 	} else if s != "" {
 		path += "?" + s
 	}
+
 	buf := bytes.NewBuffer(nil)
 	if err := json.NewEncoder(buf).Encode(req.UpdateManagerReqBody); err != nil {
 		return nil, nil, err

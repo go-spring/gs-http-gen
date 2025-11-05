@@ -124,6 +124,8 @@ func (s *Stream) Send(msg Message) bool {
 
 // RequestContext holds contextual information for an HTTP request.
 type RequestContext struct {
+	Target string
+	Schema string
 	Path   string
 	Header http.Header
 	Config map[string]string
@@ -131,6 +133,27 @@ type RequestContext struct {
 
 // RequestOption is a function type that modifies the RequestContext.
 type RequestOption func(info *RequestContext)
+
+// WithTarget sets the target to the RequestContext.
+func WithTarget(target string) RequestOption {
+	return func(info *RequestContext) {
+		info.Target = target
+	}
+}
+
+// WithSchema sets the schema to the RequestContext.
+func WithSchema(schema string) RequestOption {
+	return func(info *RequestContext) {
+		info.Schema = schema
+	}
+}
+
+// WithPath sets the path to the RequestContext.
+func WithPath(path string) RequestOption {
+	return func(info *RequestContext) {
+		info.Path = path
+	}
+}
 
 // WithHeader sets the given HTTP headers to the RequestContext.
 func WithHeader(header http.Header) RequestOption {
@@ -152,10 +175,10 @@ func WithConfig(config map[string]string) RequestOption {
 	}
 }
 
-// Transport defines a customizable HTTP transport interface.
-type Transport interface {
-	GetConn(target, schema string) (Connection, error)
-}
+//// Transport defines a customizable HTTP transport interface.
+//type Transport interface {
+//	GetConn(target, schema string) (Connection, error)
+//}
 
 // Connection defines a customizable HTTP executor interface.
 // Implementing this interface allows users to provide their own
@@ -165,33 +188,32 @@ type Connection interface {
 	Stream(req *http.Request, meta RequestContext) (*http.Response, *Stream, error)
 }
 
-var _ Transport = (*SimpleTransport)(nil)
+// var _ Transport = (*SimpleTransport)(nil)
 var _ Connection = (*SimpleConnection)(nil)
 
-// SimpleTransport is the default implementation of Transport.
-type SimpleTransport struct{}
-
-// GetConn returns a default connection for the transport.
-func (f *SimpleTransport) GetConn(target, schema string) (Connection, error) {
-	return &SimpleConnection{
-		Client: http.DefaultClient,
-		Target: target,
-	}, nil
-}
+//// SimpleTransport is the default implementation of Transport.
+//type SimpleTransport struct{}
+//
+//// GetConn returns a default connection for the transport.
+//func (f *SimpleTransport) GetConn(target, schema string) (Connection, error) {
+//	return &SimpleConnection{
+//		Client: http.DefaultClient,
+//		Target: target,
+//	}, nil
+//}
 
 // SimpleConnection is the default implementation of Connection,
 // which delegates to the standard library http.Client.
 // Target must be a static IP:port or domain name.
 type SimpleConnection struct {
 	Client *http.Client
-	Target string
 }
 
 // do executes the given HTTP request using the embedded http.Client.
 func (c *SimpleConnection) do(r *http.Request, meta RequestContext) (*http.Response, error) {
-	r.Host = c.Target
-	r.URL.Host = c.Target
-	r.URL.Scheme = "http"
+	r.Host = meta.Target
+	r.URL.Host = meta.Target
+	r.URL.Scheme = meta.Schema
 	maps.Copy(r.Header, meta.Header)
 	return c.Client.Do(r)
 }
@@ -252,9 +274,8 @@ func (c *SimpleConnection) Stream(r *http.Request, meta RequestContext) (*http.R
 
 // JSONResponse executes the given HTTP request using the provided Connection,
 // reads the response body, and unmarshals it into a value of type RespType.
-func JSONResponse[RespType any](c Connection, r *http.Request, path string, opts ...RequestOption) (*http.Response, *RespType, error) {
+func JSONResponse[RespType any](c Connection, r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
 	meta := RequestContext{
-		Path:   path,
 		Header: http.Header{},
 		Config: map[string]string{},
 	}
@@ -274,9 +295,8 @@ func JSONResponse[RespType any](c Connection, r *http.Request, path string, opts
 
 // StreamResponse executes the given HTTP request using the provided Connection,
 // and returns a Stream instance for streaming the response body.
-func StreamResponse(c Connection, r *http.Request, path string, opts ...RequestOption) (*http.Response, *Stream, error) {
+func StreamResponse(c Connection, r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
 	meta := RequestContext{
-		Path:   path,
 		Header: http.Header{},
 		Config: map[string]string{},
 	}
