@@ -31,9 +31,9 @@ var clientTmpl = template.Must(template.New("client").Parse(`
 package {{.Package}}
 
 import (
-	//"bytes"
+	"bytes"
 	"context"
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -65,27 +65,35 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
 	}
+
 	path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $p := $r.PathParams}} req.{{$p}}, {{- end}})
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.{{$r.Request}}Body
-	//{{- if eq $r.ContentType "application/json"}}
-	//	err= json.NewEncoder(&buf).Encode(body)
-	//	if err != nil {
-	//		return nil, nil, err
-	//	}
-	//{{- else}}
-	//	
-	//{{- end}}
-	r, err := httputil.NewRequest(ctx, "{{$r.Method}}", path, nil)
+
+	{{- if eq $r.ContentType "application/json"}}
+		buf := bytes.NewBuffer(nil)
+		if err := json.NewEncoder(buf).Encode(req.{{$r.Request}}Body); err != nil {
+			return nil, nil, err
+		}
+	{{- else}}
+		var buf *bytes.Buffer
+		if s, err := req.{{$r.Request}}Body.EncodeToForm(); err != nil {
+			return nil, nil, err
+		} else if s != "" {
+			buf = bytes.NewBufferString(s)
+		}
+	{{- end}}
+
+	r, err := http.NewRequestWithContext(ctx, "{{$r.Method}}", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "{{$r.ContentType}}")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err

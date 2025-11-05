@@ -3,9 +3,9 @@
 package proto
 
 import (
-	//"bytes"
+	"bytes"
 	"context"
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -28,25 +28,25 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "CreateManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *CreateManagerResp, error](ret)
 	}
+
 	path := fmt.Sprintf("/managers")
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.CreateManagerReqBody
-	//
-	//	err= json.NewEncoder(&buf).Encode(body)
-	//	if err != nil {
-	//		return nil, nil, err
-	//	}
-	//
-	r, err := httputil.NewRequest(ctx, "POST", path, nil)
+	buf := bytes.NewBuffer(nil)
+	if err := json.NewEncoder(buf).Encode(req.CreateManagerReqBody); err != nil {
+		return nil, nil, err
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "POST", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "application/json")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -59,22 +59,27 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "DeleteManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *DeleteManagerResp, error](ret)
 	}
+
 	path := fmt.Sprintf("/managers/%s", req.Id)
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.ManagerReqBody
-	//
-	//
-	//
-	r, err := httputil.NewRequest(ctx, "DELETE", path, nil)
+	var buf *bytes.Buffer
+	if s, err := req.ManagerReqBody.EncodeToForm(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		buf = bytes.NewBufferString(s)
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "DELETE", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -87,22 +92,27 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "GetManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *GetManagerResp, error](ret)
 	}
+
 	path := fmt.Sprintf("/managers/%s", req.Id)
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.ManagerReqBody
-	//
-	//
-	//
-	r, err := httputil.NewRequest(ctx, "GET", path, nil)
+	var buf *bytes.Buffer
+	if s, err := req.ManagerReqBody.EncodeToForm(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		buf = bytes.NewBufferString(s)
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "GET", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -115,22 +125,27 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "ListManagersByPage", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *ListManagersByPageResp, error](ret)
 	}
+
 	path := fmt.Sprintf("/managers/page")
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.ListManagersByPageReqBody
-	//
-	//
-	//
-	r, err := httputil.NewRequest(ctx, "GET", path, nil)
+	var buf *bytes.Buffer
+	if s, err := req.ListManagersByPageReqBody.EncodeToForm(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		buf = bytes.NewBufferString(s)
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "GET", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -143,22 +158,27 @@ func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.Re
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "Stream", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *httputil.Stream, error](ret)
 	}
+
 	path := fmt.Sprintf("/stream")
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.StreamReqBody
-	//
-	//
-	//
-	r, err := httputil.NewRequest(ctx, "GET", path, nil)
+	var buf *bytes.Buffer
+	if s, err := req.StreamReqBody.EncodeToForm(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		buf = bytes.NewBufferString(s)
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "GET", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err
@@ -171,25 +191,25 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "UpdateManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *UpdateManagerResp, error](ret)
 	}
+
 	path := fmt.Sprintf("/managers/%s", req.ID)
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {
 		path += "?" + s
 	}
-	//var buf bytes.Buffer
-	//body := req.UpdateManagerReqBody
-	//
-	//	err= json.NewEncoder(&buf).Encode(body)
-	//	if err != nil {
-	//		return nil, nil, err
-	//	}
-	//
-	r, err := httputil.NewRequest(ctx, "PUT", path, nil)
+	buf := bytes.NewBuffer(nil)
+	if err := json.NewEncoder(buf).Encode(req.UpdateManagerReqBody); err != nil {
+		return nil, nil, err
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "PUT", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
+
 	r.Header.Set("Content-Type", "application/json")
+
 	conn, err := c.Transport.GetConn(c.ServiceName, "http")
 	if err != nil {
 		return nil, nil, err

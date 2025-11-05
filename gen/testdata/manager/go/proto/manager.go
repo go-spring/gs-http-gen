@@ -3,6 +3,7 @@
 package proto
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -488,16 +489,20 @@ func (x *CreateManagerReqBody) EncodeToForm() (string, error) {
 	m.Add("aaa", strconv.FormatFloat(float64(x.Salary), 'f', -1, 64))
 	m.Add("aaa", x.Role)
 	m.Add("aaa", strconv.FormatInt(int64(x.Level), 10))
-	b, err := json.Marshal(x.DeptInfo)
-	if err != nil {
-		return nil, err
+	{
+		b, err := json.Marshal(x.DeptInfo)
+		if err != nil {
+			return "", err
+		}
+		m.Add("aaa", string(b))
 	}
-	m.Add("aaa", string(b))
-	b, err := json.Marshal(x.Contact)
-	if err != nil {
-		return nil, err
+	{
+		b, err := json.Marshal(x.Contact)
+		if err != nil {
+			return "", err
+		}
+		m.Add("aaa", string(b))
 	}
-	m.Add("aaa", string(b))
 	return m.Encode(), nil
 }
 
@@ -606,18 +611,22 @@ func (x *UpdateManagerReqBody) EncodeToForm() (string, error) {
 		m.Add("aaa", strconv.FormatInt(int64(*x.Level), 10))
 	}
 	if x.DeptInfo != nil {
-		b, err := json.Marshal(*x.DeptInfo)
-		if err != nil {
-			return nil, err
+		{
+			b, err := json.Marshal(*x.DeptInfo)
+			if err != nil {
+				return "", err
+			}
+			m.Add("aaa", string(b))
 		}
-		m.Add("aaa", string(b))
 	}
 	if x.Contact != nil {
-		b, err := json.Marshal(*x.Contact)
-		if err != nil {
-			return nil, err
+		{
+			b, err := json.Marshal(*x.Contact)
+			if err != nil {
+				return "", err
+			}
+			m.Add("aaa", string(b))
 		}
-		m.Add("aaa", string(b))
 	}
 	return m.Encode(), nil
 }

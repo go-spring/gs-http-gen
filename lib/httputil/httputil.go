@@ -250,20 +250,6 @@ func (c *SimpleConnection) Stream(r *http.Request, meta RequestContext) (*http.R
 	return resp, respStream, nil
 }
 
-// NewRequest creates a new HTTP request with the given context, method,
-// URL, protocol encoder, and request body.
-func NewRequest(ctx context.Context, method string, url string, body []byte) (*http.Request, error) {
-	var reader io.Reader
-	if body != nil {
-		reader = bytes.NewReader(body)
-	}
-	req, err := http.NewRequestWithContext(ctx, method, url, reader)
-	if err != nil {
-		return nil, err
-	}
-	return req, nil
-}
-
 // JSONResponse executes the given HTTP request using the provided Connection,
 // reads the response body, and unmarshals it into a value of type RespType.
 func JSONResponse[RespType any](c Connection, r *http.Request, path string, opts ...RequestOption) (*http.Response, *RespType, error) {

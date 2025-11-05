@@ -52,13 +52,15 @@ func AddFormValue(fieldName string, typeKind []TypeKind, formName string) string
 	case TypeKindEnum:
 		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
 	case TypeKindStruct, TypeKindMap:
+		sb.WriteString("{\n")
 		sb.WriteString(fmt.Sprintf("b, err := json.Marshal(%s)", fieldName))
 		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf(`if err != nil {
-			return nil, err
+			return "", err
 		}`))
 		sb.WriteString("\n")
 		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, formName))
+		sb.WriteString("\n}")
 	case TypeKindList:
 		sb.WriteString(fmt.Sprintf("for i := range len(%s) {", fieldName))
 		sb.WriteString("\n")
@@ -82,6 +84,7 @@ var typeTmpl = template.Must(template.New("type").
 package {{.Package}}
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
