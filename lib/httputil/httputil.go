@@ -31,8 +31,8 @@ import (
 
 // Message represents a single message unit read from the stream.
 type Message struct {
-	data string
-	err  error
+	Data string
+	Err  error
 }
 
 // Stream manages streaming data asynchronously from an HTTP response.
@@ -52,23 +52,14 @@ func NewStream() *Stream {
 	}
 }
 
-// Close closes the Stream safely (idempotent).
-// It ensures that the internal channels are closed only once.
-func (s *Stream) Close() {
-	if s.closed.CompareAndSwap(false, true) {
-		close(s.done)
-		close(s.msgs)
-	}
-}
-
 // Text returns the latest data read from the stream.
 func (s *Stream) Text() string {
-	return s.curr.data
+	return s.curr.Data
 }
 
 // Error returns the last error encountered by the stream.
 func (s *Stream) Error() error {
-	return s.curr.err
+	return s.curr.Err
 }
 
 // Next waits for the next data item from the stream,
@@ -89,17 +80,17 @@ func (s *Stream) Next(ctx context.Context, timeout time.Duration) bool {
 	var ok bool
 	select {
 	case <-ctx.Done():
-		s.curr.data = ""
-		s.curr.err = ctx.Err()
+		s.curr.Data = ""
+		s.curr.Err = ctx.Err()
 		return false
 	case s.curr, ok = <-s.msgs:
 		if !ok {
 			return false
 		}
-		if s.curr.err != nil {
+		if s.curr.Err != nil {
 			// Treat io.EOF as normal stream termination
-			if s.curr.err == io.EOF {
-				s.curr.err = nil
+			if s.curr.Err == io.EOF {
+				s.curr.Err = nil
 				return false
 			}
 			return false
@@ -119,6 +110,15 @@ func (s *Stream) Send(msg Message) bool {
 		return false
 	case s.msgs <- msg:
 		return true
+	}
+}
+
+// Close closes the Stream safely (idempotent).
+// It ensures that the internal channels are closed only once.
+func (s *Stream) Close() {
+	if s.closed.CompareAndSwap(false, true) {
+		close(s.done)
+		close(s.msgs)
 	}
 }
 
@@ -148,15 +148,6 @@ type SimpleHTTPClient struct {
 	Client *http.Client
 }
 
-// do executes the given HTTP request using the embedded http.Client.
-func (c *SimpleHTTPClient) do(r *http.Request, meta RequestContext) (*http.Response, error) {
-	r.Host = meta.Target
-	r.URL.Host = meta.Target
-	r.URL.Scheme = meta.Schema
-	maps.Copy(r.Header, meta.Header)
-	return c.Client.Do(r)
-}
-
 // JSON executes the HTTP request using the embedded http.Client.
 // It reads the entire response body into memory and returns both
 // the *http.Response and the body as a byte slice.
@@ -166,7 +157,7 @@ func (c *SimpleHTTPClient) do(r *http.Request, meta RequestContext) (*http.Respo
 //
 // Note: For very large responses, this may be memory intensive.
 func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestContext) (*http.Response, []byte, error) {
-	resp, err := c.do(r, meta)
+	resp, err := c.doRequest(r, meta)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -184,7 +175,7 @@ func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestContext) (*http.Res
 // Stream executes an HTTP request and continuously reads lines from the response body.
 // Each line is sent into the returned Stream channel asynchronously.
 func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestContext) (*http.Response, *Stream, error) {
-	resp, err := c.do(r, meta)
+	resp, err := c.doRequest(r, meta)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -198,17 +189,30 @@ func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestContext) (*http.R
 			if text == "" {
 				continue
 			}
-			if !respStream.Send(Message{data: text}) {
+			if !respStream.Send(Message{Data: text}) {
 				return
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			respStream.Send(Message{err: err})
+			respStream.Send(Message{Err: err})
 		} else {
-			respStream.Send(Message{err: io.EOF})
+			respStream.Send(Message{Err: io.EOF})
 		}
 	}()
 	return resp, respStream, nil
+}
+
+// doRequest executes the given HTTP request using the embedded http.Client.
+func (c *SimpleHTTPClient) doRequest(r *http.Request, meta RequestContext) (*http.Response, error) {
+	r.Host = meta.Target
+	r.URL.Host = meta.Target
+	r.URL.Scheme = meta.Schema
+	for k, values := range meta.Header {
+		for _, v := range values {
+			r.Header.Add(k, v)
+		}
+	}
+	return c.Client.Do(r)
 }
 
 // RequestOption is a function type that modifies the RequestContext.
