@@ -47,7 +47,7 @@ var clientType = reflect.TypeFor[Client]()
 // Client is a wrapper struct that embeds ClientInterface.
 // It can be used to track or extend the construction process of the client.
 type Client struct {
-	ServiceName string
+	Target string
 }
 
 {{- range $r := .RPCs}}
@@ -93,7 +93,7 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 
 	r.Header.Set("Content-Type", "{{$r.ContentType}}")
 
-	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithTarget(c.Target))
 	opts = append(opts, httputil.WithPath("{{$r.Path}}"))
 	opts = append(opts, httputil.WithSchema("http"))
 
