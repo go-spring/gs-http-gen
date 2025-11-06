@@ -64,9 +64,10 @@ type TypeField struct {
 	TypeKind []TypeKind
 	Name     string
 	Tag      string
-	Validate *string
+	JSONTag  JSONTag
 	Binding  *Binding
 	FormName string
+	Validate *string
 	Comment  string
 }
 
@@ -465,10 +466,10 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			return Type{}, errutil.Explain(nil, "parse binding for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
-		// Generate struct tag for JSON, query/path bindings
-		fieldTag, err := genFieldTag(f.Name, typeName, f.Annotations, binding)
+		// Generate JSON tag
+		jsonTag, err := genJSONTag(f.Name, typeName, f.Annotations)
 		if err != nil {
-			return Type{}, errutil.Explain(nil, "generate field tag for field %s in type %s error: %w", f.Name, r.Name, err)
+			return Type{}, err
 		}
 
 		// Generate validation expressions for the field
@@ -478,15 +479,17 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		}
 
 		// Add the field to the struct
-		r.Fields = append(r.Fields, TypeField{
+		field := TypeField{
 			Type:     typeName,
 			TypeKind: typeKind,
 			Name:     fieldName,
-			Tag:      fieldTag,
-			Validate: validate,
+			JSONTag:  jsonTag,
 			Binding:  binding,
+			Validate: validate,
 			Comment:  formatComment(f.Comments),
-		})
+		}
+		field.Tag = genFieldTag(field)
+		r.Fields = append(r.Fields, field)
 	}
 	return r, nil
 }
@@ -714,21 +717,13 @@ func genJSONTag(fieldName, typeName string, arr []httpidl.Annotation) (JSONTag, 
 
 // genFieldTag generates the struct tag for a Go struct field.
 // It includes JSON tags and optional binding tags (path, query).
-func genFieldTag(fieldName, typeName string, arr []httpidl.Annotation, binding *Binding) (string, error) {
+func genFieldTag(f TypeField) string {
 	var tags []string
-
-	jsonTag, err := genJSONTag(fieldName, typeName, arr)
-	if err != nil {
-		return "", err
+	tags = append(tags, f.JSONTag.String())
+	if f.Binding != nil {
+		tags = append(tags, f.Binding.String())
 	}
-	tags = append(tags, jsonTag.String())
-
-	// Generate binding tag
-	if binding != nil {
-		tags = append(tags, binding.String())
-	}
-
-	return "`" + strings.Join(tags, " ") + "`", nil
+	return "`" + strings.Join(tags, " ") + "`"
 }
 
 // ValidateFunc represents a custom validation function
