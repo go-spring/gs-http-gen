@@ -199,19 +199,6 @@ type PageReq struct {
 	Size int64 `json:"size" query:"size"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *PageReq) New() any {
-	return &PageReq{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *PageReq) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{
-		{"PageReq.Page", "query", "page", &x.Page},
-		{"PageReq.Size", "query", "size", &x.Size},
-	})
-}
-
 // Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() error {
 	if !(x.Page >= 1) {
@@ -236,16 +223,6 @@ type Address struct {
 	PostalCode *string `json:"postalCode,omitempty"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *Address) New() any {
-	return &Address{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *Address) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
 // Validate checks field values using generated validation expressions.
 func (x *Address) Validate() error {
 	return nil
@@ -262,16 +239,6 @@ type ContactInfo struct {
 	Email   string  `json:"email"`
 	Phone   *string `json:"phone,omitempty"`
 	Address Address `json:"address"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ContactInfo) New() any {
-	return &ContactInfo{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *ContactInfo) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -292,16 +259,6 @@ func (x *ContactInfo) String() string {
 type DepartmentInfo struct {
 	Dept     Department `json:"dept"`
 	DeptName string     `json:"deptName"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *DepartmentInfo) New() any {
-	return &DepartmentInfo{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *DepartmentInfo) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -326,16 +283,6 @@ type Manager struct {
 	Level    ManagerLevelAsString `json:"level"`
 	DeptInfo DepartmentInfo       `json:"deptInfo"`
 	Contact  ContactInfo          `json:"contact"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *Manager) New() any {
-	return &Manager{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *Manager) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -398,11 +345,6 @@ func (x *ManagerReq) String() string {
 type ManagerReqBody struct {
 }
 
-// New returns a new instance (implements Object interface).
-func (x *ManagerReqBody) New() any {
-	return &ManagerReqBody{}
-}
-
 // EncodeToForm encodes the object to form data.
 func (x *ManagerReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -412,11 +354,6 @@ func (x *ManagerReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *ManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *ManagerReqBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -473,11 +410,6 @@ type CreateManagerReqBody struct {
 	Contact  ContactInfo    `json:"contact"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *CreateManagerReqBody) New() any {
-	return &CreateManagerReqBody{}
-}
-
 // EncodeToForm encodes the object to form data.
 func (x *CreateManagerReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -509,11 +441,6 @@ func (x *CreateManagerReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *CreateManagerReqBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -584,11 +511,6 @@ type UpdateManagerReqBody struct {
 	Contact  *ContactInfo    `json:"contact,omitempty"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *UpdateManagerReqBody) New() any {
-	return &UpdateManagerReqBody{}
-}
-
 // EncodeToForm encodes the object to form data.
 func (x *UpdateManagerReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -634,11 +556,6 @@ func (x *UpdateManagerReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *UpdateManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *UpdateManagerReqBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -733,11 +650,6 @@ func (x *ListManagersByPageReq) String() string {
 type ListManagersByPageReqBody struct {
 }
 
-// New returns a new instance (implements Object interface).
-func (x *ListManagersByPageReqBody) New() any {
-	return &ListManagersByPageReqBody{}
-}
-
 // EncodeToForm encodes the object to form data.
 func (x *ListManagersByPageReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -747,11 +659,6 @@ func (x *ListManagersByPageReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *ListManagersByPageReqBody) DecodeFromForm(b []byte) error {
 	return nil
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *ListManagersByPageReqBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -770,16 +677,6 @@ type CreateManagerResp struct {
 	Errno  ErrCode  `json:"errno"`
 	Errmsg string   `json:"errmsg"`
 	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *CreateManagerResp) New() any {
-	return &CreateManagerResp{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *CreateManagerResp) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -803,16 +700,6 @@ type UpdateManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *UpdateManagerResp) New() any {
-	return &UpdateManagerResp{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *UpdateManagerResp) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
@@ -834,16 +721,6 @@ type GetManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *GetManagerResp) New() any {
-	return &GetManagerResp{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *GetManagerResp) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
 // Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
@@ -863,16 +740,6 @@ type DeleteManagerResp struct {
 	Errno  ErrCode `json:"errno"`
 	Errmsg string  `json:"errmsg"`
 	Data   bool    `json:"data"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *DeleteManagerResp) New() any {
-	return &DeleteManagerResp{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *DeleteManagerResp) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -897,16 +764,6 @@ type ManagersPageData struct {
 	Items []*Manager `json:"items"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *ManagersPageData) New() any {
-	return &ManagersPageData{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *ManagersPageData) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
 // Validate checks field values using generated validation expressions.
 func (x *ManagersPageData) Validate() error {
 	return nil
@@ -923,16 +780,6 @@ type ListManagersByPageResp struct {
 	Errno  ErrCode           `json:"errno"`
 	Errmsg string            `json:"errmsg"`
 	Data   *ManagersPageData `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ListManagersByPageResp) New() any {
-	return &ListManagersByPageResp{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *ListManagersByPageResp) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.

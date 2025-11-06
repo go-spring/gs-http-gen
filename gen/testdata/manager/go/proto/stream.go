@@ -99,11 +99,6 @@ type StreamReqBody struct {
 	Id string `json:"id"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *StreamReqBody) New() any {
-	return &StreamReqBody{}
-}
-
 // EncodeToForm encodes the object to form data.
 func (x *StreamReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -114,11 +109,6 @@ func (x *StreamReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *StreamReqBody) DecodeFromForm(b []byte) error {
 	return nil
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *StreamReqBody) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
@@ -139,16 +129,6 @@ type StreamResp struct {
 	Payload Payload `json:"payload"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *StreamResp) New() any {
-	return &StreamResp{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *StreamResp) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
-}
-
 // Validate checks field values using generated validation expressions.
 func (x *StreamResp) Validate() error {
 	return nil
@@ -166,16 +146,6 @@ type Payload struct {
 	TextData    string              `json:"text_data"`
 	NumberData  *int64              `json:"number_data,omitempty"`
 	BooleanData bool                `json:"boolean_data"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *Payload) New() any {
-	return &Payload{}
-}
-
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *Payload) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
 }
 
 // Validate checks field values using generated validation expressions.
