@@ -66,6 +66,7 @@ type TypeField struct {
 	Tag      string
 	Validate *string
 	Binding  *Binding
+	FormName string
 	Comment  string
 }
 
@@ -73,6 +74,10 @@ type TypeField struct {
 type Binding struct {
 	From string // Source: path/query
 	Name string // Field name in the source
+}
+
+func (x Binding) String() string {
+	return fmt.Sprintf(`%s:"%s"`, x.From, x.Name)
 }
 
 // IsRequestBody returns true if the struct is a request body
@@ -641,23 +646,43 @@ func parseBinding(arr []httpidl.Annotation) (*Binding, error) {
 	return &Binding{From: a.Key, Name: val}, nil
 }
 
-// genFieldTag generates the struct tag for a Go struct field.
-// It includes JSON tags and optional binding tags (path, query).
-func genFieldTag(fieldName, typeName string, arr []httpidl.Annotation, binding *Binding) (string, error) {
-	var tags []string
+type JSONTag struct {
+	Name      string
+	OmitEmpty bool
+	OmitZero  bool
+}
 
-	var jsonName string
-	var omitZero bool
-	omitEmpty := strings.HasPrefix(typeName, "*")
+// JSONTag returns a JSON tag string for a field.
+func (tag JSONTag) String() string {
+	var sb strings.Builder
+	sb.WriteString(`json:"`)
+	sb.WriteString(tag.Name)
+	if tag.OmitEmpty {
+		sb.WriteString(",omitempty")
+	}
+	if tag.OmitZero {
+		sb.WriteString(",omitzero")
+	}
+	sb.WriteString(`"`)
+	return sb.String()
+}
+
+// genJSONTag generates a JSON tag for a field.
+func genJSONTag(fieldName, typeName string, arr []httpidl.Annotation) (JSONTag, error) {
+	var (
+		jsonName  = fieldName
+		omitEmpty = strings.HasPrefix(typeName, "*")
+		omitZero  bool
+	)
 
 	// Parse "json" annotation
 	if a, ok := httpidl.GetAnnotation(arr, "json"); ok {
 		if a.Value == nil {
-			return "", errutil.Explain(nil, `annotation "json" value is nil`)
+			return JSONTag{}, errutil.Explain(nil, `annotation "json" value is nil`)
 		}
 		s := strings.TrimSpace(*a.Value)
 		if s == "" {
-			return "", errutil.Explain(nil, `annotation "json" value is empty`)
+			return JSONTag{}, errutil.Explain(nil, `annotation "json" value is empty`)
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
 		for i, v := range strings.Split(s, ",") {
@@ -680,20 +705,27 @@ func genFieldTag(fieldName, typeName string, arr []httpidl.Annotation, binding *
 		}
 	}
 
-	if jsonName == "" {
-		jsonName += fieldName
+	return JSONTag{
+		Name:      jsonName,
+		OmitEmpty: omitEmpty,
+		OmitZero:  omitZero,
+	}, nil
+}
+
+// genFieldTag generates the struct tag for a Go struct field.
+// It includes JSON tags and optional binding tags (path, query).
+func genFieldTag(fieldName, typeName string, arr []httpidl.Annotation, binding *Binding) (string, error) {
+	var tags []string
+
+	jsonTag, err := genJSONTag(fieldName, typeName, arr)
+	if err != nil {
+		return "", err
 	}
-	if omitEmpty {
-		jsonName += ",omitempty"
-	}
-	if omitZero {
-		jsonName += ",omitzero"
-	}
-	tags = append(tags, fmt.Sprintf("json:\"%s\"", jsonName))
+	tags = append(tags, jsonTag.String())
 
 	// Generate binding tag
 	if binding != nil {
-		tags = append(tags, fmt.Sprintf("%s:\"%s\"", binding.From, binding.Name))
+		tags = append(tags, binding.String())
 	}
 
 	return "`" + strings.Join(tags, " ") + "`", nil
