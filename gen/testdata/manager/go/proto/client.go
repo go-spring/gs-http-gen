@@ -19,7 +19,6 @@ var clientType = reflect.TypeFor[Client]()
 // Client is a wrapper struct that embeds ClientInterface.
 // It can be used to track or extend the construction process of the client.
 type Client struct {
-	Transport   httputil.Transport
 	ServiceName string
 }
 
@@ -48,11 +47,10 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 
 	r.Header.Set("Content-Type", "application/json")
 
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.JSONResponse[CreateManagerResp](conn, r, path, opts...)
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/managers"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.JSONResponse[CreateManagerResp](r, opts...)
 }
 
 // Delete a manager
@@ -82,11 +80,10 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.JSONResponse[DeleteManagerResp](conn, r, path, opts...)
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/managers/{id}"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.JSONResponse[DeleteManagerResp](r, opts...)
 }
 
 // Get manager by ID
@@ -116,11 +113,10 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.JSONResponse[GetManagerResp](conn, r, path, opts...)
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/managers/{id}"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.JSONResponse[GetManagerResp](r, opts...)
 }
 
 // List managers with pagination
@@ -150,11 +146,10 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.JSONResponse[ListManagersByPageResp](conn, r, path, opts...)
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/managers/page"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.JSONResponse[ListManagersByPageResp](r, opts...)
 }
 
 // Streaming ...
@@ -184,11 +179,10 @@ func (c *Client) Stream(ctx context.Context, req *StreamReq, opts ...httputil.Re
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.StreamResponse(conn, r, path, opts...)
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/stream"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.StreamResponse(r, opts...)
 }
 
 // Update manager info
@@ -216,9 +210,8 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 
 	r.Header.Set("Content-Type", "application/json")
 
-	conn, err := c.Transport.GetConn(c.ServiceName, "http")
-	if err != nil {
-		return nil, nil, err
-	}
-	return httputil.JSONResponse[UpdateManagerResp](conn, r, path, opts...)
+	opts = append(opts, httputil.WithTarget(c.ServiceName))
+	opts = append(opts, httputil.WithPath("/managers/{id}"))
+	opts = append(opts, httputil.WithSchema("http"))
+	return httputil.JSONResponse[UpdateManagerResp](r, opts...)
 }
