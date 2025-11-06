@@ -34,6 +34,12 @@ import (
 	"github.com/lvan100/golib/testing/assert"
 )
 
+func init() {
+	httputil.DefaultClient = &LogHTTPClient{
+		HTTPClient: httputil.DefaultClient,
+	}
+}
+
 // ToString converts the given value to a string.
 func ptr[T any](v T) *T {
 	return &v
@@ -84,14 +90,7 @@ type HelloRequest struct {
 	StringObjectMap map[string]Object `json:"string_object_map" query:"string_object_map"`
 }
 
-type HelloRequestBody struct{}
-
-type HelloResponse struct {
-	Message string `json:"message"`
-}
-
-// Hello sends a GET request to the /v1/hello endpoint with the given request body.
-func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...httputil.RequestOption) (*http.Response, *HelloResponse, error) {
+func (req *HelloRequest) QueryString() (string, error) {
 	m := url.Values{}
 
 	// Encode scalar values using the key format (e.g. a=1)
@@ -123,7 +122,7 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	for _, v := range req.ObjectSlice {
 		b, err := json.Marshal(v)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("object_slice", string(b))
 	}
@@ -132,7 +131,7 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	if req.Object != nil {
 		b, err := json.Marshal(req.Object)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("object", string(b))
 	}
@@ -141,7 +140,7 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	if req.StringObjectMap != nil {
 		b, err := json.Marshal(req.StringObjectMap)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("string_object_map", string(b))
 	}
@@ -150,14 +149,31 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	if req.IntStringMap != nil {
 		b, err := json.Marshal(req.IntStringMap)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("int_string_map", string(b))
 	}
 
+	return m.Encode(), nil
+}
+
+type HelloRequestBody struct{}
+
+type HelloResponse struct {
+	Message string `json:"message"`
+}
+
+// Hello sends a GET request to the /v1/hello endpoint with the given request body.
+func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...httputil.RequestOption) (*http.Response, *HelloResponse, error) {
+
 	path := "/v1/hello"
-	urlPath := fmt.Sprintf("%s?%s", path, m.Encode())
-	r, err := http.NewRequestWithContext(ctx, "GET", urlPath, nil)
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
+	}
+
+	r, err := http.NewRequestWithContext(ctx, "GET", path, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -185,12 +201,7 @@ type StreamRequest struct {
 	StringObjectMap map[string]Object `json:"string_object_map" query:"string_object_map"`
 }
 
-type StreamRequestBody struct {
-	Prompt string `json:"prompt"`
-}
-
-// Stream sends a POST request to the /v1/stream endpoint with the given request body.
-func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...httputil.RequestOption) (*http.Response, *httputil.Stream, error) {
+func (req *StreamRequest) QueryString() (string, error) {
 	m := url.Values{}
 
 	// Encode scalar values using the key format (e.g. a=1).
@@ -210,7 +221,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	if req.IntSlice != nil {
 		b, err := json.Marshal(req.IntSlice)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("int_slice", string(b))
 	}
@@ -220,7 +231,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	{
 		b, err := json.Marshal(req.StringSlice)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("string_slice", string(b))
 	}
@@ -236,7 +247,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	for _, v := range req.ObjectSlice {
 		b, err := json.Marshal(v)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("object_slice", string(b))
 	}
@@ -246,7 +257,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	if req.Object != nil {
 		b, err := json.Marshal(req.Object)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("object", string(b))
 	}
@@ -256,7 +267,7 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	if req.StringObjectMap != nil {
 		b, err := json.Marshal(req.StringObjectMap)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("string_object_map", string(b))
 	}
@@ -266,9 +277,26 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	{
 		b, err := json.Marshal(req.IntStringMap)
 		if err != nil {
-			return nil, nil, err
+			return "", err
 		}
 		m.Add("int_string_map", string(b))
+	}
+
+	return m.Encode(), nil
+}
+
+type StreamRequestBody struct {
+	Prompt string `json:"prompt"`
+}
+
+// Stream sends a POST request to the /v1/stream endpoint with the given request body.
+func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...httputil.RequestOption) (*http.Response, *httputil.Stream, error) {
+
+	path := "/v1/stream"
+	if s, err := req.QueryString(); err != nil {
+		return nil, nil, err
+	} else if s != "" {
+		path += "?" + s
 	}
 
 	// Encode the request body using JSON.
@@ -276,10 +304,9 @@ func (c *HelloClient) Stream(ctx context.Context, req *StreamRequest, opts ...ht
 	if err != nil {
 		return nil, nil, err
 	}
+	buf := bytes.NewBuffer(body)
 
-	path := "/v1/stream"
-	urlPath := fmt.Sprintf("%s?%s", path, m.Encode())
-	r, err := http.NewRequestWithContext(ctx, "POST", urlPath, bytes.NewReader(body))
+	r, err := http.NewRequestWithContext(ctx, "POST", path, buf)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -310,10 +337,6 @@ func TestHello(t *testing.T) {
 
 	h := http.Header{}
 	h.Set("X-Request-ID", "12345678")
-
-	httputil.DefaultClient = &LogHTTPClient{
-		HTTPClient: httputil.DefaultClient,
-	}
 
 	client := &HelloClient{
 		ServiceName: "127.0.0.1:9090",
@@ -386,10 +409,6 @@ func TestStream(t *testing.T) {
 
 	h := http.Header{}
 	h.Set("X-Request-ID", "12345678")
-
-	httputil.DefaultClient = &LogHTTPClient{
-		HTTPClient: httputil.DefaultClient,
-	}
 
 	client := &HelloClient{
 		ServiceName: "127.0.0.1:9090",
