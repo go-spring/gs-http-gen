@@ -204,6 +204,18 @@ func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *PageReq) CheckRequired() error {
+	var err error
+	if x.Page == nil {
+		err = errutil.Explain(err, "%s is required", "PageReq.Page")
+	}
+	if x.Size == nil {
+		err = errutil.Explain(err, "%s is required", "PageReq.Size")
+	}
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() error {
 	if x.Page != nil {
@@ -257,6 +269,12 @@ type Address struct {
 // New returns a new instance (implements Object interface).
 func (x *Address) New() any {
 	return &Address{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *Address) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -313,6 +331,12 @@ type ContactInfo struct {
 // New returns a new instance (implements Object interface).
 func (x *ContactInfo) New() any {
 	return &ContactInfo{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *ContactInfo) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -375,6 +399,12 @@ func (x *DepartmentInfo) New() any {
 	return &DepartmentInfo{}
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *DepartmentInfo) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *DepartmentInfo) Validate() error {
 	return nil
@@ -424,6 +454,12 @@ type Manager struct {
 // New returns a new instance (implements Object interface).
 func (x *Manager) New() any {
 	return &Manager{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *Manager) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -574,6 +610,12 @@ func (x *ManagerReq) Binding(r *http.Request) error {
 	})
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *ManagerReq) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *ManagerReq) Validate() error {
 	return nil
@@ -616,6 +658,12 @@ func (x *ManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *ManagerReqBody) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *ManagerReqBody) Validate() error {
 	return nil
@@ -645,6 +693,12 @@ func (x *CreateManagerReq) QueryString() (string, error) {
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *CreateManagerReq) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -720,6 +774,12 @@ func (x *CreateManagerReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *CreateManagerReqBody) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -859,6 +919,12 @@ func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	})
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *UpdateManagerReq) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerReq) Validate() error {
 	return nil
@@ -943,6 +1009,12 @@ func (x *UpdateManagerReqBody) EncodeToForm() (string, error) {
 // DecodeFromForm decodes the object from form data.
 func (x *UpdateManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *UpdateManagerReqBody) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -1106,6 +1178,18 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 	})
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *ListManagersByPageReq) CheckRequired() error {
+	var err error
+	if x.Page == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Page")
+	}
+	if x.Size == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Size")
+	}
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReq) Validate() error {
 	if x.Page != nil {
@@ -1213,6 +1297,12 @@ func (x *ListManagersByPageReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *ListManagersByPageReqBody) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReqBody) Validate() error {
 	return nil
@@ -1234,6 +1324,12 @@ type CreateManagerResp struct {
 // New returns a new instance (implements Object interface).
 func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *CreateManagerResp) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -1297,6 +1393,12 @@ func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *UpdateManagerResp) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() error {
 	if x.Errno != nil {
@@ -1356,6 +1458,12 @@ type GetManagerResp struct {
 // New returns a new instance (implements Object interface).
 func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *GetManagerResp) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -1419,6 +1527,12 @@ func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *DeleteManagerResp) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *DeleteManagerResp) Validate() error {
 	if x.Errno != nil {
@@ -1479,6 +1593,12 @@ type ManagersPageData struct {
 // New returns a new instance (implements Object interface).
 func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *ManagersPageData) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -1546,6 +1666,12 @@ type ListManagersByPageResp struct {
 // New returns a new instance (implements Object interface).
 func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *ListManagersByPageResp) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.

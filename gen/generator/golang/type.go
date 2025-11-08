@@ -229,6 +229,19 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 	}
 {{end}}
 
+	// CheckRequired checks whether all required fields are set.
+	func (x *{{$s.Name}}) CheckRequired() error {
+		var err error
+		{{- range $f := $s.Fields}}
+			{{- if $f.Required}}
+		if x.{{$f.Name}} == nil {
+			err = errutil.Explain(err, "%s is required", "{{$s.Name}}.{{$f.Name}}")
+		}
+			{{- end}}
+		{{- end}}
+		return err
+	}
+
 	// Validate checks field values using generated validation expressions.
 	func (x *{{$s.Name}}) Validate() error {
 		{{- range $f := $s.Fields}}

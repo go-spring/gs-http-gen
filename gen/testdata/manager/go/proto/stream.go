@@ -3,9 +3,11 @@
 package proto
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/lvan100/golib/errutil"
@@ -81,6 +83,12 @@ func (x *StreamReq) Binding(r *http.Request) error {
 	return Binding(r, []BindingField{})
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *StreamReq) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *StreamReq) Validate() error {
 	return nil
@@ -116,6 +124,12 @@ func (x *StreamReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *StreamReqBody) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *StreamReqBody) Validate() error {
 	return nil
@@ -148,6 +162,12 @@ type StreamResp struct {
 // New returns a new instance (implements Object interface).
 func (x *StreamResp) New() any {
 	return &StreamResp{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *StreamResp) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -205,6 +225,12 @@ type Payload struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload) New() any {
 	return &Payload{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *Payload) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
@@ -271,6 +297,12 @@ func (x *Payload_1) New() any {
 	return &Payload_1{}
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *Payload_1) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *Payload_1) Validate() error {
 	return nil
@@ -291,6 +323,12 @@ func (x *Payload_2) New() any {
 	return &Payload_2{}
 }
 
+// CheckRequired checks whether all required fields are set.
+func (x *Payload_2) CheckRequired() error {
+	var err error
+	return err
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *Payload_2) Validate() error {
 	return nil
@@ -309,6 +347,12 @@ type Payload_3 struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload_3) New() any {
 	return &Payload_3{}
+}
+
+// CheckRequired checks whether all required fields are set.
+func (x *Payload_3) CheckRequired() error {
+	var err error
+	return err
 }
 
 // Validate checks field values using generated validation expressions.

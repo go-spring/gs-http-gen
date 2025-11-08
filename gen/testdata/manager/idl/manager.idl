@@ -52,8 +52,8 @@ type Response<T> {
 
 // Pagination request and response
 type PageReq {
-    int page (json="page", validate="$ >= 1", query="page")
-    int size (validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
+    int page (json="page", required, validate="$ >= 1", query="page")
+    int size (required, validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
 }
 
 type PageResp<T> {
