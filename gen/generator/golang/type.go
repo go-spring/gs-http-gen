@@ -172,7 +172,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			{{- if $f.Comment}}
 				{{$f.Comment}}
 			{{- end}}
-			{{$f.Name}} {{$f.Type}} {{$f.Tag}}
+			{{$f.Name}} {{$f.FieldType}} {{$f.Tag}}
 		{{- end}}
 	}
 
@@ -238,6 +238,19 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{- end}}
 		return nil
 	}
+
+{{range $f := $s.Fields}}
+	func (x *{{$s.Name}}) Get{{$f.Name}}() (_ {{$f.ValueType}}) {
+		if x.{{$f.Name}} != nil {
+			return *x.{{$f.Name}}
+		}
+		return
+	}
+
+	func (x *{{$s.Name}}) Set{{$f.Name}}(v {{$f.ValueType}}) {
+		x.{{$f.Name}} = &v
+	}
+{{end}}
 
 	func (x *{{$s.Name}}) String() string {
 		if x == nil {

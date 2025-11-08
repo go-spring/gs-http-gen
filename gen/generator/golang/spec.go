@@ -60,15 +60,16 @@ type Type struct {
 
 // TypeField represents a field in a Go struct
 type TypeField struct {
-	Type     string
-	TypeKind []TypeKind
-	Name     string
-	Tag      string
-	JSONTag  JSONTag
-	Binding  *Binding
-	FormName string
-	Validate *string
-	Comment  string
+	FieldType string
+	ValueType string
+	TypeKind  []TypeKind
+	Name      string
+	Tag       string
+	JSONTag   JSONTag
+	Binding   *Binding
+	FormName  string
+	Validate  *string
+	Comment   string
 }
 
 // Binding represents a field binding from path, or query
@@ -419,11 +420,17 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 	// Handle oneof
 	if t.OneOf {
+		typeName := "*" + r.Name + "TypeAsString"
+		typeKind, valueType, err := getTypeKind(code, typeName)
+		if err != nil {
+			return Type{}, err
+		}
 		r.Fields = append(r.Fields, TypeField{
-			Type:     r.Name + "TypeAsString",
-			TypeKind: []TypeKind{TypeKindEnum},
-			Name:     "FieldType",
-			Tag:      "`json:\"field_type\"`",
+			FieldType: typeName,
+			ValueType: valueType,
+			TypeKind:  typeKind,
+			Name:      "FieldType",
+			Tag:       "`json:\"field_type\"`",
 		})
 	}
 
@@ -455,7 +462,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
-		typeKind, err := getTypeKind(code, typeName)
+		typeKind, valueType, err := getTypeKind(code, typeName)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
@@ -480,13 +487,14 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 		// Add the field to the struct
 		field := TypeField{
-			Type:     typeName,
-			TypeKind: typeKind,
-			Name:     fieldName,
-			JSONTag:  jsonTag,
-			Binding:  binding,
-			Validate: validate,
-			Comment:  formatComment(f.Comments),
+			FieldType: typeName,
+			ValueType: valueType,
+			TypeKind:  typeKind,
+			Name:      fieldName,
+			JSONTag:   jsonTag,
+			Binding:   binding,
+			Validate:  validate,
+			Comment:   formatComment(f.Comments),
 		}
 		field.Tag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
@@ -514,6 +522,7 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 	case httpidl.AnyType:
 		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case httpidl.BaseType:
+		typ.Optional = true
 		var typeName string
 		switch typ.Name {
 		case "string":
@@ -532,6 +541,7 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 		}
 		return typeName, nil
 	case httpidl.UserType:
+		typ.Optional = true
 		typeName := typ.Name
 		// Handle enum_as_string annotation
 		if _, ok := httpidl.GetAnnotation(arr, "enum_as_string"); ok {
@@ -568,67 +578,67 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 }
 
 // getTypeKind categorizes a Go type for code generation purposes.
-func getTypeKind(code GoCode, typeName string) ([]TypeKind, error) {
+func getTypeKind(code GoCode, typeName string) ([]TypeKind, string, error) {
 	typeName, optional := strings.CutPrefix(typeName, "*")
 
 	switch typeName {
 	case "bool":
 		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindBool}, nil
+			return []TypeKind{TypeKindPointer, TypeKindBool}, typeName, nil
 		}
-		return []TypeKind{TypeKindBool}, nil
+		return []TypeKind{TypeKindBool}, typeName, nil
 	case "int", "int8", "int16", "int32", "int64":
 		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindInt}, nil
+			return []TypeKind{TypeKindPointer, TypeKindInt}, typeName, nil
 		}
-		return []TypeKind{TypeKindInt}, nil
+		return []TypeKind{TypeKindInt}, typeName, nil
 	case "uint", "uint8", "uint16", "uint32", "uint64":
 		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindUint}, nil
+			return []TypeKind{TypeKindPointer, TypeKindUint}, typeName, nil
 		}
-		return []TypeKind{TypeKindUint}, nil
+		return []TypeKind{TypeKindUint}, typeName, nil
 	case "float32", "float64":
 		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindFloat}, nil
+			return []TypeKind{TypeKindPointer, TypeKindFloat}, typeName, nil
 		}
-		return []TypeKind{TypeKindFloat}, nil
+		return []TypeKind{TypeKindFloat}, typeName, nil
 	case "string":
 		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindString}, nil
+			return []TypeKind{TypeKindPointer, TypeKindString}, typeName, nil
 		}
-		return []TypeKind{TypeKindString}, nil
+		return []TypeKind{TypeKindString}, typeName, nil
 	default: // for linter
 	}
 
 	switch {
 	case strings.HasPrefix(typeName, "[]"):
 		if optional {
-			return nil, errutil.Explain(nil, "list type can not be optional")
+			return nil, "", errutil.Explain(nil, "list type can not be optional")
 		}
-		itemType, err := getTypeKind(code, typeName[2:])
+		itemType, _, err := getTypeKind(code, typeName[2:])
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
-		return append([]TypeKind{TypeKindList}, itemType...), nil
+		return append([]TypeKind{TypeKindList}, itemType...), typeName, nil
 	case strings.HasPrefix(typeName, "map["):
 		if optional {
-			return nil, errutil.Explain(nil, "map type can not be optional")
+			return nil, "", errutil.Explain(nil, "map type can not be optional")
 		}
-		return []TypeKind{TypeKindMap}, nil
+		return []TypeKind{TypeKindMap}, typeName, nil
 	default:
 		if _, ok := httpidl.GetEnum(code.Files, strings.TrimSuffix(typeName, "AsString")); ok {
 			if optional {
-				return []TypeKind{TypeKindPointer, TypeKindEnum}, nil
+				return []TypeKind{TypeKindPointer, TypeKindEnum}, typeName, nil
 			}
-			return []TypeKind{TypeKindEnum}, nil
+			return []TypeKind{TypeKindEnum}, typeName, nil
 		}
 		if _, ok := httpidl.GetType(code.Files, typeName); ok {
 			if optional {
-				return []TypeKind{TypeKindPointer, TypeKindStruct}, nil
+				return []TypeKind{TypeKindPointer, TypeKindStruct}, typeName, nil
 			}
-			return []TypeKind{TypeKindStruct}, nil
+			return []TypeKind{TypeKindStruct}, typeName, nil
 		}
-		return nil, errutil.Explain(nil, "unknown type: %s", typeName)
+		return nil, "", errutil.Explain(nil, "unknown type: %s", typeName)
 	}
 }
 
