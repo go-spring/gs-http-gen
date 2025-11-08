@@ -32,14 +32,21 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
+// Project represents a collection of IDL files and their associated meta-information.
+type Project struct {
+	Meta  *MetaInfo
+	Files map[string]Document
+}
+
 // ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.
 // It parses each file into a Document structure and validates cross-file type references.
-func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error) {
-	files = make(map[string]Document)
+func ParseDir(dir string) (Project, error) {
+	var meta *MetaInfo
+	files := make(map[string]Document)
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return nil, nil, errutil.Explain(nil, "read dir %s error: %w", dir, err)
+		return Project{}, errutil.Explain(nil, "read dir %s error: %w", dir, err)
 	}
 
 	for _, e := range entries {
@@ -54,10 +61,10 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 			var b []byte
 			fileName = filepath.Join(dir, fileName)
 			if b, err = os.ReadFile(fileName); err != nil {
-				return nil, nil, errutil.Explain(nil, "read file %s error: %w", fileName, err)
+				return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 			}
 			if meta, err = ParseMeta(b); err != nil {
-				return nil, nil, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
+				return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 			}
 			continue
 		}
@@ -70,20 +77,20 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 		var b []byte
 		fileName = filepath.Join(dir, fileName)
 		if b, err = os.ReadFile(fileName); err != nil {
-			return nil, nil, errutil.Explain(nil, "read file %s error: %w", fileName, err)
+			return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 		}
 		var doc Document
 		if doc, err = Parse(b); err != nil {
-			return nil, nil, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
+			return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 		}
 		files[e.Name()] = doc
 	}
 
 	if meta == nil {
-		return nil, nil, errutil.Explain(nil, "no meta file")
+		return Project{}, errutil.Explain(nil, "no meta file")
 	}
 	if len(files) == 0 {
-		return nil, nil, errutil.Explain(nil, "no idl file")
+		return Project{}, errutil.Explain(nil, "no idl file")
 	}
 
 	// Validate that all used types are defined
@@ -100,11 +107,14 @@ func ParseDir(dir string) (files map[string]Document, meta *MetaInfo, err error)
 	}
 	for k := range usedTypes {
 		if _, ok := definedTypes[k]; !ok {
-			return nil, nil, errutil.Explain(nil, "type %s is used but not defined", k)
+			return Project{}, errutil.Explain(nil, "type %s is used but not defined", k)
 		}
 	}
 
-	return
+	return Project{
+		Meta:  meta,
+		Files: files,
+	}, nil
 }
 
 // ParseMeta parses the JSON meta-information file.

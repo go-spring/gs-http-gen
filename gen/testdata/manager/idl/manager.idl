@@ -71,7 +71,7 @@ type Address {
 }
 
 type ContactInfo {
-    string email (validate="Email($)")
+    string email (required, validate="Email($)")
     string phone
     Address address
 }

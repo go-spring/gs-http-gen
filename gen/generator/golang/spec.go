@@ -156,14 +156,14 @@ type GoCode struct {
 }
 
 func Convert(dir string) (GoCode, error) {
-	files, meta, err := httpidl.ParseDir(dir)
+	project, err := httpidl.ParseDir(dir)
 	if err != nil {
 		return GoCode{}, err
 	}
 
 	code := GoCode{
-		Files:  files,
-		Meta:   meta,
+		Files:  project.Files,
+		Meta:   project.Meta,
 		Reqs:   make(map[string]ReqIndex),
 		Consts: make(map[string][]Const),
 		Enums:  make(map[string][]Enum),
@@ -172,7 +172,7 @@ func Convert(dir string) (GoCode, error) {
 	}
 
 	// Collect all RPC definitions
-	for _, doc := range files {
+	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
 			rpc, err := convertRPC(r)
 			if err != nil {
@@ -186,7 +186,7 @@ func Convert(dir string) (GoCode, error) {
 		return code.RPCs[i].Name < code.RPCs[j].Name
 	})
 
-	for fileName, doc := range files {
+	for fileName, doc := range project.Files {
 		consts, err := convertConsts(code, doc)
 		if err != nil {
 			return code, errutil.Explain(nil, "convert consts error: %w", err)

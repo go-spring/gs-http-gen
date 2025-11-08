@@ -336,6 +336,9 @@ func (x *ContactInfo) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *ContactInfo) CheckRequired() error {
 	var err error
+	if x.Email == nil {
+		err = errutil.Explain(err, "%s is required", "ContactInfo.Email")
+	}
 	return err
 }
 
