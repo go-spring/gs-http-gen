@@ -123,6 +123,7 @@ func bindField(req *http.Request, f BindingField) error {
 type RequestObject interface {
 	New() any
 	Binding(req *http.Request) error
+	CheckRequired() error
 	Validate() error
 }
 
@@ -142,7 +143,7 @@ func ReadRequest(r *http.Request, i RequestObject) error {
 	reader := io.LimitReader(oldBody, maxBodySize+1)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		return errutil.Explain(nil, "read body: %w", err)
+		return errutil.Explain(err, "read body error")
 	}
 	if int64(len(b)) > maxBodySize {
 		return errutil.Explain(nil, "body too large")
@@ -170,26 +171,39 @@ func ReadRequest(r *http.Request, i RequestObject) error {
 	if asJSON {
 		if b = bytes.TrimSpace(b); len(b) > 0 {
 			if err = json.Unmarshal(b, i); err != nil {
-				return errutil.Explain(nil, "json decode: %w", err)
+				return errutil.Explain(err, "json decode error")
 			}
 		}
 	} else {
 		var values url.Values
 		values, err = url.ParseQuery(string(b))
 		if err != nil {
-			return errutil.Explain(nil, "parse query: %w", err)
+			return errutil.Explain(err, "parse query error")
 		}
 		if len(values) > 0 {
 			if err = formDecoder.Decode(i, values); err != nil {
-				return errutil.Explain(nil, "form decode: %w", err)
+				return errutil.Explain(err, "form decode error")
 			}
 		}
 	}
 
 	r.Body = io.NopCloser(bytes.NewReader(b))
 
-	// Apply bindings
-	return i.Binding(r)
+	// Bind fields
+	if err = i.Binding(r); err != nil {
+		return errutil.Explain(err, "bind fileds error")
+	}
+
+	// Check required fields
+	if err = i.CheckRequired(); err != nil {
+		return errutil.Explain(err, "check required error")
+	}
+
+	// Validate fields
+	if err = i.Validate(); err != nil {
+		return errutil.Explain(err, "validate error")
+	}
+	return nil
 }
 
 type JSONHandler[Req RequestObject, Resp ResponseObject] func(context.Context, Req) Resp
