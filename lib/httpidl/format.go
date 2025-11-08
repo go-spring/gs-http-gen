@@ -263,7 +263,7 @@ func dumpType(t Type) string {
 		sb.WriteString(" {")
 		for _, f := range t.Fields {
 			sb.WriteString("\n")
-			dumpTypeField(f, &sb)
+			dumpTypeField(t, f, &sb)
 		}
 		sb.WriteString("\n}")
 	}
@@ -272,13 +272,13 @@ func dumpType(t Type) string {
 
 // dumpTypeField formats a single field in a type declaration,
 // including its type, name, annotations, and comments.
-func dumpTypeField(f TypeField, sb *strings.Builder) {
+func dumpTypeField(t Type, f TypeField, sb *strings.Builder) {
 	dumpAboveComments(f.Comments.Above, sb, indent)
 
 	sb.WriteString(indent)
 	sb.WriteString(f.FieldType.Text())
 
-	if _, ok := f.FieldType.(EmbedType); !ok {
+	if _, ok := f.FieldType.(EmbedType); !ok && !t.OneOf {
 		sb.WriteString(" ")
 		sb.WriteString(f.Name)
 

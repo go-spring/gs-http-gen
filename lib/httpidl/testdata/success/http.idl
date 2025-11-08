@@ -30,10 +30,10 @@ type UserReq {
 //---- User definition 2 ----
 type User {
     any name ( go.type="*string" , a="123")
-    int? age
+    int age
     binary avatar
     // embedded type
-    Address? /* embedded */
+    Address /* embedded */
     Payload payload
 }
 
@@ -44,8 +44,8 @@ type Address {
 }
 
 oneof Payload {
-    string title
-    string? body
+    User
+    Address
 }
 
 // Generic type definition
@@ -63,4 +63,4 @@ rpc GetUser (UserReq) UserResp {
 }
 
 // ---- type re-definition ----
-type UserResp Response<list<User?>>
+type UserResp = Response<list<User>>

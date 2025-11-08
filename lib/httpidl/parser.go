@@ -331,8 +331,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 		if etf := f.Embed_type_field(); etf != nil {
 			u := etf.User_type()
 			embedType := EmbedType{
-				Name:     u.IDENTIFIER().GetText(),
-				Optional: u.QUESTION() != nil,
+				Name: u.IDENTIFIER().GetText(),
 			}
 			if t.GenericName == nil || embedType.Name != *t.GenericName {
 				l.Document.UsedTypes[embedType.Name] = struct{}{}
@@ -381,8 +380,12 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.Start))
 	}
 
-	for _, f := range ctx.AllCommon_type_field() {
+	for _, f := range ctx.AllUser_type() {
 		typeField := TypeField{
+			FieldType: UserType{
+				Name: f.IDENTIFIER().GetText(),
+			},
+			Name: f.IDENTIFIER().GetText(),
 			Position: Position{
 				Start: f.GetStart().GetLine(),
 				Stop:  f.GetStop().GetLine(),
@@ -392,7 +395,6 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 				Right: l.rightComment(f.GetStop()),
 			},
 		}
-		l.parseCommonTypeField(f, &typeField, &o)
 		o.Fields = append(o.Fields, typeField)
 	}
 
@@ -448,16 +450,14 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 	// Built-in primitive type
 	if b := ctx.Base_type(); b != nil {
 		return BaseType{
-			Name:     strings.TrimRight(b.GetText(), "?"),
-			Optional: b.QUESTION() != nil,
+			Name: b.GetText(),
 		}
 	}
 
 	// Reference to a user-defined type
 	if u := ctx.User_type(); u != nil {
 		typ := UserType{
-			Name:     u.IDENTIFIER().GetText(),
-			Optional: u.QUESTION() != nil,
+			Name: u.IDENTIFIER().GetText(),
 		}
 		if t.GenericName == nil || typ.Name != *t.GenericName {
 			l.Document.UsedTypes[typ.Name] = struct{}{}
@@ -505,8 +505,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	// Request
 	reqType := ctx.Rpc_req().User_type()
 	r.Request = UserType{
-		Name:     reqType.IDENTIFIER().GetText(),
-		Optional: reqType.QUESTION() != nil,
+		Name: reqType.IDENTIFIER().GetText(),
 	}
 	if !IsPascal(r.Request.Name) {
 		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
@@ -522,8 +521,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		r.Response.Stream = true
 	}
 	r.Response.UserType = UserType{
-		Name:     respType.IDENTIFIER().GetText(),
-		Optional: respType.QUESTION() != nil,
+		Name: respType.IDENTIFIER().GetText(),
 	}
 	if !IsPascal(r.Response.UserType.Name) {
 		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))

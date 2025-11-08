@@ -35,15 +35,15 @@ func tparserParserInit() {
 		"", "'const'", "'enum'", "'type'", "'oneof'", "'rpc'", "'true'", "'false'",
 		"'any'", "'bool'", "'int'", "'float'", "'string'", "'binary'", "'stream'",
 		"'map'", "'list'", "'<'", "'>'", "'('", "')'", "'{'", "'}'", "'='",
-		"','", "'?'", "';'",
+		"','", "';'",
 	}
 	staticData.SymbolicNames = []string{
 		"", "KW_CONST", "KW_ENUM", "KW_TYPE", "KW_ONEOF", "KW_RPC", "KW_TRUE",
 		"KW_FALSE", "TYPE_ANY", "TYPE_BOOL", "TYPE_INT", "TYPE_FLOAT", "TYPE_STRING",
 		"TYPE_BINARY", "TYPE_STREAM", "TYPE_MAP", "TYPE_LIST", "LESS_THAN",
 		"GREATER_THAN", "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
-		"EQUAL", "COMMA", "QUESTION", "SEMICOLON", "STRING", "IDENTIFIER", "INTEGER",
-		"FLOAT", "NEWLINE", "WHITESPACE", "SINGLE_LINE_COMMENT", "MULTI_LINE_COMMENT",
+		"EQUAL", "COMMA", "SEMICOLON", "STRING", "IDENTIFIER", "INTEGER", "FLOAT",
+		"NEWLINE", "WHITESPACE", "SINGLE_LINE_COMMENT", "MULTI_LINE_COMMENT",
 	}
 	staticData.RuleNames = []string{
 		"document", "definition", "const_def", "const_type", "enum_def", "enum_field",
@@ -54,7 +54,7 @@ func tparserParserInit() {
 	}
 	staticData.PredictionContextCache = antlr.NewPredictionContextCache()
 	staticData.serializedATN = []int32{
-		4, 1, 34, 262, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
+		4, 1, 33, 259, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 4, 7,
 		4, 2, 5, 7, 5, 2, 6, 7, 6, 2, 7, 7, 7, 2, 8, 7, 8, 2, 9, 7, 9, 2, 10, 7,
 		10, 2, 11, 7, 11, 2, 12, 7, 12, 2, 13, 7, 13, 2, 14, 7, 14, 2, 15, 7, 15,
 		2, 16, 7, 16, 2, 17, 7, 17, 2, 18, 7, 18, 2, 19, 7, 19, 2, 20, 7, 20, 2,
@@ -66,107 +66,105 @@ func tparserParserInit() {
 		8, 4, 1, 4, 1, 4, 1, 5, 1, 5, 1, 5, 1, 5, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6,
 		3, 6, 109, 8, 6, 1, 6, 1, 6, 3, 6, 113, 8, 6, 1, 6, 1, 6, 1, 6, 5, 6, 118,
 		8, 6, 10, 6, 12, 6, 121, 9, 6, 1, 6, 3, 6, 124, 8, 6, 1, 6, 1, 6, 1, 6,
-		1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 3, 6, 134, 8, 6, 1, 7, 1, 7, 3, 7, 138, 8,
-		7, 1, 8, 1, 8, 1, 9, 1, 9, 1, 9, 3, 9, 145, 8, 9, 1, 10, 1, 10, 1, 10,
-		1, 10, 1, 10, 3, 10, 152, 8, 10, 1, 11, 1, 11, 1, 11, 1, 11, 5, 11, 158,
-		8, 11, 10, 11, 12, 11, 161, 9, 11, 1, 11, 1, 11, 1, 12, 1, 12, 1, 12, 1,
-		12, 3, 12, 169, 8, 12, 1, 12, 1, 12, 1, 12, 5, 12, 174, 8, 12, 10, 12,
-		12, 12, 177, 9, 12, 1, 12, 3, 12, 180, 8, 12, 1, 12, 1, 12, 1, 13, 1, 13,
-		1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 14, 1, 14, 1, 15, 1, 15, 1,
-		15, 1, 15, 1, 15, 1, 15, 3, 15, 200, 8, 15, 1, 16, 1, 16, 3, 16, 204, 8,
-		16, 1, 16, 1, 16, 1, 16, 5, 16, 209, 8, 16, 10, 16, 12, 16, 212, 9, 16,
-		1, 16, 3, 16, 215, 8, 16, 1, 16, 1, 16, 1, 17, 1, 17, 1, 17, 3, 17, 222,
-		8, 17, 1, 18, 1, 18, 3, 18, 226, 8, 18, 1, 19, 1, 19, 3, 19, 230, 8, 19,
-		1, 20, 1, 20, 3, 20, 234, 8, 20, 1, 21, 1, 21, 1, 21, 1, 21, 1, 21, 1,
-		21, 1, 21, 1, 22, 1, 22, 1, 23, 1, 23, 1, 23, 1, 23, 1, 23, 1, 24, 1, 24,
-		1, 24, 3, 24, 253, 8, 24, 1, 25, 1, 25, 1, 26, 4, 26, 258, 8, 26, 11, 26,
-		12, 26, 259, 1, 26, 0, 0, 27, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22,
-		24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 0, 4, 1, 0,
-		9, 12, 2, 0, 10, 10, 12, 12, 2, 0, 6, 7, 27, 30, 2, 0, 26, 26, 31, 31,
-		269, 0, 60, 1, 0, 0, 0, 2, 70, 1, 0, 0, 0, 4, 72, 1, 0, 0, 0, 6, 78, 1,
-		0, 0, 0, 8, 80, 1, 0, 0, 0, 10, 99, 1, 0, 0, 0, 12, 133, 1, 0, 0, 0, 14,
-		137, 1, 0, 0, 0, 16, 139, 1, 0, 0, 0, 18, 141, 1, 0, 0, 0, 20, 151, 1,
-		0, 0, 0, 22, 153, 1, 0, 0, 0, 24, 164, 1, 0, 0, 0, 26, 183, 1, 0, 0, 0,
-		28, 191, 1, 0, 0, 0, 30, 199, 1, 0, 0, 0, 32, 201, 1, 0, 0, 0, 34, 218,
-		1, 0, 0, 0, 36, 223, 1, 0, 0, 0, 38, 227, 1, 0, 0, 0, 40, 233, 1, 0, 0,
-		0, 42, 235, 1, 0, 0, 0, 44, 242, 1, 0, 0, 0, 46, 244, 1, 0, 0, 0, 48, 252,
-		1, 0, 0, 0, 50, 254, 1, 0, 0, 0, 52, 257, 1, 0, 0, 0, 54, 55, 3, 2, 1,
-		0, 55, 56, 3, 52, 26, 0, 56, 59, 1, 0, 0, 0, 57, 59, 3, 52, 26, 0, 58,
-		54, 1, 0, 0, 0, 58, 57, 1, 0, 0, 0, 59, 62, 1, 0, 0, 0, 60, 58, 1, 0, 0,
-		0, 60, 61, 1, 0, 0, 0, 61, 63, 1, 0, 0, 0, 62, 60, 1, 0, 0, 0, 63, 64,
-		5, 0, 0, 1, 64, 1, 1, 0, 0, 0, 65, 71, 3, 4, 2, 0, 66, 71, 3, 8, 4, 0,
-		67, 71, 3, 12, 6, 0, 68, 71, 3, 24, 12, 0, 69, 71, 3, 26, 13, 0, 70, 65,
-		1, 0, 0, 0, 70, 66, 1, 0, 0, 0, 70, 67, 1, 0, 0, 0, 70, 68, 1, 0, 0, 0,
-		70, 69, 1, 0, 0, 0, 71, 3, 1, 0, 0, 0, 72, 73, 5, 1, 0, 0, 73, 74, 3, 6,
-		3, 0, 74, 75, 5, 28, 0, 0, 75, 76, 5, 23, 0, 0, 76, 77, 3, 50, 25, 0, 77,
-		5, 1, 0, 0, 0, 78, 79, 7, 0, 0, 0, 79, 7, 1, 0, 0, 0, 80, 81, 5, 2, 0,
-		0, 81, 82, 5, 28, 0, 0, 82, 84, 5, 21, 0, 0, 83, 85, 3, 52, 26, 0, 84,
-		83, 1, 0, 0, 0, 84, 85, 1, 0, 0, 0, 85, 91, 1, 0, 0, 0, 86, 87, 3, 10,
-		5, 0, 87, 88, 3, 52, 26, 0, 88, 90, 1, 0, 0, 0, 89, 86, 1, 0, 0, 0, 90,
-		93, 1, 0, 0, 0, 91, 89, 1, 0, 0, 0, 91, 92, 1, 0, 0, 0, 92, 95, 1, 0, 0,
-		0, 93, 91, 1, 0, 0, 0, 94, 96, 3, 52, 26, 0, 95, 94, 1, 0, 0, 0, 95, 96,
-		1, 0, 0, 0, 96, 97, 1, 0, 0, 0, 97, 98, 5, 22, 0, 0, 98, 9, 1, 0, 0, 0,
-		99, 100, 5, 28, 0, 0, 100, 101, 5, 23, 0, 0, 101, 102, 5, 29, 0, 0, 102,
-		11, 1, 0, 0, 0, 103, 104, 5, 3, 0, 0, 104, 108, 5, 28, 0, 0, 105, 106,
-		5, 17, 0, 0, 106, 107, 5, 28, 0, 0, 107, 109, 5, 18, 0, 0, 108, 105, 1,
-		0, 0, 0, 108, 109, 1, 0, 0, 0, 109, 110, 1, 0, 0, 0, 110, 112, 5, 21, 0,
-		0, 111, 113, 3, 52, 26, 0, 112, 111, 1, 0, 0, 0, 112, 113, 1, 0, 0, 0,
-		113, 119, 1, 0, 0, 0, 114, 115, 3, 14, 7, 0, 115, 116, 3, 52, 26, 0, 116,
-		118, 1, 0, 0, 0, 117, 114, 1, 0, 0, 0, 118, 121, 1, 0, 0, 0, 119, 117,
-		1, 0, 0, 0, 119, 120, 1, 0, 0, 0, 120, 123, 1, 0, 0, 0, 121, 119, 1, 0,
-		0, 0, 122, 124, 3, 52, 26, 0, 123, 122, 1, 0, 0, 0, 123, 124, 1, 0, 0,
-		0, 124, 125, 1, 0, 0, 0, 125, 134, 5, 22, 0, 0, 126, 127, 5, 3, 0, 0, 127,
-		128, 5, 28, 0, 0, 128, 129, 5, 28, 0, 0, 129, 130, 5, 17, 0, 0, 130, 131,
-		3, 48, 24, 0, 131, 132, 5, 18, 0, 0, 132, 134, 1, 0, 0, 0, 133, 103, 1,
-		0, 0, 0, 133, 126, 1, 0, 0, 0, 134, 13, 1, 0, 0, 0, 135, 138, 3, 16, 8,
-		0, 136, 138, 3, 18, 9, 0, 137, 135, 1, 0, 0, 0, 137, 136, 1, 0, 0, 0, 138,
-		15, 1, 0, 0, 0, 139, 140, 3, 38, 19, 0, 140, 17, 1, 0, 0, 0, 141, 142,
-		3, 20, 10, 0, 142, 144, 5, 28, 0, 0, 143, 145, 3, 22, 11, 0, 144, 143,
-		1, 0, 0, 0, 144, 145, 1, 0, 0, 0, 145, 19, 1, 0, 0, 0, 146, 152, 5, 8,
-		0, 0, 147, 152, 3, 36, 18, 0, 148, 152, 3, 38, 19, 0, 149, 152, 3, 40,
-		20, 0, 150, 152, 5, 13, 0, 0, 151, 146, 1, 0, 0, 0, 151, 147, 1, 0, 0,
-		0, 151, 148, 1, 0, 0, 0, 151, 149, 1, 0, 0, 0, 151, 150, 1, 0, 0, 0, 152,
-		21, 1, 0, 0, 0, 153, 154, 5, 19, 0, 0, 154, 159, 3, 34, 17, 0, 155, 156,
-		5, 24, 0, 0, 156, 158, 3, 34, 17, 0, 157, 155, 1, 0, 0, 0, 158, 161, 1,
-		0, 0, 0, 159, 157, 1, 0, 0, 0, 159, 160, 1, 0, 0, 0, 160, 162, 1, 0, 0,
-		0, 161, 159, 1, 0, 0, 0, 162, 163, 5, 20, 0, 0, 163, 23, 1, 0, 0, 0, 164,
-		165, 5, 4, 0, 0, 165, 166, 5, 28, 0, 0, 166, 168, 5, 21, 0, 0, 167, 169,
-		3, 52, 26, 0, 168, 167, 1, 0, 0, 0, 168, 169, 1, 0, 0, 0, 169, 175, 1,
-		0, 0, 0, 170, 171, 3, 18, 9, 0, 171, 172, 3, 52, 26, 0, 172, 174, 1, 0,
-		0, 0, 173, 170, 1, 0, 0, 0, 174, 177, 1, 0, 0, 0, 175, 173, 1, 0, 0, 0,
-		175, 176, 1, 0, 0, 0, 176, 179, 1, 0, 0, 0, 177, 175, 1, 0, 0, 0, 178,
-		180, 3, 52, 26, 0, 179, 178, 1, 0, 0, 0, 179, 180, 1, 0, 0, 0, 180, 181,
-		1, 0, 0, 0, 181, 182, 5, 22, 0, 0, 182, 25, 1, 0, 0, 0, 183, 184, 5, 5,
-		0, 0, 184, 185, 5, 28, 0, 0, 185, 186, 5, 19, 0, 0, 186, 187, 3, 28, 14,
-		0, 187, 188, 5, 20, 0, 0, 188, 189, 3, 30, 15, 0, 189, 190, 3, 32, 16,
-		0, 190, 27, 1, 0, 0, 0, 191, 192, 3, 38, 19, 0, 192, 29, 1, 0, 0, 0, 193,
-		200, 3, 38, 19, 0, 194, 195, 5, 14, 0, 0, 195, 196, 5, 17, 0, 0, 196, 197,
-		3, 38, 19, 0, 197, 198, 5, 18, 0, 0, 198, 200, 1, 0, 0, 0, 199, 193, 1,
-		0, 0, 0, 199, 194, 1, 0, 0, 0, 200, 31, 1, 0, 0, 0, 201, 203, 5, 21, 0,
-		0, 202, 204, 3, 52, 26, 0, 203, 202, 1, 0, 0, 0, 203, 204, 1, 0, 0, 0,
-		204, 210, 1, 0, 0, 0, 205, 206, 3, 34, 17, 0, 206, 207, 3, 52, 26, 0, 207,
-		209, 1, 0, 0, 0, 208, 205, 1, 0, 0, 0, 209, 212, 1, 0, 0, 0, 210, 208,
-		1, 0, 0, 0, 210, 211, 1, 0, 0, 0, 211, 214, 1, 0, 0, 0, 212, 210, 1, 0,
-		0, 0, 213, 215, 3, 52, 26, 0, 214, 213, 1, 0, 0, 0, 214, 215, 1, 0, 0,
-		0, 215, 216, 1, 0, 0, 0, 216, 217, 5, 22, 0, 0, 217, 33, 1, 0, 0, 0, 218,
-		221, 5, 28, 0, 0, 219, 220, 5, 23, 0, 0, 220, 222, 3, 50, 25, 0, 221, 219,
-		1, 0, 0, 0, 221, 222, 1, 0, 0, 0, 222, 35, 1, 0, 0, 0, 223, 225, 7, 0,
-		0, 0, 224, 226, 5, 25, 0, 0, 225, 224, 1, 0, 0, 0, 225, 226, 1, 0, 0, 0,
-		226, 37, 1, 0, 0, 0, 227, 229, 5, 28, 0, 0, 228, 230, 5, 25, 0, 0, 229,
-		228, 1, 0, 0, 0, 229, 230, 1, 0, 0, 0, 230, 39, 1, 0, 0, 0, 231, 234, 3,
-		42, 21, 0, 232, 234, 3, 46, 23, 0, 233, 231, 1, 0, 0, 0, 233, 232, 1, 0,
-		0, 0, 234, 41, 1, 0, 0, 0, 235, 236, 5, 15, 0, 0, 236, 237, 5, 17, 0, 0,
-		237, 238, 3, 44, 22, 0, 238, 239, 5, 24, 0, 0, 239, 240, 3, 48, 24, 0,
-		240, 241, 5, 18, 0, 0, 241, 43, 1, 0, 0, 0, 242, 243, 7, 1, 0, 0, 243,
-		45, 1, 0, 0, 0, 244, 245, 5, 16, 0, 0, 245, 246, 5, 17, 0, 0, 246, 247,
-		3, 48, 24, 0, 247, 248, 5, 18, 0, 0, 248, 47, 1, 0, 0, 0, 249, 253, 3,
-		36, 18, 0, 250, 253, 3, 38, 19, 0, 251, 253, 3, 40, 20, 0, 252, 249, 1,
-		0, 0, 0, 252, 250, 1, 0, 0, 0, 252, 251, 1, 0, 0, 0, 253, 49, 1, 0, 0,
-		0, 254, 255, 7, 2, 0, 0, 255, 51, 1, 0, 0, 0, 256, 258, 7, 3, 0, 0, 257,
-		256, 1, 0, 0, 0, 258, 259, 1, 0, 0, 0, 259, 257, 1, 0, 0, 0, 259, 260,
-		1, 0, 0, 0, 260, 53, 1, 0, 0, 0, 28, 58, 60, 70, 84, 91, 95, 108, 112,
-		119, 123, 133, 137, 144, 151, 159, 168, 175, 179, 199, 203, 210, 214, 221,
-		225, 229, 233, 252, 259,
+		1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 3, 6, 135, 8, 6, 1, 7, 1, 7, 3, 7,
+		139, 8, 7, 1, 8, 1, 8, 1, 9, 1, 9, 1, 9, 3, 9, 146, 8, 9, 1, 10, 1, 10,
+		1, 10, 1, 10, 1, 10, 3, 10, 153, 8, 10, 1, 11, 1, 11, 1, 11, 1, 11, 5,
+		11, 159, 8, 11, 10, 11, 12, 11, 162, 9, 11, 1, 11, 1, 11, 1, 12, 1, 12,
+		1, 12, 1, 12, 3, 12, 170, 8, 12, 1, 12, 1, 12, 1, 12, 5, 12, 175, 8, 12,
+		10, 12, 12, 12, 178, 9, 12, 1, 12, 3, 12, 181, 8, 12, 1, 12, 1, 12, 1,
+		13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 13, 1, 14, 1, 14, 1, 15,
+		1, 15, 1, 15, 1, 15, 1, 15, 1, 15, 3, 15, 201, 8, 15, 1, 16, 1, 16, 3,
+		16, 205, 8, 16, 1, 16, 1, 16, 1, 16, 5, 16, 210, 8, 16, 10, 16, 12, 16,
+		213, 9, 16, 1, 16, 3, 16, 216, 8, 16, 1, 16, 1, 16, 1, 17, 1, 17, 1, 17,
+		3, 17, 223, 8, 17, 1, 18, 1, 18, 1, 19, 1, 19, 1, 20, 1, 20, 3, 20, 231,
+		8, 20, 1, 21, 1, 21, 1, 21, 1, 21, 1, 21, 1, 21, 1, 21, 1, 22, 1, 22, 1,
+		23, 1, 23, 1, 23, 1, 23, 1, 23, 1, 24, 1, 24, 1, 24, 3, 24, 250, 8, 24,
+		1, 25, 1, 25, 1, 26, 4, 26, 255, 8, 26, 11, 26, 12, 26, 256, 1, 26, 0,
+		0, 27, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34,
+		36, 38, 40, 42, 44, 46, 48, 50, 52, 0, 4, 1, 0, 9, 12, 2, 0, 10, 10, 12,
+		12, 2, 0, 6, 7, 26, 29, 2, 0, 25, 25, 30, 30, 264, 0, 60, 1, 0, 0, 0, 2,
+		70, 1, 0, 0, 0, 4, 72, 1, 0, 0, 0, 6, 78, 1, 0, 0, 0, 8, 80, 1, 0, 0, 0,
+		10, 99, 1, 0, 0, 0, 12, 134, 1, 0, 0, 0, 14, 138, 1, 0, 0, 0, 16, 140,
+		1, 0, 0, 0, 18, 142, 1, 0, 0, 0, 20, 152, 1, 0, 0, 0, 22, 154, 1, 0, 0,
+		0, 24, 165, 1, 0, 0, 0, 26, 184, 1, 0, 0, 0, 28, 192, 1, 0, 0, 0, 30, 200,
+		1, 0, 0, 0, 32, 202, 1, 0, 0, 0, 34, 219, 1, 0, 0, 0, 36, 224, 1, 0, 0,
+		0, 38, 226, 1, 0, 0, 0, 40, 230, 1, 0, 0, 0, 42, 232, 1, 0, 0, 0, 44, 239,
+		1, 0, 0, 0, 46, 241, 1, 0, 0, 0, 48, 249, 1, 0, 0, 0, 50, 251, 1, 0, 0,
+		0, 52, 254, 1, 0, 0, 0, 54, 55, 3, 2, 1, 0, 55, 56, 3, 52, 26, 0, 56, 59,
+		1, 0, 0, 0, 57, 59, 3, 52, 26, 0, 58, 54, 1, 0, 0, 0, 58, 57, 1, 0, 0,
+		0, 59, 62, 1, 0, 0, 0, 60, 58, 1, 0, 0, 0, 60, 61, 1, 0, 0, 0, 61, 63,
+		1, 0, 0, 0, 62, 60, 1, 0, 0, 0, 63, 64, 5, 0, 0, 1, 64, 1, 1, 0, 0, 0,
+		65, 71, 3, 4, 2, 0, 66, 71, 3, 8, 4, 0, 67, 71, 3, 12, 6, 0, 68, 71, 3,
+		24, 12, 0, 69, 71, 3, 26, 13, 0, 70, 65, 1, 0, 0, 0, 70, 66, 1, 0, 0, 0,
+		70, 67, 1, 0, 0, 0, 70, 68, 1, 0, 0, 0, 70, 69, 1, 0, 0, 0, 71, 3, 1, 0,
+		0, 0, 72, 73, 5, 1, 0, 0, 73, 74, 3, 6, 3, 0, 74, 75, 5, 27, 0, 0, 75,
+		76, 5, 23, 0, 0, 76, 77, 3, 50, 25, 0, 77, 5, 1, 0, 0, 0, 78, 79, 7, 0,
+		0, 0, 79, 7, 1, 0, 0, 0, 80, 81, 5, 2, 0, 0, 81, 82, 5, 27, 0, 0, 82, 84,
+		5, 21, 0, 0, 83, 85, 3, 52, 26, 0, 84, 83, 1, 0, 0, 0, 84, 85, 1, 0, 0,
+		0, 85, 91, 1, 0, 0, 0, 86, 87, 3, 10, 5, 0, 87, 88, 3, 52, 26, 0, 88, 90,
+		1, 0, 0, 0, 89, 86, 1, 0, 0, 0, 90, 93, 1, 0, 0, 0, 91, 89, 1, 0, 0, 0,
+		91, 92, 1, 0, 0, 0, 92, 95, 1, 0, 0, 0, 93, 91, 1, 0, 0, 0, 94, 96, 3,
+		52, 26, 0, 95, 94, 1, 0, 0, 0, 95, 96, 1, 0, 0, 0, 96, 97, 1, 0, 0, 0,
+		97, 98, 5, 22, 0, 0, 98, 9, 1, 0, 0, 0, 99, 100, 5, 27, 0, 0, 100, 101,
+		5, 23, 0, 0, 101, 102, 5, 28, 0, 0, 102, 11, 1, 0, 0, 0, 103, 104, 5, 3,
+		0, 0, 104, 108, 5, 27, 0, 0, 105, 106, 5, 17, 0, 0, 106, 107, 5, 27, 0,
+		0, 107, 109, 5, 18, 0, 0, 108, 105, 1, 0, 0, 0, 108, 109, 1, 0, 0, 0, 109,
+		110, 1, 0, 0, 0, 110, 112, 5, 21, 0, 0, 111, 113, 3, 52, 26, 0, 112, 111,
+		1, 0, 0, 0, 112, 113, 1, 0, 0, 0, 113, 119, 1, 0, 0, 0, 114, 115, 3, 14,
+		7, 0, 115, 116, 3, 52, 26, 0, 116, 118, 1, 0, 0, 0, 117, 114, 1, 0, 0,
+		0, 118, 121, 1, 0, 0, 0, 119, 117, 1, 0, 0, 0, 119, 120, 1, 0, 0, 0, 120,
+		123, 1, 0, 0, 0, 121, 119, 1, 0, 0, 0, 122, 124, 3, 52, 26, 0, 123, 122,
+		1, 0, 0, 0, 123, 124, 1, 0, 0, 0, 124, 125, 1, 0, 0, 0, 125, 135, 5, 22,
+		0, 0, 126, 127, 5, 3, 0, 0, 127, 128, 5, 27, 0, 0, 128, 129, 5, 23, 0,
+		0, 129, 130, 5, 27, 0, 0, 130, 131, 5, 17, 0, 0, 131, 132, 3, 48, 24, 0,
+		132, 133, 5, 18, 0, 0, 133, 135, 1, 0, 0, 0, 134, 103, 1, 0, 0, 0, 134,
+		126, 1, 0, 0, 0, 135, 13, 1, 0, 0, 0, 136, 139, 3, 16, 8, 0, 137, 139,
+		3, 18, 9, 0, 138, 136, 1, 0, 0, 0, 138, 137, 1, 0, 0, 0, 139, 15, 1, 0,
+		0, 0, 140, 141, 3, 38, 19, 0, 141, 17, 1, 0, 0, 0, 142, 143, 3, 20, 10,
+		0, 143, 145, 5, 27, 0, 0, 144, 146, 3, 22, 11, 0, 145, 144, 1, 0, 0, 0,
+		145, 146, 1, 0, 0, 0, 146, 19, 1, 0, 0, 0, 147, 153, 5, 8, 0, 0, 148, 153,
+		3, 36, 18, 0, 149, 153, 3, 38, 19, 0, 150, 153, 3, 40, 20, 0, 151, 153,
+		5, 13, 0, 0, 152, 147, 1, 0, 0, 0, 152, 148, 1, 0, 0, 0, 152, 149, 1, 0,
+		0, 0, 152, 150, 1, 0, 0, 0, 152, 151, 1, 0, 0, 0, 153, 21, 1, 0, 0, 0,
+		154, 155, 5, 19, 0, 0, 155, 160, 3, 34, 17, 0, 156, 157, 5, 24, 0, 0, 157,
+		159, 3, 34, 17, 0, 158, 156, 1, 0, 0, 0, 159, 162, 1, 0, 0, 0, 160, 158,
+		1, 0, 0, 0, 160, 161, 1, 0, 0, 0, 161, 163, 1, 0, 0, 0, 162, 160, 1, 0,
+		0, 0, 163, 164, 5, 20, 0, 0, 164, 23, 1, 0, 0, 0, 165, 166, 5, 4, 0, 0,
+		166, 167, 5, 27, 0, 0, 167, 169, 5, 21, 0, 0, 168, 170, 3, 52, 26, 0, 169,
+		168, 1, 0, 0, 0, 169, 170, 1, 0, 0, 0, 170, 176, 1, 0, 0, 0, 171, 172,
+		3, 38, 19, 0, 172, 173, 3, 52, 26, 0, 173, 175, 1, 0, 0, 0, 174, 171, 1,
+		0, 0, 0, 175, 178, 1, 0, 0, 0, 176, 174, 1, 0, 0, 0, 176, 177, 1, 0, 0,
+		0, 177, 180, 1, 0, 0, 0, 178, 176, 1, 0, 0, 0, 179, 181, 3, 52, 26, 0,
+		180, 179, 1, 0, 0, 0, 180, 181, 1, 0, 0, 0, 181, 182, 1, 0, 0, 0, 182,
+		183, 5, 22, 0, 0, 183, 25, 1, 0, 0, 0, 184, 185, 5, 5, 0, 0, 185, 186,
+		5, 27, 0, 0, 186, 187, 5, 19, 0, 0, 187, 188, 3, 28, 14, 0, 188, 189, 5,
+		20, 0, 0, 189, 190, 3, 30, 15, 0, 190, 191, 3, 32, 16, 0, 191, 27, 1, 0,
+		0, 0, 192, 193, 3, 38, 19, 0, 193, 29, 1, 0, 0, 0, 194, 201, 3, 38, 19,
+		0, 195, 196, 5, 14, 0, 0, 196, 197, 5, 17, 0, 0, 197, 198, 3, 38, 19, 0,
+		198, 199, 5, 18, 0, 0, 199, 201, 1, 0, 0, 0, 200, 194, 1, 0, 0, 0, 200,
+		195, 1, 0, 0, 0, 201, 31, 1, 0, 0, 0, 202, 204, 5, 21, 0, 0, 203, 205,
+		3, 52, 26, 0, 204, 203, 1, 0, 0, 0, 204, 205, 1, 0, 0, 0, 205, 211, 1,
+		0, 0, 0, 206, 207, 3, 34, 17, 0, 207, 208, 3, 52, 26, 0, 208, 210, 1, 0,
+		0, 0, 209, 206, 1, 0, 0, 0, 210, 213, 1, 0, 0, 0, 211, 209, 1, 0, 0, 0,
+		211, 212, 1, 0, 0, 0, 212, 215, 1, 0, 0, 0, 213, 211, 1, 0, 0, 0, 214,
+		216, 3, 52, 26, 0, 215, 214, 1, 0, 0, 0, 215, 216, 1, 0, 0, 0, 216, 217,
+		1, 0, 0, 0, 217, 218, 5, 22, 0, 0, 218, 33, 1, 0, 0, 0, 219, 222, 5, 27,
+		0, 0, 220, 221, 5, 23, 0, 0, 221, 223, 3, 50, 25, 0, 222, 220, 1, 0, 0,
+		0, 222, 223, 1, 0, 0, 0, 223, 35, 1, 0, 0, 0, 224, 225, 7, 0, 0, 0, 225,
+		37, 1, 0, 0, 0, 226, 227, 5, 27, 0, 0, 227, 39, 1, 0, 0, 0, 228, 231, 3,
+		42, 21, 0, 229, 231, 3, 46, 23, 0, 230, 228, 1, 0, 0, 0, 230, 229, 1, 0,
+		0, 0, 231, 41, 1, 0, 0, 0, 232, 233, 5, 15, 0, 0, 233, 234, 5, 17, 0, 0,
+		234, 235, 3, 44, 22, 0, 235, 236, 5, 24, 0, 0, 236, 237, 3, 48, 24, 0,
+		237, 238, 5, 18, 0, 0, 238, 43, 1, 0, 0, 0, 239, 240, 7, 1, 0, 0, 240,
+		45, 1, 0, 0, 0, 241, 242, 5, 16, 0, 0, 242, 243, 5, 17, 0, 0, 243, 244,
+		3, 48, 24, 0, 244, 245, 5, 18, 0, 0, 245, 47, 1, 0, 0, 0, 246, 250, 3,
+		36, 18, 0, 247, 250, 3, 38, 19, 0, 248, 250, 3, 40, 20, 0, 249, 246, 1,
+		0, 0, 0, 249, 247, 1, 0, 0, 0, 249, 248, 1, 0, 0, 0, 250, 49, 1, 0, 0,
+		0, 251, 252, 7, 2, 0, 0, 252, 51, 1, 0, 0, 0, 253, 255, 7, 3, 0, 0, 254,
+		253, 1, 0, 0, 0, 255, 256, 1, 0, 0, 0, 256, 254, 1, 0, 0, 0, 256, 257,
+		1, 0, 0, 0, 257, 53, 1, 0, 0, 0, 26, 58, 60, 70, 84, 91, 95, 108, 112,
+		119, 123, 134, 138, 145, 152, 160, 169, 176, 180, 200, 204, 211, 215, 222,
+		230, 249, 256,
 	}
 	deserializer := antlr.NewATNDeserializer(nil)
 	staticData.atn = deserializer.Deserialize(staticData.serializedATN)
@@ -229,16 +227,15 @@ const (
 	TParserRIGHT_BRACE         = 22
 	TParserEQUAL               = 23
 	TParserCOMMA               = 24
-	TParserQUESTION            = 25
-	TParserSEMICOLON           = 26
-	TParserSTRING              = 27
-	TParserIDENTIFIER          = 28
-	TParserINTEGER             = 29
-	TParserFLOAT               = 30
-	TParserNEWLINE             = 31
-	TParserWHITESPACE          = 32
-	TParserSINGLE_LINE_COMMENT = 33
-	TParserMULTI_LINE_COMMENT  = 34
+	TParserSEMICOLON           = 25
+	TParserSTRING              = 26
+	TParserIDENTIFIER          = 27
+	TParserINTEGER             = 28
+	TParserFLOAT               = 29
+	TParserNEWLINE             = 30
+	TParserWHITESPACE          = 31
+	TParserSINGLE_LINE_COMMENT = 32
+	TParserMULTI_LINE_COMMENT  = 33
 )
 
 // TParser rules.
@@ -441,7 +438,7 @@ func (p *TParser) Document() (localctx IDocumentContext) {
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&2214592574) != 0 {
+	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1107296318) != 0 {
 		p.SetState(58)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
@@ -1406,6 +1403,7 @@ type IType_defContext interface {
 	Terminator(i int) ITerminatorContext
 	AllType_field() []IType_fieldContext
 	Type_field(i int) IType_fieldContext
+	EQUAL() antlr.TerminalNode
 	Value_type() IValue_typeContext
 
 	// IsType_defContext differentiates from other interfaces.
@@ -1554,6 +1552,10 @@ func (s *Type_defContext) Type_field(i int) IType_fieldContext {
 	return t.(IType_fieldContext)
 }
 
+func (s *Type_defContext) EQUAL() antlr.TerminalNode {
+	return s.GetToken(TParserEQUAL, 0)
+}
+
 func (s *Type_defContext) Value_type() IValue_typeContext {
 	var t antlr.RuleContext
 	for _, ctx := range s.GetChildren() {
@@ -1595,7 +1597,7 @@ func (p *TParser) Type_def() (localctx IType_defContext) {
 	p.EnterRule(localctx, 12, TParserRULE_type_def)
 	var _la int
 
-	p.SetState(133)
+	p.SetState(134)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1681,7 +1683,7 @@ func (p *TParser) Type_def() (localctx IType_defContext) {
 		}
 		_la = p.GetTokenStream().LA(1)
 
-		for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&268549888) != 0 {
+		for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&134332160) != 0 {
 			{
 				p.SetState(114)
 				p.Type_field()
@@ -1741,7 +1743,7 @@ func (p *TParser) Type_def() (localctx IType_defContext) {
 		}
 		{
 			p.SetState(128)
-			p.Match(TParserIDENTIFIER)
+			p.Match(TParserEQUAL)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -1749,7 +1751,7 @@ func (p *TParser) Type_def() (localctx IType_defContext) {
 		}
 		{
 			p.SetState(129)
-			p.Match(TParserLESS_THAN)
+			p.Match(TParserIDENTIFIER)
 			if p.HasError() {
 				// Recognition error - abort rule
 				goto errorExit
@@ -1757,10 +1759,18 @@ func (p *TParser) Type_def() (localctx IType_defContext) {
 		}
 		{
 			p.SetState(130)
-			p.Value_type()
+			p.Match(TParserLESS_THAN)
+			if p.HasError() {
+				// Recognition error - abort rule
+				goto errorExit
+			}
 		}
 		{
 			p.SetState(131)
+			p.Value_type()
+		}
+		{
+			p.SetState(132)
 			p.Match(TParserGREATER_THAN)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -1887,7 +1897,7 @@ func (s *Type_fieldContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *TParser) Type_field() (localctx IType_fieldContext) {
 	localctx = NewType_fieldContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 14, TParserRULE_type_field)
-	p.SetState(137)
+	p.SetState(138)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -1897,14 +1907,14 @@ func (p *TParser) Type_field() (localctx IType_fieldContext) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(135)
+			p.SetState(136)
 			p.Embed_type_field()
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(136)
+			p.SetState(137)
 			p.Common_type_field()
 		}
 
@@ -2012,7 +2022,7 @@ func (p *TParser) Embed_type_field() (localctx IEmbed_type_fieldContext) {
 	p.EnterRule(localctx, 16, TParserRULE_embed_type_field)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(139)
+		p.SetState(140)
 		p.User_type()
 	}
 
@@ -2140,18 +2150,18 @@ func (p *TParser) Common_type_field() (localctx ICommon_type_fieldContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(141)
+		p.SetState(142)
 		p.Common_field_type()
 	}
 	{
-		p.SetState(142)
+		p.SetState(143)
 		p.Match(TParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(144)
+	p.SetState(145)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2160,7 +2170,7 @@ func (p *TParser) Common_type_field() (localctx ICommon_type_fieldContext) {
 
 	if _la == TParserLEFT_PAREN {
 		{
-			p.SetState(143)
+			p.SetState(144)
 			p.Type_annotations()
 		}
 
@@ -2308,7 +2318,7 @@ func (s *Common_field_typeContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *TParser) Common_field_type() (localctx ICommon_field_typeContext) {
 	localctx = NewCommon_field_typeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 20, TParserRULE_common_field_type)
-	p.SetState(151)
+	p.SetState(152)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2318,7 +2328,7 @@ func (p *TParser) Common_field_type() (localctx ICommon_field_typeContext) {
 	case TParserTYPE_ANY:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(146)
+			p.SetState(147)
 			p.Match(TParserTYPE_ANY)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2329,28 +2339,28 @@ func (p *TParser) Common_field_type() (localctx ICommon_field_typeContext) {
 	case TParserTYPE_BOOL, TParserTYPE_INT, TParserTYPE_FLOAT, TParserTYPE_STRING:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(147)
+			p.SetState(148)
 			p.Base_type()
 		}
 
 	case TParserIDENTIFIER:
 		p.EnterOuterAlt(localctx, 3)
 		{
-			p.SetState(148)
+			p.SetState(149)
 			p.User_type()
 		}
 
 	case TParserTYPE_MAP, TParserTYPE_LIST:
 		p.EnterOuterAlt(localctx, 4)
 		{
-			p.SetState(149)
+			p.SetState(150)
 			p.Container_type()
 		}
 
 	case TParserTYPE_BINARY:
 		p.EnterOuterAlt(localctx, 5)
 		{
-			p.SetState(150)
+			p.SetState(151)
 			p.Match(TParserTYPE_BINARY)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2511,7 +2521,7 @@ func (p *TParser) Type_annotations() (localctx IType_annotationsContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(153)
+		p.SetState(154)
 		p.Match(TParserLEFT_PAREN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2519,10 +2529,10 @@ func (p *TParser) Type_annotations() (localctx IType_annotationsContext) {
 		}
 	}
 	{
-		p.SetState(154)
+		p.SetState(155)
 		p.Annotation()
 	}
-	p.SetState(159)
+	p.SetState(160)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2531,7 +2541,7 @@ func (p *TParser) Type_annotations() (localctx IType_annotationsContext) {
 
 	for _la == TParserCOMMA {
 		{
-			p.SetState(155)
+			p.SetState(156)
 			p.Match(TParserCOMMA)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -2539,11 +2549,11 @@ func (p *TParser) Type_annotations() (localctx IType_annotationsContext) {
 			}
 		}
 		{
-			p.SetState(156)
+			p.SetState(157)
 			p.Annotation()
 		}
 
-		p.SetState(161)
+		p.SetState(162)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
@@ -2551,7 +2561,7 @@ func (p *TParser) Type_annotations() (localctx IType_annotationsContext) {
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(162)
+		p.SetState(163)
 		p.Match(TParserRIGHT_PAREN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2586,8 +2596,8 @@ type IOneof_defContext interface {
 	RIGHT_BRACE() antlr.TerminalNode
 	AllTerminator() []ITerminatorContext
 	Terminator(i int) ITerminatorContext
-	AllCommon_type_field() []ICommon_type_fieldContext
-	Common_type_field(i int) ICommon_type_fieldContext
+	AllUser_type() []IUser_typeContext
+	User_type(i int) IUser_typeContext
 
 	// IsOneof_defContext differentiates from other interfaces.
 	IsOneof_defContext()
@@ -2682,20 +2692,20 @@ func (s *Oneof_defContext) Terminator(i int) ITerminatorContext {
 	return t.(ITerminatorContext)
 }
 
-func (s *Oneof_defContext) AllCommon_type_field() []ICommon_type_fieldContext {
+func (s *Oneof_defContext) AllUser_type() []IUser_typeContext {
 	children := s.GetChildren()
 	len := 0
 	for _, ctx := range children {
-		if _, ok := ctx.(ICommon_type_fieldContext); ok {
+		if _, ok := ctx.(IUser_typeContext); ok {
 			len++
 		}
 	}
 
-	tst := make([]ICommon_type_fieldContext, len)
+	tst := make([]IUser_typeContext, len)
 	i := 0
 	for _, ctx := range children {
-		if t, ok := ctx.(ICommon_type_fieldContext); ok {
-			tst[i] = t.(ICommon_type_fieldContext)
+		if t, ok := ctx.(IUser_typeContext); ok {
+			tst[i] = t.(IUser_typeContext)
 			i++
 		}
 	}
@@ -2703,11 +2713,11 @@ func (s *Oneof_defContext) AllCommon_type_field() []ICommon_type_fieldContext {
 	return tst
 }
 
-func (s *Oneof_defContext) Common_type_field(i int) ICommon_type_fieldContext {
+func (s *Oneof_defContext) User_type(i int) IUser_typeContext {
 	var t antlr.RuleContext
 	j := 0
 	for _, ctx := range s.GetChildren() {
-		if _, ok := ctx.(ICommon_type_fieldContext); ok {
+		if _, ok := ctx.(IUser_typeContext); ok {
 			if j == i {
 				t = ctx.(antlr.RuleContext)
 				break
@@ -2720,7 +2730,7 @@ func (s *Oneof_defContext) Common_type_field(i int) ICommon_type_fieldContext {
 		return nil
 	}
 
-	return t.(ICommon_type_fieldContext)
+	return t.(IUser_typeContext)
 }
 
 func (s *Oneof_defContext) GetRuleContext() antlr.RuleContext {
@@ -2750,7 +2760,7 @@ func (p *TParser) Oneof_def() (localctx IOneof_defContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(164)
+		p.SetState(165)
 		p.Match(TParserKW_ONEOF)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2758,7 +2768,7 @@ func (p *TParser) Oneof_def() (localctx IOneof_defContext) {
 		}
 	}
 	{
-		p.SetState(165)
+		p.SetState(166)
 		p.Match(TParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2766,50 +2776,50 @@ func (p *TParser) Oneof_def() (localctx IOneof_defContext) {
 		}
 	}
 	{
-		p.SetState(166)
+		p.SetState(167)
 		p.Match(TParserLEFT_BRACE)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(168)
+	p.SetState(169)
 	p.GetErrorHandler().Sync(p)
 
 	if p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 15, p.GetParserRuleContext()) == 1 {
 		{
-			p.SetState(167)
+			p.SetState(168)
 			p.Terminator()
 		}
 
 	} else if p.HasError() { // JIM
 		goto errorExit
 	}
-	p.SetState(175)
+	p.SetState(176)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
 	}
 	_la = p.GetTokenStream().LA(1)
 
-	for (int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&268549888) != 0 {
-		{
-			p.SetState(170)
-			p.Common_type_field()
-		}
+	for _la == TParserIDENTIFIER {
 		{
 			p.SetState(171)
+			p.User_type()
+		}
+		{
+			p.SetState(172)
 			p.Terminator()
 		}
 
-		p.SetState(177)
+		p.SetState(178)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
 		_la = p.GetTokenStream().LA(1)
 	}
-	p.SetState(179)
+	p.SetState(180)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -2818,13 +2828,13 @@ func (p *TParser) Oneof_def() (localctx IOneof_defContext) {
 
 	if _la == TParserSEMICOLON || _la == TParserNEWLINE {
 		{
-			p.SetState(178)
+			p.SetState(179)
 			p.Terminator()
 		}
 
 	}
 	{
-		p.SetState(181)
+		p.SetState(182)
 		p.Match(TParserRIGHT_BRACE)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2986,7 +2996,7 @@ func (p *TParser) Rpc_def() (localctx IRpc_defContext) {
 	p.EnterRule(localctx, 26, TParserRULE_rpc_def)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(183)
+		p.SetState(184)
 		p.Match(TParserKW_RPC)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -2994,7 +3004,7 @@ func (p *TParser) Rpc_def() (localctx IRpc_defContext) {
 		}
 	}
 	{
-		p.SetState(184)
+		p.SetState(185)
 		p.Match(TParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -3002,7 +3012,7 @@ func (p *TParser) Rpc_def() (localctx IRpc_defContext) {
 		}
 	}
 	{
-		p.SetState(185)
+		p.SetState(186)
 		p.Match(TParserLEFT_PAREN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -3010,11 +3020,11 @@ func (p *TParser) Rpc_def() (localctx IRpc_defContext) {
 		}
 	}
 	{
-		p.SetState(186)
+		p.SetState(187)
 		p.Rpc_req()
 	}
 	{
-		p.SetState(187)
+		p.SetState(188)
 		p.Match(TParserRIGHT_PAREN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -3022,11 +3032,11 @@ func (p *TParser) Rpc_def() (localctx IRpc_defContext) {
 		}
 	}
 	{
-		p.SetState(188)
+		p.SetState(189)
 		p.Rpc_resp()
 	}
 	{
-		p.SetState(189)
+		p.SetState(190)
 		p.Rpc_annotations()
 	}
 
@@ -3130,7 +3140,7 @@ func (p *TParser) Rpc_req() (localctx IRpc_reqContext) {
 	p.EnterRule(localctx, 28, TParserRULE_rpc_req)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(191)
+		p.SetState(192)
 		p.User_type()
 	}
 
@@ -3247,7 +3257,7 @@ func (s *Rpc_respContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *TParser) Rpc_resp() (localctx IRpc_respContext) {
 	localctx = NewRpc_respContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 30, TParserRULE_rpc_resp)
-	p.SetState(199)
+	p.SetState(200)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -3257,14 +3267,14 @@ func (p *TParser) Rpc_resp() (localctx IRpc_respContext) {
 	case TParserIDENTIFIER:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(193)
+			p.SetState(194)
 			p.User_type()
 		}
 
 	case TParserTYPE_STREAM:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(194)
+			p.SetState(195)
 			p.Match(TParserTYPE_STREAM)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3272,7 +3282,7 @@ func (p *TParser) Rpc_resp() (localctx IRpc_respContext) {
 			}
 		}
 		{
-			p.SetState(195)
+			p.SetState(196)
 			p.Match(TParserLESS_THAN)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3280,11 +3290,11 @@ func (p *TParser) Rpc_resp() (localctx IRpc_respContext) {
 			}
 		}
 		{
-			p.SetState(196)
+			p.SetState(197)
 			p.User_type()
 		}
 		{
-			p.SetState(197)
+			p.SetState(198)
 			p.Match(TParserGREATER_THAN)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3478,26 +3488,26 @@ func (p *TParser) Rpc_annotations() (localctx IRpc_annotationsContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(201)
+		p.SetState(202)
 		p.Match(TParserLEFT_BRACE)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(203)
+	p.SetState(204)
 	p.GetErrorHandler().Sync(p)
 
 	if p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 19, p.GetParserRuleContext()) == 1 {
 		{
-			p.SetState(202)
+			p.SetState(203)
 			p.Terminator()
 		}
 
 	} else if p.HasError() { // JIM
 		goto errorExit
 	}
-	p.SetState(210)
+	p.SetState(211)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -3506,22 +3516,22 @@ func (p *TParser) Rpc_annotations() (localctx IRpc_annotationsContext) {
 
 	for _la == TParserIDENTIFIER {
 		{
-			p.SetState(205)
+			p.SetState(206)
 			p.Annotation()
 		}
 		{
-			p.SetState(206)
+			p.SetState(207)
 			p.Terminator()
 		}
 
-		p.SetState(212)
+		p.SetState(213)
 		p.GetErrorHandler().Sync(p)
 		if p.HasError() {
 			goto errorExit
 		}
 		_la = p.GetTokenStream().LA(1)
 	}
-	p.SetState(214)
+	p.SetState(215)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -3530,13 +3540,13 @@ func (p *TParser) Rpc_annotations() (localctx IRpc_annotationsContext) {
 
 	if _la == TParserSEMICOLON || _la == TParserNEWLINE {
 		{
-			p.SetState(213)
+			p.SetState(214)
 			p.Terminator()
 		}
 
 	}
 	{
-		p.SetState(216)
+		p.SetState(217)
 		p.Match(TParserRIGHT_BRACE)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -3656,14 +3666,14 @@ func (p *TParser) Annotation() (localctx IAnnotationContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(218)
+		p.SetState(219)
 		p.Match(TParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
 	}
-	p.SetState(221)
+	p.SetState(222)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -3672,7 +3682,7 @@ func (p *TParser) Annotation() (localctx IAnnotationContext) {
 
 	if _la == TParserEQUAL {
 		{
-			p.SetState(219)
+			p.SetState(220)
 			p.Match(TParserEQUAL)
 			if p.HasError() {
 				// Recognition error - abort rule
@@ -3680,7 +3690,7 @@ func (p *TParser) Annotation() (localctx IAnnotationContext) {
 			}
 		}
 		{
-			p.SetState(220)
+			p.SetState(221)
 			p.Const_value()
 		}
 
@@ -3711,7 +3721,6 @@ type IBase_typeContext interface {
 	TYPE_INT() antlr.TerminalNode
 	TYPE_FLOAT() antlr.TerminalNode
 	TYPE_STRING() antlr.TerminalNode
-	QUESTION() antlr.TerminalNode
 
 	// IsBase_typeContext differentiates from other interfaces.
 	IsBase_typeContext()
@@ -3765,10 +3774,6 @@ func (s *Base_typeContext) TYPE_STRING() antlr.TerminalNode {
 	return s.GetToken(TParserTYPE_STRING, 0)
 }
 
-func (s *Base_typeContext) QUESTION() antlr.TerminalNode {
-	return s.GetToken(TParserQUESTION, 0)
-}
-
 func (s *Base_typeContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -3796,7 +3801,7 @@ func (p *TParser) Base_type() (localctx IBase_typeContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(223)
+		p.SetState(224)
 		_la = p.GetTokenStream().LA(1)
 
 		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&7680) != 0) {
@@ -3805,24 +3810,6 @@ func (p *TParser) Base_type() (localctx IBase_typeContext) {
 			p.GetErrorHandler().ReportMatch(p)
 			p.Consume()
 		}
-	}
-	p.SetState(225)
-	p.GetErrorHandler().Sync(p)
-	if p.HasError() {
-		goto errorExit
-	}
-	_la = p.GetTokenStream().LA(1)
-
-	if _la == TParserQUESTION {
-		{
-			p.SetState(224)
-			p.Match(TParserQUESTION)
-			if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-			}
-		}
-
 	}
 
 errorExit:
@@ -3847,7 +3834,6 @@ type IUser_typeContext interface {
 
 	// Getter signatures
 	IDENTIFIER() antlr.TerminalNode
-	QUESTION() antlr.TerminalNode
 
 	// IsUser_typeContext differentiates from other interfaces.
 	IsUser_typeContext()
@@ -3889,10 +3875,6 @@ func (s *User_typeContext) IDENTIFIER() antlr.TerminalNode {
 	return s.GetToken(TParserIDENTIFIER, 0)
 }
 
-func (s *User_typeContext) QUESTION() antlr.TerminalNode {
-	return s.GetToken(TParserQUESTION, 0)
-}
-
 func (s *User_typeContext) GetRuleContext() antlr.RuleContext {
 	return s
 }
@@ -3916,34 +3898,14 @@ func (s *User_typeContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *TParser) User_type() (localctx IUser_typeContext) {
 	localctx = NewUser_typeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 38, TParserRULE_user_type)
-	var _la int
-
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(227)
+		p.SetState(226)
 		p.Match(TParserIDENTIFIER)
 		if p.HasError() {
 			// Recognition error - abort rule
 			goto errorExit
 		}
-	}
-	p.SetState(229)
-	p.GetErrorHandler().Sync(p)
-	if p.HasError() {
-		goto errorExit
-	}
-	_la = p.GetTokenStream().LA(1)
-
-	if _la == TParserQUESTION {
-		{
-			p.SetState(228)
-			p.Match(TParserQUESTION)
-			if p.HasError() {
-				// Recognition error - abort rule
-				goto errorExit
-			}
-		}
-
 	}
 
 errorExit:
@@ -4061,7 +4023,7 @@ func (s *Container_typeContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *TParser) Container_type() (localctx IContainer_typeContext) {
 	localctx = NewContainer_typeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 40, TParserRULE_container_type)
-	p.SetState(233)
+	p.SetState(230)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -4071,14 +4033,14 @@ func (p *TParser) Container_type() (localctx IContainer_typeContext) {
 	case TParserTYPE_MAP:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(231)
+			p.SetState(228)
 			p.Map_type()
 		}
 
 	case TParserTYPE_LIST:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(232)
+			p.SetState(229)
 			p.List_type()
 		}
 
@@ -4224,7 +4186,7 @@ func (p *TParser) Map_type() (localctx IMap_typeContext) {
 	p.EnterRule(localctx, 42, TParserRULE_map_type)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(235)
+		p.SetState(232)
 		p.Match(TParserTYPE_MAP)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4232,7 +4194,7 @@ func (p *TParser) Map_type() (localctx IMap_typeContext) {
 		}
 	}
 	{
-		p.SetState(236)
+		p.SetState(233)
 		p.Match(TParserLESS_THAN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4240,11 +4202,11 @@ func (p *TParser) Map_type() (localctx IMap_typeContext) {
 		}
 	}
 	{
-		p.SetState(237)
+		p.SetState(234)
 		p.Key_type()
 	}
 	{
-		p.SetState(238)
+		p.SetState(235)
 		p.Match(TParserCOMMA)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4252,11 +4214,11 @@ func (p *TParser) Map_type() (localctx IMap_typeContext) {
 		}
 	}
 	{
-		p.SetState(239)
+		p.SetState(236)
 		p.Value_type()
 	}
 	{
-		p.SetState(240)
+		p.SetState(237)
 		p.Match(TParserGREATER_THAN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4359,7 +4321,7 @@ func (p *TParser) Key_type() (localctx IKey_typeContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(242)
+		p.SetState(239)
 		_la = p.GetTokenStream().LA(1)
 
 		if !(_la == TParserTYPE_INT || _la == TParserTYPE_STRING) {
@@ -4485,7 +4447,7 @@ func (p *TParser) List_type() (localctx IList_typeContext) {
 	p.EnterRule(localctx, 46, TParserRULE_list_type)
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(244)
+		p.SetState(241)
 		p.Match(TParserTYPE_LIST)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4493,7 +4455,7 @@ func (p *TParser) List_type() (localctx IList_typeContext) {
 		}
 	}
 	{
-		p.SetState(245)
+		p.SetState(242)
 		p.Match(TParserLESS_THAN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4501,11 +4463,11 @@ func (p *TParser) List_type() (localctx IList_typeContext) {
 		}
 	}
 	{
-		p.SetState(246)
+		p.SetState(243)
 		p.Value_type()
 	}
 	{
-		p.SetState(247)
+		p.SetState(244)
 		p.Match(TParserGREATER_THAN)
 		if p.HasError() {
 			// Recognition error - abort rule
@@ -4645,7 +4607,7 @@ func (s *Value_typeContext) ExitRule(listener antlr.ParseTreeListener) {
 func (p *TParser) Value_type() (localctx IValue_typeContext) {
 	localctx = NewValue_typeContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 48, TParserRULE_value_type)
-	p.SetState(252)
+	p.SetState(249)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -4655,21 +4617,21 @@ func (p *TParser) Value_type() (localctx IValue_typeContext) {
 	case TParserTYPE_BOOL, TParserTYPE_INT, TParserTYPE_FLOAT, TParserTYPE_STRING:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(249)
+			p.SetState(246)
 			p.Base_type()
 		}
 
 	case TParserIDENTIFIER:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(250)
+			p.SetState(247)
 			p.User_type()
 		}
 
 	case TParserTYPE_MAP, TParserTYPE_LIST:
 		p.EnterOuterAlt(localctx, 3)
 		{
-			p.SetState(251)
+			p.SetState(248)
 			p.Container_type()
 		}
 
@@ -4793,10 +4755,10 @@ func (p *TParser) Const_value() (localctx IConst_valueContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(254)
+		p.SetState(251)
 		_la = p.GetTokenStream().LA(1)
 
-		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&2013266112) != 0) {
+		if !((int64(_la) & ^0x3f) == 0 && ((int64(1)<<_la)&1006633152) != 0) {
 			p.GetErrorHandler().RecoverInline(p)
 		} else {
 			p.GetErrorHandler().ReportMatch(p)
@@ -4910,7 +4872,7 @@ func (p *TParser) Terminator() (localctx ITerminatorContext) {
 	var _alt int
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(257)
+	p.SetState(254)
 	p.GetErrorHandler().Sync(p)
 	if p.HasError() {
 		goto errorExit
@@ -4920,7 +4882,7 @@ func (p *TParser) Terminator() (localctx ITerminatorContext) {
 		switch _alt {
 		case 1:
 			{
-				p.SetState(256)
+				p.SetState(253)
 				_la = p.GetTokenStream().LA(1)
 
 				if !(_la == TParserSEMICOLON || _la == TParserNEWLINE) {
@@ -4936,9 +4898,9 @@ func (p *TParser) Terminator() (localctx ITerminatorContext) {
 			goto errorExit
 		}
 
-		p.SetState(259)
+		p.SetState(256)
 		p.GetErrorHandler().Sync(p)
-		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 27, p.GetParserRuleContext())
+		_alt = p.GetInterpreter().AdaptivePredict(p.BaseParser, p.GetTokenStream(), 25, p.GetParserRuleContext())
 		if p.HasError() {
 			goto errorExit
 		}

@@ -125,14 +125,10 @@ type TypeField struct {
 
 // EmbedType represents an embedded type field (similar to composition in Go).
 type EmbedType struct {
-	Name     string // Name of the embedded type
-	Optional bool   // Whether the embedded type is optional (nullable)
+	Name string // Name of the embedded type
 }
 
 func (t EmbedType) Text() string {
-	if t.Optional {
-		return t.Name + "?"
-	}
 	return t.Name
 }
 
@@ -150,27 +146,19 @@ func (t AnyType) MarshalText() (text []byte, err error) {
 
 // BaseType represents a primitive type (e.g., int, string, bool).
 type BaseType struct {
-	Name     string // Name of the primitive type
-	Optional bool   // Whether the type is optional (nullable)
+	Name string // Name of the primitive type
 }
 
 func (t BaseType) Text() string {
-	if t.Optional {
-		return t.Name + "?"
-	}
 	return t.Name
 }
 
 // UserType represents a reference to a user-defined type.
 type UserType struct {
-	Name     string // Name of the referenced type
-	Optional bool   // Whether the type is optional (nullable)
+	Name string // Name of the referenced type
 }
 
 func (t UserType) Text() string {
-	if t.Optional {
-		return t.Name + "?"
-	}
 	return t.Name
 }
 
