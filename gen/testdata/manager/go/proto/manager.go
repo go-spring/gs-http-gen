@@ -1059,7 +1059,7 @@ type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
 	Page     *int64        `json:"page,omitempty" query:"page"`
 	Size     *int64        `json:"size,omitempty" query:"size"`
-	Keyword  []*string     `json:"keyword" query:"keyword"`
+	Keyword  []string      `json:"keyword" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
 	Vip      *bool         `json:"vip,omitempty" query:"vip"`
@@ -1080,9 +1080,7 @@ func (x *ListManagersByPageReq) QueryString() (string, error) {
 		m.Add("size", strconv.FormatInt(int64(*x.Size), 10))
 	}
 	for i := range len(x.Keyword) {
-		if x.Keyword[i] != nil {
-			m.Add("keyword", *x.Keyword[i])
-		}
+		m.Add("keyword", x.Keyword[i])
 	}
 	if x.Dept != nil {
 		m.Add("dept", strconv.FormatInt(int64(*x.Dept), 10))
@@ -1145,14 +1143,14 @@ func (x *ListManagersByPageReq) SetSize(v int64) {
 	x.Size = &v
 }
 
-func (x *ListManagersByPageReq) GetKeyword() (v []*string) {
+func (x *ListManagersByPageReq) GetKeyword() (v []string) {
 	if x.Keyword != nil {
 		return x.Keyword
 	}
 	return
 }
 
-func (x *ListManagersByPageReq) SetKeyword(v []*string) {
+func (x *ListManagersByPageReq) SetKeyword(v []string) {
 	x.Keyword = v
 }
 
@@ -1472,10 +1470,10 @@ func (x *DeleteManagerResp) String() string {
 }
 
 type ManagersPageData struct {
-	Total *int64     `json:"total,omitempty"`
-	Page  *int64     `json:"page,omitempty"`
-	Size  *int64     `json:"size,omitempty"`
-	Items []*Manager `json:"items"`
+	Total *int64    `json:"total,omitempty"`
+	Page  *int64    `json:"page,omitempty"`
+	Size  *int64    `json:"size,omitempty"`
+	Items []Manager `json:"items"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1521,14 +1519,14 @@ func (x *ManagersPageData) SetSize(v int64) {
 	x.Size = &v
 }
 
-func (x *ManagersPageData) GetItems() (v []*Manager) {
+func (x *ManagersPageData) GetItems() (v []Manager) {
 	if x.Items != nil {
 		return x.Items
 	}
 	return
 }
 
-func (x *ManagersPageData) SetItems(v []*Manager) {
+func (x *ManagersPageData) SetItems(v []Manager) {
 	x.Items = v
 }
 

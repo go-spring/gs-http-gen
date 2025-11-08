@@ -3,9 +3,11 @@
 package proto
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/lvan100/golib/errutil"
@@ -17,21 +19,21 @@ var _ = http.NewServeMux
 type PayloadType int32
 
 const (
-	PayloadType_text_data    PayloadType = 0
-	PayloadType_number_data  PayloadType = 1
-	PayloadType_boolean_data PayloadType = 2
+	PayloadType_Payload_1 PayloadType = 0
+	PayloadType_Payload_2 PayloadType = 1
+	PayloadType_Payload_3 PayloadType = 2
 )
 
 var (
 	PayloadType_name = map[PayloadType]string{
-		0: "text_data",
-		1: "number_data",
-		2: "boolean_data",
+		0: "Payload_1",
+		1: "Payload_2",
+		2: "Payload_3",
 	}
 	PayloadType_value = map[string]PayloadType{
-		"text_data":    0,
-		"number_data":  1,
-		"boolean_data": 2,
+		"Payload_1": 0,
+		"Payload_2": 1,
+		"Payload_3": 2,
 	}
 )
 
@@ -196,10 +198,10 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
-	FieldType   *PayloadTypeAsString `json:"field_type"`
-	TextData    *string              `json:"text_data,omitempty"`
-	NumberData  *int64               `json:"number_data,omitempty"`
-	BooleanData *bool                `json:"boolean_data,omitempty"`
+	FieldType *PayloadTypeAsString `json:"field_type"`
+	Payload1  *Payload_1           `json:"Payload_1,omitempty"`
+	Payload2  *Payload_2           `json:"Payload_2,omitempty"`
+	Payload3  *Payload_3           `json:"Payload_3,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -223,37 +225,37 @@ func (x *Payload) SetFieldType(v PayloadTypeAsString) {
 	x.FieldType = &v
 }
 
-func (x *Payload) GetTextData() (v string) {
-	if x.TextData != nil {
-		return *x.TextData
+func (x *Payload) GetPayload1() (v Payload_1) {
+	if x.Payload1 != nil {
+		return *x.Payload1
 	}
 	return
 }
 
-func (x *Payload) SetTextData(v string) {
-	x.TextData = &v
+func (x *Payload) SetPayload1(v Payload_1) {
+	x.Payload1 = &v
 }
 
-func (x *Payload) GetNumberData() (v int64) {
-	if x.NumberData != nil {
-		return *x.NumberData
+func (x *Payload) GetPayload2() (v Payload_2) {
+	if x.Payload2 != nil {
+		return *x.Payload2
 	}
 	return
 }
 
-func (x *Payload) SetNumberData(v int64) {
-	x.NumberData = &v
+func (x *Payload) SetPayload2(v Payload_2) {
+	x.Payload2 = &v
 }
 
-func (x *Payload) GetBooleanData() (v bool) {
-	if x.BooleanData != nil {
-		return *x.BooleanData
+func (x *Payload) GetPayload3() (v Payload_3) {
+	if x.Payload3 != nil {
+		return *x.Payload3
 	}
 	return
 }
 
-func (x *Payload) SetBooleanData(v bool) {
-	x.BooleanData = &v
+func (x *Payload) SetPayload3(v Payload_3) {
+	x.Payload3 = &v
 }
 
 func (x *Payload) String() string {
@@ -261,4 +263,64 @@ func (x *Payload) String() string {
 		return "<nil>"
 	}
 	return fmt.Sprintf("Payload(%+v)", *x)
+}
+
+type Payload_1 struct {
+}
+
+// New returns a new instance (implements Object interface).
+func (x *Payload_1) New() any {
+	return &Payload_1{}
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *Payload_1) Validate() error {
+	return nil
+}
+
+func (x *Payload_1) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Payload_1(%+v)", *x)
+}
+
+type Payload_2 struct {
+}
+
+// New returns a new instance (implements Object interface).
+func (x *Payload_2) New() any {
+	return &Payload_2{}
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *Payload_2) Validate() error {
+	return nil
+}
+
+func (x *Payload_2) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Payload_2(%+v)", *x)
+}
+
+type Payload_3 struct {
+}
+
+// New returns a new instance (implements Object interface).
+func (x *Payload_3) New() any {
+	return &Payload_3{}
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *Payload_3) Validate() error {
+	return nil
+}
+
+func (x *Payload_3) String() string {
+	if x == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("Payload_3(%+v)", *x)
 }

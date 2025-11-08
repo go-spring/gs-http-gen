@@ -11,10 +11,14 @@ type StreamResp {
 }
 
 oneof Payload {
-    string text_data
-    int? numberData (json="number_data")
-    bool boolean_data (json="")
+    Payload_1
+    Payload_2
+    Payload_3
 }
+
+type Payload_1 {}
+type Payload_2 {}
+type Payload_3 {}
 
 // Streaming ...
 rpc Stream(StreamReq) stream<StreamResp> {

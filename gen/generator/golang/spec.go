@@ -64,10 +64,11 @@ type TypeField struct {
 	ValueType string
 	TypeKind  []TypeKind
 	Name      string
-	Tag       string
+	FieldTag  string
 	JSONTag   JSONTag
 	Binding   *Binding
 	FormName  string
+	Required  bool
 	Validate  *string
 	Comment   string
 }
@@ -429,7 +430,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			ValueType: r.Name + "TypeAsString",
 			TypeKind:  []TypeKind{TypeKindPointer, TypeKindEnum},
 			Name:      "FieldType",
-			Tag:       "`json:\"field_type\"`",
+			FieldTag:  "`json:\"field_type\"`",
 		})
 	}
 
@@ -479,10 +480,13 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		}
 
 		// Generate validation expressions for the field
-		validate, err := genValidate(r.Name, fieldName, typeName, f.Annotations, code.Funcs)
+		validateExpr, err := genValidate(r.Name, fieldName, typeName, f.Annotations, code.Funcs)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
+
+		// Determine if the field is required
+		_, required := httpidl.GetAnnotation(f.Annotations, "required")
 
 		// Add the field to the struct
 		field := TypeField{
@@ -492,10 +496,11 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			Name:      fieldName,
 			JSONTag:   jsonTag,
 			Binding:   binding,
-			Validate:  validate,
+			Required:  required,
+			Validate:  validateExpr,
 			Comment:   formatComment(f.Comments),
 		}
-		field.Tag = genFieldTag(field)
+		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
 	}
 	return r, nil
@@ -521,9 +526,6 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 	case httpidl.AnyType:
 		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case httpidl.BaseType:
-		if forceOptional {
-			typ.Optional = true
-		}
 		var typeName string
 		switch typ.Name {
 		case "string":
@@ -537,14 +539,11 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 		default:
 			return "", errutil.Explain(nil, "unknown base type: %s", typ.Name)
 		}
-		if typ.Optional {
+		if forceOptional {
 			typeName = "*" + typeName
 		}
 		return typeName, nil
 	case httpidl.UserType:
-		if forceOptional {
-			typ.Optional = true
-		}
 		typeName := typ.Name
 		// Handle enum_as_string annotation
 		if _, ok := httpidl.GetAnnotation(arr, "enum_as_string"); ok {
@@ -553,7 +552,7 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 			}
 			typeName += "AsString"
 		}
-		if typ.Optional {
+		if forceOptional {
 			typeName = "*" + typeName
 		}
 		return typeName, nil

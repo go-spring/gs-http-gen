@@ -172,7 +172,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			{{- if $f.Comment}}
 				{{$f.Comment}}
 			{{- end}}
-			{{$f.Name}} {{$f.FieldType}} {{$f.Tag}}
+			{{$f.Name}} {{$f.FieldType}} {{$f.FieldTag}}
 		{{- end}}
 	}
 
