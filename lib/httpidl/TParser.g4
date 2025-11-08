@@ -55,8 +55,8 @@ enum_field
 // Type definition
 // Example 1:
 // type A<T> {
-//   B?
-//   string? field = "1" (go.type="string")
+//   B
+//   string field = "1" (go.type="string")
 // }
 // Example 2:
 // type Alias Map<string,User>
@@ -73,7 +73,7 @@ type_field
     : embed_type_field | common_type_field
     ;
 
-// Embedded field: user-defined type (optionally nullable with '?')
+// Embedded field: user-defined type
 embed_type_field
     : user_type
     ;
@@ -104,8 +104,8 @@ type_annotations
 // OneOf definition
 // Example:
 // oneof Value {
-//   A? a
-//   B? b
+//   A a
+//   B b
 // }
 // --------------------
 oneof_def
@@ -145,15 +145,15 @@ annotation
 
 // --------------------
 // Base types
-// Primitive base types with optional nullable modifier '?'
+// Primitive base types
 // --------------------
 base_type
-    : (TYPE_BOOL | TYPE_INT | TYPE_FLOAT | TYPE_STRING) QUESTION?
+    : TYPE_BOOL | TYPE_INT | TYPE_FLOAT | TYPE_STRING
     ;
 
-// User-defined type, optionally nullable with '?'
+// User-defined type
 user_type
-    : IDENTIFIER QUESTION?
+    : IDENTIFIER
     ;
 
 // --------------------

@@ -45,7 +45,6 @@ LEFT_BRACE   : '{';
 RIGHT_BRACE  : '}';
 EQUAL        : '=';
 COMMA        : ',';
-QUESTION     : '?';
 SEMICOLON    : ';' ;
 
 // --------------------
