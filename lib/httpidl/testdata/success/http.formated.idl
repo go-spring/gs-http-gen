@@ -64,4 +64,4 @@ rpc GetUser(UserReq) UserResp {
 }
 
 // ---- type re-definition ----
-type UserResp = Response<list<User>>
+type UserResp Response<list<User>>

@@ -141,14 +141,14 @@ type ListManagersByPageReq {
 // ---- Response types ----
 
 // Create / Update / Get responses
-type CreateManagerResp = Response<Manager>
-type UpdateManagerResp = Response<Manager>
-type GetManagerResp = Response<Manager>
-type DeleteManagerResp = Response<bool>
+type CreateManagerResp Response<Manager>
+type UpdateManagerResp Response<Manager>
+type GetManagerResp Response<Manager>
+type DeleteManagerResp Response<bool>
 
 // Paginated response
-type ManagersPageData = PageResp<Manager>
-type ListManagersByPageResp = Response<ManagersPageData>
+type ManagersPageData PageResp<Manager>
+type ListManagersByPageResp Response<ManagersPageData>
 
 // ---- RPC definitions ----
 
