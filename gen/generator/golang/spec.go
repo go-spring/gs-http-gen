@@ -72,6 +72,10 @@ type TypeField struct {
 	Comment   string
 }
 
+func (x TypeField) IsPointer() bool {
+	return x.TypeKind[0] == TypeKindPointer
+}
+
 // Binding represents a field binding from path, or query
 type Binding struct {
 	From string // Source: path/query
@@ -266,7 +270,7 @@ func convertConsts(code GoCode, doc httpidl.Document) ([]Const, error) {
 	var ret []Const
 	for _, c := range doc.Consts {
 		t := httpidl.BaseType{Name: c.Type}
-		typeName, err := getTypeName(code, t, nil)
+		typeName, err := getTypeName(code, t, nil, false)
 		if err != nil {
 			return nil, err
 		}
@@ -420,15 +424,10 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 	// Handle oneof
 	if t.OneOf {
-		typeName := "*" + r.Name + "TypeAsString"
-		typeKind, valueType, err := getTypeKind(code, typeName)
-		if err != nil {
-			return Type{}, err
-		}
 		r.Fields = append(r.Fields, TypeField{
-			FieldType: typeName,
-			ValueType: valueType,
-			TypeKind:  typeKind,
+			FieldType: "*" + r.Name + "TypeAsString",
+			ValueType: r.Name + "TypeAsString",
+			TypeKind:  []TypeKind{TypeKindPointer, TypeKindEnum},
 			Name:      "FieldType",
 			Tag:       "`json:\"field_type\"`",
 		})
@@ -456,7 +455,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		fieldName := httpidl.ToPascal(f.Name)
 
 		// Determine Go type for the field
-		typeName, err := getTypeName(code, f.FieldType, f.Annotations)
+		typeName, err := getTypeName(code, f.FieldType, f.Annotations, true)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type name for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
@@ -504,7 +503,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 // getTypeName returns the Go type name for a given IDL type.
 // It also respects the "go.type" annotation, which overrides the default type.
-func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation) (string, error) {
+func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation, forceOptional bool) (string, error) {
 
 	// Handle explicit "go.type" annotation
 	if a, ok := httpidl.GetAnnotation(arr, "go.type"); ok {
@@ -522,7 +521,9 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 	case httpidl.AnyType:
 		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case httpidl.BaseType:
-		typ.Optional = true
+		if forceOptional {
+			typ.Optional = true
+		}
 		var typeName string
 		switch typ.Name {
 		case "string":
@@ -541,7 +542,9 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 		}
 		return typeName, nil
 	case httpidl.UserType:
-		typ.Optional = true
+		if forceOptional {
+			typ.Optional = true
+		}
 		typeName := typ.Name
 		// Handle enum_as_string annotation
 		if _, ok := httpidl.GetAnnotation(arr, "enum_as_string"); ok {
@@ -555,7 +558,7 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 		}
 		return typeName, nil
 	case httpidl.ListType:
-		itemType, err := getTypeName(code, typ.Item, nil)
+		itemType, err := getTypeName(code, typ.Item, nil, false)
 		if err != nil {
 			return "", err
 		}
@@ -565,7 +568,7 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 		if typ.Key == "int" {
 			keyType = "int64"
 		}
-		valueType, err := getTypeName(code, typ.Value, nil)
+		valueType, err := getTypeName(code, typ.Value, nil, false)
 		if err != nil {
 			return "", err
 		}

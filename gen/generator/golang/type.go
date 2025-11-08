@@ -240,15 +240,23 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 	}
 
 {{range $f := $s.Fields}}
-	func (x *{{$s.Name}}) Get{{$f.Name}}() (_ {{$f.ValueType}}) {
+	func (x *{{$s.Name}}) Get{{$f.Name}}() (v {{$f.ValueType}}) {
 		if x.{{$f.Name}} != nil {
-			return *x.{{$f.Name}}
+			{{- if $f.IsPointer}}
+				return *x.{{$f.Name}}
+			{{- else}}
+				return x.{{$f.Name}}
+			{{- end}}
 		}
 		return
 	}
 
 	func (x *{{$s.Name}}) Set{{$f.Name}}(v {{$f.ValueType}}) {
-		x.{{$f.Name}} = &v
+		{{- if $f.IsPointer}}
+				x.{{$f.Name}} = &v
+			{{- else}}
+				x.{{$f.Name}} = v
+			{{- end}}
 	}
 {{end}}
 

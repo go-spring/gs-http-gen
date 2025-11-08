@@ -94,7 +94,7 @@ func (x *StreamReq) String() string {
 }
 
 type StreamReqBody struct {
-	Id string `json:"id"`
+	Id *string `json:"id,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -105,7 +105,9 @@ func (x *StreamReqBody) New() any {
 // EncodeToForm encodes the object to form data.
 func (x *StreamReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
-	m.Add("aaa", x.Id)
+	if x.Id != nil {
+		m.Add("aaa", *x.Id)
+	}
 	return m.Encode(), nil
 }
 
@@ -119,6 +121,17 @@ func (x *StreamReqBody) Validate() error {
 	return nil
 }
 
+func (x *StreamReqBody) GetId() (v string) {
+	if x.Id != nil {
+		return *x.Id
+	}
+	return
+}
+
+func (x *StreamReqBody) SetId(v string) {
+	x.Id = &v
+}
+
 func (x *StreamReqBody) String() string {
 	if x == nil {
 		return "<nil>"
@@ -127,9 +140,9 @@ func (x *StreamReqBody) String() string {
 }
 
 type StreamResp struct {
-	Id      string  `json:"id"`
-	Data    string  `json:"data"`
-	Payload Payload `json:"payload"`
+	Id      *string  `json:"id,omitempty"`
+	Data    *string  `json:"data,omitempty"`
+	Payload *Payload `json:"payload,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -142,6 +155,39 @@ func (x *StreamResp) Validate() error {
 	return nil
 }
 
+func (x *StreamResp) GetId() (v string) {
+	if x.Id != nil {
+		return *x.Id
+	}
+	return
+}
+
+func (x *StreamResp) SetId(v string) {
+	x.Id = &v
+}
+
+func (x *StreamResp) GetData() (v string) {
+	if x.Data != nil {
+		return *x.Data
+	}
+	return
+}
+
+func (x *StreamResp) SetData(v string) {
+	x.Data = &v
+}
+
+func (x *StreamResp) GetPayload() (v Payload) {
+	if x.Payload != nil {
+		return *x.Payload
+	}
+	return
+}
+
+func (x *StreamResp) SetPayload(v Payload) {
+	x.Payload = &v
+}
+
 func (x *StreamResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -150,10 +196,10 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
-	FieldType   PayloadTypeAsString `json:"field_type"`
-	TextData    string              `json:"text_data"`
-	NumberData  *int64              `json:"number_data,omitempty"`
-	BooleanData bool                `json:"boolean_data"`
+	FieldType   *PayloadTypeAsString `json:"field_type"`
+	TextData    *string              `json:"text_data,omitempty"`
+	NumberData  *int64               `json:"number_data,omitempty"`
+	BooleanData *bool                `json:"boolean_data,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -164,6 +210,50 @@ func (x *Payload) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *Payload) Validate() error {
 	return nil
+}
+
+func (x *Payload) GetFieldType() (v PayloadTypeAsString) {
+	if x.FieldType != nil {
+		return *x.FieldType
+	}
+	return
+}
+
+func (x *Payload) SetFieldType(v PayloadTypeAsString) {
+	x.FieldType = &v
+}
+
+func (x *Payload) GetTextData() (v string) {
+	if x.TextData != nil {
+		return *x.TextData
+	}
+	return
+}
+
+func (x *Payload) SetTextData(v string) {
+	x.TextData = &v
+}
+
+func (x *Payload) GetNumberData() (v int64) {
+	if x.NumberData != nil {
+		return *x.NumberData
+	}
+	return
+}
+
+func (x *Payload) SetNumberData(v int64) {
+	x.NumberData = &v
+}
+
+func (x *Payload) GetBooleanData() (v bool) {
+	if x.BooleanData != nil {
+		return *x.BooleanData
+	}
+	return
+}
+
+func (x *Payload) SetBooleanData(v bool) {
+	x.BooleanData = &v
 }
 
 func (x *Payload) String() string {

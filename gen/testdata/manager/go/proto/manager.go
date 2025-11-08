@@ -195,8 +195,8 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 }
 
 type PageReq struct {
-	Page int64 `json:"page" query:"page"`
-	Size int64 `json:"size" query:"size"`
+	Page *int64 `json:"page,omitempty" query:"page"`
+	Size *int64 `json:"size,omitempty" query:"size"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -206,13 +206,39 @@ func (x *PageReq) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() error {
-	if !(x.Page >= 1) {
-		return errutil.Explain(nil, "validate failed on PageReq.Page")
+	if x.Page != nil {
+		if !(*x.Page >= 1) {
+			return errutil.Explain(nil, "validate failed on PageReq.Page")
+		}
 	}
-	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errutil.Explain(nil, "validate failed on PageReq.Size")
+	if x.Size != nil {
+		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
+			return errutil.Explain(nil, "validate failed on PageReq.Size")
+		}
 	}
 	return nil
+}
+
+func (x *PageReq) GetPage() (v int64) {
+	if x.Page != nil {
+		return *x.Page
+	}
+	return
+}
+
+func (x *PageReq) SetPage(v int64) {
+	x.Page = &v
+}
+
+func (x *PageReq) GetSize() (v int64) {
+	if x.Size != nil {
+		return *x.Size
+	}
+	return
+}
+
+func (x *PageReq) SetSize(v int64) {
+	x.Size = &v
 }
 
 func (x *PageReq) String() string {
@@ -223,7 +249,7 @@ func (x *PageReq) String() string {
 }
 
 type Address struct {
-	City       string  `json:"city"`
+	City       *string `json:"city,omitempty"`
 	Street     *string `json:"street,omitempty"`
 	PostalCode *string `json:"postalCode,omitempty"`
 }
@@ -238,6 +264,39 @@ func (x *Address) Validate() error {
 	return nil
 }
 
+func (x *Address) GetCity() (v string) {
+	if x.City != nil {
+		return *x.City
+	}
+	return
+}
+
+func (x *Address) SetCity(v string) {
+	x.City = &v
+}
+
+func (x *Address) GetStreet() (v string) {
+	if x.Street != nil {
+		return *x.Street
+	}
+	return
+}
+
+func (x *Address) SetStreet(v string) {
+	x.Street = &v
+}
+
+func (x *Address) GetPostalCode() (v string) {
+	if x.PostalCode != nil {
+		return *x.PostalCode
+	}
+	return
+}
+
+func (x *Address) SetPostalCode(v string) {
+	x.PostalCode = &v
+}
+
 func (x *Address) String() string {
 	if x == nil {
 		return "<nil>"
@@ -246,9 +305,9 @@ func (x *Address) String() string {
 }
 
 type ContactInfo struct {
-	Email   string  `json:"email"`
-	Phone   *string `json:"phone,omitempty"`
-	Address Address `json:"address"`
+	Email   *string  `json:"email,omitempty"`
+	Phone   *string  `json:"phone,omitempty"`
+	Address *Address `json:"address,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -258,10 +317,45 @@ func (x *ContactInfo) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *ContactInfo) Validate() error {
-	if !(Email(x.Email)) {
-		return errutil.Explain(nil, "validate failed on ContactInfo.Email")
+	if x.Email != nil {
+		if !(Email(*x.Email)) {
+			return errutil.Explain(nil, "validate failed on ContactInfo.Email")
+		}
 	}
 	return nil
+}
+
+func (x *ContactInfo) GetEmail() (v string) {
+	if x.Email != nil {
+		return *x.Email
+	}
+	return
+}
+
+func (x *ContactInfo) SetEmail(v string) {
+	x.Email = &v
+}
+
+func (x *ContactInfo) GetPhone() (v string) {
+	if x.Phone != nil {
+		return *x.Phone
+	}
+	return
+}
+
+func (x *ContactInfo) SetPhone(v string) {
+	x.Phone = &v
+}
+
+func (x *ContactInfo) GetAddress() (v Address) {
+	if x.Address != nil {
+		return *x.Address
+	}
+	return
+}
+
+func (x *ContactInfo) SetAddress(v Address) {
+	x.Address = &v
 }
 
 func (x *ContactInfo) String() string {
@@ -272,8 +366,8 @@ func (x *ContactInfo) String() string {
 }
 
 type DepartmentInfo struct {
-	Dept     Department `json:"dept"`
-	DeptName string     `json:"deptName"`
+	Dept     *Department `json:"dept,omitempty"`
+	DeptName *string     `json:"deptName,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -286,6 +380,28 @@ func (x *DepartmentInfo) Validate() error {
 	return nil
 }
 
+func (x *DepartmentInfo) GetDept() (v Department) {
+	if x.Dept != nil {
+		return *x.Dept
+	}
+	return
+}
+
+func (x *DepartmentInfo) SetDept(v Department) {
+	x.Dept = &v
+}
+
+func (x *DepartmentInfo) GetDeptName() (v string) {
+	if x.DeptName != nil {
+		return *x.DeptName
+	}
+	return
+}
+
+func (x *DepartmentInfo) SetDeptName(v string) {
+	x.DeptName = &v
+}
+
 func (x *DepartmentInfo) String() string {
 	if x == nil {
 		return "<nil>"
@@ -294,15 +410,15 @@ func (x *DepartmentInfo) String() string {
 }
 
 type Manager struct {
-	Id       string               `json:"id"`
-	Name     string               `json:"name"`
-	Age      *int64               `json:"age,omitempty"`
-	Vip      bool                 `json:"vip"`
-	Salary   float64              `json:"salary"`
-	Role     string               `json:"role"`
-	Level    ManagerLevelAsString `json:"level"`
-	DeptInfo DepartmentInfo       `json:"deptInfo"`
-	Contact  ContactInfo          `json:"contact"`
+	Id       *string               `json:"id,omitempty"`
+	Name     *string               `json:"name,omitempty"`
+	Age      *int64                `json:"age,omitempty"`
+	Vip      *bool                 `json:"vip,omitempty"`
+	Salary   *float64              `json:"salary,omitempty"`
+	Role     *string               `json:"role,omitempty"`
+	Level    *ManagerLevelAsString `json:"level,omitempty"`
+	DeptInfo *DepartmentInfo       `json:"deptInfo,omitempty"`
+	Contact  *ContactInfo          `json:"contact,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -312,18 +428,121 @@ func (x *Manager) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *Manager) Validate() error {
-	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
-		return errutil.Explain(nil, "validate failed on Manager.Name")
+	if x.Name != nil {
+		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
+			return errutil.Explain(nil, "validate failed on Manager.Name")
+		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
 			return errutil.Explain(nil, "validate failed on Manager.Age")
 		}
 	}
-	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
-		return errutil.Explain(nil, "validate failed on Manager.Salary")
+	if x.Salary != nil {
+		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
+			return errutil.Explain(nil, "validate failed on Manager.Salary")
+		}
 	}
 	return nil
+}
+
+func (x *Manager) GetId() (v string) {
+	if x.Id != nil {
+		return *x.Id
+	}
+	return
+}
+
+func (x *Manager) SetId(v string) {
+	x.Id = &v
+}
+
+func (x *Manager) GetName() (v string) {
+	if x.Name != nil {
+		return *x.Name
+	}
+	return
+}
+
+func (x *Manager) SetName(v string) {
+	x.Name = &v
+}
+
+func (x *Manager) GetAge() (v int64) {
+	if x.Age != nil {
+		return *x.Age
+	}
+	return
+}
+
+func (x *Manager) SetAge(v int64) {
+	x.Age = &v
+}
+
+func (x *Manager) GetVip() (v bool) {
+	if x.Vip != nil {
+		return *x.Vip
+	}
+	return
+}
+
+func (x *Manager) SetVip(v bool) {
+	x.Vip = &v
+}
+
+func (x *Manager) GetSalary() (v float64) {
+	if x.Salary != nil {
+		return *x.Salary
+	}
+	return
+}
+
+func (x *Manager) SetSalary(v float64) {
+	x.Salary = &v
+}
+
+func (x *Manager) GetRole() (v string) {
+	if x.Role != nil {
+		return *x.Role
+	}
+	return
+}
+
+func (x *Manager) SetRole(v string) {
+	x.Role = &v
+}
+
+func (x *Manager) GetLevel() (v ManagerLevelAsString) {
+	if x.Level != nil {
+		return *x.Level
+	}
+	return
+}
+
+func (x *Manager) SetLevel(v ManagerLevelAsString) {
+	x.Level = &v
+}
+
+func (x *Manager) GetDeptInfo() (v DepartmentInfo) {
+	if x.DeptInfo != nil {
+		return *x.DeptInfo
+	}
+	return
+}
+
+func (x *Manager) SetDeptInfo(v DepartmentInfo) {
+	x.DeptInfo = &v
+}
+
+func (x *Manager) GetContact() (v ContactInfo) {
+	if x.Contact != nil {
+		return *x.Contact
+	}
+	return
+}
+
+func (x *Manager) SetContact(v ContactInfo) {
+	x.Contact = &v
 }
 
 func (x *Manager) String() string {
@@ -335,7 +554,7 @@ func (x *Manager) String() string {
 
 type ManagerReq struct {
 	ManagerReqBody
-	Id string `json:"id" path:"id"`
+	Id *string `json:"id,omitempty" path:"id"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -358,6 +577,17 @@ func (x *ManagerReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *ManagerReq) Validate() error {
 	return nil
+}
+
+func (x *ManagerReq) GetId() (v string) {
+	if x.Id != nil {
+		return *x.Id
+	}
+	return
+}
+
+func (x *ManagerReq) SetId(v string) {
+	x.Id = &v
 }
 
 func (x *ManagerReq) String() string {
@@ -430,14 +660,14 @@ func (x *CreateManagerReq) String() string {
 }
 
 type CreateManagerReqBody struct {
-	Name     string         `json:"name"`
-	Age      *int64         `json:"age,omitempty"`
-	Vip      bool           `json:"vip"`
-	Salary   float64        `json:"salary"`
-	Role     string         `json:"role"`
-	Level    ManagerLevel   `json:"level"`
-	DeptInfo DepartmentInfo `json:"deptInfo"`
-	Contact  ContactInfo    `json:"contact"`
+	Name     *string         `json:"name,omitempty"`
+	Age      *int64          `json:"age,omitempty"`
+	Vip      *bool           `json:"vip,omitempty"`
+	Salary   *float64        `json:"salary,omitempty"`
+	Role     *string         `json:"role,omitempty"`
+	Level    *ManagerLevel   `json:"level,omitempty"`
+	DeptInfo *DepartmentInfo `json:"deptInfo,omitempty"`
+	Contact  *ContactInfo    `json:"contact,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -448,27 +678,41 @@ func (x *CreateManagerReqBody) New() any {
 // EncodeToForm encodes the object to form data.
 func (x *CreateManagerReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
-	m.Add("aaa", x.Name)
+	if x.Name != nil {
+		m.Add("aaa", *x.Name)
+	}
 	if x.Age != nil {
 		m.Add("aaa", strconv.FormatInt(int64(*x.Age), 10))
 	}
-	m.Add("aaa", strconv.FormatBool(x.Vip))
-	m.Add("aaa", strconv.FormatFloat(float64(x.Salary), 'f', -1, 64))
-	m.Add("aaa", x.Role)
-	m.Add("aaa", strconv.FormatInt(int64(x.Level), 10))
-	{
-		b, err := json.Marshal(x.DeptInfo)
-		if err != nil {
-			return "", err
-		}
-		m.Add("aaa", string(b))
+	if x.Vip != nil {
+		m.Add("aaa", strconv.FormatBool(*x.Vip))
 	}
-	{
-		b, err := json.Marshal(x.Contact)
-		if err != nil {
-			return "", err
+	if x.Salary != nil {
+		m.Add("aaa", strconv.FormatFloat(float64(*x.Salary), 'f', -1, 64))
+	}
+	if x.Role != nil {
+		m.Add("aaa", *x.Role)
+	}
+	if x.Level != nil {
+		m.Add("aaa", strconv.FormatInt(int64(*x.Level), 10))
+	}
+	if x.DeptInfo != nil {
+		{
+			b, err := json.Marshal(*x.DeptInfo)
+			if err != nil {
+				return "", err
+			}
+			m.Add("aaa", string(b))
 		}
-		m.Add("aaa", string(b))
+	}
+	if x.Contact != nil {
+		{
+			b, err := json.Marshal(*x.Contact)
+			if err != nil {
+				return "", err
+			}
+			m.Add("aaa", string(b))
+		}
 	}
 	return m.Encode(), nil
 }
@@ -480,18 +724,110 @@ func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerReqBody) Validate() error {
-	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
-		return errutil.Explain(nil, "validate failed on CreateManagerReq.Name")
+	if x.Name != nil {
+		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
+			return errutil.Explain(nil, "validate failed on CreateManagerReq.Name")
+		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
 			return errutil.Explain(nil, "validate failed on CreateManagerReq.Age")
 		}
 	}
-	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
-		return errutil.Explain(nil, "validate failed on CreateManagerReq.Salary")
+	if x.Salary != nil {
+		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
+			return errutil.Explain(nil, "validate failed on CreateManagerReq.Salary")
+		}
 	}
 	return nil
+}
+
+func (x *CreateManagerReqBody) GetName() (v string) {
+	if x.Name != nil {
+		return *x.Name
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetName(v string) {
+	x.Name = &v
+}
+
+func (x *CreateManagerReqBody) GetAge() (v int64) {
+	if x.Age != nil {
+		return *x.Age
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetAge(v int64) {
+	x.Age = &v
+}
+
+func (x *CreateManagerReqBody) GetVip() (v bool) {
+	if x.Vip != nil {
+		return *x.Vip
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetVip(v bool) {
+	x.Vip = &v
+}
+
+func (x *CreateManagerReqBody) GetSalary() (v float64) {
+	if x.Salary != nil {
+		return *x.Salary
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetSalary(v float64) {
+	x.Salary = &v
+}
+
+func (x *CreateManagerReqBody) GetRole() (v string) {
+	if x.Role != nil {
+		return *x.Role
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetRole(v string) {
+	x.Role = &v
+}
+
+func (x *CreateManagerReqBody) GetLevel() (v ManagerLevel) {
+	if x.Level != nil {
+		return *x.Level
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetLevel(v ManagerLevel) {
+	x.Level = &v
+}
+
+func (x *CreateManagerReqBody) GetDeptInfo() (v DepartmentInfo) {
+	if x.DeptInfo != nil {
+		return *x.DeptInfo
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetDeptInfo(v DepartmentInfo) {
+	x.DeptInfo = &v
+}
+
+func (x *CreateManagerReqBody) GetContact() (v ContactInfo) {
+	if x.Contact != nil {
+		return *x.Contact
+	}
+	return
+}
+
+func (x *CreateManagerReqBody) SetContact(v ContactInfo) {
+	x.Contact = &v
 }
 
 func (x *CreateManagerReqBody) String() string {
@@ -503,7 +839,7 @@ func (x *CreateManagerReqBody) String() string {
 
 type UpdateManagerReq struct {
 	UpdateManagerReqBody
-	ID string `json:"id" path:"id"`
+	ID *string `json:"id,omitempty" path:"id"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -526,6 +862,17 @@ func (x *UpdateManagerReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerReq) Validate() error {
 	return nil
+}
+
+func (x *UpdateManagerReq) GetID() (v string) {
+	if x.ID != nil {
+		return *x.ID
+	}
+	return
+}
+
+func (x *UpdateManagerReq) SetID(v string) {
+	x.ID = &v
 }
 
 func (x *UpdateManagerReq) String() string {
@@ -613,6 +960,94 @@ func (x *UpdateManagerReqBody) Validate() error {
 	return nil
 }
 
+func (x *UpdateManagerReqBody) GetName() (v string) {
+	if x.Name != nil {
+		return *x.Name
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetName(v string) {
+	x.Name = &v
+}
+
+func (x *UpdateManagerReqBody) GetAge() (v int64) {
+	if x.Age != nil {
+		return *x.Age
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetAge(v int64) {
+	x.Age = &v
+}
+
+func (x *UpdateManagerReqBody) GetVip() (v bool) {
+	if x.Vip != nil {
+		return *x.Vip
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetVip(v bool) {
+	x.Vip = &v
+}
+
+func (x *UpdateManagerReqBody) GetSalary() (v float64) {
+	if x.Salary != nil {
+		return *x.Salary
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetSalary(v float64) {
+	x.Salary = &v
+}
+
+func (x *UpdateManagerReqBody) GetRole() (v string) {
+	if x.Role != nil {
+		return *x.Role
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetRole(v string) {
+	x.Role = &v
+}
+
+func (x *UpdateManagerReqBody) GetLevel() (v ManagerLevel) {
+	if x.Level != nil {
+		return *x.Level
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetLevel(v ManagerLevel) {
+	x.Level = &v
+}
+
+func (x *UpdateManagerReqBody) GetDeptInfo() (v DepartmentInfo) {
+	if x.DeptInfo != nil {
+		return *x.DeptInfo
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetDeptInfo(v DepartmentInfo) {
+	x.DeptInfo = &v
+}
+
+func (x *UpdateManagerReqBody) GetContact() (v ContactInfo) {
+	if x.Contact != nil {
+		return *x.Contact
+	}
+	return
+}
+
+func (x *UpdateManagerReqBody) SetContact(v ContactInfo) {
+	x.Contact = &v
+}
+
 func (x *UpdateManagerReqBody) String() string {
 	if x == nil {
 		return "<nil>"
@@ -622,8 +1057,8 @@ func (x *UpdateManagerReqBody) String() string {
 
 type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
-	Page     int64         `json:"page" query:"page"`
-	Size     int64         `json:"size" query:"size"`
+	Page     *int64        `json:"page,omitempty" query:"page"`
+	Size     *int64        `json:"size,omitempty" query:"size"`
 	Keyword  []*string     `json:"keyword" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
@@ -638,8 +1073,12 @@ func (x *ListManagersByPageReq) New() any {
 // QueryValues returns the form values of the object.
 func (x *ListManagersByPageReq) QueryString() (string, error) {
 	m := make(url.Values)
-	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
-	m.Add("size", strconv.FormatInt(int64(x.Size), 10))
+	if x.Page != nil {
+		m.Add("page", strconv.FormatInt(int64(*x.Page), 10))
+	}
+	if x.Size != nil {
+		m.Add("size", strconv.FormatInt(int64(*x.Size), 10))
+	}
 	for i := range len(x.Keyword) {
 		if x.Keyword[i] != nil {
 			m.Add("keyword", *x.Keyword[i])
@@ -671,13 +1110,83 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReq) Validate() error {
-	if !(x.Page >= 1) {
-		return errutil.Explain(nil, "validate failed on PageReq.Page")
+	if x.Page != nil {
+		if !(*x.Page >= 1) {
+			return errutil.Explain(nil, "validate failed on PageReq.Page")
+		}
 	}
-	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errutil.Explain(nil, "validate failed on PageReq.Size")
+	if x.Size != nil {
+		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
+			return errutil.Explain(nil, "validate failed on PageReq.Size")
+		}
 	}
 	return nil
+}
+
+func (x *ListManagersByPageReq) GetPage() (v int64) {
+	if x.Page != nil {
+		return *x.Page
+	}
+	return
+}
+
+func (x *ListManagersByPageReq) SetPage(v int64) {
+	x.Page = &v
+}
+
+func (x *ListManagersByPageReq) GetSize() (v int64) {
+	if x.Size != nil {
+		return *x.Size
+	}
+	return
+}
+
+func (x *ListManagersByPageReq) SetSize(v int64) {
+	x.Size = &v
+}
+
+func (x *ListManagersByPageReq) GetKeyword() (v []*string) {
+	if x.Keyword != nil {
+		return x.Keyword
+	}
+	return
+}
+
+func (x *ListManagersByPageReq) SetKeyword(v []*string) {
+	x.Keyword = v
+}
+
+func (x *ListManagersByPageReq) GetDept() (v Department) {
+	if x.Dept != nil {
+		return *x.Dept
+	}
+	return
+}
+
+func (x *ListManagersByPageReq) SetDept(v Department) {
+	x.Dept = &v
+}
+
+func (x *ListManagersByPageReq) GetMinLevel() (v ManagerLevel) {
+	if x.MinLevel != nil {
+		return *x.MinLevel
+	}
+	return
+}
+
+func (x *ListManagersByPageReq) SetMinLevel(v ManagerLevel) {
+	x.MinLevel = &v
+}
+
+func (x *ListManagersByPageReq) GetVip() (v bool) {
+	if x.Vip != nil {
+		return *x.Vip
+	}
+	return
+}
+
+func (x *ListManagersByPageReq) SetVip(v bool) {
+	x.Vip = &v
 }
 
 func (x *ListManagersByPageReq) String() string {
@@ -719,8 +1228,8 @@ func (x *ListManagersByPageReqBody) String() string {
 }
 
 type CreateManagerResp struct {
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty"`
+	Errmsg *string  `json:"errmsg,omitempty"`
 	Data   *Manager `json:"data,omitempty"`
 }
 
@@ -731,10 +1240,45 @@ func (x *CreateManagerResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
+	if x.Errno != nil {
+		if !(OneOfErrCode(*x.Errno)) {
+			return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
+		}
 	}
 	return nil
+}
+
+func (x *CreateManagerResp) GetErrno() (v ErrCode) {
+	if x.Errno != nil {
+		return *x.Errno
+	}
+	return
+}
+
+func (x *CreateManagerResp) SetErrno(v ErrCode) {
+	x.Errno = &v
+}
+
+func (x *CreateManagerResp) GetErrmsg() (v string) {
+	if x.Errmsg != nil {
+		return *x.Errmsg
+	}
+	return
+}
+
+func (x *CreateManagerResp) SetErrmsg(v string) {
+	x.Errmsg = &v
+}
+
+func (x *CreateManagerResp) GetData() (v Manager) {
+	if x.Data != nil {
+		return *x.Data
+	}
+	return
+}
+
+func (x *CreateManagerResp) SetData(v Manager) {
+	x.Data = &v
 }
 
 func (x *CreateManagerResp) String() string {
@@ -745,8 +1289,8 @@ func (x *CreateManagerResp) String() string {
 }
 
 type UpdateManagerResp struct {
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty"`
+	Errmsg *string  `json:"errmsg,omitempty"`
 	Data   *Manager `json:"data,omitempty"`
 }
 
@@ -757,10 +1301,45 @@ func (x *UpdateManagerResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
+	if x.Errno != nil {
+		if !(OneOfErrCode(*x.Errno)) {
+			return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
+		}
 	}
 	return nil
+}
+
+func (x *UpdateManagerResp) GetErrno() (v ErrCode) {
+	if x.Errno != nil {
+		return *x.Errno
+	}
+	return
+}
+
+func (x *UpdateManagerResp) SetErrno(v ErrCode) {
+	x.Errno = &v
+}
+
+func (x *UpdateManagerResp) GetErrmsg() (v string) {
+	if x.Errmsg != nil {
+		return *x.Errmsg
+	}
+	return
+}
+
+func (x *UpdateManagerResp) SetErrmsg(v string) {
+	x.Errmsg = &v
+}
+
+func (x *UpdateManagerResp) GetData() (v Manager) {
+	if x.Data != nil {
+		return *x.Data
+	}
+	return
+}
+
+func (x *UpdateManagerResp) SetData(v Manager) {
+	x.Data = &v
 }
 
 func (x *UpdateManagerResp) String() string {
@@ -771,8 +1350,8 @@ func (x *UpdateManagerResp) String() string {
 }
 
 type GetManagerResp struct {
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty"`
+	Errmsg *string  `json:"errmsg,omitempty"`
 	Data   *Manager `json:"data,omitempty"`
 }
 
@@ -783,10 +1362,45 @@ func (x *GetManagerResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
+	if x.Errno != nil {
+		if !(OneOfErrCode(*x.Errno)) {
+			return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
+		}
 	}
 	return nil
+}
+
+func (x *GetManagerResp) GetErrno() (v ErrCode) {
+	if x.Errno != nil {
+		return *x.Errno
+	}
+	return
+}
+
+func (x *GetManagerResp) SetErrno(v ErrCode) {
+	x.Errno = &v
+}
+
+func (x *GetManagerResp) GetErrmsg() (v string) {
+	if x.Errmsg != nil {
+		return *x.Errmsg
+	}
+	return
+}
+
+func (x *GetManagerResp) SetErrmsg(v string) {
+	x.Errmsg = &v
+}
+
+func (x *GetManagerResp) GetData() (v Manager) {
+	if x.Data != nil {
+		return *x.Data
+	}
+	return
+}
+
+func (x *GetManagerResp) SetData(v Manager) {
+	x.Data = &v
 }
 
 func (x *GetManagerResp) String() string {
@@ -797,9 +1411,9 @@ func (x *GetManagerResp) String() string {
 }
 
 type DeleteManagerResp struct {
-	Errno  ErrCode `json:"errno"`
-	Errmsg string  `json:"errmsg"`
-	Data   bool    `json:"data"`
+	Errno  *ErrCode `json:"errno,omitempty"`
+	Errmsg *string  `json:"errmsg,omitempty"`
+	Data   *bool    `json:"data,omitempty"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -809,10 +1423,45 @@ func (x *DeleteManagerResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *DeleteManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
+	if x.Errno != nil {
+		if !(OneOfErrCode(*x.Errno)) {
+			return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
+		}
 	}
 	return nil
+}
+
+func (x *DeleteManagerResp) GetErrno() (v ErrCode) {
+	if x.Errno != nil {
+		return *x.Errno
+	}
+	return
+}
+
+func (x *DeleteManagerResp) SetErrno(v ErrCode) {
+	x.Errno = &v
+}
+
+func (x *DeleteManagerResp) GetErrmsg() (v string) {
+	if x.Errmsg != nil {
+		return *x.Errmsg
+	}
+	return
+}
+
+func (x *DeleteManagerResp) SetErrmsg(v string) {
+	x.Errmsg = &v
+}
+
+func (x *DeleteManagerResp) GetData() (v bool) {
+	if x.Data != nil {
+		return *x.Data
+	}
+	return
+}
+
+func (x *DeleteManagerResp) SetData(v bool) {
+	x.Data = &v
 }
 
 func (x *DeleteManagerResp) String() string {
@@ -823,9 +1472,9 @@ func (x *DeleteManagerResp) String() string {
 }
 
 type ManagersPageData struct {
-	Total int64      `json:"total"`
-	Page  int64      `json:"page"`
-	Size  int64      `json:"size"`
+	Total *int64     `json:"total,omitempty"`
+	Page  *int64     `json:"page,omitempty"`
+	Size  *int64     `json:"size,omitempty"`
 	Items []*Manager `json:"items"`
 }
 
@@ -839,6 +1488,50 @@ func (x *ManagersPageData) Validate() error {
 	return nil
 }
 
+func (x *ManagersPageData) GetTotal() (v int64) {
+	if x.Total != nil {
+		return *x.Total
+	}
+	return
+}
+
+func (x *ManagersPageData) SetTotal(v int64) {
+	x.Total = &v
+}
+
+func (x *ManagersPageData) GetPage() (v int64) {
+	if x.Page != nil {
+		return *x.Page
+	}
+	return
+}
+
+func (x *ManagersPageData) SetPage(v int64) {
+	x.Page = &v
+}
+
+func (x *ManagersPageData) GetSize() (v int64) {
+	if x.Size != nil {
+		return *x.Size
+	}
+	return
+}
+
+func (x *ManagersPageData) SetSize(v int64) {
+	x.Size = &v
+}
+
+func (x *ManagersPageData) GetItems() (v []*Manager) {
+	if x.Items != nil {
+		return x.Items
+	}
+	return
+}
+
+func (x *ManagersPageData) SetItems(v []*Manager) {
+	x.Items = v
+}
+
 func (x *ManagersPageData) String() string {
 	if x == nil {
 		return "<nil>"
@@ -847,8 +1540,8 @@ func (x *ManagersPageData) String() string {
 }
 
 type ListManagersByPageResp struct {
-	Errno  ErrCode           `json:"errno"`
-	Errmsg string            `json:"errmsg"`
+	Errno  *ErrCode          `json:"errno,omitempty"`
+	Errmsg *string           `json:"errmsg,omitempty"`
 	Data   *ManagersPageData `json:"data,omitempty"`
 }
 
@@ -859,10 +1552,45 @@ func (x *ListManagersByPageResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
+	if x.Errno != nil {
+		if !(OneOfErrCode(*x.Errno)) {
+			return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
+		}
 	}
 	return nil
+}
+
+func (x *ListManagersByPageResp) GetErrno() (v ErrCode) {
+	if x.Errno != nil {
+		return *x.Errno
+	}
+	return
+}
+
+func (x *ListManagersByPageResp) SetErrno(v ErrCode) {
+	x.Errno = &v
+}
+
+func (x *ListManagersByPageResp) GetErrmsg() (v string) {
+	if x.Errmsg != nil {
+		return *x.Errmsg
+	}
+	return
+}
+
+func (x *ListManagersByPageResp) SetErrmsg(v string) {
+	x.Errmsg = &v
+}
+
+func (x *ListManagersByPageResp) GetData() (v ManagersPageData) {
+	if x.Data != nil {
+		return *x.Data
+	}
+	return
+}
+
+func (x *ListManagersByPageResp) SetData(v ManagersPageData) {
+	x.Data = &v
 }
 
 func (x *ListManagersByPageResp) String() string {
