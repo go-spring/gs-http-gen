@@ -176,12 +176,12 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{- end}}
 	}
 
-{{if $s.Request}}
 	// New returns a new instance (implements Object interface).
 	func (x *{{$s.Name}}) New() any {
 		return &{{$s.Name}}{}
 	}
 
+{{if $s.Request}}
 	// QueryValues returns the form values of the object.
 	func (x *{{$s.Name}}) QueryString() (string, error) {
 		{{- if $s.QueryCount}}

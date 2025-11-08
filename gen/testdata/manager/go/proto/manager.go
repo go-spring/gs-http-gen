@@ -199,6 +199,11 @@ type PageReq struct {
 	Size int64 `json:"size" query:"size"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *PageReq) New() any {
+	return &PageReq{}
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() error {
 	if !(x.Page >= 1) {
@@ -223,6 +228,11 @@ type Address struct {
 	PostalCode *string `json:"postalCode,omitempty"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *Address) New() any {
+	return &Address{}
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *Address) Validate() error {
 	return nil
@@ -239,6 +249,11 @@ type ContactInfo struct {
 	Email   string  `json:"email"`
 	Phone   *string `json:"phone,omitempty"`
 	Address Address `json:"address"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *ContactInfo) New() any {
+	return &ContactInfo{}
 }
 
 // Validate checks field values using generated validation expressions.
@@ -259,6 +274,11 @@ func (x *ContactInfo) String() string {
 type DepartmentInfo struct {
 	Dept     Department `json:"dept"`
 	DeptName string     `json:"deptName"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *DepartmentInfo) New() any {
+	return &DepartmentInfo{}
 }
 
 // Validate checks field values using generated validation expressions.
@@ -283,6 +303,11 @@ type Manager struct {
 	Level    ManagerLevelAsString `json:"level"`
 	DeptInfo DepartmentInfo       `json:"deptInfo"`
 	Contact  ContactInfo          `json:"contact"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *Manager) New() any {
+	return &Manager{}
 }
 
 // Validate checks field values using generated validation expressions.
@@ -343,6 +368,11 @@ func (x *ManagerReq) String() string {
 }
 
 type ManagerReqBody struct {
+}
+
+// New returns a new instance (implements Object interface).
+func (x *ManagerReqBody) New() any {
+	return &ManagerReqBody{}
 }
 
 // EncodeToForm encodes the object to form data.
@@ -408,6 +438,11 @@ type CreateManagerReqBody struct {
 	Level    ManagerLevel   `json:"level"`
 	DeptInfo DepartmentInfo `json:"deptInfo"`
 	Contact  ContactInfo    `json:"contact"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *CreateManagerReqBody) New() any {
+	return &CreateManagerReqBody{}
 }
 
 // EncodeToForm encodes the object to form data.
@@ -509,6 +544,11 @@ type UpdateManagerReqBody struct {
 	Level    *ManagerLevel   `json:"level,omitempty"`
 	DeptInfo *DepartmentInfo `json:"dept_info,omitempty"`
 	Contact  *ContactInfo    `json:"contact,omitempty"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *UpdateManagerReqBody) New() any {
+	return &UpdateManagerReqBody{}
 }
 
 // EncodeToForm encodes the object to form data.
@@ -650,6 +690,11 @@ func (x *ListManagersByPageReq) String() string {
 type ListManagersByPageReqBody struct {
 }
 
+// New returns a new instance (implements Object interface).
+func (x *ListManagersByPageReqBody) New() any {
+	return &ListManagersByPageReqBody{}
+}
+
 // EncodeToForm encodes the object to form data.
 func (x *ListManagersByPageReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -679,6 +724,11 @@ type CreateManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *CreateManagerResp) New() any {
+	return &CreateManagerResp{}
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
@@ -698,6 +748,11 @@ type UpdateManagerResp struct {
 	Errno  ErrCode  `json:"errno"`
 	Errmsg string   `json:"errmsg"`
 	Data   *Manager `json:"data,omitempty"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *UpdateManagerResp) New() any {
+	return &UpdateManagerResp{}
 }
 
 // Validate checks field values using generated validation expressions.
@@ -721,6 +776,11 @@ type GetManagerResp struct {
 	Data   *Manager `json:"data,omitempty"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *GetManagerResp) New() any {
+	return &GetManagerResp{}
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
@@ -740,6 +800,11 @@ type DeleteManagerResp struct {
 	Errno  ErrCode `json:"errno"`
 	Errmsg string  `json:"errmsg"`
 	Data   bool    `json:"data"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *DeleteManagerResp) New() any {
+	return &DeleteManagerResp{}
 }
 
 // Validate checks field values using generated validation expressions.
@@ -764,6 +829,11 @@ type ManagersPageData struct {
 	Items []*Manager `json:"items"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *ManagersPageData) New() any {
+	return &ManagersPageData{}
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *ManagersPageData) Validate() error {
 	return nil
@@ -780,6 +850,11 @@ type ListManagersByPageResp struct {
 	Errno  ErrCode           `json:"errno"`
 	Errmsg string            `json:"errmsg"`
 	Data   *ManagersPageData `json:"data,omitempty"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *ListManagersByPageResp) New() any {
+	return &ListManagersByPageResp{}
 }
 
 // Validate checks field values using generated validation expressions.

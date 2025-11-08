@@ -119,16 +119,21 @@ func bindField(req *http.Request, f BindingField) error {
 	return formDecoder.Decode(f.Target, values)
 }
 
-// Object defines the interface that all request/response types must implement.
-type Object interface {
-	New() any                        // Returns a new instance of the object
-	Binding(req *http.Request) error // Extracts additional values from the request
-	Validate() error                 // Validates object fields
+// RequestObject defines the interface that all request types must implement.
+type RequestObject interface {
+	New() any
+	Binding(req *http.Request) error
+	Validate() error
+}
+
+// ResponseObject defines the interface that all response types must implement.
+type ResponseObject interface {
+	New() any
 }
 
 // ReadRequest parses the request body based on Content-Type
-// and decodes it into the given Object.
-func ReadRequest(r *http.Request, i Object) error {
+// and decodes it into the given RequestObject.
+func ReadRequest(r *http.Request, i RequestObject) error {
 	maxBodySize := int64(10 << 20) // 10 MB is a lot of text
 
 	oldBody := r.Body
@@ -187,10 +192,10 @@ func ReadRequest(r *http.Request, i Object) error {
 	return i.Binding(r)
 }
 
-type JSONHandler[Req, Resp Object] func(context.Context, Req) Resp
+type JSONHandler[Req RequestObject, Resp ResponseObject] func(context.Context, Req) Resp
 
 // HandleJSON wraps a JSONHandler into an http.HandlerFunc.
-func HandleJSON[Req, Resp Object](h JSONHandler[Req, Resp]) http.HandlerFunc {
+func HandleJSON[Req RequestObject, Resp ResponseObject](h JSONHandler[Req, Resp]) http.HandlerFunc {
 	var x Req
 	return func(w http.ResponseWriter, r *http.Request) {
 		req := x.New().(Req)
@@ -209,11 +214,11 @@ func HandleJSON[Req, Resp Object](h JSONHandler[Req, Resp]) http.HandlerFunc {
 	}
 }
 
-type StreamHandler[Req, Resp Object] func(context.Context, Req, chan<- Resp)
+type StreamHandler[Req RequestObject, Resp ResponseObject] func(context.Context, Req, chan<- Resp)
 
 // HandleStream wraps a StreamHandler into an http.HandlerFunc.
 // It supports server-sent event style streaming (SSE).
-func HandleStream[Req, Resp Object](h StreamHandler[Req, Resp]) http.HandlerFunc {
+func HandleStream[Req RequestObject, Resp ResponseObject](h StreamHandler[Req, Resp]) http.HandlerFunc {
 	var x Req
 	return func(w http.ResponseWriter, r *http.Request) {
 		flusher, ok := w.(http.Flusher)

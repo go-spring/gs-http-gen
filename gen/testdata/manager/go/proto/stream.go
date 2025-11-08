@@ -3,11 +3,9 @@
 package proto
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/lvan100/golib/errutil"
@@ -99,6 +97,11 @@ type StreamReqBody struct {
 	Id string `json:"id"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *StreamReqBody) New() any {
+	return &StreamReqBody{}
+}
+
 // EncodeToForm encodes the object to form data.
 func (x *StreamReqBody) EncodeToForm() (string, error) {
 	m := make(url.Values)
@@ -129,6 +132,11 @@ type StreamResp struct {
 	Payload Payload `json:"payload"`
 }
 
+// New returns a new instance (implements Object interface).
+func (x *StreamResp) New() any {
+	return &StreamResp{}
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *StreamResp) Validate() error {
 	return nil
@@ -146,6 +154,11 @@ type Payload struct {
 	TextData    string              `json:"text_data"`
 	NumberData  *int64              `json:"number_data,omitempty"`
 	BooleanData bool                `json:"boolean_data"`
+}
+
+// New returns a new instance (implements Object interface).
+func (x *Payload) New() any {
+	return &Payload{}
 }
 
 // Validate checks field values using generated validation expressions.
