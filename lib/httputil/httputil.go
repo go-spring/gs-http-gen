@@ -29,6 +29,11 @@ import (
 	"time"
 )
 
+// Ptr returns a pointer to the given value.
+func Ptr[T any](v T) *T {
+	return &v
+}
+
 ////////////////////////////////// stream /////////////////////////////////////
 
 // Message represents a single message unit read from the stream.

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
+	"github.com/go-spring/gs-http-gen/lib/httputil"
 )
 
 type MyManagerServer struct{}
@@ -17,8 +18,8 @@ type MyManagerServer struct{}
 func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
 	return &proto.GetManagerResp{
 		Data: &proto.Manager{
-			Name:  "Jim",
-			Level: proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR),
+			Name:  httputil.Ptr("Jim"),
+			Level: httputil.Ptr(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
 		},
 	}
 }
@@ -42,11 +43,11 @@ func (m *MyManagerServer) ListManagersByPage(ctx context.Context, req *proto.Lis
 func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp chan<- *proto.StreamResp) {
 	for i := 0; i < 5; i++ {
 		resp <- &proto.StreamResp{
-			Id: strconv.Itoa(i),
-			Payload: proto.Payload{
-				FieldType: proto.PayloadTypeAsString(proto.PayloadType_text_data),
-				TextData:  "123",
-			},
+			Id: httputil.Ptr(strconv.Itoa(i)),
+			Payload: httputil.Ptr(proto.Payload{
+				FieldType: httputil.Ptr(proto.PayloadTypeAsString(proto.PayloadType_text_data)),
+				TextData:  httputil.Ptr("123"),
+			}),
 		}
 		time.Sleep(time.Second)
 	}

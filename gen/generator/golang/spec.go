@@ -844,7 +844,7 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 				} else {
 					funcs[x.Name] = ValidateFunc{
 						Name:      x.Name,
-						FieldType: fieldType,
+						FieldType: strings.TrimPrefix(fieldType, "*"),
 					}
 				}
 			}
