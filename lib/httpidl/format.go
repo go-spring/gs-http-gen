@@ -250,7 +250,7 @@ func dumpType(t Type) string {
 	sb.WriteString(t.Name)
 
 	if t.Redefined != nil {
-		sb.WriteString(" ")
+		sb.WriteString(" = ")
 		sb.WriteString(t.Redefined.Text())
 	} else {
 		// If the type has generic parameter(s)

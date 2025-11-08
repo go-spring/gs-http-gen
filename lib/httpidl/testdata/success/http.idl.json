@@ -183,8 +183,7 @@
       "Fields": [
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": false
+            "Name": "string"
           },
           "Name": "userId",
           "Annotations": null,
@@ -264,8 +263,7 @@
         },
         {
           "FieldType": {
-            "Name": "int",
-            "Optional": true
+            "Name": "int"
           },
           "Name": "age",
           "Annotations": null,
@@ -293,8 +291,7 @@
         },
         {
           "FieldType": {
-            "Name": "Address",
-            "Optional": true
+            "Name": "Address"
           },
           "Name": "",
           "Annotations": null,
@@ -329,8 +326,7 @@
         },
         {
           "FieldType": {
-            "Name": "Payload",
-            "Optional": false
+            "Name": "Payload"
           },
           "Name": "payload",
           "Annotations": null,
@@ -394,8 +390,7 @@
       "Fields": [
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": false
+            "Name": "string"
           },
           "Name": "street",
           "Annotations": null,
@@ -410,8 +405,7 @@
         },
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": false
+            "Name": "string"
           },
           "Name": "city",
           "Annotations": null,
@@ -426,8 +420,7 @@
         },
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": false
+            "Name": "string"
           },
           "Name": "country",
           "Annotations": null,
@@ -458,10 +451,9 @@
       "Fields": [
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": false
+            "Name": "User"
           },
-          "Name": "title",
+          "Name": "User",
           "Annotations": null,
           "Position": {
             "Start": 47,
@@ -474,10 +466,9 @@
         },
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": true
+            "Name": "Address"
           },
-          "Name": "body",
+          "Name": "Address",
           "Annotations": null,
           "Position": {
             "Start": 48,
@@ -506,8 +497,7 @@
       "Fields": [
         {
           "FieldType": {
-            "Name": "int",
-            "Optional": false
+            "Name": "int"
           },
           "Name": "errno",
           "Annotations": null,
@@ -522,8 +512,7 @@
         },
         {
           "FieldType": {
-            "Name": "string",
-            "Optional": false
+            "Name": "string"
           },
           "Name": "errmsg",
           "Annotations": null,
@@ -538,8 +527,7 @@
         },
         {
           "FieldType": {
-            "Name": "T",
-            "Optional": false
+            "Name": "T"
           },
           "Name": "data",
           "Annotations": null,
@@ -580,8 +568,7 @@
         "Name": "Response",
         "GenericType": {
           "Item": {
-            "Name": "User",
-            "Optional": true
+            "Name": "User"
           }
         }
       },
@@ -612,14 +599,12 @@
     {
       "Name": "GetUser",
       "Request": {
-        "Name": "UserReq",
-        "Optional": false
+        "Name": "UserReq"
       },
       "Response": {
         "Stream": false,
         "UserType": {
-          "Name": "UserResp",
-          "Optional": false
+          "Name": "UserResp"
         }
       },
       "Annotations": [
