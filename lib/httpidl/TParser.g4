@@ -65,7 +65,7 @@ type_def
     // Structured type with optional generic parameter
     : KW_TYPE IDENTIFIER (LESS_THAN IDENTIFIER GREATER_THAN)? LEFT_BRACE terminator? (type_field terminator)* terminator? RIGHT_BRACE
     // Type alias to a generic container
-    | KW_TYPE IDENTIFIER IDENTIFIER LESS_THAN value_type GREATER_THAN
+    | KW_TYPE IDENTIFIER EQUAL IDENTIFIER LESS_THAN value_type GREATER_THAN
     ;
 
 // A type field can be either an embedded type or a named typed field
@@ -104,12 +104,12 @@ type_annotations
 // OneOf definition
 // Example:
 // oneof Value {
-//   A a
-//   B b
+//   A
+//   B
 // }
 // --------------------
 oneof_def
-    : KW_ONEOF IDENTIFIER LEFT_BRACE terminator? (common_type_field terminator)* terminator? RIGHT_BRACE
+    : KW_ONEOF IDENTIFIER LEFT_BRACE terminator? (user_type terminator)* terminator? RIGHT_BRACE
     ;
 
 // --------------------
