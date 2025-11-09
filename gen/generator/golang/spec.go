@@ -362,7 +362,7 @@ func convertRedefinedType(code GoCode, r httpidl.Type) (Type, error) {
 	var fields []httpidl.TypeField
 	for _, f := range t.Fields {
 		// Replace generic placeholders with concrete types
-		f.FieldType = replaceGenericType(f.FieldType, *t.GenericName, r.Redefined.GenericType)
+		f.Type = replaceGenericType(f.Type, *t.GenericName, r.Redefined.GenericType)
 		fields = append(fields, f)
 	}
 
@@ -414,7 +414,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 	for _, f := range t.Fields {
 
 		// Handle embedded types (flatten their fields into the struct)
-		if embedType, ok := f.FieldType.(httpidl.EmbedType); ok {
+		if embedType, ok := f.Type.(httpidl.EmbedType); ok {
 			srcType, ok := httpidl.GetType(code.Files, embedType.Name)
 			if !ok {
 				return Type{}, errutil.Explain(nil, "embedded type %s not found for field in type %s", embedType.Name, r.Name)
@@ -432,7 +432,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		fieldName := httpidl.ToPascal(f.Name)
 
 		// Determine Go type for the field
-		typeName, err := getTypeName(code, f.FieldType, f.Annotations, true)
+		typeName, err := getTypeName(code, f.Type, f.Annotations, true)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type name for field %s in type %s error: %w", f.Name, r.Name, err)
 		}

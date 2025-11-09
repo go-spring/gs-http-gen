@@ -138,7 +138,7 @@ type Binding struct {
 
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
-	FieldType    TypeDefinition // Type of the field
+	Type         TypeDefinition // Type of the field
 	Name         string         // Name of the field
 	Required     bool           // Required
 	JSONTag      JSONTag        // JSON tag

@@ -347,7 +347,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 			if t.GenericName == nil || embedType.Name != *t.GenericName {
 				l.Document.UsedTypes[embedType.Name] = struct{}{}
 			}
-			typeField.FieldType = embedType
+			typeField.Type = embedType
 
 		} else if ctf := f.Common_type_field(); ctf != nil {
 			l.parseCommonTypeField(ctf, &typeField, t)
@@ -393,7 +393,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 
 	for _, f := range ctx.AllUser_type() {
 		typeField := TypeField{
-			FieldType: UserType{
+			Type: UserType{
 				Name: f.IDENTIFIER().GetText(),
 			},
 			Name: f.IDENTIFIER().GetText(),
@@ -415,7 +415,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 
 // parseCommonTypeField parses a regular field (not embedded) inside a type or oneof.
 func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, typeField *TypeField, t *Type) {
-	typeField.FieldType = l.parseCommonFieldType(f.Common_field_type(), t)
+	typeField.Type = l.parseCommonFieldType(f.Common_field_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
 
 	// Annotations

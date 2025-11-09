@@ -276,9 +276,9 @@ func dumpTypeField(t Type, f TypeField, sb *strings.Builder) {
 	dumpAboveComments(f.Comments.Above, sb, indent)
 
 	sb.WriteString(indent)
-	sb.WriteString(f.FieldType.Text())
+	sb.WriteString(f.Type.Text())
 
-	if _, ok := f.FieldType.(EmbedType); !ok && !t.OneOf {
+	if _, ok := f.Type.(EmbedType); !ok && !t.OneOf {
 		sb.WriteString(" ")
 		sb.WriteString(f.Name)
 

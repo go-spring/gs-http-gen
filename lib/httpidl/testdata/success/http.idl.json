@@ -182,7 +182,7 @@
       "GenericName": null,
       "Fields": [
         {
-          "FieldType": {
+          "Type": {
             "Name": "string"
           },
           "Name": "userId",
@@ -236,7 +236,7 @@
       "GenericName": null,
       "Fields": [
         {
-          "FieldType": "any",
+          "Type": "any",
           "Name": "name",
           "Required": false,
           "JSONTag": {
@@ -286,7 +286,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "int"
           },
           "Name": "age",
@@ -338,7 +338,7 @@
           }
         },
         {
-          "FieldType": "binary",
+          "Type": "binary",
           "Name": "avatar",
           "Required": false,
           "JSONTag": {
@@ -363,7 +363,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "Address"
           },
           "Name": "",
@@ -410,7 +410,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "Payload"
           },
           "Name": "payload",
@@ -486,7 +486,7 @@
       "GenericName": null,
       "Fields": [
         {
-          "FieldType": {
+          "Type": {
             "Name": "string"
           },
           "Name": "street",
@@ -513,7 +513,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "string"
           },
           "Name": "city",
@@ -553,7 +553,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "string"
           },
           "Name": "country",
@@ -596,7 +596,7 @@
       "GenericName": null,
       "Fields": [
         {
-          "FieldType": {
+          "Type": {
             "Name": "User"
           },
           "Name": "User",
@@ -623,7 +623,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "Address"
           },
           "Name": "Address",
@@ -666,7 +666,7 @@
       "GenericName": "T",
       "Fields": [
         {
-          "FieldType": {
+          "Type": {
             "Name": "ErrCode"
           },
           "Name": "errno",
@@ -706,7 +706,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "string"
           },
           "Name": "errmsg",
@@ -733,7 +733,7 @@
           }
         },
         {
-          "FieldType": {
+          "Type": {
             "Name": "T"
           },
           "Name": "data",
