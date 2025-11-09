@@ -114,12 +114,24 @@ func (t RedefinedType) Text() string {
 	return t.Name + "<" + t.GenericType.Text() + ">"
 }
 
+// JSONTag represents the JSON tag of a field.
+type JSONTag struct {
+	Name      string
+	OmitEmpty bool
+	OmitZero  bool
+}
+
+// FormTag represents the form tag of a field.
+type FormTag struct {
+	Name string
+}
+
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
 	FieldType   TypeDefinition // Type of the field
 	Name        string         // Name of the field
-	JSONName    string         // JSON field name
-	FormName    string         // Form field name
+	JSONTag     JSONTag        // JSON tag
+	FormTag     FormTag        // Form tag
 	Annotations []Annotation   // Additional metadata (key-value pairs)
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments

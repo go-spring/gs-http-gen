@@ -102,7 +102,7 @@ func (x *StreamReq) String() string {
 }
 
 type StreamReqBody struct {
-	Id *string `json:"id,omitempty"`
+	Id *string `json:"id,omitempty" form:"id"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -154,9 +154,9 @@ func (x *StreamReqBody) String() string {
 }
 
 type StreamResp struct {
-	Id      *string  `json:"id,omitempty"`
-	Data    *string  `json:"data,omitempty"`
-	Payload *Payload `json:"payload,omitempty"`
+	Id      *string  `json:"id,omitempty" form:"id"`
+	Data    *string  `json:"data,omitempty" form:"data"`
+	Payload *Payload `json:"payload,omitempty" form:"payload"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -217,9 +217,9 @@ func (x *StreamResp) String() string {
 
 type Payload struct {
 	FieldType *PayloadTypeAsString `json:"field_type"`
-	Payload1  *Payload_1           `json:"Payload_1,omitempty"`
-	Payload2  *Payload_2           `json:"Payload_2,omitempty"`
-	Payload3  *Payload_3           `json:"Payload_3,omitempty"`
+	Payload1  *Payload_1           `json:"" form:""`
+	Payload2  *Payload_2           `json:"" form:""`
+	Payload3  *Payload_3           `json:"" form:""`
 }
 
 // New returns a new instance (implements Object interface).

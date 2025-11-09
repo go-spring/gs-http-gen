@@ -186,6 +186,14 @@
             "Name": "string"
           },
           "Name": "userId",
+          "JSONTag": {
+            "Name": "userId",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "userId"
+          },
           "Annotations": null,
           "Position": {
             "Start": 23,
@@ -226,6 +234,14 @@
         {
           "FieldType": "any",
           "Name": "name",
+          "JSONTag": {
+            "Name": "name",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "name"
+          },
           "Annotations": [
             {
               "Key": "go.type",
@@ -266,6 +282,14 @@
             "Name": "int"
           },
           "Name": "age",
+          "JSONTag": {
+            "Name": "age",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "age"
+          },
           "Annotations": null,
           "Position": {
             "Start": 33,
@@ -279,6 +303,14 @@
         {
           "FieldType": "binary",
           "Name": "avatar",
+          "JSONTag": {
+            "Name": "avatar",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "avatar"
+          },
           "Annotations": null,
           "Position": {
             "Start": 34,
@@ -294,6 +326,14 @@
             "Name": "Address"
           },
           "Name": "",
+          "JSONTag": {
+            "Name": "",
+            "OmitEmpty": false,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": ""
+          },
           "Annotations": null,
           "Position": {
             "Start": 36,
@@ -329,6 +369,14 @@
             "Name": "Payload"
           },
           "Name": "payload",
+          "JSONTag": {
+            "Name": "payload",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "payload"
+          },
           "Annotations": null,
           "Position": {
             "Start": 37,
@@ -393,6 +441,14 @@
             "Name": "string"
           },
           "Name": "street",
+          "JSONTag": {
+            "Name": "street",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "street"
+          },
           "Annotations": null,
           "Position": {
             "Start": 41,
@@ -408,6 +464,14 @@
             "Name": "string"
           },
           "Name": "city",
+          "JSONTag": {
+            "Name": "city",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "city"
+          },
           "Annotations": null,
           "Position": {
             "Start": 42,
@@ -423,6 +487,14 @@
             "Name": "string"
           },
           "Name": "country",
+          "JSONTag": {
+            "Name": "country",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "country"
+          },
           "Annotations": null,
           "Position": {
             "Start": 43,
@@ -454,6 +526,14 @@
             "Name": "User"
           },
           "Name": "User",
+          "JSONTag": {
+            "Name": "",
+            "OmitEmpty": false,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": ""
+          },
           "Annotations": null,
           "Position": {
             "Start": 47,
@@ -469,6 +549,14 @@
             "Name": "Address"
           },
           "Name": "Address",
+          "JSONTag": {
+            "Name": "",
+            "OmitEmpty": false,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": ""
+          },
           "Annotations": null,
           "Position": {
             "Start": 48,
@@ -500,6 +588,14 @@
             "Name": "int"
           },
           "Name": "errno",
+          "JSONTag": {
+            "Name": "errno",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "errno"
+          },
           "Annotations": null,
           "Position": {
             "Start": 53,
@@ -515,6 +611,14 @@
             "Name": "string"
           },
           "Name": "errmsg",
+          "JSONTag": {
+            "Name": "errmsg",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "errmsg"
+          },
           "Annotations": null,
           "Position": {
             "Start": 54,
@@ -530,6 +634,14 @@
             "Name": "T"
           },
           "Name": "data",
+          "JSONTag": {
+            "Name": "data",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "data"
+          },
           "Annotations": null,
           "Position": {
             "Start": 55,

@@ -435,26 +435,57 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 	}
 
-	typeField.JSONName = typeField.Name
+	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: true, OmitZero: false}
 	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
 		}
-		name := strings.SplitN(strings.Trim(*opt.Value, `"`), ",", 2)[0]
-		if name = strings.TrimSpace(name); name != "" {
-			typeField.JSONName = name
+		s := strings.TrimSpace(*opt.Value)
+		if s == "" {
+			panic(errutil.Explain(nil, "annotation json for field %s is empty in line %d", typeField.Name, typeField.Position.Start))
+		}
+		s = strings.Trim(s, "\"") // Remove quotes
+		for i, v := range strings.Split(s, ",") {
+			v = strings.TrimSpace(v)
+			if i == 0 {
+				if v != "" {
+					typeField.JSONTag.Name = v
+				}
+				continue
+			}
+			switch v {
+			case "omitempty":
+				typeField.JSONTag.OmitEmpty = true
+			case "non-omitempty":
+				typeField.JSONTag.OmitEmpty = false
+			case "omitzero":
+				typeField.JSONTag.OmitZero = true
+			case "non-omitzero":
+				typeField.JSONTag.OmitZero = false
+			default: // for linter
+			}
 		}
 	}
 
-	typeField.FormName = typeField.JSONName
+	typeField.FormTag = FormTag{Name: typeField.JSONTag.Name}
 	if opt, ok := GetAnnotation(typeField.Annotations, "form"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation form for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
 		}
-		name := strings.SplitN(strings.Trim(*opt.Value, `"`), ",", 2)[0]
-		if name = strings.TrimSpace(name); name != "" {
-			typeField.FormName = name
-		} else {
+		s := strings.TrimSpace(*opt.Value)
+		if s == "" {
+			panic(errutil.Explain(nil, "annotation form for field %s is empty in line %d", typeField.Name, typeField.Position.Start))
+		}
+		s = strings.Trim(s, "\"") // Remove quotes
+		for i, v := range strings.Split(s, ",") {
+			v = strings.TrimSpace(v)
+			if i == 0 {
+				if v != "" {
+					typeField.FormTag.Name = v
+				}
+				continue
+			}
+			// ...
 		}
 	}
 }

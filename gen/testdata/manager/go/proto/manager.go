@@ -261,9 +261,9 @@ func (x *PageReq) String() string {
 }
 
 type Address struct {
-	City       *string `json:"city,omitempty"`
-	Street     *string `json:"street,omitempty"`
-	PostalCode *string `json:"postalCode,omitempty"`
+	City       *string `json:"city,omitempty" form:"city"`
+	Street     *string `json:"street,omitempty" form:"street"`
+	PostalCode *string `json:"postalCode,omitempty" form:"postalCode"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -323,9 +323,9 @@ func (x *Address) String() string {
 }
 
 type ContactInfo struct {
-	Email   *string  `json:"email,omitempty"`
-	Phone   *string  `json:"phone,omitempty"`
-	Address *Address `json:"address,omitempty"`
+	Email   *string  `json:"email,omitempty" form:"email"`
+	Phone   *string  `json:"phone,omitempty" form:"phone"`
+	Address *Address `json:"address,omitempty" form:"address"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -393,8 +393,8 @@ func (x *ContactInfo) String() string {
 }
 
 type DepartmentInfo struct {
-	Dept     *Department `json:"dept,omitempty"`
-	DeptName *string     `json:"deptName,omitempty"`
+	Dept     *Department `json:"dept,omitempty" form:"dept"`
+	DeptName *string     `json:"deptName,omitempty" form:"deptName"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -443,15 +443,15 @@ func (x *DepartmentInfo) String() string {
 }
 
 type Manager struct {
-	Id       *string               `json:"id,omitempty"`
-	Name     *string               `json:"name,omitempty"`
-	Age      *int64                `json:"age,omitempty"`
-	Vip      *bool                 `json:"vip,omitempty"`
-	Salary   *float64              `json:"salary,omitempty"`
-	Role     *string               `json:"role,omitempty"`
-	Level    *ManagerLevelAsString `json:"level,omitempty"`
-	DeptInfo *DepartmentInfo       `json:"deptInfo,omitempty"`
-	Contact  *ContactInfo          `json:"contact,omitempty"`
+	Id       *string               `json:"id,omitempty" form:"id"`
+	Name     *string               `json:"name,omitempty" form:"name"`
+	Age      *int64                `json:"age,omitempty" form:"age"`
+	Vip      *bool                 `json:"vip,omitempty" form:"vip"`
+	Salary   *float64              `json:"salary,omitempty" form:"salary"`
+	Role     *string               `json:"role,omitempty" form:"role"`
+	Level    *ManagerLevelAsString `json:"level,omitempty" form:"level"`
+	DeptInfo *DepartmentInfo       `json:"deptInfo,omitempty" form:"deptInfo"`
+	Contact  *ContactInfo          `json:"contact,omitempty" form:"contact"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -717,14 +717,14 @@ func (x *CreateManagerReq) String() string {
 }
 
 type CreateManagerReqBody struct {
-	Name     *string         `json:"name,omitempty"`
-	Age      *int64          `json:"age,omitempty"`
-	Vip      *bool           `json:"vip,omitempty"`
-	Salary   *float64        `json:"salary,omitempty"`
-	Role     *string         `json:"role,omitempty"`
-	Level    *ManagerLevel   `json:"level,omitempty"`
-	DeptInfo *DepartmentInfo `json:"deptInfo,omitempty"`
-	Contact  *ContactInfo    `json:"contact,omitempty"`
+	Name     *string         `json:"name,omitempty" form:"name"`
+	Age      *int64          `json:"age,omitempty" form:"age"`
+	Vip      *bool           `json:"vip,omitempty" form:"vip"`
+	Salary   *float64        `json:"salary,omitempty" form:"salary"`
+	Role     *string         `json:"role,omitempty" form:"role"`
+	Level    *ManagerLevel   `json:"level,omitempty" form:"level"`
+	DeptInfo *DepartmentInfo `json:"deptInfo,omitempty" form:"deptInfo"`
+	Contact  *ContactInfo    `json:"contact,omitempty" form:"contact"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -952,14 +952,14 @@ func (x *UpdateManagerReq) String() string {
 }
 
 type UpdateManagerReqBody struct {
-	Name     *string         `json:"name,omitempty"`
-	Age      *int64          `json:"age,omitempty"`
-	Vip      *bool           `json:"vip"`
-	Salary   *float64        `json:"salary,omitempty"`
-	Role     *string         `json:"role,omitempty"`
-	Level    *ManagerLevel   `json:"level,omitempty"`
-	DeptInfo *DepartmentInfo `json:"dept_info,omitempty"`
-	Contact  *ContactInfo    `json:"contact,omitempty"`
+	Name     *string         `json:"name,omitempty" form:"name"`
+	Age      *int64          `json:"age,omitempty" form:"age"`
+	Vip      *bool           `json:"vip" form:"vip"`
+	Salary   *float64        `json:"salary,omitempty" form:"salary"`
+	Role     *string         `json:"role,omitempty" form:"role"`
+	Level    *ManagerLevel   `json:"level,omitempty" form:"level"`
+	DeptInfo *DepartmentInfo `json:"dept_info,omitempty" form:"dept_info"`
+	Contact  *ContactInfo    `json:"contact,omitempty" form:"contact"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1134,7 +1134,7 @@ type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
 	Page     *int64        `json:"page,omitempty" query:"page"`
 	Size     *int64        `json:"size,omitempty" query:"size"`
-	Keyword  []string      `json:"keyword" query:"keyword"`
+	Keyword  []string      `json:"keyword,omitempty" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
 	Vip      *bool         `json:"vip,omitempty" query:"vip"`
@@ -1319,9 +1319,9 @@ func (x *ListManagersByPageReqBody) String() string {
 }
 
 type CreateManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty"`
-	Errmsg *string  `json:"errmsg,omitempty"`
-	Data   *Manager `json:"data,omitempty"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1386,9 +1386,9 @@ func (x *CreateManagerResp) String() string {
 }
 
 type UpdateManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty"`
-	Errmsg *string  `json:"errmsg,omitempty"`
-	Data   *Manager `json:"data,omitempty"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1453,9 +1453,9 @@ func (x *UpdateManagerResp) String() string {
 }
 
 type GetManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty"`
-	Errmsg *string  `json:"errmsg,omitempty"`
-	Data   *Manager `json:"data,omitempty"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1520,9 +1520,9 @@ func (x *GetManagerResp) String() string {
 }
 
 type DeleteManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty"`
-	Errmsg *string  `json:"errmsg,omitempty"`
-	Data   *bool    `json:"data,omitempty"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Data   *bool    `json:"data,omitempty" form:"data"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1587,10 +1587,10 @@ func (x *DeleteManagerResp) String() string {
 }
 
 type ManagersPageData struct {
-	Total *int64    `json:"total,omitempty"`
-	Page  *int64    `json:"page,omitempty"`
-	Size  *int64    `json:"size,omitempty"`
-	Items []Manager `json:"items"`
+	Total *int64    `json:"total,omitempty" form:"total"`
+	Page  *int64    `json:"page,omitempty" form:"page"`
+	Size  *int64    `json:"size,omitempty" form:"size"`
+	Items []Manager `json:"items,omitempty" form:"items"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1661,9 +1661,9 @@ func (x *ManagersPageData) String() string {
 }
 
 type ListManagersByPageResp struct {
-	Errno  *ErrCode          `json:"errno,omitempty"`
-	Errmsg *string           `json:"errmsg,omitempty"`
-	Data   *ManagersPageData `json:"data,omitempty"`
+	Errno  *ErrCode          `json:"errno,omitempty" form:"errno"`
+	Errmsg *string           `json:"errmsg,omitempty" form:"errmsg"`
+	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
 }
 
 // New returns a new instance (implements Object interface).
