@@ -118,6 +118,8 @@ func (t RedefinedType) Text() string {
 type TypeField struct {
 	FieldType   TypeDefinition // Type of the field
 	Name        string         // Name of the field
+	JSONName    string         // JSON field name
+	FormName    string         // Form field name
 	Annotations []Annotation   // Additional metadata (key-value pairs)
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments

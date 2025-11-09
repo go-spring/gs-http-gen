@@ -434,6 +434,29 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			typeField.Annotations = append(typeField.Annotations, a)
 		}
 	}
+
+	typeField.JSONName = typeField.Name
+	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
+		if opt.Value == nil {
+			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
+		}
+		name := strings.SplitN(strings.Trim(*opt.Value, `"`), ",", 2)[0]
+		if name = strings.TrimSpace(name); name != "" {
+			typeField.JSONName = name
+		}
+	}
+
+	typeField.FormName = typeField.JSONName
+	if opt, ok := GetAnnotation(typeField.Annotations, "form"); ok {
+		if opt.Value == nil {
+			panic(errutil.Explain(nil, "annotation form for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
+		}
+		name := strings.SplitN(strings.Trim(*opt.Value, `"`), ",", 2)[0]
+		if name = strings.TrimSpace(name); name != "" {
+			typeField.FormName = name
+		} else {
+		}
+	}
 }
 
 // parseCommonFieldType distinguishes between built-in, user-defined, or container types.
