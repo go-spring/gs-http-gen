@@ -11,6 +11,22 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
+// TypeKind represents kind of a Go field type
+type TypeKind int
+
+const (
+	TypeKindBool TypeKind = iota
+	TypeKindInt
+	TypeKindUint
+	TypeKindFloat
+	TypeKindString
+	TypeKindStruct
+	TypeKindEnum
+	TypeKindList
+	TypeKindMap
+	TypeKindPointer
+)
+
 // Const represents a Go constant
 type Const struct {
 	Type    string
@@ -33,52 +49,33 @@ type EnumField struct {
 	Comment string
 }
 
-// TypeKind represents kind of a Go field type
-type TypeKind int
-
-const (
-	TypeKindBool TypeKind = iota
-	TypeKindInt
-	TypeKindUint
-	TypeKindFloat
-	TypeKindString
-	TypeKindStruct
-	TypeKindEnum
-	TypeKindList
-	TypeKindMap
-	TypeKindPointer
-)
-
 // Type represents a Go struct
 type Type struct {
-	Name    string
-	Fields  []TypeField
-	Comment string
-	Request bool
+	Name        string
+	Fields      []TypeField
+	Comment     string
+	Request     bool
+	RequestBody bool
 }
 
 // TypeField represents a field in a Go struct
 type TypeField struct {
-	FieldType string // for field
-	ValueType string // for getter/setter
-	TypeKind  []TypeKind
 	Name      string
+	Type      string // for field
+	TypeKind  []TypeKind
+	ValueType string // for getter/setter
 	FieldTag  string
+	Required  bool
 	JSONTag   httpidl.JSONTag
 	FormTag   httpidl.FormTag
 	Binding   *httpidl.Binding
-	Required  bool
 	Validate  *string
 	Comment   string
 }
 
+// IsPointer returns true if the field is a pointer
 func (x TypeField) IsPointer() bool {
 	return x.TypeKind[0] == TypeKindPointer
-}
-
-// IsRequestBody returns true if the struct is a request body
-func (t *Type) IsRequestBody() bool {
-	return strings.HasSuffix(t.Name, "Body")
 }
 
 // BindingCount returns the number of fields in the struct that have binding info
@@ -244,7 +241,10 @@ func SplitRequestType(t Type) (req Type, body Type) {
 	req.Request = true
 	req.Name = t.Name
 	req.Comment = t.Comment
+
 	body.Name = t.Name + "Body"
+	body.RequestBody = true
+
 	for _, field := range t.Fields {
 		if field.Binding != nil {
 			req.Fields = append(req.Fields, field)
@@ -392,7 +392,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 	// Handle oneof
 	if t.OneOf {
 		r.Fields = append(r.Fields, TypeField{
-			FieldType: "*" + r.Name + "TypeAsString",
+			Type:      "*" + r.Name + "TypeAsString",
 			ValueType: r.Name + "TypeAsString",
 			TypeKind:  []TypeKind{TypeKindPointer, TypeKindEnum},
 			Name:      "FieldType",
@@ -446,7 +446,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 		// Add the field to the struct
 		field := TypeField{
-			FieldType: typeName,
+			Type:      typeName,
 			ValueType: valueType,
 			TypeKind:  typeKind,
 			Name:      fieldName,
@@ -628,6 +628,7 @@ func genFieldTag(f TypeField) string {
 		s := fmt.Sprintf(`%s:"%s"`, f.Binding.From, f.Binding.Name)
 		tags = append(tags, s)
 	}
+
 	return "`" + strings.Join(tags, " ") + "`"
 }
 

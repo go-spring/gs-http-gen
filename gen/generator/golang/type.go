@@ -172,7 +172,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			{{- if $f.Comment}}
 				{{$f.Comment}}
 			{{- end}}
-			{{$f.Name}} {{$f.FieldType}} {{$f.FieldTag}}
+			{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 		{{- end}}
 	}
 
@@ -212,7 +212,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 	}
 {{end}}
 
-{{if $s.IsRequestBody}}
+{{if $s.RequestBody}}
 	// EncodeToForm encodes the object to form data.
 	func (x *{{$s.Name}}) EncodeToForm() (string, error) {
 		m := make(url.Values)
