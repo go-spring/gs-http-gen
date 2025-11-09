@@ -3,7 +3,6 @@ package golang
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/go-spring/gs-http-gen/lib/httpidl"
@@ -468,9 +467,14 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		}
 
 		// Generate validation expressions for the field
-		validateExpr, err := genValidate(r.Name, fieldName, typeName, f.Annotations, code.Funcs)
-		if err != nil {
-			return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
+		var validateExpr *string
+		if f.Validate != nil {
+			var s string
+			s, err = genValidate(r.Name, fieldName, typeName, f.Validate, code.Funcs)
+			if err != nil {
+				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
+			}
+			validateExpr = &s
 		}
 
 		// Determine if the field is required
@@ -702,29 +706,7 @@ var builtinFuncs = map[string]struct{}{
 
 // genValidate generates validation code for a struct field based on its "validate" annotation.
 // Returns a Go code snippet that checks the field and returns an error if validation fails.
-func genValidate(receiverType, fieldName, fieldType string, arr []httpidl.Annotation, funcs map[string]ValidateFunc) (*string, error) {
-	a, ok := httpidl.GetAnnotation(arr, "validate")
-	if !ok {
-		return nil, nil
-	}
-	if a.Value == nil {
-		return nil, errutil.Explain(nil, `annotation "validate" value is nil`)
-	}
-
-	// Unquote the validation expression string
-	strValue, err := strconv.Unquote(*a.Value)
-	if err != nil {
-		return nil, errutil.Explain(nil, `annotation "validate" value is not properly quoted`)
-	}
-	if strValue == "" {
-		return nil, errutil.Explain(nil, `annotation "validate" value is empty`)
-	}
-
-	// Parse the validation expression
-	expr, err := validate.Parse(strValue)
-	if err != nil {
-		return nil, errutil.Explain(nil, `failed to parse validate expression %s: %w`, strValue, err)
-	}
+func genValidate(receiverType, fieldName, fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
 
 	optional := strings.HasPrefix(fieldType, "*")
 	dollar := "x." + fieldName
@@ -735,7 +717,7 @@ func genValidate(receiverType, fieldName, fieldType string, arr []httpidl.Annota
 	// Generate the Go expression for validation
 	str, err := genValidateExpr(dollar, fieldType, expr, funcs)
 	if err != nil {
-		return nil, errutil.Explain(nil, `failed to generate validate expression for %s: %w`, strValue, err)
+		return "", errutil.Explain(err, `failed to generate validate expression for %s.%s`, receiverType, fieldName)
 	}
 
 	// Wrap in an if statement returning an error on failure
@@ -746,7 +728,7 @@ func genValidate(receiverType, fieldName, fieldType string, arr []httpidl.Annota
 	if optional {
 		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
 	}
-	return &str, nil
+	return str, nil
 }
 
 // genValidateExpr recursively generates Go code for a validation expression

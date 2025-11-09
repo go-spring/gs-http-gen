@@ -195,6 +195,7 @@
             "Name": "userId"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 23,
@@ -244,6 +245,7 @@
             "Name": "name"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": [
             {
               "Key": "go.type",
@@ -293,7 +295,33 @@
             "Name": "age"
           },
           "Binding": null,
-          "Annotations": null,
+          "Validate": {
+            "Left": {
+              "Value": "$",
+              "Call": null,
+              "Inner": null
+            },
+            "Op": "\u003c",
+            "Right": {
+              "Value": "18",
+              "Call": null,
+              "Inner": null
+            }
+          },
+          "Annotations": [
+            {
+              "Key": "validate",
+              "Value": "\"$\u003c18\"",
+              "Position": {
+                "Start": 33,
+                "Stop": 33
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "Start": 33,
             "Stop": 33
@@ -315,6 +343,7 @@
             "Name": "avatar"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 34,
@@ -339,6 +368,7 @@
             "Name": ""
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 36,
@@ -383,6 +413,7 @@
             "Name": "payload"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 37,
@@ -456,6 +487,7 @@
             "Name": "street"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 41,
@@ -480,6 +512,7 @@
             "Name": "city"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 42,
@@ -504,6 +537,7 @@
             "Name": "country"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 43,
@@ -544,6 +578,7 @@
             "Name": ""
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 47,
@@ -568,6 +603,7 @@
             "Name": ""
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 48,
@@ -608,6 +644,7 @@
             "Name": "errno"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 53,
@@ -632,6 +669,7 @@
             "Name": "errmsg"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 54,
@@ -656,6 +694,7 @@
             "Name": "data"
           },
           "Binding": null,
+          "Validate": null,
           "Annotations": null,
           "Position": {
             "Start": 55,

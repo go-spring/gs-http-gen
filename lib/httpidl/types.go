@@ -16,6 +16,10 @@
 
 package httpidl
 
+import (
+	"github.com/go-spring/gs-http-gen/lib/validate"
+)
+
 // MetaInfo represents metadata about the parsed document.
 type MetaInfo struct {
 	Name    string         `json:"name"`
@@ -139,6 +143,7 @@ type TypeField struct {
 	JSONTag     JSONTag        // JSON tag
 	FormTag     FormTag        // Form tag
 	Binding     *Binding       // Field binding
+	Validate    validate.Expr  // Validate expression
 	Annotations []Annotation   // Additional metadata (key-value pairs)
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments

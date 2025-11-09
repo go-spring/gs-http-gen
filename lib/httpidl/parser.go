@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/go-spring/gs-http-gen/lib/validate"
 	"github.com/lvan100/golib/errutil"
 )
 
@@ -499,6 +500,28 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
 		typeField.Binding = &Binding{From: opt.Key, Name: s}
+	}
+
+	if opt, ok := GetAnnotation(typeField.Annotations, "validate"); ok {
+		if opt.Value == nil {
+			panic(errutil.Explain(nil, "annotation validate for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
+		}
+		s := strings.TrimSpace(*opt.Value)
+		if s == "" {
+			panic(errutil.Explain(nil, "annotation validate for field %s is empty in line %d", typeField.Name, typeField.Position.Start))
+		}
+		s, err := strconv.Unquote(s) // Remove quotes
+		if err != nil {
+			panic(errutil.Explain(nil, `annotation validate for field %s value is not properly quoted in line %d`, typeField.Name, typeField.Position.Start))
+		}
+		if s == "" {
+			panic(errutil.Explain(nil, `annotation validate for field %s value is empty in line %d`, typeField.Name, typeField.Position.Start))
+		}
+		expr, err := validate.Parse(s)
+		if err != nil {
+			panic(errutil.Explain(nil, `failed to parse validate expression %s: %w`, *opt.Value, err))
+		}
+		typeField.Validate = expr
 	}
 }
 

@@ -31,7 +31,7 @@ type UserReq {
 // ---- User definition 2 ----
 type User {
     any name ( go.type="*string", a="123" )
-    int age
+    int age ( validate="$<18" )
     binary avatar
     // embedded type
     Address /* embedded */
