@@ -436,6 +436,8 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 	}
 
+	_, typeField.Required = GetAnnotation(typeField.Annotations, "required")
+
 	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: true, OmitZero: false}
 	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
 		if opt.Value == nil {

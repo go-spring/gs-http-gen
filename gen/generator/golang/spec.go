@@ -477,9 +477,6 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			validateExpr = &s
 		}
 
-		// Determine if the field is required
-		_, required := httpidl.GetAnnotation(f.Annotations, "required")
-
 		// Add the field to the struct
 		field := TypeField{
 			FieldType: typeName,
@@ -494,7 +491,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			FormTag: FormTag{
 				Name: f.FormTag.Name,
 			},
-			Required: required,
+			Required: f.Required,
 			Validate: validateExpr,
 			Comment:  formatComment(f.Comments),
 		}

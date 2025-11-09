@@ -186,6 +186,7 @@
             "Name": "string"
           },
           "Name": "userId",
+          "Required": false,
           "JSONTag": {
             "Name": "userId",
             "OmitEmpty": true,
@@ -236,6 +237,7 @@
         {
           "FieldType": "any",
           "Name": "name",
+          "Required": false,
           "JSONTag": {
             "Name": "name",
             "OmitEmpty": true,
@@ -286,6 +288,7 @@
             "Name": "int"
           },
           "Name": "age",
+          "Required": false,
           "JSONTag": {
             "Name": "age",
             "OmitEmpty": true,
@@ -334,6 +337,7 @@
         {
           "FieldType": "binary",
           "Name": "avatar",
+          "Required": false,
           "JSONTag": {
             "Name": "avatar",
             "OmitEmpty": true,
@@ -359,6 +363,7 @@
             "Name": "Address"
           },
           "Name": "",
+          "Required": false,
           "JSONTag": {
             "Name": "",
             "OmitEmpty": false,
@@ -404,6 +409,7 @@
             "Name": "Payload"
           },
           "Name": "payload",
+          "Required": false,
           "JSONTag": {
             "Name": "payload",
             "OmitEmpty": true,
@@ -478,6 +484,7 @@
             "Name": "string"
           },
           "Name": "street",
+          "Required": false,
           "JSONTag": {
             "Name": "street",
             "OmitEmpty": true,
@@ -503,6 +510,7 @@
             "Name": "string"
           },
           "Name": "city",
+          "Required": true,
           "JSONTag": {
             "Name": "city",
             "OmitEmpty": true,
@@ -513,7 +521,20 @@
           },
           "Binding": null,
           "Validate": null,
-          "Annotations": null,
+          "Annotations": [
+            {
+              "Key": "required",
+              "Value": null,
+              "Position": {
+                "Start": 42,
+                "Stop": 42
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "Start": 42,
             "Stop": 42
@@ -528,6 +549,7 @@
             "Name": "string"
           },
           "Name": "country",
+          "Required": false,
           "JSONTag": {
             "Name": "country",
             "OmitEmpty": true,
@@ -569,6 +591,7 @@
             "Name": "User"
           },
           "Name": "User",
+          "Required": false,
           "JSONTag": {
             "Name": "",
             "OmitEmpty": false,
@@ -594,6 +617,7 @@
             "Name": "Address"
           },
           "Name": "Address",
+          "Required": false,
           "JSONTag": {
             "Name": "",
             "OmitEmpty": false,
@@ -635,6 +659,7 @@
             "Name": "int"
           },
           "Name": "errno",
+          "Required": false,
           "JSONTag": {
             "Name": "errno",
             "OmitEmpty": true,
@@ -660,6 +685,7 @@
             "Name": "string"
           },
           "Name": "errmsg",
+          "Required": false,
           "JSONTag": {
             "Name": "errmsg",
             "OmitEmpty": true,
@@ -685,6 +711,7 @@
             "Name": "T"
           },
           "Name": "data",
+          "Required": false,
           "JSONTag": {
             "Name": "data",
             "OmitEmpty": true,
