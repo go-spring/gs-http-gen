@@ -209,6 +209,14 @@ type RPC struct {
 	Annotations []Annotation // Metadata attached to the RPC
 	Position    Position     // Location in source code
 	Comments    Comments     // Associated comments
+
+	Path        string // HTTP path
+	Method      string // HTTP method (GET, POST, etc.)
+	ContentType string // HTTP Content-Type
+
+	ConnTimeout  int // Connection timeout, ms
+	ReadTimeout  int // Read timeout, ms
+	WriteTimeout int // Write timeout, ms
 }
 
 // RespType represents the response type of an RPC.

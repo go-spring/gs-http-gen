@@ -895,21 +895,11 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 // convertRPC converts a TIDL RPC to a RPC.
 func convertRPC(r httpidl.RPC) (RPC, error) {
 
-	// Retrieve the required "path" annotation
-	path, ok := httpidl.GetAnnotation(r.Annotations, "path")
-	if !ok {
-		return RPC{}, errutil.Explain(nil, `annotation "path" not found in rpc %s`, r.Name)
-	}
-	if path.Value == nil {
-		return RPC{}, errutil.Explain(nil, `annotation "path" value is nil in rpc %s`, r.Name)
-	}
-
 	// Parse the path (source)
 	var pathParams []string
-	urlPath := strings.Trim(*path.Value, `"`)
-	segments, err := pathidl.Parse(urlPath)
+	segments, err := pathidl.Parse(r.Path)
 	if err != nil {
-		return RPC{}, errutil.Explain(err, `failed to parse path %s`, urlPath)
+		return RPC{}, errutil.Explain(err, `failed to parse path %s`, r.Path)
 	}
 	var formatPath strings.Builder
 	for _, seg := range segments {
@@ -922,44 +912,16 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 		pathParams = append(pathParams, seg.Value)
 	}
 
-	// Retrieve the required "method" annotation
-	method, ok := httpidl.GetAnnotation(r.Annotations, "method")
-	if !ok {
-		return RPC{}, errutil.Explain(nil, `annotation "method" not found in rpc %s`, r.Name)
-	}
-	if method.Value == nil {
-		return RPC{}, errutil.Explain(nil, `annotation "method" value is nil in rpc %s`, r.Name)
-	}
-
-	// Retrieve the optional "contentType" annotation
-	contentType, ok := httpidl.GetAnnotation(r.Annotations, "contentType")
-	if !ok {
-		return RPC{}, errutil.Explain(nil, `annotation "contentType" not found in rpc %s`, r.Name)
-	}
-	if contentType.Value == nil {
-		return RPC{}, errutil.Explain(nil, `annotation "contentType" value is nil in rpc %s`, r.Name)
-	}
-
-	var ct string
-	switch s := strings.TrimSpace(strings.Trim(*contentType.Value, `"`)); s {
-	case "form":
-		ct = "application/x-www-form-urlencoded"
-	case "json":
-		ct = "application/json"
-	default:
-		ct = s
-	}
-
 	return RPC{
 		Name:        r.Name,
 		Request:     r.Request.Name,
 		Response:    r.Response.UserType.Name,
 		Stream:      r.Response.Stream,
-		Path:        urlPath,
+		Path:        r.Path,
 		FormatPath:  formatPath.String(),
 		PathParams:  pathParams,
-		Method:      strings.ToUpper(strings.Trim(*method.Value, `"`)),
-		ContentType: ct,
+		Method:      r.Method,
+		ContentType: r.ContentType,
 		Comment:     formatComment(r.Comments),
 	}, nil
 }

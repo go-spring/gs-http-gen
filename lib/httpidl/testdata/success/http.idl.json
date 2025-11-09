@@ -575,8 +575,8 @@
       "GenericName": null,
       "Fields": null,
       "Position": {
-        "Start": 66,
-        "Stop": 66
+        "Start": 75,
+        "Stop": 75
       },
       "Comments": {
         "Above": [
@@ -586,8 +586,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 65,
-              "Stop": 65
+              "Start": 74,
+              "Stop": 74
             }
           }
         ],
@@ -609,32 +609,31 @@
       },
       "Annotations": [
         {
-          "Key": "go.type",
-          "Value": "\"*string\"",
+          "Key": "path",
+          "Value": "\"/user\"",
           "Position": {
-            "Start": 60,
-            "Stop": 60
+            "Start": 61,
+            "Stop": 61
           },
           "Comments": {
-            "Above": null,
+            "Above": [
+              {
+                "Text": [
+                  "// request path"
+                ],
+                "Single": true,
+                "Position": {
+                  "Start": 60,
+                  "Stop": 60
+                }
+              }
+            ],
             "Right": null
           }
         },
         {
           "Key": "method",
           "Value": "\"GET\"",
-          "Position": {
-            "Start": 61,
-            "Stop": 61
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
-        },
-        {
-          "Key": "path",
-          "Value": "\"/user\"",
           "Position": {
             "Start": 62,
             "Stop": 62
@@ -643,11 +642,93 @@
             "Above": null,
             "Right": null
           }
+        },
+        {
+          "Key": "contentType",
+          "Value": "\"form\"",
+          "Position": {
+            "Start": 63,
+            "Stop": 63
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        },
+        {
+          "Key": "connTimeout",
+          "Value": "100",
+          "Position": {
+            "Start": 66,
+            "Stop": 66
+          },
+          "Comments": {
+            "Above": [
+              {
+                "Text": [
+                  "// timeouts"
+                ],
+                "Single": true,
+                "Position": {
+                  "Start": 65,
+                  "Stop": 65
+                }
+              }
+            ],
+            "Right": null
+          }
+        },
+        {
+          "Key": "readTimeout",
+          "Value": "100",
+          "Position": {
+            "Start": 67,
+            "Stop": 67
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        },
+        {
+          "Key": "writeTimeout",
+          "Value": "100",
+          "Position": {
+            "Start": 68,
+            "Stop": 68
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        },
+        {
+          "Key": "go.type",
+          "Value": "\"*string\"",
+          "Position": {
+            "Start": 71,
+            "Stop": 71
+          },
+          "Comments": {
+            "Above": [
+              {
+                "Text": [
+                  "// others"
+                ],
+                "Single": true,
+                "Position": {
+                  "Start": 70,
+                  "Stop": 70
+                }
+              }
+            ],
+            "Right": null
+          }
         }
       ],
       "Position": {
         "Start": 59,
-        "Stop": 63
+        "Stop": 72
       },
       "Comments": {
         "Above": [
@@ -663,7 +744,13 @@
           }
         ],
         "Right": null
-      }
+      },
+      "Path": "/user",
+      "Method": "GET",
+      "ContentType": "application/x-www-form-urlencoded",
+      "ConnTimeout": 100,
+      "ReadTimeout": 100,
+      "WriteTimeout": 100
     }
   ],
   "EnumTypes": {

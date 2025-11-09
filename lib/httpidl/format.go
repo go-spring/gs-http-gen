@@ -292,7 +292,7 @@ func dumpTypeField(t Type, f TypeField, sb *strings.Builder) {
 				sb.WriteString(" ")
 				sb.WriteString(a.Key)
 				if a.Value != nil {
-					sb.WriteString(" = ")
+					sb.WriteString("=")
 					sb.WriteString(*a.Value)
 				}
 			}
@@ -324,7 +324,7 @@ func dumpRPC(r RPC) string {
 		sb.WriteString(indent)
 		sb.WriteString(a.Key)
 		if a.Value != nil {
-			sb.WriteString(" = ")
+			sb.WriteString("=")
 			sb.WriteString(*a.Value)
 		}
 

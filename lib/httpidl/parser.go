@@ -498,6 +498,8 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 // ExitRpc_def handles RPC definitions, including request/response
 // types and annotations.
 func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
+	var err error
+
 	r := RPC{
 		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
@@ -559,6 +561,87 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 			a.Value = &s
 		}
 		r.Annotations = append(r.Annotations, a)
+	}
+
+	// Retrieve the required "path" annotation
+	path, ok := GetAnnotation(r.Annotations, "path")
+	if !ok {
+		panic(errutil.Explain(nil, `annotation "path" not found in rpc %s`, r.Name))
+	}
+	if path.Value == nil {
+		panic(errutil.Explain(nil, `annotation "path" value is nil in rpc %s`, r.Name))
+	}
+
+	// Retrieve the required "method" annotation
+	method, ok := GetAnnotation(r.Annotations, "method")
+	if !ok {
+		panic(errutil.Explain(nil, `annotation "method" not found in rpc %s`, r.Name))
+	}
+	if method.Value == nil {
+		panic(errutil.Explain(nil, `annotation "method" value is nil in rpc %s`, r.Name))
+	}
+
+	// Retrieve the required "contentType" annotation
+	ct, ok := GetAnnotation(r.Annotations, "contentType")
+	if !ok {
+		panic(errutil.Explain(nil, `annotation "contentType" not found in rpc %s`, r.Name))
+	}
+	if ct.Value == nil {
+		panic(errutil.Explain(nil, `annotation "contentType" value is nil in rpc %s`, r.Name))
+	}
+
+	var contentType string
+	switch s := strings.TrimSpace(strings.Trim(*ct.Value, `"`)); s {
+	case "form":
+		contentType = "application/x-www-form-urlencoded"
+	case "json":
+		contentType = "application/json"
+	default:
+		contentType = s
+	}
+
+	// Retrieve the required "connTimeout" annotation
+	connTimeout, ok := GetAnnotation(r.Annotations, "connTimeout")
+	if !ok {
+		panic(errutil.Explain(nil, `annotation "connTimeout" not found in rpc %s`, r.Name))
+	}
+	if connTimeout.Value == nil {
+		panic(errutil.Explain(nil, `annotation "connTimeout" value is nil in rpc %s`, r.Name))
+	}
+
+	// Retrieve the required "readTimeout" annotation
+	readTimeout, ok := GetAnnotation(r.Annotations, "readTimeout")
+	if !ok {
+		panic(errutil.Explain(nil, `annotation "readTimeout" not found in rpc %s`, r.Name))
+	}
+	if readTimeout.Value == nil {
+		panic(errutil.Explain(nil, `annotation "readTimeout" value is nil in rpc %s`, r.Name))
+	}
+
+	// Retrieve the required "writeTimeout" annotation
+	writeTimeout, ok := GetAnnotation(r.Annotations, "writeTimeout")
+	if !ok {
+		panic(errutil.Explain(nil, `annotation "writeTimeout" not found in rpc %s`, r.Name))
+	}
+	if writeTimeout.Value == nil {
+		panic(errutil.Explain(nil, `annotation "writeTimeout" value is nil in rpc %s`, r.Name))
+	}
+
+	r.Path = strings.Trim(*path.Value, `"`)
+	r.Method = strings.ToUpper(strings.Trim(*method.Value, `"`))
+	r.ContentType = contentType
+
+	r.ConnTimeout, err = strconv.Atoi(strings.Trim(*connTimeout.Value, `"`))
+	if err != nil {
+		panic(errutil.Explain(nil, "invalid connTimeout value in rpc %s", r.Name))
+	}
+	r.ReadTimeout, err = strconv.Atoi(strings.Trim(*readTimeout.Value, `"`))
+	if err != nil {
+		panic(errutil.Explain(nil, "invalid readTimeout value in rpc %s", r.Name))
+	}
+	r.WriteTimeout, err = strconv.Atoi(strings.Trim(*writeTimeout.Value, `"`))
+	if err != nil {
+		panic(errutil.Explain(nil, "invalid writeTimeout value in rpc %s", r.Name))
 	}
 
 	l.Document.RPCs = append(l.Document.RPCs, r)

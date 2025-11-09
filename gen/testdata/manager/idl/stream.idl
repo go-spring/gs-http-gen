@@ -26,4 +26,9 @@ rpc Stream(StreamReq) stream<StreamResp> {
     path="/stream"
     contentType="form"
     summary="Streaming"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }

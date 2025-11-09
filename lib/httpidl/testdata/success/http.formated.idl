@@ -30,7 +30,7 @@ type UserReq {
  */
 // ---- User definition 2 ----
 type User {
-    any name ( go.type = "*string", a = "123" )
+    any name ( go.type="*string", a="123" )
     int age
     binary avatar
     // embedded type
@@ -58,9 +58,16 @@ type Response<T> {
 
 // ---- RPC definitions ----
 rpc GetUser(UserReq) UserResp {
-    go.type = "*string"
-    method = "GET"
-    path = "/user"
+    // request path
+    path="/user"
+    method="GET"
+    contentType="form"
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
+    // others
+    go.type="*string"
 }
 
 // ---- type re-definition ----

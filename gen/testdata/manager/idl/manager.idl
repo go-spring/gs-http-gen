@@ -158,6 +158,11 @@ rpc CreateManager(CreateManagerReq) CreateManagerResp {
     path="/managers"
     contentType="json"
     summary="Create a new manager"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // Get manager by ID
@@ -166,6 +171,11 @@ rpc GetManager(ManagerReq) GetManagerResp {
     path="/managers/{id}"
     contentType="form"
     summary="Get manager by ID"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // Update manager info
@@ -174,6 +184,11 @@ rpc UpdateManager(UpdateManagerReq) UpdateManagerResp {
     path="/managers/{id}"
     contentType="json"
     summary="Update a manager"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // Delete a manager
@@ -182,6 +197,11 @@ rpc DeleteManager(ManagerReq) DeleteManagerResp {
     path="/managers/{id}"
     contentType="form"
     summary="Delete a manager"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // List managers with pagination
@@ -190,4 +210,9 @@ rpc ListManagersByPage(ListManagersByPageReq) ListManagersByPageResp {
     path="/managers/page"
     contentType="form"
     summary="List managers with pagination"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
