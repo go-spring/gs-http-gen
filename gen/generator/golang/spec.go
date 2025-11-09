@@ -64,9 +64,9 @@ type TypeField struct {
 	TypeKind  []TypeKind
 	Name      string
 	FieldTag  string
-	JSONTag   JSONTag
-	FormTag   FormTag
-	Binding   *Binding
+	JSONTag   httpidl.JSONTag
+	FormTag   httpidl.FormTag
+	Binding   *httpidl.Binding
 	Required  bool
 	Validate  *string
 	Comment   string
@@ -74,16 +74,6 @@ type TypeField struct {
 
 func (x TypeField) IsPointer() bool {
 	return x.TypeKind[0] == TypeKindPointer
-}
-
-// Binding represents a field binding from path, or query
-type Binding struct {
-	From string // Source: path/query
-	Name string // Field name in the source
-}
-
-func (x Binding) String() string {
-	return fmt.Sprintf(`%s:"%s"`, x.From, x.Name)
 }
 
 // IsRequestBody returns true if the struct is a request body
@@ -460,23 +450,12 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			ValueType: valueType,
 			TypeKind:  typeKind,
 			Name:      fieldName,
-			JSONTag: JSONTag{
-				Name:      f.JSONTag.Name,
-				OmitEmpty: f.JSONTag.OmitEmpty,
-				OmitZero:  f.JSONTag.OmitZero,
-			},
-			FormTag: FormTag{
-				Name: f.FormTag.Name,
-			},
-			Required: f.Required,
-			Validate: validateExpr,
-			Comment:  formatComment(f.Comments),
-		}
-		if f.Binding != nil {
-			field.Binding = &Binding{
-				From: f.Binding.From,
-				Name: f.Binding.Name,
-			}
+			JSONTag:   f.JSONTag,
+			FormTag:   f.FormTag,
+			Binding:   f.Binding,
+			Required:  f.Required,
+			Validate:  validateExpr,
+			Comment:   formatComment(f.Comments),
 		}
 		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
@@ -622,47 +601,32 @@ func getTypeKind(code GoCode, typeName string) ([]TypeKind, string, error) {
 	}
 }
 
-// JSONTag represents the JSON tag of a field.
-type JSONTag struct {
-	Name      string
-	OmitEmpty bool
-	OmitZero  bool
-}
-
-// JSONTag returns a JSON tag string for a field.
-func (tag JSONTag) String() string {
-	var sb strings.Builder
-	sb.WriteString(`json:"`)
-	sb.WriteString(tag.Name)
-	if tag.OmitEmpty {
-		sb.WriteString(",omitempty")
-	}
-	if tag.OmitZero {
-		sb.WriteString(",omitzero")
-	}
-	sb.WriteString(`"`)
-	return sb.String()
-}
-
-// FormTag represents the form tag of a field.
-type FormTag struct {
-	Name string
-}
-
-// FormTag returns a form tag string for a field.
-func (tag FormTag) String() string {
-	return `form:"` + tag.Name + `"`
-}
-
 // genFieldTag generates the struct tag for a Go struct field.
 // It includes JSON tags and optional binding tags (path, query).
 func genFieldTag(f TypeField) string {
 	var tags []string
-	tags = append(tags, f.JSONTag.String())
-	if f.Binding != nil {
-		tags = append(tags, f.Binding.String())
+
+	// JSON tag
+	{
+		var sb strings.Builder
+		sb.WriteString(`json:"`)
+		sb.WriteString(f.JSONTag.Name)
+		if f.JSONTag.OmitEmpty {
+			sb.WriteString(",omitempty")
+		}
+		if f.JSONTag.OmitZero {
+			sb.WriteString(",omitzero")
+		}
+		sb.WriteString(`"`)
+		tags = append(tags, sb.String())
+	}
+
+	if f.Binding == nil {
+		s := fmt.Sprintf(`form:"%s"`, f.FormTag.Name)
+		tags = append(tags, s)
 	} else {
-		tags = append(tags, f.FormTag.String())
+		s := fmt.Sprintf(`%s:"%s"`, f.Binding.From, f.Binding.Name)
+		tags = append(tags, s)
 	}
 	return "`" + strings.Join(tags, " ") + "`"
 }
