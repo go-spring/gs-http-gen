@@ -126,12 +126,19 @@ type FormTag struct {
 	Name string
 }
 
+// Binding represents a field binding from path, or query
+type Binding struct {
+	From string // Source: path/query
+	Name string // Field name in the source
+}
+
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
 	FieldType   TypeDefinition // Type of the field
 	Name        string         // Name of the field
 	JSONTag     JSONTag        // JSON tag
 	FormTag     FormTag        // Form tag
+	Binding     *Binding       // Field binding
 	Annotations []Annotation   // Additional metadata (key-value pairs)
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments

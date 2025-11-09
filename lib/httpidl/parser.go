@@ -488,6 +488,18 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			// ...
 		}
 	}
+
+	if opt, ok := GetAnnotation(typeField.Annotations, "path", "query"); ok {
+		if opt.Value == nil {
+			panic(errutil.Explain(nil, "annotation %s for field %s is missing value in line %d", opt.Key, typeField.Name, typeField.Position.Start))
+		}
+		s := strings.TrimSpace(*opt.Value)
+		if s == "" {
+			panic(errutil.Explain(nil, "annotation %s for field %s is empty in line %d", opt.Key, typeField.Name, typeField.Position.Start))
+		}
+		s = strings.Trim(s, "\"") // Remove quotes
+		typeField.Binding = &Binding{From: opt.Key, Name: s}
+	}
 }
 
 // parseCommonFieldType distinguishes between built-in, user-defined, or container types.

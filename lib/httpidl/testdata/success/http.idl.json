@@ -194,6 +194,7 @@
           "FormTag": {
             "Name": "userId"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 23,
@@ -242,6 +243,7 @@
           "FormTag": {
             "Name": "name"
           },
+          "Binding": null,
           "Annotations": [
             {
               "Key": "go.type",
@@ -290,6 +292,7 @@
           "FormTag": {
             "Name": "age"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 33,
@@ -311,6 +314,7 @@
           "FormTag": {
             "Name": "avatar"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 34,
@@ -334,6 +338,7 @@
           "FormTag": {
             "Name": ""
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 36,
@@ -377,6 +382,7 @@
           "FormTag": {
             "Name": "payload"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 37,
@@ -449,6 +455,7 @@
           "FormTag": {
             "Name": "street"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 41,
@@ -472,6 +479,7 @@
           "FormTag": {
             "Name": "city"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 42,
@@ -495,6 +503,7 @@
           "FormTag": {
             "Name": "country"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 43,
@@ -534,6 +543,7 @@
           "FormTag": {
             "Name": ""
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 47,
@@ -557,6 +567,7 @@
           "FormTag": {
             "Name": ""
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 48,
@@ -596,6 +607,7 @@
           "FormTag": {
             "Name": "errno"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 53,
@@ -619,6 +631,7 @@
           "FormTag": {
             "Name": "errmsg"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 54,
@@ -642,6 +655,7 @@
           "FormTag": {
             "Name": "data"
           },
+          "Binding": null,
           "Annotations": null,
           "Position": {
             "Start": 55,

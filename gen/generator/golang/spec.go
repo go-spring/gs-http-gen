@@ -60,8 +60,8 @@ type Type struct {
 
 // TypeField represents a field in a Go struct
 type TypeField struct {
-	FieldType string
-	ValueType string
+	FieldType string // for field
+	ValueType string // for getter/setter
 	TypeKind  []TypeKind
 	Name      string
 	FieldTag  string
@@ -467,18 +467,6 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
-		// Parse HTTP binding info from annotations (path, query)
-		binding, err := parseBinding(f.Annotations)
-		if err != nil {
-			return Type{}, errutil.Explain(nil, "parse binding for field %s in type %s error: %w", f.Name, r.Name, err)
-		}
-
-		//// Generate JSON tag
-		//jsonTag, err := genJSONTag(f.Name, typeName, f.Annotations)
-		//if err != nil {
-		//	return Type{}, err
-		//}
-
 		// Generate validation expressions for the field
 		validateExpr, err := genValidate(r.Name, fieldName, typeName, f.Annotations, code.Funcs)
 		if err != nil {
@@ -502,10 +490,15 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 			FormTag: FormTag{
 				Name: f.FormTag.Name,
 			},
-			Binding:  binding,
 			Required: required,
 			Validate: validateExpr,
 			Comment:  formatComment(f.Comments),
+		}
+		if f.Binding != nil {
+			field.Binding = &Binding{
+				From: f.Binding.From,
+				Name: f.Binding.Name,
+			}
 		}
 		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
@@ -649,23 +642,6 @@ func getTypeKind(code GoCode, typeName string) ([]TypeKind, string, error) {
 		}
 		return nil, "", errutil.Explain(nil, "unknown type: %s", typeName)
 	}
-}
-
-// parseBinding parses a field's HTTP binding information from annotations.
-// Supported sources: path, query.
-func parseBinding(arr []httpidl.Annotation) (*Binding, error) {
-	a, ok := httpidl.GetAnnotation(arr, "path", "query")
-	if !ok {
-		return nil, nil
-	}
-	if a.Value == nil {
-		return nil, errutil.Explain(nil, "annotation %q value is nil", a.Key)
-	}
-	val := strings.TrimSpace(strings.Trim(*a.Value, "\""))
-	if val == "" {
-		return nil, errutil.Explain(nil, "annotation %q value is empty", a.Key)
-	}
-	return &Binding{From: a.Key, Name: val}, nil
 }
 
 // JSONTag represents the JSON tag of a field.
@@ -903,15 +879,12 @@ func convertRPC(r httpidl.RPC) (RPC, error) {
 
 // formatComment converts a tidl.Comments into Go comments.
 func formatComment(c httpidl.Comments) string {
-	var comment string
+	var lines []string
 	for _, s := range c.Above {
-		comment += s.Text[0]
+		lines = append(lines, s.Text...)
 	}
 	if c.Right != nil {
-		if c.Above != nil {
-			comment += "\n"
-		}
-		comment += strings.Join(c.Right.Text, "\n")
+		lines = append(lines, c.Right.Text...)
 	}
-	return comment
+	return strings.Join(lines, "\n")
 }
