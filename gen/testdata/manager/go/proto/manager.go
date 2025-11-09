@@ -695,7 +695,7 @@ func (x *CreateManagerReq) QueryString() (string, error) {
 
 // Binding extracts non-body values (path, query) from *http.Request.
 func (x *CreateManagerReq) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{})
+	return nil
 }
 
 // CheckRequired checks whether all required fields are set.

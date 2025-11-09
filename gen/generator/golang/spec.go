@@ -100,17 +100,6 @@ func (t *Type) QueryCount() int {
 	return count
 }
 
-// ValidateCount returns the number of fields in the struct that have validation expressions
-func (t *Type) ValidateCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Validate != nil {
-			count++
-		}
-	}
-	return count
-}
-
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
 	Name        string   // Method name

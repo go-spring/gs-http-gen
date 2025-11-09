@@ -202,13 +202,17 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 
 	// Binding extracts non-body values (path, query) from *http.Request.
 	func (x *{{$s.Name}}) Binding(r *http.Request) error {
-		return Binding(r, []BindingField {
-			{{- range $f := $s.Fields}}
-				{{- if $f.Binding}}
-			{"{{$s.Name}}.{{$f.Name}}", "{{$f.Binding.From}}", "{{$f.Binding.Name}}", &x.{{$f.Name}}},
+		{{- if $s.BindingCount}}
+			return Binding(r, []BindingField {
+				{{- range $f := $s.Fields}}
+					{{- if $f.Binding}}
+				{"{{$s.Name}}.{{$f.Name}}", "{{$f.Binding.From}}", "{{$f.Binding.Name}}", &x.{{$f.Name}}},
+					{{- end}}
 				{{- end}}
-			{{- end}}
-		})
+			})
+		{{- else}}
+			return nil
+		{{- end}}
 	}
 {{end}}
 
