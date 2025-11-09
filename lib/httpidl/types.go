@@ -63,7 +63,7 @@ type Document struct {
 
 	EnumTypes map[string]int // Name -> index
 	TypeTypes map[string]int // Name -> index
-	UsedTypes map[string]struct{}
+	UserTypes map[string]struct{}
 }
 
 // Const represents a constant definition in the parsed document.

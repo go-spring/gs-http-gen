@@ -95,10 +95,10 @@ func ParseDir(dir string) (Project, error) {
 	}
 
 	// Validate that all used types are defined
-	usedTypes := map[string]struct{}{}
+	userTypes := map[string]struct{}{}
 	definedTypes := make(map[string]struct{})
 	for _, doc := range files {
-		maps.Copy(usedTypes, doc.UsedTypes)
+		maps.Copy(userTypes, doc.UserTypes)
 		for k := range doc.EnumTypes {
 			definedTypes[k] = struct{}{}
 		}
@@ -106,7 +106,7 @@ func ParseDir(dir string) (Project, error) {
 			definedTypes[k] = struct{}{}
 		}
 	}
-	for k := range usedTypes {
+	for k := range userTypes {
 		if _, ok := definedTypes[k]; !ok {
 			return Project{}, errutil.Explain(nil, "type %s is used but not defined", k)
 		}
@@ -170,7 +170,7 @@ func Parse(data []byte) (doc Document, err error) {
 		Document: Document{
 			EnumTypes: make(map[string]int),
 			TypeTypes: make(map[string]int),
-			UsedTypes: make(map[string]struct{}),
+			UserTypes: make(map[string]struct{}),
 		},
 		Attached: make(map[int]struct{}),
 	}
@@ -345,7 +345,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 				Name: u.IDENTIFIER().GetText(),
 			}
 			if t.GenericName == nil || embedType.Name != *t.GenericName {
-				l.Document.UsedTypes[embedType.Name] = struct{}{}
+				l.Document.UserTypes[embedType.Name] = struct{}{}
 			}
 			typeField.Type = embedType
 
@@ -562,7 +562,7 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 			Name: u.IDENTIFIER().GetText(),
 		}
 		if t.GenericName == nil || typ.Name != *t.GenericName {
-			l.Document.UsedTypes[typ.Name] = struct{}{}
+			l.Document.UserTypes[typ.Name] = struct{}{}
 		}
 		return typ
 	}
@@ -617,7 +617,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	if !strings.HasSuffix(r.Request.Name, "Req") {
 		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request.Name, r.Position.Start))
 	}
-	l.Document.UsedTypes[r.Request.Name] = struct{}{}
+	l.Document.UserTypes[r.Request.Name] = struct{}{}
 
 	// Response
 	respType := ctx.Rpc_resp().User_type()
@@ -633,7 +633,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	if !strings.HasSuffix(r.Response.UserType.Name, "Resp") {
 		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response.UserType.Name, r.Position.Start))
 	}
-	l.Document.UsedTypes[r.Response.UserType.Name] = struct{}{}
+	l.Document.UserTypes[r.Response.UserType.Name] = struct{}{}
 
 	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {

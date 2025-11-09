@@ -983,7 +983,7 @@
     "UserReq": 0,
     "UserResp": 5
   },
-  "UsedTypes": {
+  "UserTypes": {
     "Address": {},
     "ErrCode": {},
     "Payload": {},
