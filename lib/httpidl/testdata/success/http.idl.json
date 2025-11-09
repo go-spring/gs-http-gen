@@ -197,6 +197,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 23,
@@ -248,6 +249,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": [
             {
               "Key": "go.type",
@@ -311,6 +313,7 @@
               "Inner": null
             }
           },
+          "EnumAsString": false,
           "Annotations": [
             {
               "Key": "validate",
@@ -348,6 +351,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 34,
@@ -374,6 +378,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 36,
@@ -420,6 +425,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 37,
@@ -495,6 +501,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 41,
@@ -521,6 +528,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": [
             {
               "Key": "required",
@@ -560,6 +568,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 43,
@@ -602,6 +611,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 47,
@@ -628,6 +638,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 48,
@@ -656,7 +667,7 @@
       "Fields": [
         {
           "FieldType": {
-            "Name": "int"
+            "Name": "ErrCode"
           },
           "Name": "errno",
           "Required": false,
@@ -670,7 +681,21 @@
           },
           "Binding": null,
           "Validate": null,
-          "Annotations": null,
+          "EnumAsString": true,
+          "Annotations": [
+            {
+              "Key": "enum_as_string",
+              "Value": null,
+              "Position": {
+                "Start": 53,
+                "Stop": 53
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "Start": 53,
             "Stop": 53
@@ -696,6 +721,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 54,
@@ -722,6 +748,7 @@
           },
           "Binding": null,
           "Validate": null,
+          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 55,
@@ -958,6 +985,7 @@
   },
   "UsedTypes": {
     "Address": {},
+    "ErrCode": {},
     "Payload": {},
     "User": {},
     "UserReq": {},

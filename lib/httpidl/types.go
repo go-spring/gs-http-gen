@@ -138,16 +138,17 @@ type Binding struct {
 
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
-	FieldType   TypeDefinition // Type of the field
-	Name        string         // Name of the field
-	Required    bool           // Required
-	JSONTag     JSONTag        // JSON tag
-	FormTag     FormTag        // Form tag
-	Binding     *Binding       // Field binding
-	Validate    validate.Expr  // Validate expression
-	Annotations []Annotation   // Additional metadata (key-value pairs)
-	Position    Position       // Location in source code
-	Comments    Comments       // Associated comments
+	FieldType    TypeDefinition // Type of the field
+	Name         string         // Name of the field
+	Required     bool           // Required
+	JSONTag      JSONTag        // JSON tag
+	FormTag      FormTag        // Form tag
+	Binding      *Binding       // Field binding
+	Validate     validate.Expr  // Validate expression
+	EnumAsString bool           // Enum as string
+	Annotations  []Annotation   // Additional metadata (key-value pairs)
+	Position     Position       // Location in source code
+	Comments     Comments       // Associated comments
 }
 
 // EmbedType represents an embedded type field (similar to composition in Go).

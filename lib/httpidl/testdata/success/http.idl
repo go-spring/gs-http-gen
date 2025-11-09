@@ -50,7 +50,7 @@ oneof Payload {
 
 // Generic type definition
 type Response<T> {
-    int errno
+    ErrCode errno ( enum_as_string )
     string errmsg
     T data
 }

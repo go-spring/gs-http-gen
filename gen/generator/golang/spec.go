@@ -312,12 +312,8 @@ func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
 		}
 		var fields []EnumField
 		for i, f := range t.Fields {
-			fieldName, err := getJSONName(f.Name, f.Annotations)
-			if err != nil {
-				return nil, errutil.Explain(nil, "get json name for type %s field %s error: %w", t.Name, f.Name, err)
-			}
 			fields = append(fields, EnumField{
-				Name:  fieldName,
+				Name:  f.Name,
 				Value: int64(i),
 			})
 		}
@@ -327,25 +323,6 @@ func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
 		})
 	}
 	return ret, nil
-}
-
-// getJSONName returns the JSON name for a struct field.
-func getJSONName(fieldName string, arr []httpidl.Annotation) (string, error) {
-	if a, ok := httpidl.GetAnnotation(arr, "json"); ok {
-		if a.Value == nil {
-			return "", errutil.Explain(nil, `annotation "json" value is nil`)
-		}
-		s := strings.TrimSpace(*a.Value)
-		if s == "" {
-			return "", errutil.Explain(nil, `annotation "json" value is empty`)
-		}
-		s = strings.Trim(s, "\"") // remove quotes
-		s = strings.TrimSpace(strings.SplitN(s, ",", 2)[0])
-		if s != "" {
-			return s, nil
-		}
-	}
-	return fieldName, nil
 }
 
 // convertTypes converts IDL struct types to Go struct types
