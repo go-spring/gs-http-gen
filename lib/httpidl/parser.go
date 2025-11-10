@@ -98,13 +98,13 @@ func ParseDir(dir string) (Project, error) {
 	userTypes := map[string]struct{}{}
 	definedTypes := make(map[string]struct{})
 	for _, doc := range files {
-		maps.Copy(userTypes, doc.UserTypes)
 		for k := range doc.EnumTypes {
 			definedTypes[k] = struct{}{}
 		}
 		for k := range doc.TypeTypes {
 			definedTypes[k] = struct{}{}
 		}
+		maps.Copy(userTypes, doc.UserTypes)
 	}
 	for k := range userTypes {
 		if _, ok := definedTypes[k]; !ok {
