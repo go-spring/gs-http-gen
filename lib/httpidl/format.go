@@ -96,6 +96,9 @@ func Dump(doc Document) string {
 
 	// Collect enums
 	for _, e := range doc.Enums {
+		if e.OneOf {
+			continue
+		}
 		items = append(items, docItem{
 			kind: docItemKindEnum,
 			pos:  e.Position.Start,
@@ -261,7 +264,10 @@ func dumpType(t Type) string {
 		}
 
 		sb.WriteString(" {")
-		for _, f := range t.Fields {
+		for i, f := range t.Fields {
+			if i == 0 && t.OneOf {
+				continue
+			}
 			sb.WriteString("\n")
 			dumpTypeField(t, f, &sb)
 		}

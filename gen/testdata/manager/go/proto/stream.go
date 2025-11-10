@@ -216,10 +216,10 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
-	FieldType *PayloadTypeAsString `json:"field_type"`
-	Payload1  *Payload_1           `json:"" form:""`
-	Payload2  *Payload_2           `json:"" form:""`
-	Payload3  *Payload_3           `json:"" form:""`
+	FieldType *PayloadTypeAsString `json:"FieldType" form:"FieldType"`
+	Payload1  *Payload_1           `json:"Payload_1,omitempty" form:"Payload_1"`
+	Payload2  *Payload_2           `json:"Payload_2,omitempty" form:"Payload_2"`
+	Payload3  *Payload_3           `json:"Payload_3,omitempty" form:"Payload_3"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -230,6 +230,9 @@ func (x *Payload) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *Payload) CheckRequired() error {
 	var err error
+	if x.FieldType == nil {
+		err = errutil.Explain(err, "%s is required", "Payload.FieldType")
+	}
 	return err
 }
 

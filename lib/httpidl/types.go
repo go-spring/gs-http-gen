@@ -78,6 +78,7 @@ type Const struct {
 // Enum represents an enum type definition.
 type Enum struct {
 	Name     string      // Name of the enum
+	OneOf    bool        // Indicates whether this enum is used in oneof
 	Fields   []EnumField // List of fields
 	Position Position    // Location in source code
 	Comments Comments    // Associated comments

@@ -127,6 +127,7 @@
   "Enums": [
     {
       "Name": "ErrCode",
+      "OneOf": false,
       "Fields": [
         {
           "Name": "ErrOk",
@@ -170,6 +171,44 @@
             }
           }
         ],
+        "Right": null
+      }
+    },
+    {
+      "Name": "PayloadType",
+      "OneOf": true,
+      "Fields": [
+        {
+          "Name": "User",
+          "Value": 0,
+          "Position": {
+            "Start": 0,
+            "Stop": 0
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        },
+        {
+          "Name": "Address",
+          "Value": 1,
+          "Position": {
+            "Start": 0,
+            "Stop": 0
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "Start": 0,
+        "Stop": 0
+      },
+      "Comments": {
+        "Above": null,
         "Right": null
       }
     }
@@ -597,17 +636,57 @@
       "Fields": [
         {
           "Type": {
+            "Name": "PayloadType"
+          },
+          "Name": "FieldType",
+          "Required": true,
+          "JSONTag": {
+            "Name": "FieldType",
+            "OmitEmpty": false,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "FieldType"
+          },
+          "Binding": null,
+          "Validate": null,
+          "EnumAsString": true,
+          "Annotations": [
+            {
+              "Key": "enum_as_string",
+              "Value": null,
+              "Position": {
+                "Start": 0,
+                "Stop": 0
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
+          "Position": {
+            "Start": 0,
+            "Stop": 0
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        },
+        {
+          "Type": {
             "Name": "User"
           },
           "Name": "User",
           "Required": false,
           "JSONTag": {
-            "Name": "",
-            "OmitEmpty": false,
+            "Name": "User",
+            "OmitEmpty": true,
             "OmitZero": false
           },
           "FormTag": {
-            "Name": ""
+            "Name": "User"
           },
           "Binding": null,
           "Validate": null,
@@ -629,12 +708,12 @@
           "Name": "Address",
           "Required": false,
           "JSONTag": {
-            "Name": "",
-            "OmitEmpty": false,
+            "Name": "Address",
+            "OmitEmpty": true,
             "OmitZero": false
           },
           "FormTag": {
-            "Name": ""
+            "Name": "Address"
           },
           "Binding": null,
           "Validate": null,
@@ -973,7 +1052,8 @@
     }
   ],
   "EnumTypes": {
-    "ErrCode": 0
+    "ErrCode": 0,
+    "PayloadType": 1
   },
   "TypeTypes": {
     "Address": 2,

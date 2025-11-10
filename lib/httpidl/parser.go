@@ -427,12 +427,43 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.Start))
 	}
 
-	for _, f := range ctx.AllUser_type() {
+	e := Enum{Name: o.Name + "Type", OneOf: true}
+	o.Fields = append(o.Fields, TypeField{
+		Type:     UserType{Name: e.Name},
+		Name:     "FieldType",
+		Required: true,
+		JSONTag: JSONTag{
+			Name: "FieldType",
+		},
+		FormTag: FormTag{
+			Name: "FieldType",
+		},
+		EnumAsString: true,
+		Annotations: []Annotation{
+			{Key: "enum_as_string"},
+		},
+	})
+
+	for i, f := range ctx.AllUser_type() {
+
+		// add enum fields
+		e.Fields = append(e.Fields, EnumField{
+			Name:  f.IDENTIFIER().GetText(),
+			Value: int64(i),
+		})
+
 		typeField := TypeField{
 			Type: UserType{
 				Name: f.IDENTIFIER().GetText(),
 			},
 			Name: f.IDENTIFIER().GetText(),
+			JSONTag: JSONTag{
+				Name:      f.IDENTIFIER().GetText(),
+				OmitEmpty: true,
+			},
+			FormTag: FormTag{
+				Name: f.IDENTIFIER().GetText(),
+			},
 			Position: Position{
 				Start: f.GetStart().GetLine(),
 				Stop:  f.GetStop().GetLine(),
@@ -444,6 +475,9 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		}
 		o.Fields = append(o.Fields, typeField)
 	}
+
+	l.Document.EnumTypes[e.Name] = len(l.Document.EnumTypes)
+	l.Document.Enums = append(l.Document.Enums, e)
 
 	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, o)

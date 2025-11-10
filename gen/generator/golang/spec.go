@@ -283,24 +283,6 @@ func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
 			Comment: formatComment(e.Comments),
 		})
 	}
-
-	// Convert enums from oneof types
-	for _, t := range doc.Types {
-		if !t.OneOf { // skip non-oneof types
-			continue
-		}
-		var fields []EnumField
-		for i, f := range t.Fields {
-			fields = append(fields, EnumField{
-				Name:  f.Name,
-				Value: int64(i),
-			})
-		}
-		ret = append(ret, Enum{
-			Name:   t.Name + "Type",
-			Fields: fields,
-		})
-	}
 	return ret, nil
 }
 
@@ -325,17 +307,6 @@ func convertTypes(code GoCode, doc httpidl.Document) ([]Type, error) {
 func convertType(code GoCode, t httpidl.Type) (Type, error) {
 	r := Type{
 		Name: t.Name,
-	}
-
-	// Handle oneof
-	if t.OneOf {
-		r.Fields = append(r.Fields, TypeField{
-			Type:      "*" + r.Name + "TypeAsString",
-			ValueType: r.Name + "TypeAsString",
-			TypeKind:  []TypeKind{TypeKindPointer, TypeKindEnum},
-			Name:      "FieldType",
-			FieldTag:  "`json:\"field_type\"`",
-		})
 	}
 
 	// Handle fields
