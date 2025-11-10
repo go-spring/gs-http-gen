@@ -112,10 +112,46 @@ func ParseDir(dir string) (Project, error) {
 		}
 	}
 
+	for _, doc := range files {
+		for i, t := range doc.Types {
+			if t.Redefined != nil {
+				srcType, ok := GetType(files, t.Redefined.Name)
+				if !ok {
+					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.Redefined.Name)
+				}
+				var fields []TypeField
+				for _, f := range srcType.Fields {
+					f.Type = replaceGenericType(f.Type, *srcType.GenericName, t.Redefined.GenericType)
+					fields = append(fields, f)
+				}
+				doc.Types[i].Fields = fields
+			}
+		}
+	}
+
 	return Project{
 		Meta:  meta,
 		Files: files,
 	}, nil
+}
+
+// replaceGenericType replaces a generic type with a concrete type.
+func replaceGenericType(t TypeDefinition, genericName string, genericType TypeDefinition) TypeDefinition {
+	switch u := t.(type) {
+	case UserType:
+		if u.Name == genericName {
+			return genericType
+		}
+		return u
+	case ListType:
+		u.Item = replaceGenericType(u.Item, genericName, genericType)
+		return u
+	case MapType:
+		u.Value = replaceGenericType(u.Value, genericName, genericType)
+		return u
+	default:
+		return t
+	}
 }
 
 // ParseMeta parses the JSON meta-information file.

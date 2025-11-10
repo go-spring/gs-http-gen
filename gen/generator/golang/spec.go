@@ -312,64 +312,13 @@ func convertTypes(code GoCode, doc httpidl.Document) ([]Type, error) {
 		if t.GenericName != nil {
 			continue
 		}
-		var (
-			typ Type
-			err error
-		)
-		if t.Redefined != nil {
-			typ, err = convertRedefinedType(code, t)
-		} else {
-			typ, err = convertType(code, t)
-		}
+		typ, err := convertType(code, t)
 		if err != nil {
 			return nil, err
 		}
 		ret = append(ret, typ)
 	}
 	return ret, nil
-}
-
-// convertRedefinedType instantiates a redefined generic struct type
-func convertRedefinedType(code GoCode, r httpidl.Type) (Type, error) {
-
-	t, ok := httpidl.GetType(code.Files, r.Redefined.Name)
-	if !ok {
-		err := errutil.Explain(nil, "type %s not found", r.Redefined.Name)
-		return Type{}, errutil.Explain(nil, "convert redefined type %s error: %w", r.Name, err)
-	}
-
-	var fields []httpidl.TypeField
-	for _, f := range t.Fields {
-		// Replace generic placeholders with concrete types
-		f.Type = replaceGenericType(f.Type, *t.GenericName, r.Redefined.GenericType)
-		fields = append(fields, f)
-	}
-
-	return convertType(code, httpidl.Type{
-		Name:     r.Name,
-		Fields:   fields,
-		Position: r.Position,
-		Comments: r.Comments,
-	})
-}
-
-// replaceGenericType replaces a generic type in a field with a concrete type
-func replaceGenericType(t httpidl.TypeDefinition, genericName string, genericType httpidl.TypeDefinition) httpidl.TypeDefinition {
-	switch u := t.(type) {
-	case httpidl.UserType:
-		if u.Name == genericName {
-			return genericType
-		}
-		return u
-	case httpidl.ListType:
-		u.Item = replaceGenericType(u.Item, genericName, genericType)
-		return u
-	case httpidl.MapType:
-		u.Value = replaceGenericType(u.Value, genericName, genericType)
-		return u
-	default:
-		return t
-	}
 }
 
 // convertType converts an IDL struct type to a Go struct type
