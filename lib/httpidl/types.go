@@ -105,6 +105,8 @@ type Type struct {
 	Redefined   *RedefinedType // Represents a type alias (e.g., type A B<T>)
 	GenericName *string        // Optional generic type parameter (if present)
 	Fields      []TypeField    // Type fields
+	Required    bool           // Required
+	Validate    bool           // Validate
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments
 }

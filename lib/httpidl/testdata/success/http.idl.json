@@ -248,6 +248,8 @@
           }
         }
       ],
+      "Required": false,
+      "Validate": false,
       "Position": {
         "Start": 22,
         "Stop": 24
@@ -476,6 +478,8 @@
           }
         }
       ],
+      "Required": false,
+      "Validate": false,
       "Position": {
         "Start": 31,
         "Stop": 38
@@ -619,6 +623,8 @@
           }
         }
       ],
+      "Required": false,
+      "Validate": false,
       "Position": {
         "Start": 40,
         "Stop": 44
@@ -652,6 +658,18 @@
           "Validate": null,
           "EnumAsString": true,
           "Annotations": [
+            {
+              "Key": "required",
+              "Value": null,
+              "Position": {
+                "Start": 0,
+                "Stop": 0
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            },
             {
               "Key": "enum_as_string",
               "Value": null,
@@ -729,6 +747,8 @@
           }
         }
       ],
+      "Required": false,
+      "Validate": false,
       "Position": {
         "Start": 46,
         "Stop": 49
@@ -839,6 +859,8 @@
           }
         }
       ],
+      "Required": false,
+      "Validate": false,
       "Position": {
         "Start": 52,
         "Stop": 56
@@ -872,6 +894,8 @@
       },
       "GenericName": null,
       "Fields": null,
+      "Required": false,
+      "Validate": false,
       "Position": {
         "Start": 75,
         "Stop": 75

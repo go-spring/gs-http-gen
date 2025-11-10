@@ -126,6 +126,13 @@ func ParseDir(dir string) (Project, error) {
 				}
 				doc.Types[i].Fields = fields
 			}
+
+			attr, err := getTypeAttr(files, t)
+			if err != nil {
+				return Project{}, err
+			}
+			doc.Types[i].Required = attr.Required
+			doc.Types[i].Validate = attr.Validate
 		}
 	}
 
@@ -133,6 +140,55 @@ func ParseDir(dir string) (Project, error) {
 		Meta:  meta,
 		Files: files,
 	}, nil
+}
+
+type Attr struct {
+	Required bool
+	Validate bool
+}
+
+func getTypeAttr(files map[string]Document, t Type) (Attr, error) {
+	var attr Attr
+	for _, f := range t.Fields {
+		if f.Required || f.Validate != nil {
+			if f.Required {
+				attr.Required = true
+			}
+			if f.Validate != nil {
+				attr.Validate = true
+			}
+			continue
+		}
+
+		r, err := getUserTypeAttr(files, f.Type)
+		if err != nil {
+			return Attr{}, err
+		}
+		if r.Required {
+			attr.Required = true
+		}
+		if r.Validate {
+			attr.Validate = true
+		}
+	}
+	return attr, nil
+}
+
+func getUserTypeAttr(files map[string]Document, t TypeDefinition) (Attr, error) {
+	switch x := t.(type) {
+	case UserType:
+		srcType, ok := GetType(files, x.Name)
+		if !ok {
+			return Attr{}, errutil.Explain(nil, "type %s is used but not defined", x.Name)
+		}
+		return getTypeAttr(files, srcType)
+	case ListType:
+		return getUserTypeAttr(files, x.Item)
+	case MapType:
+		return getUserTypeAttr(files, x.Value)
+	default: // for linter
+	}
+	return Attr{}, nil
 }
 
 // replaceGenericType replaces a generic type with a concrete type.
@@ -440,6 +496,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		},
 		EnumAsString: true,
 		Annotations: []Annotation{
+			{Key: "required"},
 			{Key: "enum_as_string"},
 		},
 	})
