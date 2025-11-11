@@ -1332,6 +1332,12 @@ func (x *CreateManagerResp) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *CreateManagerResp) CheckRequired() error {
 	var err error
+	if x.Errno == nil {
+		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errno")
+	}
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errmsg")
+	}
 	return err
 }
 
@@ -1399,6 +1405,12 @@ func (x *UpdateManagerResp) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *UpdateManagerResp) CheckRequired() error {
 	var err error
+	if x.Errno == nil {
+		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errno")
+	}
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errmsg")
+	}
 	return err
 }
 
@@ -1466,6 +1478,12 @@ func (x *GetManagerResp) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *GetManagerResp) CheckRequired() error {
 	var err error
+	if x.Errno == nil {
+		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errno")
+	}
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errmsg")
+	}
 	return err
 }
 
@@ -1533,6 +1551,12 @@ func (x *DeleteManagerResp) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *DeleteManagerResp) CheckRequired() error {
 	var err error
+	if x.Errno == nil {
+		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errno")
+	}
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errmsg")
+	}
 	return err
 }
 
@@ -1674,6 +1698,12 @@ func (x *ListManagersByPageResp) New() any {
 // CheckRequired checks whether all required fields are set.
 func (x *ListManagersByPageResp) CheckRequired() error {
 	var err error
+	if x.Errno == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errno")
+	}
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errmsg")
+	}
 	return err
 }
 

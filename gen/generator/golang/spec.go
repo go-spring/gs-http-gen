@@ -64,8 +64,8 @@ type TypeField struct {
 	Type      string // for field
 	TypeKind  []TypeKind
 	ValueType string // for getter/setter
-	FieldTag  string
 	Required  bool
+	FieldTag  string
 	JSONTag   httpidl.JSONTag
 	FormTag   httpidl.FormTag
 	Binding   *httpidl.Binding

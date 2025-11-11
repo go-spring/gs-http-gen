@@ -45,8 +45,8 @@ enum Department {
 
 // Generic response wrapper for all RPCs
 type Response<T> {
-    ErrCode errno (validate="OneOfErrCode($)")
-    string errmsg
+    ErrCode errno (required, validate="OneOfErrCode($)")
+    string errmsg (required)
     T data
 }
 

@@ -114,7 +114,8 @@ func ParseDir(dir string) (Project, error) {
 	}
 
 	for _, doc := range files {
-		for i, t := range doc.Types {
+		for i := range doc.Types {
+			t := doc.Types[i]
 			if t.GenericName != nil { // generic type, need instance
 				continue
 			} else if t.Redefined != nil { // generic type instance
@@ -127,7 +128,7 @@ func ParseDir(dir string) (Project, error) {
 					f.Type = replaceGenericType(f.Type, *srcType.GenericName, t.Redefined.GenericType)
 					fields = append(fields, f)
 				}
-				doc.Types[i].Fields = fields
+				t.Fields = fields
 			} else {
 				var fields []TypeField
 				for _, f := range t.Fields {
@@ -141,20 +142,22 @@ func ParseDir(dir string) (Project, error) {
 						fields = append(fields, f)
 					}
 				}
-				doc.Types[i].Fields = fields
+				t.Fields = fields
 			}
 
 			attr, err := getTypeAttr(files, t)
 			if err != nil {
 				return Project{}, err
 			}
-			doc.Types[i].Required = attr.Required
-			doc.Types[i].Validate = attr.Validate
+			t.Required = attr.Required
+			t.Validate = attr.Validate
+			doc.Types[i] = t // update
 		}
 	}
 
 	for _, doc := range files {
-		for rpcIndex, rpc := range doc.RPCs {
+		for i := range doc.RPCs {
+			rpc := doc.RPCs[i]
 			segments, err := pathidl.Parse(rpc.Path)
 			if err != nil {
 				return Project{}, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
@@ -188,7 +191,7 @@ func ParseDir(dir string) (Project, error) {
 			}
 			rpc.PathSegments = segments
 			rpc.PathParams = params
-			doc.RPCs[rpcIndex] = rpc
+			doc.RPCs[i] = rpc
 		}
 	}
 
