@@ -114,6 +114,9 @@ func ParseDir(dir string) (Project, error) {
 
 	for _, doc := range files {
 		for i, t := range doc.Types {
+			if t.GenericName != nil {
+				continue
+			}
 			if t.Redefined != nil {
 				srcType, ok := GetType(files, t.Redefined.Name)
 				if !ok {
@@ -179,7 +182,10 @@ func getUserTypeAttr(files map[string]Document, t TypeDefinition) (Attr, error) 
 	case UserType:
 		srcType, ok := GetType(files, x.Name)
 		if !ok {
-			return Attr{}, errutil.Explain(nil, "type %s is used but not defined", x.Name)
+			if _, ok = GetEnum(files, x.Name); !ok {
+				return Attr{}, errutil.Explain(nil, "type %s is used but not defined", x.Name)
+			}
+			return Attr{}, nil
 		}
 		return getTypeAttr(files, srcType)
 	case ListType:
