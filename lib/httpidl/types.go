@@ -17,6 +17,7 @@
 package httpidl
 
 import (
+	"github.com/go-spring/gs-http-gen/lib/pathidl"
 	"github.com/go-spring/gs-http-gen/lib/validate"
 )
 
@@ -248,6 +249,9 @@ type RPC struct {
 	ConnTimeout  int // Connection timeout, ms
 	ReadTimeout  int // Read timeout, ms
 	WriteTimeout int // Write timeout, ms
+
+	PathSegments []pathidl.Segment
+	PathParams   map[string]string
 }
 
 // RespType represents the response type of an RPC.

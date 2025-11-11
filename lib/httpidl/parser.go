@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/go-spring/gs-http-gen/lib/pathidl"
 	"github.com/go-spring/gs-http-gen/lib/validate"
 	"github.com/lvan100/golib/errutil"
 )
@@ -149,6 +150,45 @@ func ParseDir(dir string) (Project, error) {
 			}
 			doc.Types[i].Required = attr.Required
 			doc.Types[i].Validate = attr.Validate
+		}
+	}
+
+	for _, doc := range files {
+		for rpcIndex, rpc := range doc.RPCs {
+			segments, err := pathidl.Parse(rpc.Path)
+			if err != nil {
+				return Project{}, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
+			}
+			params := make(map[string]string)
+			for _, seg := range segments {
+				if seg.Type == pathidl.Static {
+					continue
+				}
+				params[seg.Value] = ""
+			}
+			srcType, ok := GetType(files, rpc.Request.Name)
+			if !ok {
+				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request.Name)
+			}
+			for _, f := range srcType.Fields {
+				if f.Binding == nil || f.Binding.From != "path" {
+					continue
+				}
+				if _, ok = params[f.Binding.Name]; !ok {
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Name, rpc.Request)
+					return Project{}, err
+				}
+				params[f.Binding.Name] = f.Name
+			}
+			for k, s := range params {
+				if s == "" {
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
+					return Project{}, err
+				}
+			}
+			rpc.PathSegments = segments
+			rpc.PathParams = params
+			doc.RPCs[rpcIndex] = rpc
 		}
 	}
 

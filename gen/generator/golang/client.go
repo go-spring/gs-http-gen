@@ -65,7 +65,7 @@ func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...h
 		return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
 	}
 
-	path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $p := $r.PathParams}} req.{{$p}}, {{- end}})
+	path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $unused, $p := $r.PathParams}} req.{{$p}}, {{- end}})
 	if s, err := req.QueryString(); err != nil {
 		return nil, nil, err
 	} else if s != "" {

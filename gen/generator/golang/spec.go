@@ -102,16 +102,17 @@ func (t *Type) QueryCount() int {
 
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
-	Name        string   // Method name
-	Request     string   // Request type name
-	Response    string   // Response type name
-	Stream      bool     // Whether this RPC is a streaming RPC
-	Path        string   // HTTP path
-	FormatPath  string   // Formatted HTTP path
-	PathParams  []string // HTTP path parameters
-	Method      string   // HTTP method (GET, POST, etc.)
-	ContentType string   // HTTP Content-Type
-	Comment     string   // Comment of the RPC
+	Name         string            // Method name
+	Request      string            // Request type name
+	Response     string            // Response type name
+	Stream       bool              // Whether this RPC is a streaming RPC
+	Path         string            // HTTP path
+	FormatPath   string            // Formatted HTTP path
+	PathSegments []pathidl.Segment // HTTP path segments
+	PathParams   map[string]string // HTTP path parameters
+	Method       string            // HTTP method (GET, POST, etc.)
+	ContentType  string            // HTTP Content-Type
+	Comment      string            // Comment of the RPC
 }
 
 type ReqIndex struct {
@@ -150,15 +151,17 @@ func Convert(dir string) (GoCode, error) {
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
 			rpc := RPC{
-				Name:        r.Name,
-				Request:     r.Request.Name,
-				Response:    r.Response.UserType.Name,
-				Stream:      r.Response.Stream,
-				Path:        r.Path,
-				FormatPath:  r.Path, // 假设是普通路径
-				Method:      r.Method,
-				ContentType: r.ContentType,
-				Comment:     formatComment(r.Comments),
+				Name:         r.Name,
+				Request:      r.Request.Name,
+				Response:     r.Response.UserType.Name,
+				Stream:       r.Response.Stream,
+				Path:         r.Path,
+				FormatPath:   r.Path, // 假设是普通路径
+				PathSegments: r.PathSegments,
+				PathParams:   r.PathParams,
+				Method:       r.Method,
+				ContentType:  r.ContentType,
+				Comment:      formatComment(r.Comments),
 			}
 			code.RPCs = append(code.RPCs, rpc)
 			code.Reqs[rpc.Request] = ReqIndex{}
@@ -200,54 +203,19 @@ func Convert(dir string) (GoCode, error) {
 	}
 
 	for rpcIndex, rpc := range code.RPCs {
-		segments, err := pathidl.Parse(rpc.Path)
-		if err != nil {
-			return GoCode{}, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
+		for k, s := range rpc.PathParams {
+			rpc.PathParams[k] = httpidl.ToPascal(s)
 		}
-
-		var (
-			params     = make(map[string]string)
-			formatPath strings.Builder
-		)
-
-		for _, seg := range segments {
+		var formatPath strings.Builder
+		for _, seg := range rpc.PathSegments {
 			formatPath.WriteString("/")
 			if seg.Type == pathidl.Static {
 				formatPath.WriteString(seg.Value)
 				continue
 			}
 			formatPath.WriteString("%s")
-			params[seg.Value] = ""
 		}
-
-		if len(params) == 0 {
-			continue
-		}
-
-		reqIndex := code.Reqs[rpc.Request]
-		t := code.Types[reqIndex.File][reqIndex.Index]
-		for _, f := range t.Fields {
-			if f.Binding == nil || f.Binding.From != "path" {
-				continue
-			}
-			if _, ok := params[f.Binding.Name]; !ok {
-				err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Name, rpc.Request)
-				return GoCode{}, err
-			}
-			params[f.Binding.Name] = f.Name
-		}
-
-		var paramNames []string
-		for k, s := range params {
-			if s == "" {
-				err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
-				return GoCode{}, err
-			}
-			paramNames = append(paramNames, s)
-		}
-
 		rpc.FormatPath = formatPath.String()
-		rpc.PathParams = paramNames
 		code.RPCs[rpcIndex] = rpc
 	}
 	return code, nil

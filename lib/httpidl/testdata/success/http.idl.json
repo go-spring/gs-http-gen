@@ -1072,7 +1072,9 @@
       "ContentType": "application/x-www-form-urlencoded",
       "ConnTimeout": 100,
       "ReadTimeout": 100,
-      "WriteTimeout": 100
+      "WriteTimeout": 100,
+      "PathSegments": null,
+      "PathParams": null
     }
   ],
   "EnumTypes": {
