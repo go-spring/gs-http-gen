@@ -146,7 +146,8 @@ type TypeField struct {
 	FormTag      FormTag        // Form tag
 	Binding      *Binding       // Field binding
 	Required     bool           // Required
-	Validate     validate.Expr  // Validate expression
+	Validate     bool           // Validate
+	ValidateExpr validate.Expr  // Validate expression
 	EnumAsString bool           // Enum as string
 	Annotations  []Annotation   // Additional metadata (key-value pairs)
 	Position     Position       // Location in source code

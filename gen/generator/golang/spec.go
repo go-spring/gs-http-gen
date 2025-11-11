@@ -338,9 +338,9 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 		// Generate validation expressions for the field
 		var validateExpr *string
-		if f.Validate != nil {
+		if f.ValidateExpr != nil {
 			var s string
-			s, err = genValidate(r.Name, fieldName, typeName, f.Validate, code.Funcs)
+			s, err = genValidate(r.Name, fieldName, typeName, f.ValidateExpr, code.Funcs)
 			if err != nil {
 				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 			}

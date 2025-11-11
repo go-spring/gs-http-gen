@@ -145,12 +145,10 @@ func ParseDir(dir string) (Project, error) {
 				t.Fields = fields
 			}
 
-			attr, err := getTypeAttr(files, t)
-			if err != nil {
-				return Project{}, err
+			if _, err = getAndUpdateTypeAttr(files, t); err != nil {
+				return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
 			}
-			t.Required = attr.Required
-			t.Validate = attr.Validate
+
 			doc.Types[i] = t // update
 		}
 	}
@@ -206,33 +204,31 @@ type Attr struct {
 	Validate bool
 }
 
-func getTypeAttr(files map[string]Document, t Type) (Attr, error) {
-	var attr Attr
+// getAndUpdateTypeAttr returns the required and validate attributes of a type.
+func getAndUpdateTypeAttr(files map[string]Document, t Type) (Attr, error) {
 	for _, f := range t.Fields {
-		if f.Required || f.Validate != nil {
-			if f.Required {
-				attr.Required = true
-			}
-			if f.Validate != nil {
-				attr.Validate = true
-			}
+		if f.Required || f.Validate {
 			continue
 		}
-
 		r, err := getUserTypeAttr(files, f.Type)
 		if err != nil {
 			return Attr{}, err
 		}
 		if r.Required {
-			attr.Required = true
+			t.Required = true
+			f.Required = true
 		}
 		if r.Validate {
-			attr.Validate = true
+			t.Validate = true
+			f.Validate = true
 		}
 	}
-	return attr, nil
+	fileName, index := FindType(files, t.Name)
+	files[fileName].Types[index] = t
+	return Attr{Required: t.Required, Validate: t.Validate}, nil
 }
 
+// getUserTypeAttr returns the required and validate attributes of a user-defined type.
 func getUserTypeAttr(files map[string]Document, t TypeDefinition) (Attr, error) {
 	switch x := t.(type) {
 	case UserType:
@@ -243,7 +239,7 @@ func getUserTypeAttr(files map[string]Document, t TypeDefinition) (Attr, error) 
 			}
 			return Attr{}, nil
 		}
-		return getTypeAttr(files, srcType)
+		return getAndUpdateTypeAttr(files, srcType)
 	case ListType:
 		return getUserTypeAttr(files, x.Item)
 	case MapType:
@@ -712,7 +708,8 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		if err != nil {
 			panic(errutil.Explain(nil, `failed to parse validate expression %s: %w`, *opt.Value, err))
 		}
-		typeField.Validate = expr
+		typeField.Validate = true
+		typeField.ValidateExpr = expr
 	}
 }
 

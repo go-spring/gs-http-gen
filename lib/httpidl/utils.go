@@ -58,6 +58,16 @@ func GetEnum(files map[string]Document, name string) (Enum, bool) {
 	return Enum{}, false
 }
 
+// FindType searches all documents for a type with the given name.
+func FindType(files map[string]Document, name string) (string, int) {
+	for fileName, doc := range files {
+		if i, ok := doc.TypeTypes[name]; ok {
+			return fileName, i
+		}
+	}
+	return "", -1
+}
+
 // GetType searches all documents for a type with the given name.
 func GetType(files map[string]Document, name string) (Type, bool) {
 	for _, doc := range files {
