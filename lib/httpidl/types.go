@@ -67,6 +67,14 @@ type Document struct {
 	UserTypes map[string]struct{}
 }
 
+// Annotation represents metadata attached to types, fields, or RPCs.
+type Annotation struct {
+	Key      string   // Annotation key
+	Value    *string  // Optional annotation value
+	Position Position // Location in source code
+	Comments Comments // Associated comments
+}
+
 // Const represents a constant definition in the parsed document.
 type Const struct {
 	Type     string   // Data type of the constant
@@ -99,29 +107,6 @@ type TypeDefinition interface {
 	Text() string
 }
 
-// Type represents a custom user-defined type (struct-like).
-type Type struct {
-	Name        string         // Name of the type
-	OneOf       bool           // Indicates whether this type is a oneof
-	Redefined   *RedefinedType // Represents a type alias (e.g., type A B<T>)
-	GenericName *string        // Optional generic type parameter (if present)
-	Fields      []TypeField    // Type fields
-	Required    bool           // Required
-	Validate    bool           // Validate
-	Position    Position       // Location in source code
-	Comments    Comments       // Associated comments
-}
-
-// RedefinedType represents a type alias with optional generic arguments.
-type RedefinedType struct {
-	Name        string         // Name of the aliased type
-	GenericType TypeDefinition // The generic type parameter
-}
-
-func (t RedefinedType) Text() string {
-	return t.Name + "<" + t.GenericType.Text() + ">"
-}
-
 // JSONTag represents the JSON tag of a field.
 type JSONTag struct {
 	Name      string
@@ -140,19 +125,42 @@ type Binding struct {
 	Name string // Field name in the source
 }
 
+// Type represents a custom user-defined type (struct-like).
+type Type struct {
+	Name        string         // Name of the type
+	OneOf       bool           // Indicates whether this type is a oneof
+	Redefined   *RedefinedType // Represents a type alias (e.g., type A B<T>)
+	GenericName *string        // Optional generic type parameter (if present)
+	Fields      []TypeField    // Type fields
+	Required    bool           // Required
+	Validate    bool           // Validate
+	Position    Position       // Location in source code
+	Comments    Comments       // Associated comments
+}
+
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
 	Type         TypeDefinition // Type of the field
 	Name         string         // Name of the field
-	Required     bool           // Required
 	JSONTag      JSONTag        // JSON tag
 	FormTag      FormTag        // Form tag
 	Binding      *Binding       // Field binding
+	Required     bool           // Required
 	Validate     validate.Expr  // Validate expression
 	EnumAsString bool           // Enum as string
 	Annotations  []Annotation   // Additional metadata (key-value pairs)
 	Position     Position       // Location in source code
 	Comments     Comments       // Associated comments
+}
+
+// RedefinedType represents a type alias with optional generic arguments.
+type RedefinedType struct {
+	Name        string         // Name of the aliased type
+	GenericType TypeDefinition // The generic type parameter
+}
+
+func (t RedefinedType) Text() string {
+	return t.Name + "<" + t.GenericType.Text() + ">"
 }
 
 // EmbedType represents an embedded type field (similar to composition in Go).
@@ -225,14 +233,6 @@ func (t ListType) Text() string {
 	return "list<" + t.Item.Text() + ">"
 }
 
-// Annotation represents metadata attached to types, fields, or RPCs.
-type Annotation struct {
-	Key      string   // Annotation key
-	Value    *string  // Optional annotation value
-	Position Position // Location in source code
-	Comments Comments // Associated comments
-}
-
 // RPC represents a remote procedure call definition.
 type RPC struct {
 	Name        string       // Name of the RPC
@@ -252,5 +252,5 @@ type RPC struct {
 	WriteTimeout int // Write timeout, ms
 
 	PathSegments []pathidl.Segment
-	PathParams   map[string]string
+	PathParams   map[string]string // path => field name of request type
 }

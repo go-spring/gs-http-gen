@@ -225,7 +225,6 @@
             "Name": "string"
           },
           "Name": "userId",
-          "Required": false,
           "JSONTag": {
             "Name": "userId",
             "OmitEmpty": true,
@@ -235,6 +234,7 @@
             "Name": "userId"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -279,7 +279,6 @@
         {
           "Type": "any",
           "Name": "name",
-          "Required": false,
           "JSONTag": {
             "Name": "name",
             "OmitEmpty": true,
@@ -289,6 +288,7 @@
             "Name": "name"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": [
@@ -331,7 +331,6 @@
             "Name": "int"
           },
           "Name": "age",
-          "Required": false,
           "JSONTag": {
             "Name": "age",
             "OmitEmpty": true,
@@ -341,6 +340,7 @@
             "Name": "age"
           },
           "Binding": null,
+          "Required": false,
           "Validate": {
             "Left": {
               "Value": "$",
@@ -381,7 +381,6 @@
         {
           "Type": "binary",
           "Name": "avatar",
-          "Required": false,
           "JSONTag": {
             "Name": "avatar",
             "OmitEmpty": true,
@@ -391,6 +390,7 @@
             "Name": "avatar"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -408,7 +408,6 @@
             "Name": "Address"
           },
           "Name": "",
-          "Required": false,
           "JSONTag": {
             "Name": "",
             "OmitEmpty": false,
@@ -418,6 +417,7 @@
             "Name": ""
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -455,7 +455,6 @@
             "Name": "Payload"
           },
           "Name": "payload",
-          "Required": false,
           "JSONTag": {
             "Name": "payload",
             "OmitEmpty": true,
@@ -465,6 +464,7 @@
             "Name": "payload"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -533,7 +533,6 @@
             "Name": "string"
           },
           "Name": "street",
-          "Required": false,
           "JSONTag": {
             "Name": "street",
             "OmitEmpty": true,
@@ -543,6 +542,7 @@
             "Name": "street"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -560,7 +560,6 @@
             "Name": "string"
           },
           "Name": "city",
-          "Required": true,
           "JSONTag": {
             "Name": "city",
             "OmitEmpty": true,
@@ -570,6 +569,7 @@
             "Name": "city"
           },
           "Binding": null,
+          "Required": true,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": [
@@ -600,7 +600,6 @@
             "Name": "string"
           },
           "Name": "country",
-          "Required": false,
           "JSONTag": {
             "Name": "country",
             "OmitEmpty": true,
@@ -610,6 +609,7 @@
             "Name": "country"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -645,7 +645,6 @@
             "Name": "PayloadType"
           },
           "Name": "FieldType",
-          "Required": true,
           "JSONTag": {
             "Name": "FieldType",
             "OmitEmpty": false,
@@ -655,6 +654,7 @@
             "Name": "FieldType"
           },
           "Binding": null,
+          "Required": true,
           "Validate": null,
           "EnumAsString": true,
           "Annotations": [
@@ -697,7 +697,6 @@
             "Name": "User"
           },
           "Name": "User",
-          "Required": false,
           "JSONTag": {
             "Name": "User",
             "OmitEmpty": true,
@@ -707,6 +706,7 @@
             "Name": "User"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -724,7 +724,6 @@
             "Name": "Address"
           },
           "Name": "Address",
-          "Required": false,
           "JSONTag": {
             "Name": "Address",
             "OmitEmpty": true,
@@ -734,6 +733,7 @@
             "Name": "Address"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -769,7 +769,6 @@
             "Name": "ErrCode"
           },
           "Name": "errno",
-          "Required": false,
           "JSONTag": {
             "Name": "errno",
             "OmitEmpty": true,
@@ -779,6 +778,7 @@
             "Name": "errno"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": true,
           "Annotations": [
@@ -809,7 +809,6 @@
             "Name": "string"
           },
           "Name": "errmsg",
-          "Required": false,
           "JSONTag": {
             "Name": "errmsg",
             "OmitEmpty": true,
@@ -819,6 +818,7 @@
             "Name": "errmsg"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
@@ -836,7 +836,6 @@
             "Name": "T"
           },
           "Name": "data",
-          "Required": false,
           "JSONTag": {
             "Name": "data",
             "OmitEmpty": true,
@@ -846,6 +845,7 @@
             "Name": "data"
           },
           "Binding": null,
+          "Required": false,
           "Validate": null,
           "EnumAsString": false,
           "Annotations": null,
