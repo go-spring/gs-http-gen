@@ -129,7 +129,7 @@ func ParseDir(dir string) (Project, error) {
 					fields = append(fields, f)
 				}
 				t.Fields = fields
-			} else {
+			} else if t.WithEmbed {
 				var fields []TypeField
 				for _, f := range t.Fields {
 					if e, ok := f.Type.(EmbedType); ok {
@@ -145,6 +145,7 @@ func ParseDir(dir string) (Project, error) {
 				t.Fields = fields
 			}
 
+			// get and update type attr
 			if _, err = getAndUpdateTypeAttr(files, t); err != nil {
 				return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
 			}
@@ -208,6 +209,12 @@ type Attr struct {
 func getAndUpdateTypeAttr(files map[string]Document, t Type) (Attr, error) {
 	for _, f := range t.Fields {
 		if f.Required || f.Validate {
+			if f.Required {
+				t.Required = true
+			}
+			if f.Validate {
+				t.Validate = true
+			}
 			continue
 		}
 		r, err := getUserTypeAttr(files, f.Type)
@@ -490,6 +497,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 
 		// Distinguish between embedded fields and normal fields
 		if etf := f.Embed_type_field(); etf != nil {
+			t.WithEmbed = true
 			u := etf.User_type()
 			embedType := EmbedType{
 				Name: u.IDENTIFIER().GetText(),
