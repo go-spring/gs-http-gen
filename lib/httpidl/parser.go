@@ -207,7 +207,7 @@ type Attr struct {
 
 // getAndUpdateTypeAttr returns the required and validate attributes of a type.
 func getAndUpdateTypeAttr(files map[string]Document, t Type) (Attr, error) {
-	for _, f := range t.Fields {
+	for i, f := range t.Fields {
 		if f.Required || f.Validate {
 			if f.Required {
 				t.Required = true
@@ -223,11 +223,11 @@ func getAndUpdateTypeAttr(files map[string]Document, t Type) (Attr, error) {
 		}
 		if r.Required {
 			t.Required = true
-			f.Required = true
+			t.Fields[i].Required = true
 		}
 		if r.Validate {
 			t.Validate = true
-			f.Validate = true
+			t.Fields[i].Validate = true
 		}
 	}
 	fileName, index := FindType(files, t.Name)

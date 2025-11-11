@@ -15,16 +15,16 @@ import (
 type TypeKind int
 
 const (
-	TypeKindBool TypeKind = iota
-	TypeKindInt
-	TypeKindUint
-	TypeKindFloat
-	TypeKindString
-	TypeKindStruct
-	TypeKindEnum
-	TypeKindList
-	TypeKindMap
-	TypeKindPointer
+	TypeKindBool    = TypeKind(0)
+	TypeKindInt     = TypeKind(1)
+	TypeKindUint    = TypeKind(2)
+	TypeKindFloat   = TypeKind(3)
+	TypeKindString  = TypeKind(4)
+	TypeKindStruct  = TypeKind(5)
+	TypeKindEnum    = TypeKind(6)
+	TypeKindList    = TypeKind(7)
+	TypeKindMap     = TypeKind(8)
+	TypeKindPointer = TypeKind(9)
 )
 
 // Const represents a Go constant

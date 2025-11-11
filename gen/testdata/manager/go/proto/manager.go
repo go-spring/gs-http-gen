@@ -452,6 +452,9 @@ func (x *Manager) Validate() (err error) {
 			err = errutil.Explain(err, "validate failed on Manager.Salary")
 		}
 	}
+	if x.Contact == nil {
+		err = errutil.Explain(err, "%s is required", "Manager.Contact")
+	}
 	return
 }
 
@@ -748,6 +751,9 @@ func (x *CreateManagerReqBody) Validate() (err error) {
 			err = errutil.Explain(err, "validate failed on CreateManagerReq.Salary")
 		}
 	}
+	if x.Contact == nil {
+		err = errutil.Explain(err, "%s is required", "CreateManagerReqBody.Contact")
+	}
 	return
 }
 
@@ -965,6 +971,9 @@ func (x *UpdateManagerReqBody) Validate() (err error) {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
 			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Salary")
 		}
+	}
+	if x.Contact == nil {
+		err = errutil.Explain(err, "%s is required", "UpdateManagerReqBody.Contact")
 	}
 	return
 }
@@ -1264,6 +1273,9 @@ func (x *CreateManagerResp) Validate() (err error) {
 	if x.Errmsg == nil {
 		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errmsg")
 	}
+	if x.Data == nil {
+		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Data")
+	}
 	return
 }
 
@@ -1331,6 +1343,9 @@ func (x *UpdateManagerResp) Validate() (err error) {
 	if x.Errmsg == nil {
 		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errmsg")
 	}
+	if x.Data == nil {
+		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Data")
+	}
 	return
 }
 
@@ -1397,6 +1412,9 @@ func (x *GetManagerResp) Validate() (err error) {
 	}
 	if x.Errmsg == nil {
 		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errmsg")
+	}
+	if x.Data == nil {
+		err = errutil.Explain(err, "%s is required", "GetManagerResp.Data")
 	}
 	return
 }
@@ -1522,6 +1540,9 @@ func (x *ManagersPageData) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *ManagersPageData) Validate() (err error) {
+	if x.Items == nil {
+		err = errutil.Explain(err, "%s is required", "ManagersPageData.Items")
+	}
 	return
 }
 
@@ -1599,6 +1620,9 @@ func (x *ListManagersByPageResp) Validate() (err error) {
 	}
 	if x.Errmsg == nil {
 		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errmsg")
+	}
+	if x.Data == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Data")
 	}
 	return
 }

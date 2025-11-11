@@ -154,6 +154,9 @@ func (x *StreamResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *StreamResp) Validate() (err error) {
+	if x.Payload == nil {
+		err = errutil.Explain(err, "%s is required", "StreamResp.Payload")
+	}
 	return
 }
 
