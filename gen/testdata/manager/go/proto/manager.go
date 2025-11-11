@@ -455,6 +455,11 @@ func (x *Manager) Validate() (err error) {
 	if x.Contact == nil {
 		err = errutil.Explain(err, "%s is required", "Manager.Contact")
 	}
+	if x.Contact != nil {
+		if e := x.Contact.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on Manager.Contact")
+		}
+	}
 	return
 }
 
@@ -754,6 +759,11 @@ func (x *CreateManagerReqBody) Validate() (err error) {
 	if x.Contact == nil {
 		err = errutil.Explain(err, "%s is required", "CreateManagerReqBody.Contact")
 	}
+	if x.Contact != nil {
+		if e := x.Contact.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on CreateManagerReq.Contact")
+		}
+	}
 	return
 }
 
@@ -975,6 +985,11 @@ func (x *UpdateManagerReqBody) Validate() (err error) {
 	if x.Contact == nil {
 		err = errutil.Explain(err, "%s is required", "UpdateManagerReqBody.Contact")
 	}
+	if x.Contact != nil {
+		if e := x.Contact.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Contact")
+		}
+	}
 	return
 }
 
@@ -1142,6 +1157,9 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 			err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Size")
 		}
 	}
+	if !(len(x.Keyword) <= 5) {
+		err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Keyword")
+	}
 	return
 }
 
@@ -1276,6 +1294,11 @@ func (x *CreateManagerResp) Validate() (err error) {
 	if x.Data == nil {
 		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Data")
 	}
+	if x.Data != nil {
+		if e := x.Data.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on CreateManagerResp.Data")
+		}
+	}
 	return
 }
 
@@ -1346,6 +1369,11 @@ func (x *UpdateManagerResp) Validate() (err error) {
 	if x.Data == nil {
 		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Data")
 	}
+	if x.Data != nil {
+		if e := x.Data.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on UpdateManagerResp.Data")
+		}
+	}
 	return
 }
 
@@ -1415,6 +1443,11 @@ func (x *GetManagerResp) Validate() (err error) {
 	}
 	if x.Data == nil {
 		err = errutil.Explain(err, "%s is required", "GetManagerResp.Data")
+	}
+	if x.Data != nil {
+		if e := x.Data.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on GetManagerResp.Data")
+		}
 	}
 	return
 }
@@ -1623,6 +1656,11 @@ func (x *ListManagersByPageResp) Validate() (err error) {
 	}
 	if x.Data == nil {
 		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Data")
+	}
+	if x.Data != nil {
+		if e := x.Data.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on ListManagersByPageResp.Data")
+		}
 	}
 	return
 }

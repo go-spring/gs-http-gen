@@ -157,6 +157,11 @@ func (x *StreamResp) Validate() (err error) {
 	if x.Payload == nil {
 		err = errutil.Explain(err, "%s is required", "StreamResp.Payload")
 	}
+	if x.Payload != nil {
+		if e := x.Payload.Validate(); e != nil {
+			err = errutil.Explain(err, "validate failed on StreamResp.Payload")
+		}
+	}
 	return
 }
 

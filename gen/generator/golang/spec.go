@@ -338,13 +338,15 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 		// Generate validation expressions for the field
 		var validateExpr *string
-		if f.ValidateExpr != nil {
+		if f.Required || f.Validate {
 			var s string
-			s, err = genValidate(r.Name, fieldName, typeName, f.ValidateExpr, code.Funcs)
+			s, err = genValidate(r.Name, fieldName, typeName, typeKind, f.ValidateExpr, code.Funcs)
 			if err != nil {
 				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 			}
-			validateExpr = &s
+			if s != "" {
+				validateExpr = &s
+			}
 		}
 
 		// Add the field to the struct
@@ -548,7 +550,26 @@ var builtinFuncs = map[string]struct{}{
 
 // genValidate generates validation code for a struct field based on its "validate" annotation.
 // Returns a Go code snippet that checks the field and returns an error if validation fails.
-func genValidate(receiverType, fieldName, fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
+func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
+	expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
+
+	if expr == nil {
+		if typeKind[0] == TypeKindPointer {
+			var str string
+			if typeKind[1] != TypeKindStruct {
+				return str, nil
+			}
+			str = fmt.Sprintf(`if e := x.%s.Validate(); e != nil {
+				err = errutil.Explain(err, "validate failed on %s.%s")
+			}`, fieldName, receiverType, fieldName)
+			str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
+			return str, nil
+		} else if typeKind[0] == TypeKindList {
+			return "", nil
+		} else if typeKind[0] == TypeKindMap {
+			return "", nil
+		}
+	}
 
 	optional := strings.HasPrefix(fieldType, "*")
 	dollar := "x." + fieldName
