@@ -320,7 +320,13 @@ func dumpRPC(r RPC) string {
 	sb.WriteString("(")
 	sb.WriteString(r.Request)
 	sb.WriteString(") ")
-	sb.WriteString(r.Response.Text())
+	if r.Stream {
+		sb.WriteString("stream<")
+		sb.WriteString(r.Response)
+		sb.WriteString(">")
+	} else {
+		sb.WriteString(r.Response)
+	}
 	sb.WriteString(" {")
 
 	for _, a := range r.Annotations {

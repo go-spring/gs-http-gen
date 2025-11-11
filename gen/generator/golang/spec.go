@@ -152,9 +152,9 @@ func Convert(dir string) (GoCode, error) {
 		for _, r := range doc.RPCs {
 			rpc := RPC{
 				Name:         r.Name,
-				Request:      r.Request.Name,
-				Response:     r.Response.UserType.Name,
-				Stream:       r.Response.Stream,
+				Request:      r.Request,
+				Response:     r.Response,
+				Stream:       r.Stream,
 				Path:         r.Path,
 				FormatPath:   r.Path, // 假设是普通路径
 				PathSegments: r.PathSegments,

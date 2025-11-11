@@ -805,18 +805,16 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	// Response
 	respType := ctx.Rpc_resp().User_type()
 	if ctx.Rpc_resp().TYPE_STREAM() != nil {
-		r.Response.Stream = true
+		r.Stream = true
 	}
-	r.Response.UserType = UserType{
-		Name: respType.IDENTIFIER().GetText(),
+	r.Response = respType.IDENTIFIER().GetText()
+	if !IsPascal(r.Response) {
+		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response, r.Position.Start))
 	}
-	if !IsPascal(r.Response.UserType.Name) {
-		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response.UserType.Name, r.Position.Start))
+	if !strings.HasSuffix(r.Response, "Resp") {
+		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response, r.Position.Start))
 	}
-	if !strings.HasSuffix(r.Response.UserType.Name, "Resp") {
-		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response.UserType.Name, r.Position.Start))
-	}
-	l.Document.UserTypes[r.Response.UserType.Name] = struct{}{}
+	l.Document.UserTypes[r.Response] = struct{}{}
 
 	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {

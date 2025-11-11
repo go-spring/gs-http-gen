@@ -236,8 +236,9 @@ type Annotation struct {
 // RPC represents a remote procedure call definition.
 type RPC struct {
 	Name        string       // Name of the RPC
+	Stream      bool         // Whether the response is a stream
 	Request     string       // Request type
-	Response    RespType     // Response type
+	Response    string       // Response type
 	Annotations []Annotation // Metadata attached to the RPC
 	Position    Position     // Location in source code
 	Comments    Comments     // Associated comments
@@ -252,18 +253,4 @@ type RPC struct {
 
 	PathSegments []pathidl.Segment
 	PathParams   map[string]string
-}
-
-// RespType represents the response type of an RPC.
-type RespType struct {
-	Stream   bool     // Whether the response is a stream
-	UserType UserType // User-defined type for the response
-}
-
-// Text returns a human-readable representation of the response type.
-func (t RespType) Text() string {
-	if t.Stream {
-		return "stream<" + t.UserType.Text() + ">"
-	}
-	return t.UserType.Text()
 }
