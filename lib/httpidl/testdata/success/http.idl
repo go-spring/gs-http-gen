@@ -39,7 +39,7 @@ type User {
 
 type Address {
     string street
-    string city ( required )
+    required string city
     string country
 }
 

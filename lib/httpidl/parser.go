@@ -558,7 +558,6 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		},
 		EnumAsString: true,
 		Annotations: []Annotation{
-			{Key: "required"},
 			{Key: "enum_as_string"},
 		},
 	})
@@ -606,6 +605,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, typeField *TypeField, t *Type) {
 	typeField.Type = l.parseCommonFieldType(f.Common_field_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
+	typeField.Required = f.KW_REQUIRED() != nil
 
 	// Annotations
 	if f.Type_annotations() != nil {
@@ -625,7 +625,6 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 	}
 
-	_, typeField.Required = GetAnnotation(typeField.Annotations, "required")
 	_, typeField.EnumAsString = GetAnnotation(typeField.Annotations, "enum_as_string")
 
 	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: true, OmitZero: false}
@@ -839,7 +838,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		r.Annotations = append(r.Annotations, a)
 	}
 
-	// Retrieve the required "path" annotation
+	// Retrieve the "path" annotation
 	path, ok := GetAnnotation(r.Annotations, "path")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "path" not found in rpc %s`, r.Name))
@@ -848,7 +847,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		panic(errutil.Explain(nil, `annotation "path" value is nil in rpc %s`, r.Name))
 	}
 
-	// Retrieve the required "method" annotation
+	// Retrieve the "method" annotation
 	method, ok := GetAnnotation(r.Annotations, "method")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "method" not found in rpc %s`, r.Name))
@@ -857,7 +856,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		panic(errutil.Explain(nil, `annotation "method" value is nil in rpc %s`, r.Name))
 	}
 
-	// Retrieve the required "contentType" annotation
+	// Retrieve the "contentType" annotation
 	ct, ok := GetAnnotation(r.Annotations, "contentType")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "contentType" not found in rpc %s`, r.Name))
@@ -876,7 +875,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		contentType = s
 	}
 
-	// Retrieve the required "connTimeout" annotation
+	// Retrieve the "connTimeout" annotation
 	connTimeout, ok := GetAnnotation(r.Annotations, "connTimeout")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "connTimeout" not found in rpc %s`, r.Name))
@@ -885,7 +884,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		panic(errutil.Explain(nil, `annotation "connTimeout" value is nil in rpc %s`, r.Name))
 	}
 
-	// Retrieve the required "readTimeout" annotation
+	// Retrieve the "readTimeout" annotation
 	readTimeout, ok := GetAnnotation(r.Annotations, "readTimeout")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "readTimeout" not found in rpc %s`, r.Name))
@@ -894,7 +893,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		panic(errutil.Explain(nil, `annotation "readTimeout" value is nil in rpc %s`, r.Name))
 	}
 
-	// Retrieve the required "writeTimeout" annotation
+	// Retrieve the "writeTimeout" annotation
 	writeTimeout, ok := GetAnnotation(r.Annotations, "writeTimeout")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "writeTimeout" not found in rpc %s`, r.Name))

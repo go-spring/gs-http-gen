@@ -282,6 +282,9 @@ func dumpTypeField(t Type, f TypeField, sb *strings.Builder) {
 	dumpAboveComments(f.Comments.Above, sb, indent)
 
 	sb.WriteString(indent)
+	if f.Required {
+		sb.WriteString("required ")
+	}
 	sb.WriteString(f.Type.Text())
 
 	if _, ok := f.Type.(EmbedType); !ok && !t.OneOf {

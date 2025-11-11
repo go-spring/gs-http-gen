@@ -9,13 +9,14 @@ channels {WS_CHAN, SL_COMMENT_CHAN, ML_COMMENT_CHAN}
 // --------------------
 // Keywords
 // --------------------
-KW_CONST : 'const';
-KW_ENUM  : 'enum';
-KW_TYPE  : 'type';
-KW_ONEOF : 'oneof';
-KW_RPC   : 'rpc';
-KW_TRUE  : 'true';
-KW_FALSE : 'false';
+KW_CONST    : 'const';
+KW_ENUM     : 'enum';
+KW_TYPE     : 'type';
+KW_ONEOF    : 'oneof';
+KW_RPC      : 'rpc';
+KW_TRUE     : 'true';
+KW_FALSE    : 'false';
+KW_REQUIRED : 'required';
 
 // --------------------
 // Basic types

@@ -572,20 +572,7 @@
           "Required": true,
           "Validate": null,
           "EnumAsString": false,
-          "Annotations": [
-            {
-              "Key": "required",
-              "Value": null,
-              "Position": {
-                "Start": 42,
-                "Stop": 42
-              },
-              "Comments": {
-                "Above": null,
-                "Right": null
-              }
-            }
-          ],
+          "Annotations": null,
           "Position": {
             "Start": 42,
             "Stop": 42
@@ -658,18 +645,6 @@
           "Validate": null,
           "EnumAsString": true,
           "Annotations": [
-            {
-              "Key": "required",
-              "Value": null,
-              "Position": {
-                "Start": 0,
-                "Stop": 0
-              },
-              "Comments": {
-                "Above": null,
-                "Right": null
-              }
-            },
             {
               "Key": "enum_as_string",
               "Value": null,
