@@ -211,7 +211,7 @@ func (x *PageReq) Validate() (err error) {
 	}
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
-			return errutil.Explain(nil, "validate failed on PageReq.Page")
+			err = errutil.Explain(err, "validate failed on PageReq.Page")
 		}
 	}
 	if x.Size == nil {
@@ -219,7 +219,7 @@ func (x *PageReq) Validate() (err error) {
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			return errutil.Explain(nil, "validate failed on PageReq.Size")
+			err = errutil.Explain(err, "validate failed on PageReq.Size")
 		}
 	}
 	return
@@ -328,7 +328,7 @@ func (x *ContactInfo) Validate() (err error) {
 	}
 	if x.Email != nil {
 		if !(Email(*x.Email)) {
-			return errutil.Explain(nil, "validate failed on ContactInfo.Email")
+			err = errutil.Explain(err, "validate failed on ContactInfo.Email")
 		}
 	}
 	return
@@ -439,17 +439,17 @@ func (x *Manager) New() any {
 func (x *Manager) Validate() (err error) {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			return errutil.Explain(nil, "validate failed on Manager.Name")
+			err = errutil.Explain(err, "validate failed on Manager.Name")
 		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errutil.Explain(nil, "validate failed on Manager.Age")
+			err = errutil.Explain(err, "validate failed on Manager.Age")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			return errutil.Explain(nil, "validate failed on Manager.Salary")
+			err = errutil.Explain(err, "validate failed on Manager.Salary")
 		}
 	}
 	return
@@ -735,17 +735,17 @@ func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
 func (x *CreateManagerReqBody) Validate() (err error) {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			return errutil.Explain(nil, "validate failed on CreateManagerReq.Name")
+			err = errutil.Explain(err, "validate failed on CreateManagerReq.Name")
 		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errutil.Explain(nil, "validate failed on CreateManagerReq.Age")
+			err = errutil.Explain(err, "validate failed on CreateManagerReq.Age")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			return errutil.Explain(nil, "validate failed on CreateManagerReq.Salary")
+			err = errutil.Explain(err, "validate failed on CreateManagerReq.Salary")
 		}
 	}
 	return
@@ -958,12 +958,12 @@ func (x *UpdateManagerReqBody) DecodeFromForm(b []byte) error {
 func (x *UpdateManagerReqBody) Validate() (err error) {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errutil.Explain(nil, "validate failed on UpdateManagerReq.Age")
+			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Age")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			return errutil.Explain(nil, "validate failed on UpdateManagerReq.Salary")
+			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Salary")
 		}
 	}
 	return
@@ -1122,7 +1122,7 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 	}
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
-			return errutil.Explain(nil, "validate failed on ListManagersByPageReq.Page")
+			err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Page")
 		}
 	}
 	if x.Size == nil {
@@ -1130,7 +1130,7 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			return errutil.Explain(nil, "validate failed on ListManagersByPageReq.Size")
+			err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Size")
 		}
 	}
 	return
@@ -1258,7 +1258,7 @@ func (x *CreateManagerResp) Validate() (err error) {
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
+			err = errutil.Explain(err, "validate failed on CreateManagerResp.Errno")
 		}
 	}
 	if x.Errmsg == nil {
@@ -1325,7 +1325,7 @@ func (x *UpdateManagerResp) Validate() (err error) {
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
+			err = errutil.Explain(err, "validate failed on UpdateManagerResp.Errno")
 		}
 	}
 	if x.Errmsg == nil {
@@ -1392,7 +1392,7 @@ func (x *GetManagerResp) Validate() (err error) {
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
+			err = errutil.Explain(err, "validate failed on GetManagerResp.Errno")
 		}
 	}
 	if x.Errmsg == nil {
@@ -1459,7 +1459,7 @@ func (x *DeleteManagerResp) Validate() (err error) {
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
+			err = errutil.Explain(err, "validate failed on DeleteManagerResp.Errno")
 		}
 	}
 	if x.Errmsg == nil {
@@ -1594,7 +1594,7 @@ func (x *ListManagersByPageResp) Validate() (err error) {
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
+			err = errutil.Explain(err, "validate failed on ListManagersByPageResp.Errno")
 		}
 	}
 	if x.Errmsg == nil {

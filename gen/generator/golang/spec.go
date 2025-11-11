@@ -564,7 +564,7 @@ func genValidate(receiverType, fieldName, fieldType string, expr validate.Expr, 
 
 	// Wrap in an if statement returning an error on failure
 	str = fmt.Sprintf(`if !(%s) {
-		return errutil.Explain(nil,"validate failed on %s.%s")
+		err = errutil.Explain(err,"validate failed on %s.%s")
 	}`, str, receiverType, fieldName)
 
 	if optional {
