@@ -45,15 +45,15 @@ enum Department {
 
 // Generic response wrapper for all RPCs
 type Response<T> {
-    ErrCode errno (required, validate="OneOfErrCode($)")
-    string errmsg (required)
+    required ErrCode errno (validate="OneOfErrCode($)")
+    required string errmsg
     T data
 }
 
 // Pagination request and response
 type PageReq {
-    int page (json="page", required, validate="$ >= 1", query="page")
-    int size (required, validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
+    required int page (json="page", validate="$ >= 1", query="page")
+    required int size (validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
 }
 
 type PageResp<T> {
@@ -71,7 +71,7 @@ type Address {
 }
 
 type ContactInfo {
-    string email (required, validate="Email($)")
+    required string email (validate="Email($)")
     string phone
     Address address
 }
