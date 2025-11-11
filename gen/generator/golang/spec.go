@@ -149,9 +149,16 @@ func Convert(dir string) (GoCode, error) {
 	// Collect all RPC definitions
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
-			rpc, err := convertRPC(r)
-			if err != nil {
-				return code, err
+			rpc := RPC{
+				Name:        r.Name,
+				Request:     r.Request.Name,
+				Response:    r.Response.UserType.Name,
+				Stream:      r.Response.Stream,
+				Path:        r.Path,
+				FormatPath:  r.Path, // 假设是普通路径
+				Method:      r.Method,
+				ContentType: r.ContentType,
+				Comment:     formatComment(r.Comments),
 			}
 			code.RPCs = append(code.RPCs, rpc)
 			code.Reqs[rpc.Request] = ReqIndex{}
@@ -178,8 +185,8 @@ func Convert(dir string) (GoCode, error) {
 			var temp []Type
 			for _, t := range types {
 				if _, ok := code.Reqs[t.Name]; ok {
-					req, body := SplitRequestType(t)
 					code.Reqs[t.Name] = ReqIndex{File: fileName, Index: len(temp)}
+					req, body := SplitRequestType(t)
 					temp = append(temp, req, body)
 				} else {
 					temp = append(temp, t)
@@ -191,14 +198,32 @@ func Convert(dir string) (GoCode, error) {
 		code.Enums[fileName] = enums
 		code.Types[fileName] = types
 	}
+
 	for rpcIndex, rpc := range code.RPCs {
-		if len(rpc.PathParams) == 0 {
+		segments, err := pathidl.Parse(rpc.Path)
+		if err != nil {
+			return code, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
+		}
+
+		var (
+			params     = make(map[string]string)
+			formatPath strings.Builder
+		)
+
+		for _, seg := range segments {
+			formatPath.WriteString("/")
+			if seg.Type == pathidl.Static {
+				formatPath.WriteString(seg.Value)
+				continue
+			}
+			formatPath.WriteString("%s")
+			params[seg.Value] = ""
+		}
+
+		if len(params) == 0 {
 			continue
 		}
-		params := make(map[string]string)
-		for _, p := range rpc.PathParams {
-			params[p] = ""
-		}
+
 		reqIndex := code.Reqs[rpc.Request]
 		t := code.Types[reqIndex.File][reqIndex.Index]
 		for _, f := range t.Fields {
@@ -211,14 +236,17 @@ func Convert(dir string) (GoCode, error) {
 			}
 			params[f.Binding.Name] = f.Name
 		}
+
 		var paramNames []string
-		for _, p := range rpc.PathParams {
-			if params[p] == "" {
-				err = errutil.Explain(nil, "path parameter %s not found in request type %s", p, rpc.Request)
+		for k, s := range params {
+			if s == "" {
+				err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
 				return GoCode{}, err
 			}
-			paramNames = append(paramNames, params[p])
+			paramNames = append(paramNames, s)
 		}
+
+		rpc.FormatPath = formatPath.String()
 		rpc.PathParams = paramNames
 		code.RPCs[rpcIndex] = rpc
 	}
@@ -656,40 +684,6 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 	default:
 		return "", errutil.Explain(nil, "unknown expression type: %s", x.Text())
 	}
-}
-
-// convertRPC converts a TIDL RPC to a RPC.
-func convertRPC(r httpidl.RPC) (RPC, error) {
-
-	// Parse the path (source)
-	var pathParams []string
-	segments, err := pathidl.Parse(r.Path)
-	if err != nil {
-		return RPC{}, errutil.Explain(err, `failed to parse path %s`, r.Path)
-	}
-	var formatPath strings.Builder
-	for _, seg := range segments {
-		formatPath.WriteString("/")
-		if seg.Type == pathidl.Static {
-			formatPath.WriteString(seg.Value)
-			continue
-		}
-		formatPath.WriteString("%s")
-		pathParams = append(pathParams, seg.Value)
-	}
-
-	return RPC{
-		Name:        r.Name,
-		Request:     r.Request.Name,
-		Response:    r.Response.UserType.Name,
-		Stream:      r.Response.Stream,
-		Path:        r.Path,
-		FormatPath:  formatPath.String(),
-		PathParams:  pathParams,
-		Method:      r.Method,
-		ContentType: r.ContentType,
-		Comment:     formatComment(r.Comments),
-	}, nil
 }
 
 // formatComment converts a tidl.Comments into Go comments.
