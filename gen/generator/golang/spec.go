@@ -131,6 +131,19 @@ type GoCode struct {
 	Funcs  map[string]ValidateFunc // Collected validation functions
 }
 
+// formatComment converts a tidl.Comments into Go comments.
+func formatComment(c httpidl.Comments) string {
+	var lines []string
+	for _, s := range c.Above {
+		lines = append(lines, s.Text...)
+	}
+	if c.Right != nil {
+		lines = append(lines, c.Right.Text...)
+	}
+	return strings.Join(lines, "\n")
+}
+
+// Convert converts an IDL project to Go code.
 func Convert(dir string) (GoCode, error) {
 	project, err := httpidl.ParseDir(dir)
 	if err != nil {
@@ -652,16 +665,4 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 	default:
 		return "", errutil.Explain(nil, "unknown expression type: %s", x.Text())
 	}
-}
-
-// formatComment converts a tidl.Comments into Go comments.
-func formatComment(c httpidl.Comments) string {
-	var lines []string
-	for _, s := range c.Above {
-		lines = append(lines, s.Text...)
-	}
-	if c.Right != nil {
-		lines = append(lines, c.Right.Text...)
-	}
-	return strings.Join(lines, "\n")
 }
