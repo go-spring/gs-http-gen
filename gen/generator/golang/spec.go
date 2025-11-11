@@ -171,15 +171,15 @@ func Convert(dir string) (GoCode, error) {
 	for fileName, doc := range project.Files {
 		consts, err := convertConsts(code, doc)
 		if err != nil {
-			return code, errutil.Explain(nil, "convert consts error: %w", err)
+			return GoCode{}, errutil.Explain(nil, "convert consts error: %w", err)
 		}
 		enums, err := convertEnums(code, doc)
 		if err != nil {
-			return code, errutil.Explain(nil, "convert enums error: %w", err)
+			return GoCode{}, errutil.Explain(nil, "convert enums error: %w", err)
 		}
 		types, err := convertTypes(code, doc)
 		if err != nil {
-			return code, errutil.Explain(nil, "convert types error: %w", err)
+			return GoCode{}, errutil.Explain(nil, "convert types error: %w", err)
 		}
 		{
 			var temp []Type
@@ -202,7 +202,7 @@ func Convert(dir string) (GoCode, error) {
 	for rpcIndex, rpc := range code.RPCs {
 		segments, err := pathidl.Parse(rpc.Path)
 		if err != nil {
-			return code, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
+			return GoCode{}, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
 		}
 
 		var (
