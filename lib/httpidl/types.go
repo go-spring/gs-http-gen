@@ -236,7 +236,7 @@ type Annotation struct {
 // RPC represents a remote procedure call definition.
 type RPC struct {
 	Name        string       // Name of the RPC
-	Request     UserType     // Request type
+	Request     string       // Request type
 	Response    RespType     // Response type
 	Annotations []Annotation // Metadata attached to the RPC
 	Position    Position     // Location in source code

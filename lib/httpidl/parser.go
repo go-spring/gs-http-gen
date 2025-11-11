@@ -166,9 +166,9 @@ func ParseDir(dir string) (Project, error) {
 				}
 				params[seg.Value] = ""
 			}
-			srcType, ok := GetType(files, rpc.Request.Name)
+			srcType, ok := GetType(files, rpc.Request)
 			if !ok {
-				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request.Name)
+				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
 			}
 			for _, f := range srcType.Fields {
 				if f.Binding == nil || f.Binding.From != "path" {
@@ -793,17 +793,14 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Request
-	reqType := ctx.Rpc_req().User_type()
-	r.Request = UserType{
-		Name: reqType.IDENTIFIER().GetText(),
+	r.Request = ctx.Rpc_req().User_type().IDENTIFIER().GetText()
+	if !IsPascal(r.Request) {
+		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request, r.Position.Start))
 	}
-	if !IsPascal(r.Request.Name) {
-		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
+	if !strings.HasSuffix(r.Request, "Req") {
+		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request, r.Position.Start))
 	}
-	if !strings.HasSuffix(r.Request.Name, "Req") {
-		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request.Name, r.Position.Start))
-	}
-	l.Document.UserTypes[r.Request.Name] = struct{}{}
+	l.Document.UserTypes[r.Request] = struct{}{}
 
 	// Response
 	respType := ctx.Rpc_resp().User_type()

@@ -318,7 +318,7 @@ func dumpRPC(r RPC) string {
 	sb.WriteString("rpc ")
 	sb.WriteString(r.Name)
 	sb.WriteString("(")
-	sb.WriteString(r.Request.Text())
+	sb.WriteString(r.Request)
 	sb.WriteString(") ")
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")

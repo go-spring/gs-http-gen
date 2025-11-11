@@ -920,9 +920,7 @@
   "RPCs": [
     {
       "Name": "GetUser",
-      "Request": {
-        "Name": "UserReq"
-      },
+      "Request": "UserReq",
       "Response": {
         "Stream": false,
         "UserType": {
