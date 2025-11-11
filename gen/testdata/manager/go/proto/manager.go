@@ -1197,12 +1197,12 @@ func (x *ListManagersByPageReq) CheckRequired() error {
 func (x *ListManagersByPageReq) Validate() error {
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
-			return errutil.Explain(nil, "validate failed on PageReq.Page")
+			return errutil.Explain(nil, "validate failed on ListManagersByPageReq.Page")
 		}
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			return errutil.Explain(nil, "validate failed on PageReq.Size")
+			return errutil.Explain(nil, "validate failed on ListManagersByPageReq.Size")
 		}
 	}
 	return nil

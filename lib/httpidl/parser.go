@@ -114,10 +114,9 @@ func ParseDir(dir string) (Project, error) {
 
 	for _, doc := range files {
 		for i, t := range doc.Types {
-			if t.GenericName != nil {
+			if t.GenericName != nil { // generic type, need instance
 				continue
-			}
-			if t.Redefined != nil {
+			} else if t.Redefined != nil { // generic type instance
 				srcType, ok := GetType(files, t.Redefined.Name)
 				if !ok {
 					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.Redefined.Name)
@@ -126,6 +125,20 @@ func ParseDir(dir string) (Project, error) {
 				for _, f := range srcType.Fields {
 					f.Type = replaceGenericType(f.Type, *srcType.GenericName, t.Redefined.GenericType)
 					fields = append(fields, f)
+				}
+				doc.Types[i].Fields = fields
+			} else {
+				var fields []TypeField
+				for _, f := range t.Fields {
+					if e, ok := f.Type.(EmbedType); ok {
+						srcType, ok := GetType(files, e.Name)
+						if !ok {
+							return Project{}, errutil.Explain(nil, "type %s is used but not defined", e.Name)
+						}
+						fields = append(fields, srcType.Fields...)
+					} else {
+						fields = append(fields, f)
+					}
 				}
 				doc.Types[i].Fields = fields
 			}

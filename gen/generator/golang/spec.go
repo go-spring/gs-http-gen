@@ -312,21 +312,6 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 	// Handle fields
 	for _, f := range t.Fields {
 
-		// Handle embedded types (flatten their fields into the struct)
-		if embedType, ok := f.Type.(httpidl.EmbedType); ok {
-			srcType, ok := httpidl.GetType(code.Files, embedType.Name)
-			if !ok {
-				return Type{}, errutil.Explain(nil, "embedded type %s not found for field in type %s", embedType.Name, r.Name)
-			}
-			retType, err := convertType(code, srcType)
-			if err != nil {
-				return Type{}, errutil.Explain(nil, "failed to convert embedded type %s in type %s: %w", embedType.Name, r.Name, err)
-			}
-			// Append embedded type's fields
-			r.Fields = append(r.Fields, retType.Fields...)
-			continue
-		}
-
 		// Convert field name to PascalCase for Go
 		fieldName := httpidl.ToPascal(f.Name)
 
