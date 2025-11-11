@@ -83,15 +83,9 @@ func (x *StreamReq) Binding(r *http.Request) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *StreamReq) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *StreamReq) Validate() error {
-	return nil
+func (x *StreamReq) Validate() (err error) {
+	return
 }
 
 func (x *StreamReq) String() string {
@@ -124,15 +118,9 @@ func (x *StreamReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *StreamReqBody) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *StreamReqBody) Validate() error {
-	return nil
+func (x *StreamReqBody) Validate() (err error) {
+	return
 }
 
 func (x *StreamReqBody) GetId() (v string) {
@@ -164,15 +152,9 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *StreamResp) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *StreamResp) Validate() error {
-	return nil
+func (x *StreamResp) Validate() (err error) {
+	return
 }
 
 func (x *StreamResp) GetId() (v string) {
@@ -227,18 +209,12 @@ func (x *Payload) New() any {
 	return &Payload{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *Payload) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *Payload) Validate() (err error) {
 	if x.FieldType == nil {
 		err = errutil.Explain(err, "%s is required", "Payload.FieldType")
 	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *Payload) Validate() error {
-	return nil
+	return
 }
 
 func (x *Payload) GetFieldType() (v PayloadTypeAsString) {
@@ -300,15 +276,9 @@ func (x *Payload_1) New() any {
 	return &Payload_1{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *Payload_1) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *Payload_1) Validate() error {
-	return nil
+func (x *Payload_1) Validate() (err error) {
+	return
 }
 
 func (x *Payload_1) String() string {
@@ -326,15 +296,9 @@ func (x *Payload_2) New() any {
 	return &Payload_2{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *Payload_2) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *Payload_2) Validate() error {
-	return nil
+func (x *Payload_2) Validate() (err error) {
+	return
 }
 
 func (x *Payload_2) String() string {
@@ -352,15 +316,9 @@ func (x *Payload_3) New() any {
 	return &Payload_3{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *Payload_3) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *Payload_3) Validate() error {
-	return nil
+func (x *Payload_3) Validate() (err error) {
+	return
 }
 
 func (x *Payload_3) String() string {

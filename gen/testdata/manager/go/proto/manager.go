@@ -204,31 +204,25 @@ func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *PageReq) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *PageReq) Validate() (err error) {
 	if x.Page == nil {
 		err = errutil.Explain(err, "%s is required", "PageReq.Page")
 	}
-	if x.Size == nil {
-		err = errutil.Explain(err, "%s is required", "PageReq.Size")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *PageReq) Validate() error {
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
 			return errutil.Explain(nil, "validate failed on PageReq.Page")
 		}
+	}
+	if x.Size == nil {
+		err = errutil.Explain(err, "%s is required", "PageReq.Size")
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
 			return errutil.Explain(nil, "validate failed on PageReq.Size")
 		}
 	}
-	return nil
+	return
 }
 
 func (x *PageReq) GetPage() (v int64) {
@@ -271,15 +265,9 @@ func (x *Address) New() any {
 	return &Address{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *Address) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *Address) Validate() error {
-	return nil
+func (x *Address) Validate() (err error) {
+	return
 }
 
 func (x *Address) GetCity() (v string) {
@@ -333,23 +321,17 @@ func (x *ContactInfo) New() any {
 	return &ContactInfo{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ContactInfo) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *ContactInfo) Validate() (err error) {
 	if x.Email == nil {
 		err = errutil.Explain(err, "%s is required", "ContactInfo.Email")
 	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ContactInfo) Validate() error {
 	if x.Email != nil {
 		if !(Email(*x.Email)) {
 			return errutil.Explain(nil, "validate failed on ContactInfo.Email")
 		}
 	}
-	return nil
+	return
 }
 
 func (x *ContactInfo) GetEmail() (v string) {
@@ -402,15 +384,9 @@ func (x *DepartmentInfo) New() any {
 	return &DepartmentInfo{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *DepartmentInfo) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *DepartmentInfo) Validate() error {
-	return nil
+func (x *DepartmentInfo) Validate() (err error) {
+	return
 }
 
 func (x *DepartmentInfo) GetDept() (v Department) {
@@ -459,14 +435,8 @@ func (x *Manager) New() any {
 	return &Manager{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *Manager) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *Manager) Validate() error {
+func (x *Manager) Validate() (err error) {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
 			return errutil.Explain(nil, "validate failed on Manager.Name")
@@ -482,7 +452,7 @@ func (x *Manager) Validate() error {
 			return errutil.Explain(nil, "validate failed on Manager.Salary")
 		}
 	}
-	return nil
+	return
 }
 
 func (x *Manager) GetId() (v string) {
@@ -613,15 +583,9 @@ func (x *ManagerReq) Binding(r *http.Request) error {
 	})
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ManagerReq) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *ManagerReq) Validate() error {
-	return nil
+func (x *ManagerReq) Validate() (err error) {
+	return
 }
 
 func (x *ManagerReq) GetId() (v string) {
@@ -661,15 +625,9 @@ func (x *ManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ManagerReqBody) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *ManagerReqBody) Validate() error {
-	return nil
+func (x *ManagerReqBody) Validate() (err error) {
+	return
 }
 
 func (x *ManagerReqBody) String() string {
@@ -698,15 +656,9 @@ func (x *CreateManagerReq) Binding(r *http.Request) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *CreateManagerReq) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *CreateManagerReq) Validate() error {
-	return nil
+func (x *CreateManagerReq) Validate() (err error) {
+	return
 }
 
 func (x *CreateManagerReq) String() string {
@@ -779,14 +731,8 @@ func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *CreateManagerReqBody) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *CreateManagerReqBody) Validate() error {
+func (x *CreateManagerReqBody) Validate() (err error) {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
 			return errutil.Explain(nil, "validate failed on CreateManagerReq.Name")
@@ -802,7 +748,7 @@ func (x *CreateManagerReqBody) Validate() error {
 			return errutil.Explain(nil, "validate failed on CreateManagerReq.Salary")
 		}
 	}
-	return nil
+	return
 }
 
 func (x *CreateManagerReqBody) GetName() (v string) {
@@ -922,15 +868,9 @@ func (x *UpdateManagerReq) Binding(r *http.Request) error {
 	})
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *UpdateManagerReq) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *UpdateManagerReq) Validate() error {
-	return nil
+func (x *UpdateManagerReq) Validate() (err error) {
+	return
 }
 
 func (x *UpdateManagerReq) GetID() (v string) {
@@ -1014,14 +954,8 @@ func (x *UpdateManagerReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *UpdateManagerReqBody) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *UpdateManagerReqBody) Validate() error {
+func (x *UpdateManagerReqBody) Validate() (err error) {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
 			return errutil.Explain(nil, "validate failed on UpdateManagerReq.Age")
@@ -1032,7 +966,7 @@ func (x *UpdateManagerReqBody) Validate() error {
 			return errutil.Explain(nil, "validate failed on UpdateManagerReq.Salary")
 		}
 	}
-	return nil
+	return
 }
 
 func (x *UpdateManagerReqBody) GetName() (v string) {
@@ -1181,31 +1115,25 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 	})
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ListManagersByPageReq) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *ListManagersByPageReq) Validate() (err error) {
 	if x.Page == nil {
 		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Page")
 	}
-	if x.Size == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Size")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageReq) Validate() error {
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
 			return errutil.Explain(nil, "validate failed on ListManagersByPageReq.Page")
 		}
+	}
+	if x.Size == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Size")
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
 			return errutil.Explain(nil, "validate failed on ListManagersByPageReq.Size")
 		}
 	}
-	return nil
+	return
 }
 
 func (x *ListManagersByPageReq) GetPage() (v int64) {
@@ -1300,15 +1228,9 @@ func (x *ListManagersByPageReqBody) DecodeFromForm(b []byte) error {
 	return nil
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ListManagersByPageReqBody) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageReqBody) Validate() error {
-	return nil
+func (x *ListManagersByPageReqBody) Validate() (err error) {
+	return
 }
 
 func (x *ListManagersByPageReqBody) String() string {
@@ -1329,26 +1251,20 @@ func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *CreateManagerResp) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *CreateManagerResp) Validate() (err error) {
 	if x.Errno == nil {
 		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errno")
 	}
-	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errmsg")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *CreateManagerResp) Validate() error {
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
 			return errutil.Explain(nil, "validate failed on CreateManagerResp.Errno")
 		}
 	}
-	return nil
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errmsg")
+	}
+	return
 }
 
 func (x *CreateManagerResp) GetErrno() (v ErrCode) {
@@ -1402,26 +1318,20 @@ func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *UpdateManagerResp) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *UpdateManagerResp) Validate() (err error) {
 	if x.Errno == nil {
 		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errno")
 	}
-	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errmsg")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *UpdateManagerResp) Validate() error {
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
 			return errutil.Explain(nil, "validate failed on UpdateManagerResp.Errno")
 		}
 	}
-	return nil
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errmsg")
+	}
+	return
 }
 
 func (x *UpdateManagerResp) GetErrno() (v ErrCode) {
@@ -1475,26 +1385,20 @@ func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *GetManagerResp) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *GetManagerResp) Validate() (err error) {
 	if x.Errno == nil {
 		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errno")
 	}
-	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errmsg")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *GetManagerResp) Validate() error {
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
 			return errutil.Explain(nil, "validate failed on GetManagerResp.Errno")
 		}
 	}
-	return nil
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errmsg")
+	}
+	return
 }
 
 func (x *GetManagerResp) GetErrno() (v ErrCode) {
@@ -1548,26 +1452,20 @@ func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *DeleteManagerResp) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *DeleteManagerResp) Validate() (err error) {
 	if x.Errno == nil {
 		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errno")
 	}
-	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errmsg")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *DeleteManagerResp) Validate() error {
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
 			return errutil.Explain(nil, "validate failed on DeleteManagerResp.Errno")
 		}
 	}
-	return nil
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errmsg")
+	}
+	return
 }
 
 func (x *DeleteManagerResp) GetErrno() (v ErrCode) {
@@ -1622,15 +1520,9 @@ func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ManagersPageData) CheckRequired() error {
-	var err error
-	return err
-}
-
 // Validate checks field values using generated validation expressions.
-func (x *ManagersPageData) Validate() error {
-	return nil
+func (x *ManagersPageData) Validate() (err error) {
+	return
 }
 
 func (x *ManagersPageData) GetTotal() (v int64) {
@@ -1695,26 +1587,20 @@ func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
 }
 
-// CheckRequired checks whether all required fields are set.
-func (x *ListManagersByPageResp) CheckRequired() error {
-	var err error
+// Validate checks field values using generated validation expressions.
+func (x *ListManagersByPageResp) Validate() (err error) {
 	if x.Errno == nil {
 		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errno")
 	}
-	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errmsg")
-	}
-	return err
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageResp) Validate() error {
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
 			return errutil.Explain(nil, "validate failed on ListManagersByPageResp.Errno")
 		}
 	}
-	return nil
+	if x.Errmsg == nil {
+		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errmsg")
+	}
+	return
 }
 
 func (x *ListManagersByPageResp) GetErrno() (v ErrCode) {

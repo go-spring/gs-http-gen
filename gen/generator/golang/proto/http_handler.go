@@ -123,7 +123,6 @@ func bindField(req *http.Request, f BindingField) error {
 type RequestObject interface {
 	New() any
 	Binding(req *http.Request) error
-	CheckRequired() error
 	Validate() error
 }
 
@@ -192,11 +191,6 @@ func ReadRequest(r *http.Request, i RequestObject) error {
 	// Bind fields
 	if err = i.Binding(r); err != nil {
 		return errutil.Explain(err, "bind fileds error")
-	}
-
-	// Check required fields
-	if err = i.CheckRequired(); err != nil {
-		return errutil.Explain(err, "check required error")
 	}
 
 	// Validate fields
