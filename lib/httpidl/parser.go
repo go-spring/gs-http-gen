@@ -129,7 +129,7 @@ func ParseDir(dir string) (Project, error) {
 					fields = append(fields, f)
 				}
 				t.Fields = fields
-			} else if t.WithEmbed {
+			} else if t.Embedded {
 				var fields []TypeField
 				for _, f := range t.Fields {
 					if e, ok := f.Type.(EmbedType); ok {
@@ -497,7 +497,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 
 		// Distinguish between embedded fields and normal fields
 		if etf := f.Embed_type_field(); etf != nil {
-			t.WithEmbed = true
+			t.Embedded = true
 			u := etf.User_type()
 			embedType := EmbedType{
 				Name: u.IDENTIFIER().GetText(),

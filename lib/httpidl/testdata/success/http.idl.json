@@ -217,14 +217,24 @@
     {
       "Name": "UserReq",
       "OneOf": false,
+      "Embedded": false,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
         {
+          "Name": "userId",
           "Type": {
             "Name": "string"
           },
-          "Name": "userId",
+          "Annotations": null,
+          "Position": {
+            "Start": 23,
+            "Stop": 23
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          },
           "JSONTag": {
             "Name": "userId",
             "OmitEmpty": true,
@@ -235,21 +245,11 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
-          "Annotations": null,
-          "Position": {
-            "Start": 23,
-            "Stop": 23
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         }
       ],
-      "Required": false,
-      "Validate": false,
       "Position": {
         "Start": 22,
         "Stop": 24
@@ -268,29 +268,20 @@
           }
         ],
         "Right": null
-      }
+      },
+      "Required": false,
+      "Validate": false
     },
     {
       "Name": "User",
       "OneOf": false,
+      "Embedded": true,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
         {
-          "Type": "any",
           "Name": "name",
-          "JSONTag": {
-            "Name": "name",
-            "OmitEmpty": true,
-            "OmitZero": false
-          },
-          "FormTag": {
-            "Name": "name"
-          },
-          "Binding": null,
-          "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
+          "Type": "any",
           "Annotations": [
             {
               "Key": "go.type",
@@ -324,37 +315,26 @@
           "Comments": {
             "Above": null,
             "Right": null
-          }
-        },
-        {
-          "Type": {
-            "Name": "int"
           },
-          "Name": "age",
           "JSONTag": {
-            "Name": "age",
+            "Name": "name",
             "OmitEmpty": true,
             "OmitZero": false
           },
           "FormTag": {
-            "Name": "age"
+            "Name": "name"
           },
           "Binding": null,
           "Required": false,
-          "Validate": {
-            "Left": {
-              "Value": "$",
-              "Call": null,
-              "Inner": null
-            },
-            "Op": "\u003c",
-            "Right": {
-              "Value": "18",
-              "Call": null,
-              "Inner": null
-            }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
+        },
+        {
+          "Name": "age",
+          "Type": {
+            "Name": "int"
           },
-          "EnumAsString": false,
           "Annotations": [
             {
               "Key": "validate",
@@ -376,11 +356,45 @@
           "Comments": {
             "Above": null,
             "Right": null
-          }
+          },
+          "JSONTag": {
+            "Name": "age",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "age"
+          },
+          "Binding": null,
+          "Required": false,
+          "Validate": true,
+          "ValidateExpr": {
+            "Left": {
+              "Value": "$",
+              "Call": null,
+              "Inner": null
+            },
+            "Op": "\u003c",
+            "Right": {
+              "Value": "18",
+              "Call": null,
+              "Inner": null
+            }
+          },
+          "EnumAsString": false
         },
         {
-          "Type": "binary",
           "Name": "avatar",
+          "Type": "binary",
+          "Annotations": null,
+          "Position": {
+            "Start": 34,
+            "Stop": 34
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          },
           "JSONTag": {
             "Name": "avatar",
             "OmitEmpty": true,
@@ -391,35 +405,15 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
-          "Annotations": null,
-          "Position": {
-            "Start": 34,
-            "Stop": 34
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         },
         {
+          "Name": "",
           "Type": {
             "Name": "Address"
           },
-          "Name": "",
-          "JSONTag": {
-            "Name": "",
-            "OmitEmpty": false,
-            "OmitZero": false
-          },
-          "FormTag": {
-            "Name": ""
-          },
-          "Binding": null,
-          "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
           "Annotations": null,
           "Position": {
             "Start": 36,
@@ -448,13 +442,35 @@
                 "Stop": 36
               }
             }
-          }
+          },
+          "JSONTag": {
+            "Name": "",
+            "OmitEmpty": false,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": ""
+          },
+          "Binding": null,
+          "Required": false,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         },
         {
+          "Name": "payload",
           "Type": {
             "Name": "Payload"
           },
-          "Name": "payload",
+          "Annotations": null,
+          "Position": {
+            "Start": 37,
+            "Stop": 37
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          },
           "JSONTag": {
             "Name": "payload",
             "OmitEmpty": true,
@@ -465,21 +481,11 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
-          "Annotations": null,
-          "Position": {
-            "Start": 37,
-            "Stop": 37
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         }
       ],
-      "Required": false,
-      "Validate": false,
       "Position": {
         "Start": 31,
         "Stop": 38
@@ -520,19 +526,31 @@
           }
         ],
         "Right": null
-      }
+      },
+      "Required": false,
+      "Validate": false
     },
     {
       "Name": "Address",
       "OneOf": false,
+      "Embedded": false,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
         {
+          "Name": "street",
           "Type": {
             "Name": "string"
           },
-          "Name": "street",
+          "Annotations": null,
+          "Position": {
+            "Start": 41,
+            "Stop": 41
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          },
           "JSONTag": {
             "Name": "street",
             "OmitEmpty": true,
@@ -543,23 +561,24 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
+        },
+        {
+          "Name": "city",
+          "Type": {
+            "Name": "string"
+          },
           "Annotations": null,
           "Position": {
-            "Start": 41,
-            "Stop": 41
+            "Start": 42,
+            "Stop": 42
           },
           "Comments": {
             "Above": null,
             "Right": null
-          }
-        },
-        {
-          "Type": {
-            "Name": "string"
           },
-          "Name": "city",
           "JSONTag": {
             "Name": "city",
             "OmitEmpty": true,
@@ -570,23 +589,24 @@
           },
           "Binding": null,
           "Required": true,
-          "Validate": null,
-          "EnumAsString": false,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
+        },
+        {
+          "Name": "country",
+          "Type": {
+            "Name": "string"
+          },
           "Annotations": null,
           "Position": {
-            "Start": 42,
-            "Stop": 42
+            "Start": 43,
+            "Stop": 43
           },
           "Comments": {
             "Above": null,
             "Right": null
-          }
-        },
-        {
-          "Type": {
-            "Name": "string"
           },
-          "Name": "country",
           "JSONTag": {
             "Name": "country",
             "OmitEmpty": true,
@@ -597,21 +617,11 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
-          "Annotations": null,
-          "Position": {
-            "Start": 43,
-            "Stop": 43
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         }
       ],
-      "Required": false,
-      "Validate": false,
       "Position": {
         "Start": 40,
         "Stop": 44
@@ -619,31 +629,22 @@
       "Comments": {
         "Above": null,
         "Right": null
-      }
+      },
+      "Required": false,
+      "Validate": false
     },
     {
       "Name": "Payload",
       "OneOf": true,
+      "Embedded": false,
       "Redefined": null,
       "GenericName": null,
       "Fields": [
         {
+          "Name": "FieldType",
           "Type": {
             "Name": "PayloadType"
           },
-          "Name": "FieldType",
-          "JSONTag": {
-            "Name": "FieldType",
-            "OmitEmpty": false,
-            "OmitZero": false
-          },
-          "FormTag": {
-            "Name": "FieldType"
-          },
-          "Binding": null,
-          "Required": true,
-          "Validate": null,
-          "EnumAsString": true,
           "Annotations": [
             {
               "Key": "enum_as_string",
@@ -665,13 +666,35 @@
           "Comments": {
             "Above": null,
             "Right": null
-          }
+          },
+          "JSONTag": {
+            "Name": "FieldType",
+            "OmitEmpty": false,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "FieldType"
+          },
+          "Binding": null,
+          "Required": true,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": true
         },
         {
+          "Name": "User",
           "Type": {
             "Name": "User"
           },
-          "Name": "User",
+          "Annotations": null,
+          "Position": {
+            "Start": 47,
+            "Stop": 47
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          },
           "JSONTag": {
             "Name": "User",
             "OmitEmpty": true,
@@ -682,23 +705,24 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
+        },
+        {
+          "Name": "Address",
+          "Type": {
+            "Name": "Address"
+          },
           "Annotations": null,
           "Position": {
-            "Start": 47,
-            "Stop": 47
+            "Start": 48,
+            "Stop": 48
           },
           "Comments": {
             "Above": null,
             "Right": null
-          }
-        },
-        {
-          "Type": {
-            "Name": "Address"
           },
-          "Name": "Address",
           "JSONTag": {
             "Name": "Address",
             "OmitEmpty": true,
@@ -709,21 +733,11 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
-          "Annotations": null,
-          "Position": {
-            "Start": 48,
-            "Stop": 48
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         }
       ],
-      "Required": false,
-      "Validate": false,
       "Position": {
         "Start": 46,
         "Stop": 49
@@ -731,31 +745,22 @@
       "Comments": {
         "Above": null,
         "Right": null
-      }
+      },
+      "Required": false,
+      "Validate": false
     },
     {
       "Name": "Response",
       "OneOf": false,
+      "Embedded": false,
       "Redefined": null,
       "GenericName": "T",
       "Fields": [
         {
+          "Name": "errno",
           "Type": {
             "Name": "ErrCode"
           },
-          "Name": "errno",
-          "JSONTag": {
-            "Name": "errno",
-            "OmitEmpty": true,
-            "OmitZero": false
-          },
-          "FormTag": {
-            "Name": "errno"
-          },
-          "Binding": null,
-          "Required": false,
-          "Validate": null,
-          "EnumAsString": true,
           "Annotations": [
             {
               "Key": "enum_as_string",
@@ -777,13 +782,35 @@
           "Comments": {
             "Above": null,
             "Right": null
-          }
+          },
+          "JSONTag": {
+            "Name": "errno",
+            "OmitEmpty": true,
+            "OmitZero": false
+          },
+          "FormTag": {
+            "Name": "errno"
+          },
+          "Binding": null,
+          "Required": false,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": true
         },
         {
+          "Name": "errmsg",
           "Type": {
             "Name": "string"
           },
-          "Name": "errmsg",
+          "Annotations": null,
+          "Position": {
+            "Start": 54,
+            "Stop": 54
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          },
           "JSONTag": {
             "Name": "errmsg",
             "OmitEmpty": true,
@@ -794,23 +821,24 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
+        },
+        {
+          "Name": "data",
+          "Type": {
+            "Name": "T"
+          },
           "Annotations": null,
           "Position": {
-            "Start": 54,
-            "Stop": 54
+            "Start": 55,
+            "Stop": 55
           },
           "Comments": {
             "Above": null,
             "Right": null
-          }
-        },
-        {
-          "Type": {
-            "Name": "T"
           },
-          "Name": "data",
           "JSONTag": {
             "Name": "data",
             "OmitEmpty": true,
@@ -821,21 +849,11 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": null,
-          "EnumAsString": false,
-          "Annotations": null,
-          "Position": {
-            "Start": 55,
-            "Stop": 55
-          },
-          "Comments": {
-            "Above": null,
-            "Right": null
-          }
+          "Validate": false,
+          "ValidateExpr": null,
+          "EnumAsString": false
         }
       ],
-      "Required": false,
-      "Validate": false,
       "Position": {
         "Start": 52,
         "Stop": 56
@@ -854,11 +872,14 @@
           }
         ],
         "Right": null
-      }
+      },
+      "Required": false,
+      "Validate": false
     },
     {
       "Name": "UserResp",
       "OneOf": false,
+      "Embedded": false,
       "Redefined": {
         "Name": "Response",
         "GenericType": {
@@ -869,8 +890,6 @@
       },
       "GenericName": null,
       "Fields": null,
-      "Required": false,
-      "Validate": false,
       "Position": {
         "Start": 75,
         "Stop": 75
@@ -889,7 +908,9 @@
           }
         ],
         "Right": null
-      }
+      },
+      "Required": false,
+      "Validate": false
     }
   ],
   "RPCs": [

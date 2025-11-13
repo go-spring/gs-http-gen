@@ -129,30 +129,32 @@ type Binding struct {
 type Type struct {
 	Name        string         // Name of the type
 	OneOf       bool           // Indicates whether this type is a oneof
+	Embedded    bool           // Embedded
 	Redefined   *RedefinedType // Represents a type alias (e.g., type A B<T>)
 	GenericName *string        // Optional generic type parameter (if present)
-	WithEmbed   bool
-	Fields      []TypeField // Type fields
-	Required    bool        // Required
-	Validate    bool        // Validate
-	Position    Position    // Location in source code
-	Comments    Comments    // Associated comments
+	Fields      []TypeField    // Type fields
+	Position    Position       // Location in source code
+	Comments    Comments       // Associated comments
+
+	Required bool // Required
+	Validate bool // Validate
 }
 
 // TypeField represents a single field inside a user-defined type.
 type TypeField struct {
-	Type         TypeDefinition // Type of the field
-	Name         string         // Name of the field
-	JSONTag      JSONTag        // JSON tag
-	FormTag      FormTag        // Form tag
-	Binding      *Binding       // Field binding
-	Required     bool           // Required
-	Validate     bool           // Validate
-	ValidateExpr validate.Expr  // Validate expression
-	EnumAsString bool           // Enum as string
-	Annotations  []Annotation   // Additional metadata (key-value pairs)
-	Position     Position       // Location in source code
-	Comments     Comments       // Associated comments
+	Name        string         // Name of the field
+	Type        TypeDefinition // Type of the field
+	Annotations []Annotation   // Additional metadata (key-value pairs)
+	Position    Position       // Location in source code
+	Comments    Comments       // Associated comments
+
+	JSONTag      JSONTag       // JSON tag
+	FormTag      FormTag       // Form tag
+	Binding      *Binding      // Field binding
+	Required     bool          // Required
+	Validate     bool          // Validate
+	ValidateExpr validate.Expr // Validate expression
+	EnumAsString bool          // Enum as string
 }
 
 // RedefinedType represents a type alias with optional generic arguments.
