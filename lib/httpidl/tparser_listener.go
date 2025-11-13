@@ -16,9 +16,6 @@ type TParserListener interface {
 	// EnterConst_def is called when entering the const_def production.
 	EnterConst_def(c *Const_defContext)
 
-	// EnterConst_type is called when entering the const_type production.
-	EnterConst_type(c *Const_typeContext)
-
 	// EnterEnum_def is called when entering the enum_def production.
 	EnterEnum_def(c *Enum_defContext)
 
@@ -96,9 +93,6 @@ type TParserListener interface {
 
 	// ExitConst_def is called when exiting the const_def production.
 	ExitConst_def(c *Const_defContext)
-
-	// ExitConst_type is called when exiting the const_type production.
-	ExitConst_type(c *Const_typeContext)
 
 	// ExitEnum_def is called when exiting the enum_def production.
 	ExitEnum_def(c *Enum_defContext)

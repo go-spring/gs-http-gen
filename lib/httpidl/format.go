@@ -202,7 +202,7 @@ func dumpConst(c Const) string {
 	dumpAboveComments(c.Comments.Above, &sb, "")
 
 	sb.WriteString("const ")
-	sb.WriteString(c.Type)
+	sb.WriteString(c.Type.Name)
 	sb.WriteString(" ")
 	sb.WriteString(c.Name)
 	sb.WriteString(" = ")
@@ -321,14 +321,14 @@ func dumpRPC(r RPC) string {
 	sb.WriteString("rpc ")
 	sb.WriteString(r.Name)
 	sb.WriteString("(")
-	sb.WriteString(r.Request)
+	sb.WriteString(r.Request.Name)
 	sb.WriteString(") ")
 	if r.Stream {
 		sb.WriteString("stream<")
-		sb.WriteString(r.Response)
+		sb.WriteString(r.Response.Name)
 		sb.WriteString(">")
 	} else {
-		sb.WriteString(r.Response)
+		sb.WriteString(r.Response.Name)
 	}
 	sb.WriteString(" {")
 

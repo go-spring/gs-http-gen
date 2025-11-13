@@ -26,12 +26,7 @@ definition
 // Example: const string a = "1"
 // --------------------
 const_def
-    : KW_CONST const_type IDENTIFIER EQUAL const_value
-    ;
-
-// Allowed constant types: bool, int, float, or string
-const_type
-    : TYPE_BOOL | TYPE_INT | TYPE_FLOAT | TYPE_STRING
+    : KW_CONST base_type IDENTIFIER EQUAL const_value
     ;
 
 // --------------------

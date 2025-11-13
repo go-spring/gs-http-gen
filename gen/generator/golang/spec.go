@@ -165,8 +165,8 @@ func Convert(dir string) (GoCode, error) {
 		for _, r := range doc.RPCs {
 			rpc := RPC{
 				Name:         r.Name,
-				Request:      r.Request,
-				Response:     r.Response,
+				Request:      r.Request.Name,
+				Response:     r.Response.Name,
 				Stream:       r.Stream,
 				Path:         r.Path,
 				FormatPath:   r.Path, // 假设是普通路径
@@ -257,8 +257,7 @@ func SplitRequestType(t Type) (req Type, body Type) {
 func convertConsts(code GoCode, doc httpidl.Document) ([]Const, error) {
 	var ret []Const
 	for _, c := range doc.Consts {
-		t := httpidl.BaseType{Name: c.Type}
-		typeName, err := getTypeName(code, t, nil, false)
+		typeName, err := getBaseTypeName(c.Type.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -368,6 +367,22 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 	return r, nil
 }
 
+// getBaseTypeName returns the Go type name for a given IDL base type.
+func getBaseTypeName(typeName string) (string, error) {
+	switch typeName {
+	case "string":
+		return "string", nil
+	case "int":
+		return "int64", nil
+	case "float":
+		return "float64", nil
+	case "bool":
+		return "bool", nil
+	default:
+		return "", errutil.Explain(nil, "unknown base type: %s", typeName)
+	}
+}
+
 // getTypeName returns the Go type name for a given IDL type.
 // It also respects the "go.type" annotation, which overrides the default type.
 func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation, forceOptional bool) (string, error) {
@@ -388,18 +403,9 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 	case httpidl.AnyType:
 		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case httpidl.BaseType:
-		var typeName string
-		switch typ.Name {
-		case "string":
-			typeName = "string"
-		case "int":
-			typeName = "int64"
-		case "float":
-			typeName = "float64"
-		case "bool":
-			typeName = "bool"
-		default:
-			return "", errutil.Explain(nil, "unknown base type: %s", typ.Name)
+		typeName, err := getBaseTypeName(typ.Name)
+		if err != nil {
+			return "", err
 		}
 		if forceOptional {
 			typeName = "*" + typeName

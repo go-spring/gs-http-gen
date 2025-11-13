@@ -168,23 +168,23 @@ func ParseDir(dir string) (Project, error) {
 				}
 				params[seg.Value] = ""
 			}
-			srcType, ok := GetType(files, rpc.Request)
+			srcType, ok := GetType(files, rpc.Request.Name)
 			if !ok {
-				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
+				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request.Name)
 			}
 			for _, f := range srcType.Fields {
 				if f.Binding == nil || f.Binding.From != "path" {
 					continue
 				}
 				if _, ok = params[f.Binding.Name]; !ok {
-					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Name, rpc.Request)
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Name, rpc.Request.Name)
 					return Project{}, err
 				}
 				params[f.Binding.Name] = f.Name
 			}
 			for k, s := range params {
 				if s == "" {
-					err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request.Name)
 					return Project{}, err
 				}
 			}
@@ -381,7 +381,9 @@ type ParseTreeListener struct {
 // ExitConst_def handles const definitions in the parse tree.
 func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 	c := Const{
-		Type:  ctx.Const_type().GetText(),
+		Type: BaseType{
+			Name: ctx.Base_type().GetText(),
+		},
 		Name:  ctx.IDENTIFIER().GetText(),
 		Value: ctx.Const_value().GetText(),
 		Position: Position{
@@ -800,28 +802,32 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Request
-	r.Request = ctx.Rpc_req().User_type().IDENTIFIER().GetText()
-	if !IsPascal(r.Request) {
-		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request, r.Position.Start))
+	r.Request = UserType{
+		Name: ctx.Rpc_req().User_type().IDENTIFIER().GetText(),
 	}
-	if !strings.HasSuffix(r.Request, "Req") {
-		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request, r.Position.Start))
+	if !IsPascal(r.Request.Name) {
+		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request.Name, r.Position.Start))
 	}
-	l.Document.UserTypes[r.Request] = struct{}{}
+	if !strings.HasSuffix(r.Request.Name, "Req") {
+		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request.Name, r.Position.Start))
+	}
+	l.Document.UserTypes[r.Request.Name] = struct{}{}
 
 	// Response
 	respType := ctx.Rpc_resp().User_type()
 	if ctx.Rpc_resp().TYPE_STREAM() != nil {
 		r.Stream = true
 	}
-	r.Response = respType.IDENTIFIER().GetText()
-	if !IsPascal(r.Response) {
-		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response, r.Position.Start))
+	r.Response = UserType{
+		Name: respType.IDENTIFIER().GetText(),
 	}
-	if !strings.HasSuffix(r.Response, "Resp") {
-		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response, r.Position.Start))
+	if !IsPascal(r.Response.Name) {
+		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response.Name, r.Position.Start))
 	}
-	l.Document.UserTypes[r.Response] = struct{}{}
+	if !strings.HasSuffix(r.Response.Name, "Resp") {
+		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response.Name, r.Position.Start))
+	}
+	l.Document.UserTypes[r.Response.Name] = struct{}{}
 
 	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {

@@ -77,7 +77,7 @@ type Annotation struct {
 
 // Const represents a constant definition in the parsed document.
 type Const struct {
-	Type     string   // Data type of the constant
+	Type     BaseType // Data type of the constant
 	Name     string   // Name of the constant
 	Value    string   // Literal value
 	Position Position // Location in source code
@@ -241,8 +241,8 @@ func (t ListType) Text() string {
 type RPC struct {
 	Name        string       // Name of the RPC
 	Stream      bool         // Whether the response is a stream
-	Request     string       // Request type
-	Response    string       // Response type
+	Request     UserType     // Request type
+	Response    UserType     // Response type
 	Annotations []Annotation // Metadata attached to the RPC
 	Position    Position     // Location in source code
 	Comments    Comments     // Associated comments

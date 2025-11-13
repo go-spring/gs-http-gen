@@ -38,12 +38,6 @@ func (s *BaseTParserListener) EnterConst_def(ctx *Const_defContext) {}
 // ExitConst_def is called when production const_def is exited.
 func (s *BaseTParserListener) ExitConst_def(ctx *Const_defContext) {}
 
-// EnterConst_type is called when production const_type is entered.
-func (s *BaseTParserListener) EnterConst_type(ctx *Const_typeContext) {}
-
-// ExitConst_type is called when production const_type is exited.
-func (s *BaseTParserListener) ExitConst_type(ctx *Const_typeContext) {}
-
 // EnterEnum_def is called when production enum_def is entered.
 func (s *BaseTParserListener) EnterEnum_def(ctx *Enum_defContext) {}
 
