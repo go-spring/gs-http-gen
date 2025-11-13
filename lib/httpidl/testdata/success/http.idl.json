@@ -45,7 +45,9 @@
   ],
   "Consts": [
     {
-      "Type": "int",
+      "Type": {
+        "Name": "int"
+      },
       "Name": "MAX_COUNT",
       "Value": "100",
       "Position": {
@@ -78,7 +80,9 @@
       }
     },
     {
-      "Type": "bool",
+      "Type": {
+        "Name": "bool"
+      },
       "Name": "ENABLE_FEATURE",
       "Value": "true",
       "Position": {
@@ -100,7 +104,9 @@
       }
     },
     {
-      "Type": "string",
+      "Type": {
+        "Name": "string"
+      },
       "Name": "DEFAULT_NAME",
       "Value": "\"guest\"",
       "Position": {
@@ -217,9 +223,8 @@
     {
       "Name": "UserReq",
       "OneOf": false,
-      "Embedded": false,
-      "Redefined": null,
-      "GenericName": null,
+      "InstType": null,
+      "GenericParam": null,
       "Fields": [
         {
           "Name": "userId",
@@ -269,15 +274,15 @@
         ],
         "Right": null
       },
+      "Embedded": false,
       "Required": false,
       "Validate": false
     },
     {
       "Name": "User",
       "OneOf": false,
-      "Embedded": true,
-      "Redefined": null,
-      "GenericName": null,
+      "InstType": null,
+      "GenericParam": null,
       "Fields": [
         {
           "Name": "name",
@@ -527,15 +532,15 @@
         ],
         "Right": null
       },
+      "Embedded": true,
       "Required": false,
       "Validate": false
     },
     {
       "Name": "Address",
       "OneOf": false,
-      "Embedded": false,
-      "Redefined": null,
-      "GenericName": null,
+      "InstType": null,
+      "GenericParam": null,
       "Fields": [
         {
           "Name": "street",
@@ -630,15 +635,15 @@
         "Above": null,
         "Right": null
       },
+      "Embedded": false,
       "Required": false,
       "Validate": false
     },
     {
       "Name": "Payload",
       "OneOf": true,
-      "Embedded": false,
-      "Redefined": null,
-      "GenericName": null,
+      "InstType": null,
+      "GenericParam": null,
       "Fields": [
         {
           "Name": "FieldType",
@@ -746,15 +751,15 @@
         "Above": null,
         "Right": null
       },
+      "Embedded": false,
       "Required": false,
       "Validate": false
     },
     {
       "Name": "Response",
       "OneOf": false,
-      "Embedded": false,
-      "Redefined": null,
-      "GenericName": "T",
+      "InstType": null,
+      "GenericParam": "T",
       "Fields": [
         {
           "Name": "errno",
@@ -873,14 +878,14 @@
         ],
         "Right": null
       },
+      "Embedded": false,
       "Required": false,
       "Validate": false
     },
     {
       "Name": "UserResp",
       "OneOf": false,
-      "Embedded": false,
-      "Redefined": {
+      "InstType": {
         "Name": "Response",
         "GenericType": {
           "Item": {
@@ -888,7 +893,7 @@
           }
         }
       },
-      "GenericName": null,
+      "GenericParam": null,
       "Fields": null,
       "Position": {
         "Start": 75,
@@ -909,6 +914,7 @@
         ],
         "Right": null
       },
+      "Embedded": false,
       "Required": false,
       "Validate": false
     }
@@ -917,8 +923,12 @@
     {
       "Name": "GetUser",
       "Stream": false,
-      "Request": "UserReq",
-      "Response": "UserResp",
+      "Request": {
+        "Name": "UserReq"
+      },
+      "Response": {
+        "Name": "UserResp"
+      },
       "Annotations": [
         {
           "Key": "path",

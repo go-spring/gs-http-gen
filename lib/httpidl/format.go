@@ -252,14 +252,14 @@ func dumpType(t Type) string {
 
 	sb.WriteString(t.Name)
 
-	if t.Redefined != nil {
+	if t.InstType != nil {
 		sb.WriteString(" ")
-		sb.WriteString(t.Redefined.Text())
+		sb.WriteString(t.InstType.Text())
 	} else {
 		// If the type has generic parameter(s)
-		if t.GenericName != nil {
+		if t.GenericParam != nil {
 			sb.WriteString("<")
-			sb.WriteString(*t.GenericName)
+			sb.WriteString(*t.GenericParam)
 			sb.WriteString(">")
 		}
 

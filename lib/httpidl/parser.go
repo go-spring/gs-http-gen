@@ -116,16 +116,16 @@ func ParseDir(dir string) (Project, error) {
 	for _, doc := range files {
 		for i := range doc.Types {
 			t := doc.Types[i]
-			if t.GenericName != nil { // generic type, need instance
+			if t.GenericParam != nil { // generic type, need instance
 				continue
-			} else if t.Redefined != nil { // generic type instance
-				srcType, ok := GetType(files, t.Redefined.Name)
+			} else if t.InstType != nil { // generic type instance
+				srcType, ok := GetType(files, t.InstType.Name)
 				if !ok {
-					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.Redefined.Name)
+					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.InstType.Name)
 				}
 				var fields []TypeField
 				for _, f := range srcType.Fields {
-					f.Type = replaceGenericType(f.Type, *srcType.GenericName, t.Redefined.GenericType)
+					f.Type = replaceGenericType(f.Type, *srcType.GenericParam, t.InstType.GenericType)
 					fields = append(fields, f)
 				}
 				t.Fields = fields
@@ -469,7 +469,7 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 	if ctx.LEFT_BRACE() != nil {
 		l.parseCompleteType(ctx, &t)
 	} else {
-		l.parseRedefinedType(ctx, &t)
+		l.parseInstantiatedType(ctx, &t)
 	}
 
 	l.Document.TypeTypes[t.Name] = len(l.Document.Types)
@@ -482,7 +482,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 	// Handle generic type parameter (if any)
 	if ctx.LESS_THAN() != nil {
 		s := ctx.IDENTIFIER(1).GetText()
-		t.GenericName = &s
+		t.GenericParam = &s
 	}
 
 	for _, f := range ctx.AllType_field() {
@@ -504,7 +504,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 			embedType := EmbedType{
 				Name: u.IDENTIFIER().GetText(),
 			}
-			if t.GenericName == nil || embedType.Name != *t.GenericName {
+			if t.GenericParam == nil || embedType.Name != *t.GenericParam {
 				l.Document.UserTypes[embedType.Name] = struct{}{}
 			}
 			typeField.Type = embedType
@@ -517,21 +517,21 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 	}
 }
 
-// parseRedefinedType handles redefined types, including generic types.
-func (l *ParseTreeListener) parseRedefinedType(ctx *Type_defContext, t *Type) {
-	t.Redefined = &RedefinedType{
+// parseInstantiatedType handles instantiated types, including generic types.
+func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
+	t.InstType = &InstType{
 		Name: ctx.IDENTIFIER(1).GetText(),
 	}
-	if !IsPascal(t.Redefined.Name) {
-		panic(errutil.Explain(nil, "redefined type name %s is not PascalCase in line %d", t.Redefined.Name, t.Position.Start))
+	if !IsPascal(t.InstType.Name) {
+		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.Name, t.Position.Start))
 	}
 
-	t.Redefined.GenericType = l.parseValueType(ctx.Value_type(), t)
-	if t.Redefined.GenericType != nil {
+	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
+	if t.InstType.GenericType != nil {
 		return
 	}
 
-	panic(errutil.Explain(nil, "redefined type %s is not a valid generic type in line %d", t.Redefined.Name, t.Position.Start))
+	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.Name, t.Position.Start))
 }
 
 // ExitOneof_def handles "oneof" type definitions.
@@ -756,7 +756,7 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 		typ := UserType{
 			Name: u.IDENTIFIER().GetText(),
 		}
-		if t.GenericName == nil || typ.Name != *t.GenericName {
+		if t.GenericParam == nil || typ.Name != *t.GenericParam {
 			l.Document.UserTypes[typ.Name] = struct{}{}
 		}
 		return typ

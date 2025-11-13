@@ -127,15 +127,15 @@ type Binding struct {
 
 // Type represents a custom user-defined type (struct-like).
 type Type struct {
-	Name        string         // Name of the type
-	OneOf       bool           // Indicates whether this type is a oneof
-	Embedded    bool           // Embedded
-	Redefined   *RedefinedType // Represents a type alias (e.g., type A B<T>)
-	GenericName *string        // Optional generic type parameter (if present)
-	Fields      []TypeField    // Type fields
-	Position    Position       // Location in source code
-	Comments    Comments       // Associated comments
+	Name         string      // Name of the type
+	OneOf        bool        // Indicates whether this type is a oneof
+	InstType     *InstType   // Represents a type alias (e.g., type A B<T>)
+	GenericParam *string     // Optional generic type parameter (if present)
+	Fields       []TypeField // Type fields
+	Position     Position    // Location in source code
+	Comments     Comments    // Associated comments
 
+	Embedded bool // Embedded
 	Required bool // Required
 	Validate bool // Validate
 }
@@ -157,13 +157,13 @@ type TypeField struct {
 	EnumAsString bool          // Enum as string
 }
 
-// RedefinedType represents a type alias with optional generic arguments.
-type RedefinedType struct {
+// InstType represents a type alias with optional generic arguments.
+type InstType struct {
 	Name        string         // Name of the aliased type
 	GenericType TypeDefinition // The generic type parameter
 }
 
-func (t RedefinedType) Text() string {
+func (t InstType) Text() string {
 	return t.Name + "<" + t.GenericType.Text() + ">"
 }
 

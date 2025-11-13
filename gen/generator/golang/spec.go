@@ -298,8 +298,8 @@ func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
 func convertTypes(code GoCode, doc httpidl.Document) ([]Type, error) {
 	var ret []Type
 	for _, t := range doc.Types {
-		// Skip generic types (they need instantiation via Redefined)
-		if t.GenericName != nil {
+		// Skip generic types (they need instantiation)
+		if t.GenericParam != nil {
 			continue
 		}
 		typ, err := convertType(code, t)
