@@ -131,11 +131,20 @@ type ResponseObject interface {
 	New() any
 }
 
-// ReadRequest parses the request body based on Content-Type
-// and decodes it into the given RequestObject.
-func ReadRequest(r *http.Request, i RequestObject) error {
-	maxBodySize := int64(10 << 20) // 10 MB is a lot of text
+// shouldParseBody determines whether the incoming HTTP method
+// is expected to carry a request body that should be parsed.
+func shouldParseBody(method string) bool {
+	switch method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch:
+		return true
+	default:
+		return false
+	}
+}
 
+// decodeBodyInto reads and decodes the request body into `i` based on Content-Type.
+// It also restores r.Body so it can be read again later if needed.
+func decodeBodyInto(r *http.Request, i any, maxBodySize int64) error {
 	oldBody := r.Body
 	defer func() { _ = oldBody.Close() }()
 
@@ -187,14 +196,28 @@ func ReadRequest(r *http.Request, i RequestObject) error {
 	}
 
 	r.Body = io.NopCloser(bytes.NewReader(b))
+	return nil
+}
+
+// ReadRequest parses the request body based on Content-Type
+// and decodes it into the given RequestObject.
+func ReadRequest(r *http.Request, i RequestObject) error {
+	maxBodySize := int64(10 << 20) // 10 MB is a lot of text
+
+	// Only parse body for methods that typically include a body
+	if shouldParseBody(r.Method) {
+		if err := decodeBodyInto(r, i, maxBodySize); err != nil {
+			return err
+		}
+	}
 
 	// Bind fields
-	if err = i.Binding(r); err != nil {
+	if err := i.Binding(r); err != nil {
 		return errutil.Explain(err, "bind fileds error")
 	}
 
 	// Validate fields
-	if err = i.Validate(); err != nil {
+	if err := i.Validate(); err != nil {
 		return errutil.Explain(err, "validate error")
 	}
 	return nil
