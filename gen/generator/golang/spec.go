@@ -51,26 +51,30 @@ type EnumField struct {
 
 // Type represents a Go struct
 type Type struct {
-	Name        string
-	Fields      []TypeField
-	Comment     string
+	Name    string
+	Fields  []TypeField
+	Comment string
+
 	Request     bool
 	RequestBody bool
 }
 
 // TypeField represents a field in a Go struct
 type TypeField struct {
-	Name      string
-	Type      string // for field
+	Name     string
+	Type     string // for field
+	Required bool
+	Comment  string
+
 	TypeKind  []TypeKind
 	ValueType string // for getter/setter
-	Required  bool
-	FieldTag  string
-	JSONTag   httpidl.JSONTag
-	FormTag   httpidl.FormTag
-	Binding   *httpidl.Binding
-	Validate  *string
-	Comment   string
+
+	JSONTag httpidl.JSONTag
+	FormTag httpidl.FormTag
+	Binding *httpidl.Binding
+
+	FieldTag string
+	Validate *string
 }
 
 // IsPointer returns true if the field is a pointer
@@ -102,17 +106,23 @@ func (t *Type) QueryCount() int {
 
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
-	Name         string            // Method name
-	Request      string            // Request type name
-	Response     string            // Response type name
-	Stream       bool              // Whether this RPC is a streaming RPC
-	Path         string            // HTTP path
+	Name     string // Method name
+	Request  string // Request type name
+	Response string // Response type name
+	Stream   bool   // Whether this RPC is a streaming RPC
+	Comment  string // Comment of the RPC
+
+	Path        string // HTTP path
+	Method      string // HTTP method (GET, POST, etc.)
+	ContentType string // HTTP Content-Type
+
 	FormatPath   string            // Formatted HTTP path
-	PathSegments []pathidl.Segment // HTTP path segments
 	PathParams   map[string]string // HTTP path parameters
-	Method       string            // HTTP method (GET, POST, etc.)
-	ContentType  string            // HTTP Content-Type
-	Comment      string            // Comment of the RPC
+	PathSegments []pathidl.Segment // HTTP path segments
+
+	ConnTimeout  int // Connection timeout, ms
+	ReadTimeout  int // Read timeout, ms
+	WriteTimeout int // Write timeout, ms
 }
 
 type ReqIndex struct {
@@ -121,13 +131,13 @@ type ReqIndex struct {
 }
 
 type GoCode struct {
-	Files  map[string]httpidl.Document
 	Meta   *httpidl.MetaInfo
-	Reqs   map[string]ReqIndex // request type name
+	Files  map[string]httpidl.Document
 	Consts map[string][]Const
 	Enums  map[string][]Enum
 	Types  map[string][]Type
 	RPCs   []RPC
+	Reqs   map[string]ReqIndex     // request type name
 	Funcs  map[string]ValidateFunc // Collected validation functions
 }
 
@@ -151,12 +161,12 @@ func Convert(dir string) (GoCode, error) {
 	}
 
 	code := GoCode{
-		Files:  project.Files,
 		Meta:   project.Meta,
-		Reqs:   make(map[string]ReqIndex),
+		Files:  project.Files,
 		Consts: make(map[string][]Const),
 		Enums:  make(map[string][]Enum),
 		Types:  make(map[string][]Type),
+		Reqs:   make(map[string]ReqIndex),
 		Funcs:  make(map[string]ValidateFunc),
 	}
 
@@ -168,13 +178,16 @@ func Convert(dir string) (GoCode, error) {
 				Request:      r.Request.Name,
 				Response:     r.Response.Name,
 				Stream:       r.Stream,
+				Comment:      formatComment(r.Comments),
 				Path:         r.Path,
 				FormatPath:   r.Path, // 假设是普通路径
-				PathSegments: r.PathSegments,
 				PathParams:   r.PathParams,
+				PathSegments: r.PathSegments,
 				Method:       r.Method,
 				ContentType:  r.ContentType,
-				Comment:      formatComment(r.Comments),
+				ConnTimeout:  r.ConnTimeout,
+				ReadTimeout:  r.ReadTimeout,
+				WriteTimeout: r.WriteTimeout,
 			}
 			code.RPCs = append(code.RPCs, rpc)
 			code.Reqs[rpc.Request] = ReqIndex{}
@@ -215,7 +228,7 @@ func Convert(dir string) (GoCode, error) {
 		code.Types[fileName] = types
 	}
 
-	for rpcIndex, rpc := range code.RPCs {
+	for i, rpc := range code.RPCs {
 		for k, s := range rpc.PathParams {
 			rpc.PathParams[k] = httpidl.ToPascal(s)
 		}
@@ -229,7 +242,7 @@ func Convert(dir string) (GoCode, error) {
 			formatPath.WriteString("%s")
 		}
 		rpc.FormatPath = formatPath.String()
-		code.RPCs[rpcIndex] = rpc
+		code.RPCs[i] = rpc
 	}
 	return code, nil
 }
@@ -240,8 +253,8 @@ func SplitRequestType(t Type) (req Type, body Type) {
 	req.Name = t.Name
 	req.Comment = t.Comment
 
-	body.Name = t.Name + "Body"
 	body.RequestBody = true
+	body.Name = t.Name + "Body"
 
 	for _, field := range t.Fields {
 		if field.Binding != nil {
@@ -274,8 +287,6 @@ func convertConsts(code GoCode, doc httpidl.Document) ([]Const, error) {
 // convertEnums converts IDL enums to Go enums
 func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
 	var ret []Enum
-
-	// Convert standard enums
 	for _, e := range doc.Enums {
 		var fields []EnumField
 		for _, f := range e.Fields {
@@ -313,14 +324,8 @@ func convertTypes(code GoCode, doc httpidl.Document) ([]Type, error) {
 
 // convertType converts an IDL struct type to a Go struct type
 func convertType(code GoCode, t httpidl.Type) (Type, error) {
-	r := Type{
-		Name: t.Name,
-	}
-
-	// Handle fields
+	r := Type{Name: t.Name}
 	for _, f := range t.Fields {
-
-		// Convert field name to PascalCase for Go
 		fieldName := httpidl.ToPascal(f.Name)
 
 		// Determine Go type for the field
@@ -350,16 +355,16 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 
 		// Add the field to the struct
 		field := TypeField{
-			Type:      typeName,
-			ValueType: valueType,
-			TypeKind:  typeKind,
 			Name:      fieldName,
+			Type:      typeName,
+			Required:  f.Required,
+			Comment:   formatComment(f.Comments),
+			TypeKind:  typeKind,
+			ValueType: valueType,
 			JSONTag:   f.JSONTag,
 			FormTag:   f.FormTag,
 			Binding:   f.Binding,
-			Required:  f.Required,
 			Validate:  validateExpr,
-			Comment:   formatComment(f.Comments),
 		}
 		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
