@@ -328,10 +328,41 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)
 
-		// Determine Go type for the field
-		typeName, err := getTypeName(code, f.Type, f.Annotations, true)
-		if err != nil {
-			return Type{}, errutil.Explain(nil, "get type name for field %s in type %s error: %w", f.Name, r.Name, err)
+		var typeName string
+		if a, ok := httpidl.GetAnnotation(f.Annotations, "go.type"); ok {
+			if a.Value == nil {
+				return Type{}, errutil.Explain(nil, `annotation "go.type" must have a value`)
+			}
+			s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
+			if s == "" {
+				return Type{}, errutil.Explain(nil, `annotation "go.type" must not be empty`)
+			}
+			typeName = s
+		} else {
+			switch typ := f.Type.(type) {
+			case httpidl.AnyType:
+				return Type{}, errutil.Explain(nil, `any type must have annotation "go.type"`)
+			case httpidl.BinaryType:
+				typeName = "[]byte" // todo (lvan100) file
+			case httpidl.BaseType:
+				s, err := getBaseTypeName(typ.Name)
+				if err != nil {
+					return Type{}, err
+				}
+				typeName = "*" + s
+			case httpidl.UserType:
+				typeName = typ.Name
+				if f.EnumAsString {
+					typeName += "AsString"
+				}
+				typeName = "*" + typeName
+			default:
+				s, err := getOtherTypeName(code, typ)
+				if err != nil {
+					return Type{}, err
+				}
+				typeName = s
+			}
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
@@ -388,49 +419,18 @@ func getBaseTypeName(typeName string) (string, error) {
 	}
 }
 
-// getTypeName returns the Go type name for a given IDL type.
-// It also respects the "go.type" annotation, which overrides the default type.
-func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation, forceOptional bool) (string, error) {
-
-	// Handle explicit "go.type" annotation
-	if a, ok := httpidl.GetAnnotation(arr, "go.type"); ok {
-		if a.Value == nil {
-			return "", errutil.Explain(nil, `annotation "go.type" must have a value`)
-		}
-		s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
-		if s == "" {
-			return "", errutil.Explain(nil, `annotation "go.type" must not be empty`)
-		}
-		return s, nil
-	}
-
+// getOtherTypeName returns the Go type name for a given IDL type.
+func getOtherTypeName(code GoCode, t httpidl.TypeDefinition) (string, error) {
 	switch typ := t.(type) {
-	case httpidl.AnyType:
-		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case httpidl.BaseType:
-		typeName, err := getBaseTypeName(typ.Name)
-		if err != nil {
-			return "", err
-		}
-		if forceOptional {
-			typeName = "*" + typeName
-		}
-		return typeName, nil
+		return getBaseTypeName(typ.Name)
 	case httpidl.UserType:
-		typeName := typ.Name
-		// Handle enum_as_string annotation
-		if _, ok := httpidl.GetAnnotation(arr, "enum_as_string"); ok {
-			if _, ok := httpidl.GetEnum(code.Files, typ.Name); !ok {
-				return "", errutil.Explain(nil, "enum %s not found", typ.Name)
-			}
-			typeName += "AsString"
+		if _, ok := httpidl.GetEnum(code.Files, typ.Name); ok {
+			return typ.Name, nil
 		}
-		if forceOptional {
-			typeName = "*" + typeName
-		}
-		return typeName, nil
+		return "*" + typ.Name, nil
 	case httpidl.ListType:
-		itemType, err := getTypeName(code, typ.Item, nil, false)
+		itemType, err := getOtherTypeName(code, typ.Item)
 		if err != nil {
 			return "", err
 		}
@@ -440,13 +440,11 @@ func getTypeName(code GoCode, t httpidl.TypeDefinition, arr []httpidl.Annotation
 		if typ.Key == "int" {
 			keyType = "int64"
 		}
-		valueType, err := getTypeName(code, typ.Value, nil, false)
+		valueType, err := getOtherTypeName(code, typ.Value)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("map[%s]%s", keyType, valueType), nil
-	case httpidl.BinaryType:
-		return "[]byte", nil // todo (lvan100) handle file
 	default:
 		return "", errutil.Explain(nil, "unknown type: %s", t.Text())
 	}

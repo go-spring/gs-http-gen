@@ -1560,10 +1560,10 @@ func (x *DeleteManagerResp) String() string {
 }
 
 type ManagersPageData struct {
-	Total *int64    `json:"total,omitempty" form:"total"`
-	Page  *int64    `json:"page,omitempty" form:"page"`
-	Size  *int64    `json:"size,omitempty" form:"size"`
-	Items []Manager `json:"items,omitempty" form:"items"`
+	Total *int64     `json:"total,omitempty" form:"total"`
+	Page  *int64     `json:"page,omitempty" form:"page"`
+	Size  *int64     `json:"size,omitempty" form:"size"`
+	Items []*Manager `json:"items,omitempty" form:"items"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -1612,14 +1612,14 @@ func (x *ManagersPageData) SetSize(v int64) {
 	x.Size = &v
 }
 
-func (x *ManagersPageData) GetItems() (v []Manager) {
+func (x *ManagersPageData) GetItems() (v []*Manager) {
 	if x.Items != nil {
 		return x.Items
 	}
 	return
 }
 
-func (x *ManagersPageData) SetItems(v []Manager) {
+func (x *ManagersPageData) SetItems(v []*Manager) {
 	x.Items = v
 }
 
