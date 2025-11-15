@@ -60,8 +60,8 @@ type Router interface {
 	HandleFunc(method string, pattern string, handler http.HandlerFunc)
 }
 
-// InitRouter registers the service handlers into the given *http.ServeMux.
-func InitRouter(r Router, server {{.Service}}Server) {
+// SetupRouter sets up the router with the given server.
+func SetupRouter(r Router, server ManagerServer) {
     {{- range $r := .RPCs}}
 		{{- if $r.Stream}}
 			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", HandleStream(server.{{$r.Name}}))

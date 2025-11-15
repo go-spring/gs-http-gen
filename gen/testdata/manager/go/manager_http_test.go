@@ -16,18 +16,24 @@ import (
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
+// GinServer defines the interface that service must implement.
 type GinServer struct {
 	*http.Server
 	engine *gin.Engine
 }
 
+// NewGinServer creates a new GinServer instance.
 func NewGinServer(addr string) *GinServer {
-	gin.SetMode(gin.ReleaseMode)
 	engine := gin.New()
 	svr := &http.Server{Addr: addr, Handler: engine.Handler()}
 	return &GinServer{Server: svr, engine: engine}
 }
 
+// ToGinPath converts a pathidl.Path to a Gin compatible path.
 func ToGinPath(pattern string) string {
 	path, _ := pathidl.Parse(pattern)
 	var sb strings.Builder
@@ -47,6 +53,7 @@ func ToGinPath(pattern string) string {
 	return sb.String()
 }
 
+// HandleFunc registers a new route for the given HTTP method and pattern.
 func (s *GinServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
 	pattern = ToGinPath(pattern)
 	switch method {
@@ -65,17 +72,20 @@ func (s *GinServer) HandleFunc(method string, pattern string, handler http.Handl
 	}
 }
 
+// HttpServer defines the interface that service must implement.
 type HttpServer struct {
 	*http.Server
 	mux *http.ServeMux
 }
 
+// NewHttpServer creates a new HttpServer instance.
 func NewHttpServer(addr string) *HttpServer {
 	mux := http.NewServeMux()
 	svr := &http.Server{Addr: addr, Handler: mux}
 	return &HttpServer{Server: svr, mux: mux}
 }
 
+// HandleFunc registers a new route for the given HTTP method and pattern.
 func (s *HttpServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
 	s.mux.HandleFunc(strings.TrimSpace(method+" "+pattern), handler)
 }
@@ -122,7 +132,7 @@ func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp
 
 func TestManager(t *testing.T) {
 	svr := NewGinServer(":9191")
-	proto.InitRouter(svr, &MyManagerServer{})
+	proto.SetupRouter(svr, &MyManagerServer{})
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
@@ -143,7 +153,7 @@ func TestManager(t *testing.T) {
 
 func TestStream(t *testing.T) {
 	svr := NewHttpServer(":9191")
-	proto.InitRouter(svr, &MyManagerServer{})
+	proto.SetupRouter(svr, &MyManagerServer{})
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
