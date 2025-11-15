@@ -74,7 +74,7 @@ func SetupRouter(r Router, server ManagerServer) {
 
 // genServer generates the HTTP handler and router initialization code
 // for the given service context and RPC definitions.
-func (g *Generator) genServer(config *generator.Config, code GoCode) error {
+func (g *Generator) genServer(config *generator.Config, spec GoSpec) error {
 
 	// Copy proto template files to output directory
 	{
@@ -101,13 +101,13 @@ func (g *Generator) genServer(config *generator.Config, code GoCode) error {
 	buf := &bytes.Buffer{}
 	err := serverTmpl.Execute(buf, map[string]any{
 		"Package": config.GoPackage,
-		"Service": code.Meta.Name,
-		"RPCs":    code.RPCs,
+		"Service": spec.Meta.Name,
+		"RPCs":    spec.RPCs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := code.Meta.Name + "_http.go"
+	fileName := spec.Meta.Name + "_http.go"
 	fileName = filepath.Join(config.OutputDir, fileName)
 	return g.FormatFile(fileName, buf.Bytes())
 }

@@ -41,12 +41,12 @@ var {{$f.Name}} = func ({{$f.FieldType}}) bool { return true }
 `))
 
 // genValidate generates the Go file containing default validation functions.
-func (g *Generator) genValidate(config *generator.Config, code GoCode) error {
+func (g *Generator) genValidate(config *generator.Config, spec GoSpec) error {
 
 	// Sort the functions by name
 	var funcs []ValidateFunc
-	for _, s := range slices.Sorted(maps.Keys(code.Funcs)) {
-		funcs = append(funcs, code.Funcs[s])
+	for _, s := range slices.Sorted(maps.Keys(spec.Funcs)) {
+		funcs = append(funcs, spec.Funcs[s])
 	}
 
 	buf := &bytes.Buffer{}
@@ -57,7 +57,7 @@ func (g *Generator) genValidate(config *generator.Config, code GoCode) error {
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := code.Meta.Name + "_validate.go"
+	fileName := spec.Meta.Name + "_validate.go"
 	fileName = filepath.Join(config.OutputDir, fileName)
 	return g.FormatFile(fileName, buf.Bytes())
 }

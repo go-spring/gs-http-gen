@@ -130,7 +130,7 @@ type ReqIndex struct {
 	Index int
 }
 
-type GoCode struct {
+type GoSpec struct {
 	Meta   *httpidl.MetaInfo
 	Files  map[string]httpidl.Document
 	Consts map[string][]Const
@@ -154,13 +154,13 @@ func formatComment(c httpidl.Comments) string {
 }
 
 // Convert converts an IDL project to Go code.
-func Convert(dir string) (GoCode, error) {
+func Convert(dir string) (GoSpec, error) {
 	project, err := httpidl.ParseDir(dir)
 	if err != nil {
-		return GoCode{}, err
+		return GoSpec{}, err
 	}
 
-	code := GoCode{
+	spec := GoSpec{
 		Meta:   project.Meta,
 		Files:  project.Files,
 		Consts: make(map[string][]Const),
@@ -189,32 +189,32 @@ func Convert(dir string) (GoCode, error) {
 				ReadTimeout:  r.ReadTimeout,
 				WriteTimeout: r.WriteTimeout,
 			}
-			code.RPCs = append(code.RPCs, rpc)
-			code.Reqs[rpc.Request] = ReqIndex{}
+			spec.RPCs = append(spec.RPCs, rpc)
+			spec.Reqs[rpc.Request] = ReqIndex{}
 		}
 	}
-	sort.Slice(code.RPCs, func(i, j int) bool {
-		return code.RPCs[i].Name < code.RPCs[j].Name
+	sort.Slice(spec.RPCs, func(i, j int) bool {
+		return spec.RPCs[i].Name < spec.RPCs[j].Name
 	})
 
 	for fileName, doc := range project.Files {
-		consts, err := convertConsts(code, doc)
+		consts, err := convertConsts(spec, doc)
 		if err != nil {
-			return GoCode{}, errutil.Explain(nil, "convert consts error: %w", err)
+			return GoSpec{}, errutil.Explain(nil, "convert consts error: %w", err)
 		}
-		enums, err := convertEnums(code, doc)
+		enums, err := convertEnums(spec, doc)
 		if err != nil {
-			return GoCode{}, errutil.Explain(nil, "convert enums error: %w", err)
+			return GoSpec{}, errutil.Explain(nil, "convert enums error: %w", err)
 		}
-		types, err := convertTypes(code, doc)
+		types, err := convertTypes(spec, doc)
 		if err != nil {
-			return GoCode{}, errutil.Explain(nil, "convert types error: %w", err)
+			return GoSpec{}, errutil.Explain(nil, "convert types error: %w", err)
 		}
 		{
 			var temp []Type
 			for _, t := range types {
-				if _, ok := code.Reqs[t.Name]; ok {
-					code.Reqs[t.Name] = ReqIndex{File: fileName, Index: len(temp)}
+				if _, ok := spec.Reqs[t.Name]; ok {
+					spec.Reqs[t.Name] = ReqIndex{File: fileName, Index: len(temp)}
 					req, body := SplitRequestType(t)
 					temp = append(temp, req, body)
 				} else {
@@ -223,12 +223,12 @@ func Convert(dir string) (GoCode, error) {
 			}
 			types = temp
 		}
-		code.Consts[fileName] = consts
-		code.Enums[fileName] = enums
-		code.Types[fileName] = types
+		spec.Consts[fileName] = consts
+		spec.Enums[fileName] = enums
+		spec.Types[fileName] = types
 	}
 
-	for i, rpc := range code.RPCs {
+	for i, rpc := range spec.RPCs {
 		for k, s := range rpc.PathParams {
 			rpc.PathParams[k] = httpidl.ToPascal(s)
 		}
@@ -242,9 +242,9 @@ func Convert(dir string) (GoCode, error) {
 			formatPath.WriteString("%s")
 		}
 		rpc.FormatPath = formatPath.String()
-		code.RPCs[i] = rpc
+		spec.RPCs[i] = rpc
 	}
-	return code, nil
+	return spec, nil
 }
 
 // SplitRequestType splits a type into a whole type and a body type.
@@ -267,7 +267,7 @@ func SplitRequestType(t Type) (req Type, body Type) {
 }
 
 // convertConsts converts IDL constants to Go constants
-func convertConsts(code GoCode, doc httpidl.Document) ([]Const, error) {
+func convertConsts(spec GoSpec, doc httpidl.Document) ([]Const, error) {
 	var ret []Const
 	for _, c := range doc.Consts {
 		typeName, err := getBaseTypeName(c.Type.Name)
@@ -285,7 +285,7 @@ func convertConsts(code GoCode, doc httpidl.Document) ([]Const, error) {
 }
 
 // convertEnums converts IDL enums to Go enums
-func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
+func convertEnums(spec GoSpec, doc httpidl.Document) ([]Enum, error) {
 	var ret []Enum
 	for _, e := range doc.Enums {
 		var fields []EnumField
@@ -306,14 +306,14 @@ func convertEnums(code GoCode, doc httpidl.Document) ([]Enum, error) {
 }
 
 // convertTypes converts IDL struct types to Go struct types
-func convertTypes(code GoCode, doc httpidl.Document) ([]Type, error) {
+func convertTypes(spec GoSpec, doc httpidl.Document) ([]Type, error) {
 	var ret []Type
 	for _, t := range doc.Types {
 		// Skip generic types (they need instantiation)
 		if t.GenericParam != nil {
 			continue
 		}
-		typ, err := convertType(code, t)
+		typ, err := convertType(spec, t)
 		if err != nil {
 			return nil, err
 		}
@@ -323,7 +323,7 @@ func convertTypes(code GoCode, doc httpidl.Document) ([]Type, error) {
 }
 
 // convertType converts an IDL struct type to a Go struct type
-func convertType(code GoCode, t httpidl.Type) (Type, error) {
+func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 	r := Type{Name: t.Name}
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)
@@ -357,7 +357,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 				}
 				typeName = "*" + typeName
 			default:
-				s, err := getOtherTypeName(code, typ)
+				s, err := getTypeName(spec, typ)
 				if err != nil {
 					return Type{}, err
 				}
@@ -366,7 +366,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
-		typeKind, valueType, err := getTypeKind(code, typeName)
+		typeKind, valueType, err := getTypeKind(spec, typeName)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
@@ -375,7 +375,7 @@ func convertType(code GoCode, t httpidl.Type) (Type, error) {
 		var validateExpr *string
 		if f.Required || f.Validate {
 			var s string
-			s, err = genValidate(r.Name, fieldName, typeName, typeKind, f.ValidateExpr, code.Funcs)
+			s, err = genValidate(r.Name, fieldName, typeName, typeKind, f.ValidateExpr, spec.Funcs)
 			if err != nil {
 				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 			}
@@ -419,18 +419,18 @@ func getBaseTypeName(typeName string) (string, error) {
 	}
 }
 
-// getOtherTypeName returns the Go type name for a given IDL type.
-func getOtherTypeName(code GoCode, t httpidl.TypeDefinition) (string, error) {
+// getTypeName returns the Go type name for a given IDL type.
+func getTypeName(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 	switch typ := t.(type) {
 	case httpidl.BaseType:
 		return getBaseTypeName(typ.Name)
 	case httpidl.UserType:
-		if _, ok := httpidl.GetEnum(code.Files, typ.Name); ok {
+		if _, ok := httpidl.GetEnum(spec.Files, typ.Name); ok {
 			return typ.Name, nil
 		}
 		return "*" + typ.Name, nil
 	case httpidl.ListType:
-		itemType, err := getOtherTypeName(code, typ.Item)
+		itemType, err := getTypeName(spec, typ.Item)
 		if err != nil {
 			return "", err
 		}
@@ -440,7 +440,7 @@ func getOtherTypeName(code GoCode, t httpidl.TypeDefinition) (string, error) {
 		if typ.Key == "int" {
 			keyType = "int64"
 		}
-		valueType, err := getOtherTypeName(code, typ.Value)
+		valueType, err := getTypeName(spec, typ.Value)
 		if err != nil {
 			return "", err
 		}
@@ -451,7 +451,7 @@ func getOtherTypeName(code GoCode, t httpidl.TypeDefinition) (string, error) {
 }
 
 // getTypeKind categorizes a Go type for code generation purposes.
-func getTypeKind(code GoCode, typeName string) ([]TypeKind, string, error) {
+func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 	typeName, optional := strings.CutPrefix(typeName, "*")
 
 	switch typeName {
@@ -488,7 +488,7 @@ func getTypeKind(code GoCode, typeName string) ([]TypeKind, string, error) {
 		if optional {
 			return nil, "", errutil.Explain(nil, "list type can not be optional")
 		}
-		itemType, _, err := getTypeKind(code, typeName[2:])
+		itemType, _, err := getTypeKind(spec, typeName[2:])
 		if err != nil {
 			return nil, "", err
 		}
@@ -497,15 +497,15 @@ func getTypeKind(code GoCode, typeName string) ([]TypeKind, string, error) {
 		if optional {
 			return nil, "", errutil.Explain(nil, "map type can not be optional")
 		}
-		return []TypeKind{TypeKindMap}, typeName, nil
+		return []TypeKind{TypeKindMap}, typeName, nil // todo
 	default:
-		if _, ok := httpidl.GetEnum(code.Files, strings.TrimSuffix(typeName, "AsString")); ok {
+		if _, ok := httpidl.GetEnum(spec.Files, strings.TrimSuffix(typeName, "AsString")); ok {
 			if optional {
 				return []TypeKind{TypeKindPointer, TypeKindEnum}, typeName, nil
 			}
 			return []TypeKind{TypeKindEnum}, typeName, nil
 		}
-		if _, ok := httpidl.GetType(code.Files, typeName); ok {
+		if _, ok := httpidl.GetType(spec.Files, typeName); ok {
 			if optional {
 				return []TypeKind{TypeKindPointer, TypeKindStruct}, typeName, nil
 			}
@@ -564,19 +564,18 @@ func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
 
 	if expr == nil {
 		if typeKind[0] == TypeKindPointer {
-			var str string
 			if typeKind[1] != TypeKindStruct {
-				return str, nil
+				return "", nil
 			}
-			str = fmt.Sprintf(`if e := x.%s.Validate(); e != nil {
+			str := fmt.Sprintf(`if e := x.%s.Validate(); e != nil {
 				err = errutil.Explain(err, "validate failed on %s.%s")
 			}`, fieldName, receiverType, fieldName)
 			str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
 			return str, nil
 		} else if typeKind[0] == TypeKindList {
-			return "", nil
+			return "", nil // todo
 		} else if typeKind[0] == TypeKindMap {
-			return "", nil
+			return "", nil // todo
 		}
 	}
 
