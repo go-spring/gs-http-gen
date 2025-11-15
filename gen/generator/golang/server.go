@@ -55,13 +55,18 @@ type {{.Service}}Server interface {
     {{- end}}
 }
 
+// Router defines the interface that router must implement.
+type Router interface {
+	HandleFunc(method string, pattern string, handler http.HandlerFunc)
+}
+
 // InitRouter registers the service handlers into the given *http.ServeMux.
-func InitRouter(mux *http.ServeMux, server {{.Service}}Server) {
+func InitRouter(r Router, server {{.Service}}Server) {
     {{- range $r := .RPCs}}
 		{{- if $r.Stream}}
-			mux.HandleFunc("{{$r.Method}} {{$r.Path}}", HandleStream(server.{{$r.Name}}))
+			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", HandleStream(server.{{$r.Name}}))
 		{{- else}}
-			mux.HandleFunc("{{$r.Method}} {{$r.Path}}", HandleJSON(server.{{$r.Name}}))
+			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", HandleJSON(server.{{$r.Name}}))
 		{{- end}}
     {{- end}}
 }

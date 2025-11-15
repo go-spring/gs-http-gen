@@ -23,12 +23,17 @@ type ManagerServer interface {
 	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
 }
 
+// Router defines the interface that router must implement.
+type Router interface {
+	HandleFunc(method string, pattern string, handler http.HandlerFunc)
+}
+
 // InitRouter registers the service handlers into the given *http.ServeMux.
-func InitRouter(mux *http.ServeMux, server ManagerServer) {
-	mux.HandleFunc("POST /managers", HandleJSON(server.CreateManager))
-	mux.HandleFunc("DELETE /managers/{id}", HandleJSON(server.DeleteManager))
-	mux.HandleFunc("GET /managers/{id}", HandleJSON(server.GetManager))
-	mux.HandleFunc("GET /managers/page", HandleJSON(server.ListManagersByPage))
-	mux.HandleFunc("GET /stream", HandleStream(server.Stream))
-	mux.HandleFunc("PUT /managers/{id}", HandleJSON(server.UpdateManager))
+func InitRouter(r Router, server ManagerServer) {
+	r.HandleFunc("POST", "/managers", HandleJSON(server.CreateManager))
+	r.HandleFunc("DELETE", "/managers/{id}", HandleJSON(server.DeleteManager))
+	r.HandleFunc("GET", "/managers/{id}", HandleJSON(server.GetManager))
+	r.HandleFunc("GET", "/managers/page", HandleJSON(server.ListManagersByPage))
+	r.HandleFunc("GET", "/stream", HandleStream(server.Stream))
+	r.HandleFunc("PUT", "/managers/{id}", HandleJSON(server.UpdateManager))
 }
