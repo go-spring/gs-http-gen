@@ -544,7 +544,7 @@ func genFieldTag(f TypeField) string {
 	}
 
 	if f.Required {
-		tags = append(tags, `required:""`)
+		tags = append(tags, `validate:"required"`)
 	}
 
 	return "`" + strings.Join(tags, " ") + "`"

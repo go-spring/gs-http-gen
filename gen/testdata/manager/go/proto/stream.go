@@ -203,7 +203,7 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
-	FieldType *PayloadTypeAsString `json:"FieldType" form:"FieldType" required:""`
+	FieldType *PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
 	Payload1  *Payload_1           `json:"Payload_1,omitempty" form:"Payload_1"`
 	Payload2  *Payload_2           `json:"Payload_2,omitempty" form:"Payload_2"`
 	Payload3  *Payload_3           `json:"Payload_3,omitempty" form:"Payload_3"`
