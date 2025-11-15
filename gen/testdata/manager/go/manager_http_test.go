@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
 	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/pathidl"
 )
 
 type GinServer struct {
@@ -27,7 +28,13 @@ func NewGinServer(addr string) *GinServer {
 	return &GinServer{Server: svr, engine: engine}
 }
 
+func ToGinPath(pattern string) string {
+	s, _ := pathidl.Parse(pattern)
+	return pathidl.Format(s, pathidl.Colon)
+}
+
 func (s *GinServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
+	pattern = ToGinPath(pattern)
 	switch method {
 	case "GET":
 		s.engine.GET(pattern, gin.WrapF(handler))
