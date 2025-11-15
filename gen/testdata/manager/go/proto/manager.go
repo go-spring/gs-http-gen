@@ -195,8 +195,8 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 }
 
 type PageReq struct {
-	Page *int64 `json:"page,omitempty" query:"page"`
-	Size *int64 `json:"size,omitempty" query:"size"`
+	Page *int64 `json:"page,omitempty" query:"page" required:""`
+	Size *int64 `json:"size,omitempty" query:"size" required:""`
 }
 
 // New returns a new instance (implements Object interface).
@@ -311,7 +311,7 @@ func (x *Address) String() string {
 }
 
 type ContactInfo struct {
-	Email   *string  `json:"email,omitempty" form:"email"`
+	Email   *string  `json:"email,omitempty" form:"email" required:""`
 	Phone   *string  `json:"phone,omitempty" form:"phone"`
 	Address *Address `json:"address,omitempty" form:"address"`
 }
@@ -451,9 +451,6 @@ func (x *Manager) Validate() (err error) {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
 			err = errutil.Stack(err, "validate failed on \"Manager.Salary\"")
 		}
-	}
-	if x.Contact == nil {
-		err = errutil.Stack(err, "\"Manager.Contact\" is required")
 	}
 	if x.Contact != nil {
 		if validateErr := x.Contact.Validate(); validateErr != nil {
@@ -756,9 +753,6 @@ func (x *CreateManagerReqBody) Validate() (err error) {
 			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Salary\"")
 		}
 	}
-	if x.Contact == nil {
-		err = errutil.Stack(err, "\"CreateManagerReqBody.Contact\" is required")
-	}
 	if x.Contact != nil {
 		if validateErr := x.Contact.Validate(); validateErr != nil {
 			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Contact\": %w", validateErr)
@@ -982,9 +976,6 @@ func (x *UpdateManagerReqBody) Validate() (err error) {
 			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Salary\"")
 		}
 	}
-	if x.Contact == nil {
-		err = errutil.Stack(err, "\"UpdateManagerReqBody.Contact\" is required")
-	}
 	if x.Contact != nil {
 		if validateErr := x.Contact.Validate(); validateErr != nil {
 			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Contact\": %w", validateErr)
@@ -1090,8 +1081,8 @@ func (x *UpdateManagerReqBody) String() string {
 
 type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
-	Page     *int64        `json:"page,omitempty" query:"page"`
-	Size     *int64        `json:"size,omitempty" query:"size"`
+	Page     *int64        `json:"page,omitempty" query:"page" required:""`
+	Size     *int64        `json:"size,omitempty" query:"size" required:""`
 	Keyword  []string      `json:"keyword,omitempty" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
@@ -1268,8 +1259,8 @@ func (x *ListManagersByPageReqBody) String() string {
 }
 
 type CreateManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" required:""`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" required:""`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
@@ -1290,9 +1281,6 @@ func (x *CreateManagerResp) Validate() (err error) {
 	}
 	if x.Errmsg == nil {
 		err = errutil.Stack(err, "\"CreateManagerResp.Errmsg\" is required")
-	}
-	if x.Data == nil {
-		err = errutil.Stack(err, "\"CreateManagerResp.Data\" is required")
 	}
 	if x.Data != nil {
 		if validateErr := x.Data.Validate(); validateErr != nil {
@@ -1343,8 +1331,8 @@ func (x *CreateManagerResp) String() string {
 }
 
 type UpdateManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" required:""`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" required:""`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
@@ -1365,9 +1353,6 @@ func (x *UpdateManagerResp) Validate() (err error) {
 	}
 	if x.Errmsg == nil {
 		err = errutil.Stack(err, "\"UpdateManagerResp.Errmsg\" is required")
-	}
-	if x.Data == nil {
-		err = errutil.Stack(err, "\"UpdateManagerResp.Data\" is required")
 	}
 	if x.Data != nil {
 		if validateErr := x.Data.Validate(); validateErr != nil {
@@ -1418,8 +1403,8 @@ func (x *UpdateManagerResp) String() string {
 }
 
 type GetManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" required:""`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" required:""`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
@@ -1440,9 +1425,6 @@ func (x *GetManagerResp) Validate() (err error) {
 	}
 	if x.Errmsg == nil {
 		err = errutil.Stack(err, "\"GetManagerResp.Errmsg\" is required")
-	}
-	if x.Data == nil {
-		err = errutil.Stack(err, "\"GetManagerResp.Data\" is required")
 	}
 	if x.Data != nil {
 		if validateErr := x.Data.Validate(); validateErr != nil {
@@ -1493,8 +1475,8 @@ func (x *GetManagerResp) String() string {
 }
 
 type DeleteManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" required:""`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" required:""`
 	Data   *bool    `json:"data,omitempty" form:"data"`
 }
 
@@ -1573,9 +1555,6 @@ func (x *ManagersPageData) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *ManagersPageData) Validate() (err error) {
-	if x.Items == nil {
-		err = errutil.Stack(err, "\"ManagersPageData.Items\" is required")
-	}
 	return
 }
 
@@ -1631,8 +1610,8 @@ func (x *ManagersPageData) String() string {
 }
 
 type ListManagersByPageResp struct {
-	Errno  *ErrCode          `json:"errno,omitempty" form:"errno"`
-	Errmsg *string           `json:"errmsg,omitempty" form:"errmsg"`
+	Errno  *ErrCode          `json:"errno,omitempty" form:"errno" required:""`
+	Errmsg *string           `json:"errmsg,omitempty" form:"errmsg" required:""`
 	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
 }
 
@@ -1653,9 +1632,6 @@ func (x *ListManagersByPageResp) Validate() (err error) {
 	}
 	if x.Errmsg == nil {
 		err = errutil.Stack(err, "\"ListManagersByPageResp.Errmsg\" is required")
-	}
-	if x.Data == nil {
-		err = errutil.Stack(err, "\"ListManagersByPageResp.Data\" is required")
 	}
 	if x.Data != nil {
 		if validateErr := x.Data.Validate(); validateErr != nil {

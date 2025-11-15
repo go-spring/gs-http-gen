@@ -250,8 +250,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         }
       ],
@@ -275,7 +275,6 @@
         "Right": null
       },
       "Embedded": false,
-      "Required": false,
       "Validate": false
     },
     {
@@ -331,8 +330,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -372,7 +371,6 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": true,
           "ValidateExpr": {
             "Left": {
               "Value": "$",
@@ -386,6 +384,7 @@
               "Inner": null
             }
           },
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -410,8 +409,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -458,8 +457,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -486,8 +485,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         }
       ],
@@ -533,7 +532,6 @@
         "Right": null
       },
       "Embedded": true,
-      "Required": false,
       "Validate": false
     },
     {
@@ -566,8 +564,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -594,8 +592,8 @@
           },
           "Binding": null,
           "Required": true,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -622,8 +620,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         }
       ],
@@ -636,7 +634,6 @@
         "Right": null
       },
       "Embedded": false,
-      "Required": false,
       "Validate": false
     },
     {
@@ -682,8 +679,8 @@
           },
           "Binding": null,
           "Required": true,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": true
         },
         {
@@ -710,8 +707,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -738,8 +735,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         }
       ],
@@ -752,7 +749,6 @@
         "Right": null
       },
       "Embedded": false,
-      "Required": false,
       "Validate": false
     },
     {
@@ -798,8 +794,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": true
         },
         {
@@ -826,8 +822,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         },
         {
@@ -854,8 +850,8 @@
           },
           "Binding": null,
           "Required": false,
-          "Validate": false,
           "ValidateExpr": null,
+          "ValidateNested": false,
           "EnumAsString": false
         }
       ],
@@ -879,7 +875,6 @@
         "Right": null
       },
       "Embedded": false,
-      "Required": false,
       "Validate": false
     },
     {
@@ -915,7 +910,6 @@
         "Right": null
       },
       "Embedded": false,
-      "Required": false,
       "Validate": false
     }
   ],

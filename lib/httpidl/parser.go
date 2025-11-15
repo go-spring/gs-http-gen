@@ -146,7 +146,7 @@ func ParseDir(dir string) (Project, error) {
 			}
 
 			// get and update type attr
-			if _, err = getAndUpdateTypeAttr(files, t); err != nil {
+			if _, err = getAndUpdateTypeValidate(files, t); err != nil {
 				return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
 			}
 
@@ -200,60 +200,43 @@ func ParseDir(dir string) (Project, error) {
 	}, nil
 }
 
-type Attr struct {
-	Required bool
-	Validate bool
-}
-
-// getAndUpdateTypeAttr returns the required and validate attributes of a type.
-func getAndUpdateTypeAttr(files map[string]Document, t Type) (Attr, error) {
+func getAndUpdateTypeValidate(files map[string]Document, t Type) (bool, error) {
 	for i, f := range t.Fields {
-		if f.Required || f.Validate {
-			if f.Required {
-				t.Required = true
-			}
-			if f.Validate {
-				t.Validate = true
-			}
-			continue
-		}
-		r, err := getUserTypeAttr(files, f.Type)
+		b, err := getTypeValidate(files, f.Type)
 		if err != nil {
-			return Attr{}, err
+			return false, err
 		}
-		if r.Required {
-			t.Required = true
-			t.Fields[i].Required = true
+		if b {
+			f.ValidateNested = true
+			t.Fields[i] = f
 		}
-		if r.Validate {
+		if f.Required || f.ValidateExpr != nil || f.ValidateNested {
 			t.Validate = true
-			t.Fields[i].Validate = true
 		}
 	}
 	fileName, index := FindType(files, t.Name)
 	files[fileName].Types[index] = t
-	return Attr{Required: t.Required, Validate: t.Validate}, nil
+	return t.Validate, nil
 }
 
-// getUserTypeAttr returns the required and validate attributes of a user-defined type.
-func getUserTypeAttr(files map[string]Document, t TypeDefinition) (Attr, error) {
+func getTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
 	switch x := t.(type) {
 	case UserType:
 		srcType, ok := GetType(files, x.Name)
 		if !ok {
 			if _, ok = GetEnum(files, x.Name); !ok {
-				return Attr{}, errutil.Explain(nil, "type %s is used but not defined", x.Name)
+				return false, errutil.Explain(nil, "type %s is used but not defined", x.Name)
 			}
-			return Attr{}, nil
+			return false, nil
 		}
-		return getAndUpdateTypeAttr(files, srcType)
+		return getAndUpdateTypeValidate(files, srcType)
 	case ListType:
-		return getUserTypeAttr(files, x.Item)
+		return getTypeValidate(files, x.Item)
 	case MapType:
-		return getUserTypeAttr(files, x.Value)
+		return getTypeValidate(files, x.Value)
 	default: // for linter
 	}
-	return Attr{}, nil
+	return false, nil
 }
 
 // replaceGenericType replaces a generic type with a concrete type.
@@ -718,7 +701,6 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		if err != nil {
 			panic(errutil.Explain(nil, `failed to parse validate expression %s: %w`, *opt.Value, err))
 		}
-		typeField.Validate = true
 		typeField.ValidateExpr = expr
 	}
 }

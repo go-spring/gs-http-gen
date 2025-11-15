@@ -373,7 +373,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 
 		// Generate validation expressions for the field
 		var validateExpr *string
-		if f.Required || f.Validate {
+		if f.ValidateExpr != nil || f.ValidateNested {
 			var s string
 			s, err = genValidate(r.Name, fieldName, typeName, typeKind, f.ValidateExpr, spec.Funcs)
 			if err != nil {
@@ -541,6 +541,10 @@ func genFieldTag(f TypeField) string {
 	} else {
 		s := fmt.Sprintf(`%s:"%s"`, f.Binding.From, f.Binding.Name)
 		tags = append(tags, s)
+	}
+
+	if f.Required {
+		tags = append(tags, `required:""`)
 	}
 
 	return "`" + strings.Join(tags, " ") + "`"

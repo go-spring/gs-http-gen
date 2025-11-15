@@ -154,9 +154,6 @@ func (x *StreamResp) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *StreamResp) Validate() (err error) {
-	if x.Payload == nil {
-		err = errutil.Stack(err, "\"StreamResp.Payload\" is required")
-	}
 	if x.Payload != nil {
 		if validateErr := x.Payload.Validate(); validateErr != nil {
 			err = errutil.Stack(err, "validate failed on \"StreamResp.Payload\": %w", validateErr)
@@ -206,7 +203,7 @@ func (x *StreamResp) String() string {
 }
 
 type Payload struct {
-	FieldType *PayloadTypeAsString `json:"FieldType" form:"FieldType"`
+	FieldType *PayloadTypeAsString `json:"FieldType" form:"FieldType" required:""`
 	Payload1  *Payload_1           `json:"Payload_1,omitempty" form:"Payload_1"`
 	Payload2  *Payload_2           `json:"Payload_2,omitempty" form:"Payload_2"`
 	Payload3  *Payload_3           `json:"Payload_3,omitempty" form:"Payload_3"`

@@ -136,7 +136,6 @@ type Type struct {
 	Comments     Comments    // Associated comments
 
 	Embedded bool // Embedded
-	Required bool // Required
 	Validate bool // Validate
 }
 
@@ -148,13 +147,13 @@ type TypeField struct {
 	Position    Position       // Location in source code
 	Comments    Comments       // Associated comments
 
-	JSONTag      JSONTag       // JSON tag
-	FormTag      FormTag       // Form tag
-	Binding      *Binding      // Field binding
-	Required     bool          // Required
-	Validate     bool          // Validate
-	ValidateExpr validate.Expr // Validate expression
-	EnumAsString bool          // Enum as string
+	JSONTag        JSONTag       // JSON tag
+	FormTag        FormTag       // Form tag
+	Binding        *Binding      // Field binding
+	Required       bool          // Required
+	ValidateExpr   validate.Expr // Validate expression
+	ValidateNested bool          // Nested validate
+	EnumAsString   bool          // Enum as string
 }
 
 // InstType represents a type alias with optional generic arguments.
