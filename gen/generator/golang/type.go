@@ -238,7 +238,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{- range $f := $s.Fields}}
 			{{- if $f.Required}}
 				if x.{{$f.Name}} == nil {
-					err = errutil.Explain(err, "%s is required", "{{$s.Name}}.{{$f.Name}}")
+					err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
 				}
 			{{- end}}
 			{{- if $f.Validate}}
@@ -249,7 +249,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 	}
 
 {{range $f := $s.Fields}}
-	func (x *{{$s.Name}}) Get{{$f.Name}}() (v {{$f.ValueType}}) {
+	func (x *{{$s.Name}}) Get{{$f.Name}}() (_ {{$f.ValueType}}) {
 		if x.{{$f.Name}} != nil {
 			{{- if $f.IsPointer}}
 				return *x.{{$f.Name}}
@@ -262,10 +262,10 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 
 	func (x *{{$s.Name}}) Set{{$f.Name}}(v {{$f.ValueType}}) {
 		{{- if $f.IsPointer}}
-				x.{{$f.Name}} = &v
-			{{- else}}
-				x.{{$f.Name}} = v
-			{{- end}}
+			x.{{$f.Name}} = &v
+		{{- else}}
+			x.{{$f.Name}} = v
+		{{- end}}
 	}
 {{end}}
 

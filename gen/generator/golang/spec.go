@@ -567,8 +567,8 @@ func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
 			if typeKind[1] != TypeKindStruct {
 				return "", nil
 			}
-			str := fmt.Sprintf(`if e := x.%s.Validate(); e != nil {
-				err = errutil.Explain(err, "validate failed on %s.%s")
+			str := fmt.Sprintf(`if validateErr := x.%s.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
 			}`, fieldName, receiverType, fieldName)
 			str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
 			return str, nil
@@ -593,7 +593,7 @@ func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
 
 	// Wrap in an if statement returning an error on failure
 	str = fmt.Sprintf(`if !(%s) {
-		err = errutil.Explain(err,"validate failed on %s.%s")
+		err = errutil.Stack(err,"validate failed on \"%s.%s\"")
 	}`, str, receiverType, fieldName)
 
 	if optional {

@@ -207,25 +207,25 @@ func (x *PageReq) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *PageReq) Validate() (err error) {
 	if x.Page == nil {
-		err = errutil.Explain(err, "%s is required", "PageReq.Page")
+		err = errutil.Stack(err, "\"PageReq.Page\" is required")
 	}
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
-			err = errutil.Explain(err, "validate failed on PageReq.Page")
+			err = errutil.Stack(err, "validate failed on \"PageReq.Page\"")
 		}
 	}
 	if x.Size == nil {
-		err = errutil.Explain(err, "%s is required", "PageReq.Size")
+		err = errutil.Stack(err, "\"PageReq.Size\" is required")
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			err = errutil.Explain(err, "validate failed on PageReq.Size")
+			err = errutil.Stack(err, "validate failed on \"PageReq.Size\"")
 		}
 	}
 	return
 }
 
-func (x *PageReq) GetPage() (v int64) {
+func (x *PageReq) GetPage() (_ int64) {
 	if x.Page != nil {
 		return *x.Page
 	}
@@ -236,7 +236,7 @@ func (x *PageReq) SetPage(v int64) {
 	x.Page = &v
 }
 
-func (x *PageReq) GetSize() (v int64) {
+func (x *PageReq) GetSize() (_ int64) {
 	if x.Size != nil {
 		return *x.Size
 	}
@@ -270,7 +270,7 @@ func (x *Address) Validate() (err error) {
 	return
 }
 
-func (x *Address) GetCity() (v string) {
+func (x *Address) GetCity() (_ string) {
 	if x.City != nil {
 		return *x.City
 	}
@@ -281,7 +281,7 @@ func (x *Address) SetCity(v string) {
 	x.City = &v
 }
 
-func (x *Address) GetStreet() (v string) {
+func (x *Address) GetStreet() (_ string) {
 	if x.Street != nil {
 		return *x.Street
 	}
@@ -292,7 +292,7 @@ func (x *Address) SetStreet(v string) {
 	x.Street = &v
 }
 
-func (x *Address) GetPostalCode() (v string) {
+func (x *Address) GetPostalCode() (_ string) {
 	if x.PostalCode != nil {
 		return *x.PostalCode
 	}
@@ -324,17 +324,17 @@ func (x *ContactInfo) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *ContactInfo) Validate() (err error) {
 	if x.Email == nil {
-		err = errutil.Explain(err, "%s is required", "ContactInfo.Email")
+		err = errutil.Stack(err, "\"ContactInfo.Email\" is required")
 	}
 	if x.Email != nil {
 		if !(Email(*x.Email)) {
-			err = errutil.Explain(err, "validate failed on ContactInfo.Email")
+			err = errutil.Stack(err, "validate failed on \"ContactInfo.Email\"")
 		}
 	}
 	return
 }
 
-func (x *ContactInfo) GetEmail() (v string) {
+func (x *ContactInfo) GetEmail() (_ string) {
 	if x.Email != nil {
 		return *x.Email
 	}
@@ -345,7 +345,7 @@ func (x *ContactInfo) SetEmail(v string) {
 	x.Email = &v
 }
 
-func (x *ContactInfo) GetPhone() (v string) {
+func (x *ContactInfo) GetPhone() (_ string) {
 	if x.Phone != nil {
 		return *x.Phone
 	}
@@ -356,7 +356,7 @@ func (x *ContactInfo) SetPhone(v string) {
 	x.Phone = &v
 }
 
-func (x *ContactInfo) GetAddress() (v Address) {
+func (x *ContactInfo) GetAddress() (_ Address) {
 	if x.Address != nil {
 		return *x.Address
 	}
@@ -389,7 +389,7 @@ func (x *DepartmentInfo) Validate() (err error) {
 	return
 }
 
-func (x *DepartmentInfo) GetDept() (v Department) {
+func (x *DepartmentInfo) GetDept() (_ Department) {
 	if x.Dept != nil {
 		return *x.Dept
 	}
@@ -400,7 +400,7 @@ func (x *DepartmentInfo) SetDept(v Department) {
 	x.Dept = &v
 }
 
-func (x *DepartmentInfo) GetDeptName() (v string) {
+func (x *DepartmentInfo) GetDeptName() (_ string) {
 	if x.DeptName != nil {
 		return *x.DeptName
 	}
@@ -439,31 +439,31 @@ func (x *Manager) New() any {
 func (x *Manager) Validate() (err error) {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			err = errutil.Explain(err, "validate failed on Manager.Name")
+			err = errutil.Stack(err, "validate failed on \"Manager.Name\"")
 		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Explain(err, "validate failed on Manager.Age")
+			err = errutil.Stack(err, "validate failed on \"Manager.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Explain(err, "validate failed on Manager.Salary")
+			err = errutil.Stack(err, "validate failed on \"Manager.Salary\"")
 		}
 	}
 	if x.Contact == nil {
-		err = errutil.Explain(err, "%s is required", "Manager.Contact")
+		err = errutil.Stack(err, "\"Manager.Contact\" is required")
 	}
 	if x.Contact != nil {
-		if e := x.Contact.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on Manager.Contact")
+		if validateErr := x.Contact.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"Manager.Contact\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *Manager) GetId() (v string) {
+func (x *Manager) GetId() (_ string) {
 	if x.Id != nil {
 		return *x.Id
 	}
@@ -474,7 +474,7 @@ func (x *Manager) SetId(v string) {
 	x.Id = &v
 }
 
-func (x *Manager) GetName() (v string) {
+func (x *Manager) GetName() (_ string) {
 	if x.Name != nil {
 		return *x.Name
 	}
@@ -485,7 +485,7 @@ func (x *Manager) SetName(v string) {
 	x.Name = &v
 }
 
-func (x *Manager) GetAge() (v int64) {
+func (x *Manager) GetAge() (_ int64) {
 	if x.Age != nil {
 		return *x.Age
 	}
@@ -496,7 +496,7 @@ func (x *Manager) SetAge(v int64) {
 	x.Age = &v
 }
 
-func (x *Manager) GetVip() (v bool) {
+func (x *Manager) GetVip() (_ bool) {
 	if x.Vip != nil {
 		return *x.Vip
 	}
@@ -507,7 +507,7 @@ func (x *Manager) SetVip(v bool) {
 	x.Vip = &v
 }
 
-func (x *Manager) GetSalary() (v float64) {
+func (x *Manager) GetSalary() (_ float64) {
 	if x.Salary != nil {
 		return *x.Salary
 	}
@@ -518,7 +518,7 @@ func (x *Manager) SetSalary(v float64) {
 	x.Salary = &v
 }
 
-func (x *Manager) GetRole() (v string) {
+func (x *Manager) GetRole() (_ string) {
 	if x.Role != nil {
 		return *x.Role
 	}
@@ -529,7 +529,7 @@ func (x *Manager) SetRole(v string) {
 	x.Role = &v
 }
 
-func (x *Manager) GetLevel() (v ManagerLevelAsString) {
+func (x *Manager) GetLevel() (_ ManagerLevelAsString) {
 	if x.Level != nil {
 		return *x.Level
 	}
@@ -540,7 +540,7 @@ func (x *Manager) SetLevel(v ManagerLevelAsString) {
 	x.Level = &v
 }
 
-func (x *Manager) GetDeptInfo() (v DepartmentInfo) {
+func (x *Manager) GetDeptInfo() (_ DepartmentInfo) {
 	if x.DeptInfo != nil {
 		return *x.DeptInfo
 	}
@@ -551,7 +551,7 @@ func (x *Manager) SetDeptInfo(v DepartmentInfo) {
 	x.DeptInfo = &v
 }
 
-func (x *Manager) GetContact() (v ContactInfo) {
+func (x *Manager) GetContact() (_ ContactInfo) {
 	if x.Contact != nil {
 		return *x.Contact
 	}
@@ -596,7 +596,7 @@ func (x *ManagerReq) Validate() (err error) {
 	return
 }
 
-func (x *ManagerReq) GetId() (v string) {
+func (x *ManagerReq) GetId() (_ string) {
 	if x.Id != nil {
 		return *x.Id
 	}
@@ -743,31 +743,31 @@ func (x *CreateManagerReqBody) DecodeFromForm(b []byte) error {
 func (x *CreateManagerReqBody) Validate() (err error) {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			err = errutil.Explain(err, "validate failed on CreateManagerReq.Name")
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Name\"")
 		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Explain(err, "validate failed on CreateManagerReq.Age")
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Explain(err, "validate failed on CreateManagerReq.Salary")
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Salary\"")
 		}
 	}
 	if x.Contact == nil {
-		err = errutil.Explain(err, "%s is required", "CreateManagerReqBody.Contact")
+		err = errutil.Stack(err, "\"CreateManagerReqBody.Contact\" is required")
 	}
 	if x.Contact != nil {
-		if e := x.Contact.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on CreateManagerReq.Contact")
+		if validateErr := x.Contact.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Contact\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *CreateManagerReqBody) GetName() (v string) {
+func (x *CreateManagerReqBody) GetName() (_ string) {
 	if x.Name != nil {
 		return *x.Name
 	}
@@ -778,7 +778,7 @@ func (x *CreateManagerReqBody) SetName(v string) {
 	x.Name = &v
 }
 
-func (x *CreateManagerReqBody) GetAge() (v int64) {
+func (x *CreateManagerReqBody) GetAge() (_ int64) {
 	if x.Age != nil {
 		return *x.Age
 	}
@@ -789,7 +789,7 @@ func (x *CreateManagerReqBody) SetAge(v int64) {
 	x.Age = &v
 }
 
-func (x *CreateManagerReqBody) GetVip() (v bool) {
+func (x *CreateManagerReqBody) GetVip() (_ bool) {
 	if x.Vip != nil {
 		return *x.Vip
 	}
@@ -800,7 +800,7 @@ func (x *CreateManagerReqBody) SetVip(v bool) {
 	x.Vip = &v
 }
 
-func (x *CreateManagerReqBody) GetSalary() (v float64) {
+func (x *CreateManagerReqBody) GetSalary() (_ float64) {
 	if x.Salary != nil {
 		return *x.Salary
 	}
@@ -811,7 +811,7 @@ func (x *CreateManagerReqBody) SetSalary(v float64) {
 	x.Salary = &v
 }
 
-func (x *CreateManagerReqBody) GetRole() (v string) {
+func (x *CreateManagerReqBody) GetRole() (_ string) {
 	if x.Role != nil {
 		return *x.Role
 	}
@@ -822,7 +822,7 @@ func (x *CreateManagerReqBody) SetRole(v string) {
 	x.Role = &v
 }
 
-func (x *CreateManagerReqBody) GetLevel() (v ManagerLevel) {
+func (x *CreateManagerReqBody) GetLevel() (_ ManagerLevel) {
 	if x.Level != nil {
 		return *x.Level
 	}
@@ -833,7 +833,7 @@ func (x *CreateManagerReqBody) SetLevel(v ManagerLevel) {
 	x.Level = &v
 }
 
-func (x *CreateManagerReqBody) GetDeptInfo() (v DepartmentInfo) {
+func (x *CreateManagerReqBody) GetDeptInfo() (_ DepartmentInfo) {
 	if x.DeptInfo != nil {
 		return *x.DeptInfo
 	}
@@ -844,7 +844,7 @@ func (x *CreateManagerReqBody) SetDeptInfo(v DepartmentInfo) {
 	x.DeptInfo = &v
 }
 
-func (x *CreateManagerReqBody) GetContact() (v ContactInfo) {
+func (x *CreateManagerReqBody) GetContact() (_ ContactInfo) {
 	if x.Contact != nil {
 		return *x.Contact
 	}
@@ -889,7 +889,7 @@ func (x *UpdateManagerReq) Validate() (err error) {
 	return
 }
 
-func (x *UpdateManagerReq) GetID() (v string) {
+func (x *UpdateManagerReq) GetID() (_ string) {
 	if x.ID != nil {
 		return *x.ID
 	}
@@ -974,26 +974,26 @@ func (x *UpdateManagerReqBody) DecodeFromForm(b []byte) error {
 func (x *UpdateManagerReqBody) Validate() (err error) {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Age")
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Salary")
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Salary\"")
 		}
 	}
 	if x.Contact == nil {
-		err = errutil.Explain(err, "%s is required", "UpdateManagerReqBody.Contact")
+		err = errutil.Stack(err, "\"UpdateManagerReqBody.Contact\" is required")
 	}
 	if x.Contact != nil {
-		if e := x.Contact.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on UpdateManagerReq.Contact")
+		if validateErr := x.Contact.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Contact\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *UpdateManagerReqBody) GetName() (v string) {
+func (x *UpdateManagerReqBody) GetName() (_ string) {
 	if x.Name != nil {
 		return *x.Name
 	}
@@ -1004,7 +1004,7 @@ func (x *UpdateManagerReqBody) SetName(v string) {
 	x.Name = &v
 }
 
-func (x *UpdateManagerReqBody) GetAge() (v int64) {
+func (x *UpdateManagerReqBody) GetAge() (_ int64) {
 	if x.Age != nil {
 		return *x.Age
 	}
@@ -1015,7 +1015,7 @@ func (x *UpdateManagerReqBody) SetAge(v int64) {
 	x.Age = &v
 }
 
-func (x *UpdateManagerReqBody) GetVip() (v bool) {
+func (x *UpdateManagerReqBody) GetVip() (_ bool) {
 	if x.Vip != nil {
 		return *x.Vip
 	}
@@ -1026,7 +1026,7 @@ func (x *UpdateManagerReqBody) SetVip(v bool) {
 	x.Vip = &v
 }
 
-func (x *UpdateManagerReqBody) GetSalary() (v float64) {
+func (x *UpdateManagerReqBody) GetSalary() (_ float64) {
 	if x.Salary != nil {
 		return *x.Salary
 	}
@@ -1037,7 +1037,7 @@ func (x *UpdateManagerReqBody) SetSalary(v float64) {
 	x.Salary = &v
 }
 
-func (x *UpdateManagerReqBody) GetRole() (v string) {
+func (x *UpdateManagerReqBody) GetRole() (_ string) {
 	if x.Role != nil {
 		return *x.Role
 	}
@@ -1048,7 +1048,7 @@ func (x *UpdateManagerReqBody) SetRole(v string) {
 	x.Role = &v
 }
 
-func (x *UpdateManagerReqBody) GetLevel() (v ManagerLevel) {
+func (x *UpdateManagerReqBody) GetLevel() (_ ManagerLevel) {
 	if x.Level != nil {
 		return *x.Level
 	}
@@ -1059,7 +1059,7 @@ func (x *UpdateManagerReqBody) SetLevel(v ManagerLevel) {
 	x.Level = &v
 }
 
-func (x *UpdateManagerReqBody) GetDeptInfo() (v DepartmentInfo) {
+func (x *UpdateManagerReqBody) GetDeptInfo() (_ DepartmentInfo) {
 	if x.DeptInfo != nil {
 		return *x.DeptInfo
 	}
@@ -1070,7 +1070,7 @@ func (x *UpdateManagerReqBody) SetDeptInfo(v DepartmentInfo) {
 	x.DeptInfo = &v
 }
 
-func (x *UpdateManagerReqBody) GetContact() (v ContactInfo) {
+func (x *UpdateManagerReqBody) GetContact() (_ ContactInfo) {
 	if x.Contact != nil {
 		return *x.Contact
 	}
@@ -1142,28 +1142,28 @@ func (x *ListManagersByPageReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReq) Validate() (err error) {
 	if x.Page == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Page")
+		err = errutil.Stack(err, "\"ListManagersByPageReq.Page\" is required")
 	}
 	if x.Page != nil {
 		if !(*x.Page >= 1) {
-			err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Page")
+			err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Page\"")
 		}
 	}
 	if x.Size == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageReq.Size")
+		err = errutil.Stack(err, "\"ListManagersByPageReq.Size\" is required")
 	}
 	if x.Size != nil {
 		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Size")
+			err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Size\"")
 		}
 	}
 	if !(len(x.Keyword) <= 5) {
-		err = errutil.Explain(err, "validate failed on ListManagersByPageReq.Keyword")
+		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Keyword\"")
 	}
 	return
 }
 
-func (x *ListManagersByPageReq) GetPage() (v int64) {
+func (x *ListManagersByPageReq) GetPage() (_ int64) {
 	if x.Page != nil {
 		return *x.Page
 	}
@@ -1174,7 +1174,7 @@ func (x *ListManagersByPageReq) SetPage(v int64) {
 	x.Page = &v
 }
 
-func (x *ListManagersByPageReq) GetSize() (v int64) {
+func (x *ListManagersByPageReq) GetSize() (_ int64) {
 	if x.Size != nil {
 		return *x.Size
 	}
@@ -1185,7 +1185,7 @@ func (x *ListManagersByPageReq) SetSize(v int64) {
 	x.Size = &v
 }
 
-func (x *ListManagersByPageReq) GetKeyword() (v []string) {
+func (x *ListManagersByPageReq) GetKeyword() (_ []string) {
 	if x.Keyword != nil {
 		return x.Keyword
 	}
@@ -1196,7 +1196,7 @@ func (x *ListManagersByPageReq) SetKeyword(v []string) {
 	x.Keyword = v
 }
 
-func (x *ListManagersByPageReq) GetDept() (v Department) {
+func (x *ListManagersByPageReq) GetDept() (_ Department) {
 	if x.Dept != nil {
 		return *x.Dept
 	}
@@ -1207,7 +1207,7 @@ func (x *ListManagersByPageReq) SetDept(v Department) {
 	x.Dept = &v
 }
 
-func (x *ListManagersByPageReq) GetMinLevel() (v ManagerLevel) {
+func (x *ListManagersByPageReq) GetMinLevel() (_ ManagerLevel) {
 	if x.MinLevel != nil {
 		return *x.MinLevel
 	}
@@ -1218,7 +1218,7 @@ func (x *ListManagersByPageReq) SetMinLevel(v ManagerLevel) {
 	x.MinLevel = &v
 }
 
-func (x *ListManagersByPageReq) GetVip() (v bool) {
+func (x *ListManagersByPageReq) GetVip() (_ bool) {
 	if x.Vip != nil {
 		return *x.Vip
 	}
@@ -1281,28 +1281,28 @@ func (x *CreateManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerResp) Validate() (err error) {
 	if x.Errno == nil {
-		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errno")
+		err = errutil.Stack(err, "\"CreateManagerResp.Errno\" is required")
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Explain(err, "validate failed on CreateManagerResp.Errno")
+			err = errutil.Stack(err, "validate failed on \"CreateManagerResp.Errno\"")
 		}
 	}
 	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Errmsg")
+		err = errutil.Stack(err, "\"CreateManagerResp.Errmsg\" is required")
 	}
 	if x.Data == nil {
-		err = errutil.Explain(err, "%s is required", "CreateManagerResp.Data")
+		err = errutil.Stack(err, "\"CreateManagerResp.Data\" is required")
 	}
 	if x.Data != nil {
-		if e := x.Data.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on CreateManagerResp.Data")
+		if validateErr := x.Data.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"CreateManagerResp.Data\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *CreateManagerResp) GetErrno() (v ErrCode) {
+func (x *CreateManagerResp) GetErrno() (_ ErrCode) {
 	if x.Errno != nil {
 		return *x.Errno
 	}
@@ -1313,7 +1313,7 @@ func (x *CreateManagerResp) SetErrno(v ErrCode) {
 	x.Errno = &v
 }
 
-func (x *CreateManagerResp) GetErrmsg() (v string) {
+func (x *CreateManagerResp) GetErrmsg() (_ string) {
 	if x.Errmsg != nil {
 		return *x.Errmsg
 	}
@@ -1324,7 +1324,7 @@ func (x *CreateManagerResp) SetErrmsg(v string) {
 	x.Errmsg = &v
 }
 
-func (x *CreateManagerResp) GetData() (v Manager) {
+func (x *CreateManagerResp) GetData() (_ Manager) {
 	if x.Data != nil {
 		return *x.Data
 	}
@@ -1356,28 +1356,28 @@ func (x *UpdateManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerResp) Validate() (err error) {
 	if x.Errno == nil {
-		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errno")
+		err = errutil.Stack(err, "\"UpdateManagerResp.Errno\" is required")
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Explain(err, "validate failed on UpdateManagerResp.Errno")
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerResp.Errno\"")
 		}
 	}
 	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Errmsg")
+		err = errutil.Stack(err, "\"UpdateManagerResp.Errmsg\" is required")
 	}
 	if x.Data == nil {
-		err = errutil.Explain(err, "%s is required", "UpdateManagerResp.Data")
+		err = errutil.Stack(err, "\"UpdateManagerResp.Data\" is required")
 	}
 	if x.Data != nil {
-		if e := x.Data.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on UpdateManagerResp.Data")
+		if validateErr := x.Data.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerResp.Data\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *UpdateManagerResp) GetErrno() (v ErrCode) {
+func (x *UpdateManagerResp) GetErrno() (_ ErrCode) {
 	if x.Errno != nil {
 		return *x.Errno
 	}
@@ -1388,7 +1388,7 @@ func (x *UpdateManagerResp) SetErrno(v ErrCode) {
 	x.Errno = &v
 }
 
-func (x *UpdateManagerResp) GetErrmsg() (v string) {
+func (x *UpdateManagerResp) GetErrmsg() (_ string) {
 	if x.Errmsg != nil {
 		return *x.Errmsg
 	}
@@ -1399,7 +1399,7 @@ func (x *UpdateManagerResp) SetErrmsg(v string) {
 	x.Errmsg = &v
 }
 
-func (x *UpdateManagerResp) GetData() (v Manager) {
+func (x *UpdateManagerResp) GetData() (_ Manager) {
 	if x.Data != nil {
 		return *x.Data
 	}
@@ -1431,28 +1431,28 @@ func (x *GetManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *GetManagerResp) Validate() (err error) {
 	if x.Errno == nil {
-		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errno")
+		err = errutil.Stack(err, "\"GetManagerResp.Errno\" is required")
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Explain(err, "validate failed on GetManagerResp.Errno")
+			err = errutil.Stack(err, "validate failed on \"GetManagerResp.Errno\"")
 		}
 	}
 	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "GetManagerResp.Errmsg")
+		err = errutil.Stack(err, "\"GetManagerResp.Errmsg\" is required")
 	}
 	if x.Data == nil {
-		err = errutil.Explain(err, "%s is required", "GetManagerResp.Data")
+		err = errutil.Stack(err, "\"GetManagerResp.Data\" is required")
 	}
 	if x.Data != nil {
-		if e := x.Data.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on GetManagerResp.Data")
+		if validateErr := x.Data.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"GetManagerResp.Data\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *GetManagerResp) GetErrno() (v ErrCode) {
+func (x *GetManagerResp) GetErrno() (_ ErrCode) {
 	if x.Errno != nil {
 		return *x.Errno
 	}
@@ -1463,7 +1463,7 @@ func (x *GetManagerResp) SetErrno(v ErrCode) {
 	x.Errno = &v
 }
 
-func (x *GetManagerResp) GetErrmsg() (v string) {
+func (x *GetManagerResp) GetErrmsg() (_ string) {
 	if x.Errmsg != nil {
 		return *x.Errmsg
 	}
@@ -1474,7 +1474,7 @@ func (x *GetManagerResp) SetErrmsg(v string) {
 	x.Errmsg = &v
 }
 
-func (x *GetManagerResp) GetData() (v Manager) {
+func (x *GetManagerResp) GetData() (_ Manager) {
 	if x.Data != nil {
 		return *x.Data
 	}
@@ -1506,20 +1506,20 @@ func (x *DeleteManagerResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *DeleteManagerResp) Validate() (err error) {
 	if x.Errno == nil {
-		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errno")
+		err = errutil.Stack(err, "\"DeleteManagerResp.Errno\" is required")
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Explain(err, "validate failed on DeleteManagerResp.Errno")
+			err = errutil.Stack(err, "validate failed on \"DeleteManagerResp.Errno\"")
 		}
 	}
 	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "DeleteManagerResp.Errmsg")
+		err = errutil.Stack(err, "\"DeleteManagerResp.Errmsg\" is required")
 	}
 	return
 }
 
-func (x *DeleteManagerResp) GetErrno() (v ErrCode) {
+func (x *DeleteManagerResp) GetErrno() (_ ErrCode) {
 	if x.Errno != nil {
 		return *x.Errno
 	}
@@ -1530,7 +1530,7 @@ func (x *DeleteManagerResp) SetErrno(v ErrCode) {
 	x.Errno = &v
 }
 
-func (x *DeleteManagerResp) GetErrmsg() (v string) {
+func (x *DeleteManagerResp) GetErrmsg() (_ string) {
 	if x.Errmsg != nil {
 		return *x.Errmsg
 	}
@@ -1541,7 +1541,7 @@ func (x *DeleteManagerResp) SetErrmsg(v string) {
 	x.Errmsg = &v
 }
 
-func (x *DeleteManagerResp) GetData() (v bool) {
+func (x *DeleteManagerResp) GetData() (_ bool) {
 	if x.Data != nil {
 		return *x.Data
 	}
@@ -1574,12 +1574,12 @@ func (x *ManagersPageData) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *ManagersPageData) Validate() (err error) {
 	if x.Items == nil {
-		err = errutil.Explain(err, "%s is required", "ManagersPageData.Items")
+		err = errutil.Stack(err, "\"ManagersPageData.Items\" is required")
 	}
 	return
 }
 
-func (x *ManagersPageData) GetTotal() (v int64) {
+func (x *ManagersPageData) GetTotal() (_ int64) {
 	if x.Total != nil {
 		return *x.Total
 	}
@@ -1590,7 +1590,7 @@ func (x *ManagersPageData) SetTotal(v int64) {
 	x.Total = &v
 }
 
-func (x *ManagersPageData) GetPage() (v int64) {
+func (x *ManagersPageData) GetPage() (_ int64) {
 	if x.Page != nil {
 		return *x.Page
 	}
@@ -1601,7 +1601,7 @@ func (x *ManagersPageData) SetPage(v int64) {
 	x.Page = &v
 }
 
-func (x *ManagersPageData) GetSize() (v int64) {
+func (x *ManagersPageData) GetSize() (_ int64) {
 	if x.Size != nil {
 		return *x.Size
 	}
@@ -1612,7 +1612,7 @@ func (x *ManagersPageData) SetSize(v int64) {
 	x.Size = &v
 }
 
-func (x *ManagersPageData) GetItems() (v []*Manager) {
+func (x *ManagersPageData) GetItems() (_ []*Manager) {
 	if x.Items != nil {
 		return x.Items
 	}
@@ -1644,28 +1644,28 @@ func (x *ListManagersByPageResp) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageResp) Validate() (err error) {
 	if x.Errno == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errno")
+		err = errutil.Stack(err, "\"ListManagersByPageResp.Errno\" is required")
 	}
 	if x.Errno != nil {
 		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Explain(err, "validate failed on ListManagersByPageResp.Errno")
+			err = errutil.Stack(err, "validate failed on \"ListManagersByPageResp.Errno\"")
 		}
 	}
 	if x.Errmsg == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Errmsg")
+		err = errutil.Stack(err, "\"ListManagersByPageResp.Errmsg\" is required")
 	}
 	if x.Data == nil {
-		err = errutil.Explain(err, "%s is required", "ListManagersByPageResp.Data")
+		err = errutil.Stack(err, "\"ListManagersByPageResp.Data\" is required")
 	}
 	if x.Data != nil {
-		if e := x.Data.Validate(); e != nil {
-			err = errutil.Explain(err, "validate failed on ListManagersByPageResp.Data")
+		if validateErr := x.Data.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"ListManagersByPageResp.Data\": %w", validateErr)
 		}
 	}
 	return
 }
 
-func (x *ListManagersByPageResp) GetErrno() (v ErrCode) {
+func (x *ListManagersByPageResp) GetErrno() (_ ErrCode) {
 	if x.Errno != nil {
 		return *x.Errno
 	}
@@ -1676,7 +1676,7 @@ func (x *ListManagersByPageResp) SetErrno(v ErrCode) {
 	x.Errno = &v
 }
 
-func (x *ListManagersByPageResp) GetErrmsg() (v string) {
+func (x *ListManagersByPageResp) GetErrmsg() (_ string) {
 	if x.Errmsg != nil {
 		return *x.Errmsg
 	}
@@ -1687,7 +1687,7 @@ func (x *ListManagersByPageResp) SetErrmsg(v string) {
 	x.Errmsg = &v
 }
 
-func (x *ListManagersByPageResp) GetData() (v ManagersPageData) {
+func (x *ListManagersByPageResp) GetData() (_ ManagersPageData) {
 	if x.Data != nil {
 		return *x.Data
 	}
