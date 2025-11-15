@@ -29,8 +29,22 @@ func NewGinServer(addr string) *GinServer {
 }
 
 func ToGinPath(pattern string) string {
-	s, _ := pathidl.Parse(pattern)
-	return pathidl.Format(s, pathidl.Colon)
+	path, _ := pathidl.Parse(pattern)
+	var sb strings.Builder
+	for _, s := range path {
+		sb.WriteString("/")
+		switch s.Type {
+		case pathidl.Static:
+			sb.WriteString(s.Value)
+		case pathidl.Param:
+			sb.WriteString(":")
+			sb.WriteString(s.Value)
+		case pathidl.Wildcard:
+			sb.WriteString("*")
+			sb.WriteString(s.Value)
+		}
+	}
+	return sb.String()
 }
 
 func (s *GinServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
