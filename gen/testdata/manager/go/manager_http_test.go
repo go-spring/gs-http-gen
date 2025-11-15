@@ -6,12 +6,58 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
 	"github.com/go-spring/gs-http-gen/lib/httputil"
 )
+
+type GinServer struct {
+	*http.Server
+	engine *gin.Engine
+}
+
+func NewGinServer(addr string) *GinServer {
+	gin.SetMode(gin.ReleaseMode)
+	engine := gin.New()
+	svr := &http.Server{Addr: addr, Handler: engine.Handler()}
+	return &GinServer{Server: svr, engine: engine}
+}
+
+func (s *GinServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
+	switch method {
+	case "GET":
+		s.engine.GET(pattern, gin.WrapF(handler))
+	case "POST":
+		s.engine.POST(pattern, gin.WrapF(handler))
+	case "PUT":
+		s.engine.PUT(pattern, gin.WrapF(handler))
+	case "DELETE":
+		s.engine.DELETE(pattern, gin.WrapF(handler))
+	case "HEAD":
+		s.engine.HEAD(pattern, gin.WrapF(handler))
+	default:
+		panic(fmt.Sprintf("unsupported method: %s", method))
+	}
+}
+
+type HttpServer struct {
+	*http.Server
+	mux *http.ServeMux
+}
+
+func NewHttpServer(addr string) *HttpServer {
+	mux := http.NewServeMux()
+	svr := &http.Server{Addr: addr, Handler: mux}
+	return &HttpServer{Server: svr, mux: mux}
+}
+
+func (s *HttpServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
+	s.mux.HandleFunc(strings.TrimSpace(method+" "+pattern), handler)
+}
 
 type MyManagerServer struct{}
 
@@ -54,12 +100,8 @@ func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp
 }
 
 func TestManager(t *testing.T) {
-	mux := http.NewServeMux()
-	proto.InitRouter(mux, &MyManagerServer{})
-	svr := &http.Server{
-		Addr:    ":9191",
-		Handler: mux,
-	}
+	svr := NewGinServer(":9191")
+	proto.InitRouter(svr, &MyManagerServer{})
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
@@ -79,12 +121,8 @@ func TestManager(t *testing.T) {
 }
 
 func TestStream(t *testing.T) {
-	mux := http.NewServeMux()
-	proto.InitRouter(mux, &MyManagerServer{})
-	svr := &http.Server{
-		Addr:    ":9191",
-		Handler: mux,
-	}
+	svr := NewHttpServer(":9191")
+	proto.InitRouter(svr, &MyManagerServer{})
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
