@@ -607,7 +607,8 @@ var builtinFuncs = map[string]struct{}{
 func genValidateExpr(receiverType, fieldName, fieldType string,
 	expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
 
-	optional := strings.HasPrefix(fieldType, "*")
+	// 对于结构体而言，只应当验证字段非空，其内部字段的验证应当由自己完成
+	fieldType, optional := strings.CutPrefix(fieldType, "*")
 	dollar := "x." + fieldName
 	if optional {
 		dollar = "*" + dollar
@@ -675,7 +676,7 @@ func genValidateExpr0(fieldName, fieldType string, expr validate.Expr, funcs map
 				} else {
 					funcs[x.Name] = ValidateFunc{
 						Name:      x.Name,
-						FieldType: strings.TrimPrefix(fieldType, "*"),
+						FieldType: fieldType,
 					}
 				}
 			}
