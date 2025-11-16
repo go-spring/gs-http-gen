@@ -575,7 +575,12 @@ func genFieldTag(f TypeField) string {
 
 // genValidateNested generates the Go code for validating nested fields
 func genValidateNested(receiverType, fieldName, fieldType string, typeKind []TypeKind) (string, error) {
-	if typeKind[0] == TypeKindPointer {
+	switch typeKind[0] {
+	case TypeKindList:
+		return "", nil
+	case TypeKindMap:
+		return "", nil
+	case TypeKindPointer:
 		if typeKind[1] != TypeKindStruct {
 			return "", nil
 		}
@@ -584,12 +589,9 @@ func genValidateNested(receiverType, fieldName, fieldType string, typeKind []Typ
 			}`, fieldName, receiverType, fieldName)
 		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
 		return str, nil
-	} else if typeKind[0] == TypeKindList {
-		return "", nil // todo
-	} else if typeKind[0] == TypeKindMap {
-		return "", nil // todo
+	default:
+		return "", errutil.Explain(nil, "unknown type: %s", fieldType)
 	}
-	return "", errutil.Explain(nil, "unknown type: %s", fieldType)
 }
 
 // ValidateFunc represents a custom validation function
