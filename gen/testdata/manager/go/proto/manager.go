@@ -225,28 +225,6 @@ func (x *PageReq) Validate() (err error) {
 	return
 }
 
-func (x *PageReq) GetPage() (_ int64) {
-	if x.Page != nil {
-		return *x.Page
-	}
-	return
-}
-
-func (x *PageReq) SetPage(v int64) {
-	x.Page = &v
-}
-
-func (x *PageReq) GetSize() (_ int64) {
-	if x.Size != nil {
-		return *x.Size
-	}
-	return
-}
-
-func (x *PageReq) SetSize(v int64) {
-	x.Size = &v
-}
-
 func (x *PageReq) String() string {
 	if x == nil {
 		return "<nil>"
@@ -268,39 +246,6 @@ func (x *Address) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *Address) Validate() (err error) {
 	return
-}
-
-func (x *Address) GetCity() (_ string) {
-	if x.City != nil {
-		return *x.City
-	}
-	return
-}
-
-func (x *Address) SetCity(v string) {
-	x.City = &v
-}
-
-func (x *Address) GetStreet() (_ string) {
-	if x.Street != nil {
-		return *x.Street
-	}
-	return
-}
-
-func (x *Address) SetStreet(v string) {
-	x.Street = &v
-}
-
-func (x *Address) GetPostalCode() (_ string) {
-	if x.PostalCode != nil {
-		return *x.PostalCode
-	}
-	return
-}
-
-func (x *Address) SetPostalCode(v string) {
-	x.PostalCode = &v
 }
 
 func (x *Address) String() string {
@@ -334,39 +279,6 @@ func (x *ContactInfo) Validate() (err error) {
 	return
 }
 
-func (x *ContactInfo) GetEmail() (_ string) {
-	if x.Email != nil {
-		return *x.Email
-	}
-	return
-}
-
-func (x *ContactInfo) SetEmail(v string) {
-	x.Email = &v
-}
-
-func (x *ContactInfo) GetPhone() (_ string) {
-	if x.Phone != nil {
-		return *x.Phone
-	}
-	return
-}
-
-func (x *ContactInfo) SetPhone(v string) {
-	x.Phone = &v
-}
-
-func (x *ContactInfo) GetAddress() (_ Address) {
-	if x.Address != nil {
-		return *x.Address
-	}
-	return
-}
-
-func (x *ContactInfo) SetAddress(v Address) {
-	x.Address = &v
-}
-
 func (x *ContactInfo) String() string {
 	if x == nil {
 		return "<nil>"
@@ -387,28 +299,6 @@ func (x *DepartmentInfo) New() any {
 // Validate checks field values using generated validation expressions.
 func (x *DepartmentInfo) Validate() (err error) {
 	return
-}
-
-func (x *DepartmentInfo) GetDept() (_ Department) {
-	if x.Dept != nil {
-		return *x.Dept
-	}
-	return
-}
-
-func (x *DepartmentInfo) SetDept(v Department) {
-	x.Dept = &v
-}
-
-func (x *DepartmentInfo) GetDeptName() (_ string) {
-	if x.DeptName != nil {
-		return *x.DeptName
-	}
-	return
-}
-
-func (x *DepartmentInfo) SetDeptName(v string) {
-	x.DeptName = &v
 }
 
 func (x *DepartmentInfo) String() string {
@@ -523,226 +413,6 @@ func (x *Manager) Validate() (err error) {
 	return
 }
 
-func (x *Manager) GetId() (_ string) {
-	if x.Id != nil {
-		return *x.Id
-	}
-	return
-}
-
-func (x *Manager) SetId(v string) {
-	x.Id = &v
-}
-
-func (x *Manager) GetName() (_ string) {
-	if x.Name != nil {
-		return *x.Name
-	}
-	return
-}
-
-func (x *Manager) SetName(v string) {
-	x.Name = &v
-}
-
-func (x *Manager) GetAge() (_ int64) {
-	if x.Age != nil {
-		return *x.Age
-	}
-	return
-}
-
-func (x *Manager) SetAge(v int64) {
-	x.Age = &v
-}
-
-func (x *Manager) GetVip() (_ bool) {
-	if x.Vip != nil {
-		return *x.Vip
-	}
-	return
-}
-
-func (x *Manager) SetVip(v bool) {
-	x.Vip = &v
-}
-
-func (x *Manager) GetSalary() (_ float64) {
-	if x.Salary != nil {
-		return *x.Salary
-	}
-	return
-}
-
-func (x *Manager) SetSalary(v float64) {
-	x.Salary = &v
-}
-
-func (x *Manager) GetRole() (_ string) {
-	if x.Role != nil {
-		return *x.Role
-	}
-	return
-}
-
-func (x *Manager) SetRole(v string) {
-	x.Role = &v
-}
-
-func (x *Manager) GetLevel() (_ ManagerLevelAsString) {
-	if x.Level != nil {
-		return *x.Level
-	}
-	return
-}
-
-func (x *Manager) SetLevel(v ManagerLevelAsString) {
-	x.Level = &v
-}
-
-func (x *Manager) GetDeptInfo() (_ DepartmentInfo) {
-	if x.DeptInfo != nil {
-		return *x.DeptInfo
-	}
-	return
-}
-
-func (x *Manager) SetDeptInfo(v DepartmentInfo) {
-	x.DeptInfo = &v
-}
-
-func (x *Manager) GetContact() (_ ContactInfo) {
-	if x.Contact != nil {
-		return *x.Contact
-	}
-	return
-}
-
-func (x *Manager) SetContact(v ContactInfo) {
-	x.Contact = &v
-}
-
-func (x *Manager) GetContactInfos() (_ []*ContactInfo) {
-	if x.ContactInfos != nil {
-		return x.ContactInfos
-	}
-	return
-}
-
-func (x *Manager) SetContactInfos(v []*ContactInfo) {
-	x.ContactInfos = v
-}
-
-func (x *Manager) GetContactInfoV2s() (_ [][]*ContactInfo) {
-	if x.ContactInfoV2s != nil {
-		return x.ContactInfoV2s
-	}
-	return
-}
-
-func (x *Manager) SetContactInfoV2s(v [][]*ContactInfo) {
-	x.ContactInfoV2s = v
-}
-
-func (x *Manager) GetContactInfoV3s() (_ [][][]*ContactInfo) {
-	if x.ContactInfoV3s != nil {
-		return x.ContactInfoV3s
-	}
-	return
-}
-
-func (x *Manager) SetContactInfoV3s(v [][][]*ContactInfo) {
-	x.ContactInfoV3s = v
-}
-
-func (x *Manager) GetContactMaps() (_ map[string]*ContactInfo) {
-	if x.ContactMaps != nil {
-		return x.ContactMaps
-	}
-	return
-}
-
-func (x *Manager) SetContactMaps(v map[string]*ContactInfo) {
-	x.ContactMaps = v
-}
-
-func (x *Manager) GetContactMapV2s() (_ map[string][]*ContactInfo) {
-	if x.ContactMapV2s != nil {
-		return x.ContactMapV2s
-	}
-	return
-}
-
-func (x *Manager) SetContactMapV2s(v map[string][]*ContactInfo) {
-	x.ContactMapV2s = v
-}
-
-func (x *Manager) GetContactMapV3s() (_ map[string]map[int64]*ContactInfo) {
-	if x.ContactMapV3s != nil {
-		return x.ContactMapV3s
-	}
-	return
-}
-
-func (x *Manager) SetContactMapV3s(v map[string]map[int64]*ContactInfo) {
-	x.ContactMapV3s = v
-}
-
-func (x *Manager) GetExtra() (_ map[string]string) {
-	if x.Extra != nil {
-		return x.Extra
-	}
-	return
-}
-
-func (x *Manager) SetExtra(v map[string]string) {
-	x.Extra = v
-}
-
-func (x *Manager) GetExtraV2() (_ map[string]map[string]string) {
-	if x.ExtraV2 != nil {
-		return x.ExtraV2
-	}
-	return
-}
-
-func (x *Manager) SetExtraV2(v map[string]map[string]string) {
-	x.ExtraV2 = v
-}
-
-func (x *Manager) GetExtraV3() (_ map[string]map[string]map[string]string) {
-	if x.ExtraV3 != nil {
-		return x.ExtraV3
-	}
-	return
-}
-
-func (x *Manager) SetExtraV3(v map[string]map[string]map[string]string) {
-	x.ExtraV3 = v
-}
-
-func (x *Manager) GetExtraV4() (_ map[string]map[string][]string) {
-	if x.ExtraV4 != nil {
-		return x.ExtraV4
-	}
-	return
-}
-
-func (x *Manager) SetExtraV4(v map[string]map[string][]string) {
-	x.ExtraV4 = v
-}
-
-func (x *Manager) GetExtraV5() (_ map[string][]string) {
-	if x.ExtraV5 != nil {
-		return x.ExtraV5
-	}
-	return
-}
-
-func (x *Manager) SetExtraV5(v map[string][]string) {
-	x.ExtraV5 = v
-}
-
 func (x *Manager) String() string {
 	if x == nil {
 		return "<nil>"
@@ -775,17 +445,6 @@ func (x *ManagerReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *ManagerReq) Validate() (err error) {
 	return
-}
-
-func (x *ManagerReq) GetId() (_ string) {
-	if x.Id != nil {
-		return *x.Id
-	}
-	return
-}
-
-func (x *ManagerReq) SetId(v string) {
-	x.Id = &v
 }
 
 func (x *ManagerReq) String() string {
@@ -945,94 +604,6 @@ func (x *CreateManagerReqBody) Validate() (err error) {
 	return
 }
 
-func (x *CreateManagerReqBody) GetName() (_ string) {
-	if x.Name != nil {
-		return *x.Name
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetName(v string) {
-	x.Name = &v
-}
-
-func (x *CreateManagerReqBody) GetAge() (_ int64) {
-	if x.Age != nil {
-		return *x.Age
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetAge(v int64) {
-	x.Age = &v
-}
-
-func (x *CreateManagerReqBody) GetVip() (_ bool) {
-	if x.Vip != nil {
-		return *x.Vip
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetVip(v bool) {
-	x.Vip = &v
-}
-
-func (x *CreateManagerReqBody) GetSalary() (_ float64) {
-	if x.Salary != nil {
-		return *x.Salary
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetSalary(v float64) {
-	x.Salary = &v
-}
-
-func (x *CreateManagerReqBody) GetRole() (_ string) {
-	if x.Role != nil {
-		return *x.Role
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetRole(v string) {
-	x.Role = &v
-}
-
-func (x *CreateManagerReqBody) GetLevel() (_ ManagerLevel) {
-	if x.Level != nil {
-		return *x.Level
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetLevel(v ManagerLevel) {
-	x.Level = &v
-}
-
-func (x *CreateManagerReqBody) GetDeptInfo() (_ DepartmentInfo) {
-	if x.DeptInfo != nil {
-		return *x.DeptInfo
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetDeptInfo(v DepartmentInfo) {
-	x.DeptInfo = &v
-}
-
-func (x *CreateManagerReqBody) GetContact() (_ ContactInfo) {
-	if x.Contact != nil {
-		return *x.Contact
-	}
-	return
-}
-
-func (x *CreateManagerReqBody) SetContact(v ContactInfo) {
-	x.Contact = &v
-}
-
 func (x *CreateManagerReqBody) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1065,17 +636,6 @@ func (x *UpdateManagerReq) Binding(r *http.Request) error {
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerReq) Validate() (err error) {
 	return
-}
-
-func (x *UpdateManagerReq) GetID() (_ string) {
-	if x.ID != nil {
-		return *x.ID
-	}
-	return
-}
-
-func (x *UpdateManagerReq) SetID(v string) {
-	x.ID = &v
 }
 
 func (x *UpdateManagerReq) String() string {
@@ -1168,94 +728,6 @@ func (x *UpdateManagerReqBody) Validate() (err error) {
 	return
 }
 
-func (x *UpdateManagerReqBody) GetName() (_ string) {
-	if x.Name != nil {
-		return *x.Name
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetName(v string) {
-	x.Name = &v
-}
-
-func (x *UpdateManagerReqBody) GetAge() (_ int64) {
-	if x.Age != nil {
-		return *x.Age
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetAge(v int64) {
-	x.Age = &v
-}
-
-func (x *UpdateManagerReqBody) GetVip() (_ bool) {
-	if x.Vip != nil {
-		return *x.Vip
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetVip(v bool) {
-	x.Vip = &v
-}
-
-func (x *UpdateManagerReqBody) GetSalary() (_ float64) {
-	if x.Salary != nil {
-		return *x.Salary
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetSalary(v float64) {
-	x.Salary = &v
-}
-
-func (x *UpdateManagerReqBody) GetRole() (_ string) {
-	if x.Role != nil {
-		return *x.Role
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetRole(v string) {
-	x.Role = &v
-}
-
-func (x *UpdateManagerReqBody) GetLevel() (_ ManagerLevel) {
-	if x.Level != nil {
-		return *x.Level
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetLevel(v ManagerLevel) {
-	x.Level = &v
-}
-
-func (x *UpdateManagerReqBody) GetDeptInfo() (_ DepartmentInfo) {
-	if x.DeptInfo != nil {
-		return *x.DeptInfo
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetDeptInfo(v DepartmentInfo) {
-	x.DeptInfo = &v
-}
-
-func (x *UpdateManagerReqBody) GetContact() (_ ContactInfo) {
-	if x.Contact != nil {
-		return *x.Contact
-	}
-	return
-}
-
-func (x *UpdateManagerReqBody) SetContact(v ContactInfo) {
-	x.Contact = &v
-}
-
 func (x *UpdateManagerReqBody) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1338,72 +810,6 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 	return
 }
 
-func (x *ListManagersByPageReq) GetPage() (_ int64) {
-	if x.Page != nil {
-		return *x.Page
-	}
-	return
-}
-
-func (x *ListManagersByPageReq) SetPage(v int64) {
-	x.Page = &v
-}
-
-func (x *ListManagersByPageReq) GetSize() (_ int64) {
-	if x.Size != nil {
-		return *x.Size
-	}
-	return
-}
-
-func (x *ListManagersByPageReq) SetSize(v int64) {
-	x.Size = &v
-}
-
-func (x *ListManagersByPageReq) GetKeyword() (_ []string) {
-	if x.Keyword != nil {
-		return x.Keyword
-	}
-	return
-}
-
-func (x *ListManagersByPageReq) SetKeyword(v []string) {
-	x.Keyword = v
-}
-
-func (x *ListManagersByPageReq) GetDept() (_ Department) {
-	if x.Dept != nil {
-		return *x.Dept
-	}
-	return
-}
-
-func (x *ListManagersByPageReq) SetDept(v Department) {
-	x.Dept = &v
-}
-
-func (x *ListManagersByPageReq) GetMinLevel() (_ ManagerLevel) {
-	if x.MinLevel != nil {
-		return *x.MinLevel
-	}
-	return
-}
-
-func (x *ListManagersByPageReq) SetMinLevel(v ManagerLevel) {
-	x.MinLevel = &v
-}
-
-func (x *ListManagersByPageReq) GetVip() (_ bool) {
-	if x.Vip != nil {
-		return *x.Vip
-	}
-	return
-}
-
-func (x *ListManagersByPageReq) SetVip(v bool) {
-	x.Vip = &v
-}
-
 func (x *ListManagersByPageReq) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1474,39 +880,6 @@ func (x *CreateManagerResp) Validate() (err error) {
 	return
 }
 
-func (x *CreateManagerResp) GetErrno() (_ ErrCode) {
-	if x.Errno != nil {
-		return *x.Errno
-	}
-	return
-}
-
-func (x *CreateManagerResp) SetErrno(v ErrCode) {
-	x.Errno = &v
-}
-
-func (x *CreateManagerResp) GetErrmsg() (_ string) {
-	if x.Errmsg != nil {
-		return *x.Errmsg
-	}
-	return
-}
-
-func (x *CreateManagerResp) SetErrmsg(v string) {
-	x.Errmsg = &v
-}
-
-func (x *CreateManagerResp) GetData() (_ Manager) {
-	if x.Data != nil {
-		return *x.Data
-	}
-	return
-}
-
-func (x *CreateManagerResp) SetData(v Manager) {
-	x.Data = &v
-}
-
 func (x *CreateManagerResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1544,39 +917,6 @@ func (x *UpdateManagerResp) Validate() (err error) {
 		}
 	}
 	return
-}
-
-func (x *UpdateManagerResp) GetErrno() (_ ErrCode) {
-	if x.Errno != nil {
-		return *x.Errno
-	}
-	return
-}
-
-func (x *UpdateManagerResp) SetErrno(v ErrCode) {
-	x.Errno = &v
-}
-
-func (x *UpdateManagerResp) GetErrmsg() (_ string) {
-	if x.Errmsg != nil {
-		return *x.Errmsg
-	}
-	return
-}
-
-func (x *UpdateManagerResp) SetErrmsg(v string) {
-	x.Errmsg = &v
-}
-
-func (x *UpdateManagerResp) GetData() (_ Manager) {
-	if x.Data != nil {
-		return *x.Data
-	}
-	return
-}
-
-func (x *UpdateManagerResp) SetData(v Manager) {
-	x.Data = &v
 }
 
 func (x *UpdateManagerResp) String() string {
@@ -1618,39 +958,6 @@ func (x *GetManagerResp) Validate() (err error) {
 	return
 }
 
-func (x *GetManagerResp) GetErrno() (_ ErrCode) {
-	if x.Errno != nil {
-		return *x.Errno
-	}
-	return
-}
-
-func (x *GetManagerResp) SetErrno(v ErrCode) {
-	x.Errno = &v
-}
-
-func (x *GetManagerResp) GetErrmsg() (_ string) {
-	if x.Errmsg != nil {
-		return *x.Errmsg
-	}
-	return
-}
-
-func (x *GetManagerResp) SetErrmsg(v string) {
-	x.Errmsg = &v
-}
-
-func (x *GetManagerResp) GetData() (_ Manager) {
-	if x.Data != nil {
-		return *x.Data
-	}
-	return
-}
-
-func (x *GetManagerResp) SetData(v Manager) {
-	x.Data = &v
-}
-
 func (x *GetManagerResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1685,39 +992,6 @@ func (x *DeleteManagerResp) Validate() (err error) {
 	return
 }
 
-func (x *DeleteManagerResp) GetErrno() (_ ErrCode) {
-	if x.Errno != nil {
-		return *x.Errno
-	}
-	return
-}
-
-func (x *DeleteManagerResp) SetErrno(v ErrCode) {
-	x.Errno = &v
-}
-
-func (x *DeleteManagerResp) GetErrmsg() (_ string) {
-	if x.Errmsg != nil {
-		return *x.Errmsg
-	}
-	return
-}
-
-func (x *DeleteManagerResp) SetErrmsg(v string) {
-	x.Errmsg = &v
-}
-
-func (x *DeleteManagerResp) GetData() (_ bool) {
-	if x.Data != nil {
-		return *x.Data
-	}
-	return
-}
-
-func (x *DeleteManagerResp) SetData(v bool) {
-	x.Data = &v
-}
-
 func (x *DeleteManagerResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1747,50 +1021,6 @@ func (x *ManagersPageData) Validate() (err error) {
 		}
 	}
 	return
-}
-
-func (x *ManagersPageData) GetTotal() (_ int64) {
-	if x.Total != nil {
-		return *x.Total
-	}
-	return
-}
-
-func (x *ManagersPageData) SetTotal(v int64) {
-	x.Total = &v
-}
-
-func (x *ManagersPageData) GetPage() (_ int64) {
-	if x.Page != nil {
-		return *x.Page
-	}
-	return
-}
-
-func (x *ManagersPageData) SetPage(v int64) {
-	x.Page = &v
-}
-
-func (x *ManagersPageData) GetSize() (_ int64) {
-	if x.Size != nil {
-		return *x.Size
-	}
-	return
-}
-
-func (x *ManagersPageData) SetSize(v int64) {
-	x.Size = &v
-}
-
-func (x *ManagersPageData) GetItems() (_ []*Manager) {
-	if x.Items != nil {
-		return x.Items
-	}
-	return
-}
-
-func (x *ManagersPageData) SetItems(v []*Manager) {
-	x.Items = v
 }
 
 func (x *ManagersPageData) String() string {
@@ -1830,39 +1060,6 @@ func (x *ListManagersByPageResp) Validate() (err error) {
 		}
 	}
 	return
-}
-
-func (x *ListManagersByPageResp) GetErrno() (_ ErrCode) {
-	if x.Errno != nil {
-		return *x.Errno
-	}
-	return
-}
-
-func (x *ListManagersByPageResp) SetErrno(v ErrCode) {
-	x.Errno = &v
-}
-
-func (x *ListManagersByPageResp) GetErrmsg() (_ string) {
-	if x.Errmsg != nil {
-		return *x.Errmsg
-	}
-	return
-}
-
-func (x *ListManagersByPageResp) SetErrmsg(v string) {
-	x.Errmsg = &v
-}
-
-func (x *ListManagersByPageResp) GetData() (_ ManagersPageData) {
-	if x.Data != nil {
-		return *x.Data
-	}
-	return
-}
-
-func (x *ListManagersByPageResp) SetData(v ManagersPageData) {
-	x.Data = &v
 }
 
 func (x *ListManagersByPageResp) String() string {

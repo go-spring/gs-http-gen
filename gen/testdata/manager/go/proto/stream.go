@@ -123,17 +123,6 @@ func (x *StreamReqBody) Validate() (err error) {
 	return
 }
 
-func (x *StreamReqBody) GetId() (_ string) {
-	if x.Id != nil {
-		return *x.Id
-	}
-	return
-}
-
-func (x *StreamReqBody) SetId(v string) {
-	x.Id = &v
-}
-
 func (x *StreamReqBody) String() string {
 	if x == nil {
 		return "<nil>"
@@ -162,39 +151,6 @@ func (x *StreamResp) Validate() (err error) {
 	return
 }
 
-func (x *StreamResp) GetId() (_ string) {
-	if x.Id != nil {
-		return *x.Id
-	}
-	return
-}
-
-func (x *StreamResp) SetId(v string) {
-	x.Id = &v
-}
-
-func (x *StreamResp) GetData() (_ string) {
-	if x.Data != nil {
-		return *x.Data
-	}
-	return
-}
-
-func (x *StreamResp) SetData(v string) {
-	x.Data = &v
-}
-
-func (x *StreamResp) GetPayload() (_ Payload) {
-	if x.Payload != nil {
-		return *x.Payload
-	}
-	return
-}
-
-func (x *StreamResp) SetPayload(v Payload) {
-	x.Payload = &v
-}
-
 func (x *StreamResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -220,50 +176,6 @@ func (x *Payload) Validate() (err error) {
 		err = errutil.Stack(err, "\"Payload.FieldType\" is required")
 	}
 	return
-}
-
-func (x *Payload) GetFieldType() (_ PayloadTypeAsString) {
-	if x.FieldType != nil {
-		return *x.FieldType
-	}
-	return
-}
-
-func (x *Payload) SetFieldType(v PayloadTypeAsString) {
-	x.FieldType = &v
-}
-
-func (x *Payload) GetPayload1() (_ Payload_1) {
-	if x.Payload1 != nil {
-		return *x.Payload1
-	}
-	return
-}
-
-func (x *Payload) SetPayload1(v Payload_1) {
-	x.Payload1 = &v
-}
-
-func (x *Payload) GetPayload2() (_ Payload_2) {
-	if x.Payload2 != nil {
-		return *x.Payload2
-	}
-	return
-}
-
-func (x *Payload) SetPayload2(v Payload_2) {
-	x.Payload2 = &v
-}
-
-func (x *Payload) GetPayload3() (_ Payload_3) {
-	if x.Payload3 != nil {
-		return *x.Payload3
-	}
-	return
-}
-
-func (x *Payload) SetPayload3(v Payload_3) {
-	x.Payload3 = &v
 }
 
 func (x *Payload) String() string {
