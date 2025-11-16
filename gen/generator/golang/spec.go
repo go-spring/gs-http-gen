@@ -328,7 +328,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		Name:      t.Name,
 		Request:   t.Request,
 		OnRequest: t.OnRequest,
-		//Comment: formatComment(t.Comments),
+		Comment:   formatComment(t.Comments),
 	}
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)

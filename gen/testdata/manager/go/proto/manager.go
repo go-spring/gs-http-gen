@@ -194,6 +194,7 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 	return errutil.Explain(nil, "invalid Department value: %q", str)
 }
 
+// Pagination request and response
 type PageReq struct {
 	Page *int64 `json:"page,omitempty" query:"page" validate:"required"`
 	Size *int64 `json:"size,omitempty" query:"size" validate:"required"`
@@ -211,6 +212,7 @@ func (x *PageReq) String() string {
 	return fmt.Sprintf("PageReq(%+v)", *x)
 }
 
+// Address & Contact info
 type Address struct {
 	City       *string `json:"city,omitempty" form:"city"`
 	Street     *string `json:"street,omitempty" form:"street"`
@@ -265,6 +267,7 @@ func (x *ContactInfo) String() string {
 	return fmt.Sprintf("ContactInfo(%+v)", *x)
 }
 
+// Department info
 type DepartmentInfo struct {
 	Dept     *Department `json:"dept,omitempty" form:"dept"`
 	DeptName *string     `json:"deptName,omitempty" form:"deptName"`
@@ -287,6 +290,7 @@ func (x *DepartmentInfo) String() string {
 	return fmt.Sprintf("DepartmentInfo(%+v)", *x)
 }
 
+// Manager entity definition
 type Manager struct {
 	Id             *string                                 `json:"id,omitempty" form:"id"`
 	Name           *string                                 `json:"name,omitempty" form:"name"`
@@ -322,6 +326,7 @@ func (x *Manager) String() string {
 	return fmt.Sprintf("Manager(%+v)", *x)
 }
 
+// Single manager by ID
 type ManagerReq struct {
 	ManagerReqBody
 	Id *string `json:"id,omitempty" path:"id"`
@@ -387,6 +392,7 @@ func (x *ManagerReqBody) String() string {
 	return fmt.Sprintf("ManagerReqBody(%+v)", *x)
 }
 
+// Create new manager
 type CreateManagerReq struct {
 	CreateManagerReqBody
 }
@@ -513,6 +519,7 @@ func (x *CreateManagerReqBody) String() string {
 	return fmt.Sprintf("CreateManagerReqBody(%+v)", *x)
 }
 
+// Update existing manager
 type UpdateManagerReq struct {
 	UpdateManagerReqBody
 	ID *string `json:"id,omitempty" path:"id"`
@@ -637,6 +644,7 @@ func (x *UpdateManagerReqBody) String() string {
 	return fmt.Sprintf("UpdateManagerReqBody(%+v)", *x)
 }
 
+// Paginated manager query
 type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
 	Page     *int64        `json:"page,omitempty" query:"page" validate:"required"`
@@ -750,6 +758,7 @@ func (x *ListManagersByPageReqBody) String() string {
 	return fmt.Sprintf("ListManagersByPageReqBody(%+v)", *x)
 }
 
+// Create / Update / Get responses
 type CreateManagerResp struct {
 	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
 	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
@@ -822,6 +831,7 @@ func (x *DeleteManagerResp) String() string {
 	return fmt.Sprintf("DeleteManagerResp(%+v)", *x)
 }
 
+// Paginated response
 type ManagersPageData struct {
 	Total *int64     `json:"total,omitempty" form:"total"`
 	Page  *int64     `json:"page,omitempty" form:"page"`
