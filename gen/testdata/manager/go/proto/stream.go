@@ -85,6 +85,9 @@ func (x *StreamReq) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *StreamReq) Validate() (err error) {
+	if validateErr := x.StreamReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"StreamReqBody\": %w", validateErr)
+	}
 	return
 }
 

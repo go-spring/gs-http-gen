@@ -249,6 +249,11 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 				{{$f.ValidateNested}}
 			{{- end}}
 		{{- end}}
+		{{- if $s.Request}}
+			if validateErr := x.{{$s.Name}}Body.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"{{$s.Name}}Body\": %w", validateErr)
+			}
+		{{- end}}
 		return
 	}
 {{end}}

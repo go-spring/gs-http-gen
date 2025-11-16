@@ -351,6 +351,9 @@ func (x *ManagerReq) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *ManagerReq) Validate() (err error) {
+	if validateErr := x.ManagerReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"ManagerReqBody\": %w", validateErr)
+	}
 	return
 }
 
@@ -414,6 +417,9 @@ func (x *CreateManagerReq) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerReq) Validate() (err error) {
+	if validateErr := x.CreateManagerReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"CreateManagerReqBody\": %w", validateErr)
+	}
 	return
 }
 
@@ -544,6 +550,9 @@ func (x *UpdateManagerReq) Binding(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerReq) Validate() (err error) {
+	if validateErr := x.UpdateManagerReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"UpdateManagerReqBody\": %w", validateErr)
+	}
 	return
 }
 
@@ -716,6 +725,9 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 	}
 	if !(len(x.Keyword) <= 5) {
 		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Keyword\"")
+	}
+	if validateErr := x.ListManagersByPageReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReqBody\": %w", validateErr)
 	}
 	return
 }
