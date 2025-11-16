@@ -357,11 +357,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		// Generate validation expressions for nested fields
 		var ValidateNested *string
 		if f.ValidateNested {
-			var s string
-			s, err = genValidateNested(r.Name, fieldName, typeName, typeKind)
-			if err != nil {
-				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
-			}
+			s := genValidateNested(r.Name, fieldName, "x."+fieldName, typeKind, 0)
 			if s != "" {
 				ValidateNested = &s
 			}
@@ -573,24 +569,31 @@ func genFieldTag(f TypeField) string {
 	return "`" + strings.Join(tags, " ") + "`"
 }
 
-// genValidateNested generates the Go code for validating nested fields
-func genValidateNested(receiverType, fieldName, fieldType string, typeKind []TypeKind) (string, error) {
+// genValidateNested generates the nested validation code for a Go struct field.
+func genValidateNested(receiverType, fieldName string, itemName string, typeKind []TypeKind, depth int) string {
+	childName := fmt.Sprintf("v%d", depth)
 	switch typeKind[0] {
-	case TypeKindList:
-		return "", nil
-	case TypeKindMap:
-		return "", nil
+	case TypeKindList, TypeKindMap:
+		str := genValidateNested(receiverType, fieldName, childName, typeKind[1:], depth+1)
+		if str == "" {
+			return ""
+		}
+		str = fmt.Sprintf(`for _, %s := range %s {
+				%s
+			}`, childName, itemName, str)
+		return str
 	case TypeKindPointer:
 		if typeKind[1] != TypeKindStruct {
-			return "", nil
+			return ""
 		}
-		str := fmt.Sprintf(`if validateErr := x.%s.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
-			}`, fieldName, receiverType, fieldName)
-		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
-		return str, nil
+		str := fmt.Sprintf(`if %s != nil {
+				if validateErr := %s.Validate(); validateErr != nil {
+					err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
+				}
+			}`, itemName, itemName, receiverType, fieldName)
+		return str
 	default:
-		return "", errutil.Explain(nil, "unknown type: %s", fieldType)
+		return ""
 	}
 }
 

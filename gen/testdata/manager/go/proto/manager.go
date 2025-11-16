@@ -419,15 +419,18 @@ func (x *DepartmentInfo) String() string {
 }
 
 type Manager struct {
-	Id       *string               `json:"id,omitempty" form:"id"`
-	Name     *string               `json:"name,omitempty" form:"name"`
-	Age      *int64                `json:"age,omitempty" form:"age"`
-	Vip      *bool                 `json:"vip,omitempty" form:"vip"`
-	Salary   *float64              `json:"salary,omitempty" form:"salary"`
-	Role     *string               `json:"role,omitempty" form:"role"`
-	Level    *ManagerLevelAsString `json:"level,omitempty" form:"level"`
-	DeptInfo *DepartmentInfo       `json:"deptInfo,omitempty" form:"deptInfo"`
-	Contact  *ContactInfo          `json:"contact,omitempty" form:"contact"`
+	Id             *string               `json:"id,omitempty" form:"id"`
+	Name           *string               `json:"name,omitempty" form:"name"`
+	Age            *int64                `json:"age,omitempty" form:"age"`
+	Vip            *bool                 `json:"vip,omitempty" form:"vip"`
+	Salary         *float64              `json:"salary,omitempty" form:"salary"`
+	Role           *string               `json:"role,omitempty" form:"role"`
+	Level          *ManagerLevelAsString `json:"level,omitempty" form:"level"`
+	DeptInfo       *DepartmentInfo       `json:"deptInfo,omitempty" form:"deptInfo"`
+	Contact        *ContactInfo          `json:"contact,omitempty" form:"contact"`
+	ContactInfos   []*ContactInfo        `json:"contactInfos,omitempty" form:"contactInfos"`
+	ContactInfoV2s [][]*ContactInfo      `json:"contactInfoV2s,omitempty" form:"contactInfoV2s"`
+	ContactInfoV3s [][][]*ContactInfo    `json:"contactInfoV3s,omitempty" form:"contactInfoV3s"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -455,6 +458,33 @@ func (x *Manager) Validate() (err error) {
 	if x.Contact != nil {
 		if validateErr := x.Contact.Validate(); validateErr != nil {
 			err = errutil.Stack(err, "validate failed on \"Manager.Contact\": %w", validateErr)
+		}
+	}
+	for _, v0 := range x.ContactInfos {
+		if v0 != nil {
+			if validateErr := v0.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"Manager.ContactInfos\": %w", validateErr)
+			}
+		}
+	}
+	for _, v0 := range x.ContactInfoV2s {
+		for _, v1 := range v0 {
+			if v1 != nil {
+				if validateErr := v1.Validate(); validateErr != nil {
+					err = errutil.Stack(err, "validate failed on \"Manager.ContactInfoV2s\": %w", validateErr)
+				}
+			}
+		}
+	}
+	for _, v0 := range x.ContactInfoV3s {
+		for _, v1 := range v0 {
+			for _, v2 := range v1 {
+				if v2 != nil {
+					if validateErr := v2.Validate(); validateErr != nil {
+						err = errutil.Stack(err, "validate failed on \"Manager.ContactInfoV3s\": %w", validateErr)
+					}
+				}
+			}
 		}
 	}
 	return
@@ -557,6 +587,39 @@ func (x *Manager) GetContact() (_ ContactInfo) {
 
 func (x *Manager) SetContact(v ContactInfo) {
 	x.Contact = &v
+}
+
+func (x *Manager) GetContactInfos() (_ []*ContactInfo) {
+	if x.ContactInfos != nil {
+		return x.ContactInfos
+	}
+	return
+}
+
+func (x *Manager) SetContactInfos(v []*ContactInfo) {
+	x.ContactInfos = v
+}
+
+func (x *Manager) GetContactInfoV2s() (_ [][]*ContactInfo) {
+	if x.ContactInfoV2s != nil {
+		return x.ContactInfoV2s
+	}
+	return
+}
+
+func (x *Manager) SetContactInfoV2s(v [][]*ContactInfo) {
+	x.ContactInfoV2s = v
+}
+
+func (x *Manager) GetContactInfoV3s() (_ [][][]*ContactInfo) {
+	if x.ContactInfoV3s != nil {
+		return x.ContactInfoV3s
+	}
+	return
+}
+
+func (x *Manager) SetContactInfoV3s(v [][][]*ContactInfo) {
+	x.ContactInfoV3s = v
 }
 
 func (x *Manager) String() string {
@@ -1555,6 +1618,13 @@ func (x *ManagersPageData) New() any {
 
 // Validate checks field values using generated validation expressions.
 func (x *ManagersPageData) Validate() (err error) {
+	for _, v0 := range x.Items {
+		if v0 != nil {
+			if validateErr := v0.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"ManagersPageData.Items\": %w", validateErr)
+			}
+		}
+	}
 	return
 }
 

@@ -95,6 +95,9 @@ type Manager {
     ManagerLevel level (enum_as_string)
     DepartmentInfo deptInfo
     ContactInfo contact
+    list<ContactInfo> contactInfos
+    list<list<ContactInfo>> contactInfoV2s
+    list<list<list<ContactInfo>>> contactInfoV3s
 }
 
 // ---- Request types ----
