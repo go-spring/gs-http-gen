@@ -204,27 +204,6 @@ func (x *PageReq) New() any {
 	return &PageReq{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *PageReq) Validate() (err error) {
-	if x.Page == nil {
-		err = errutil.Stack(err, "\"PageReq.Page\" is required")
-	}
-	if x.Page != nil {
-		if !(*x.Page >= 1) {
-			err = errutil.Stack(err, "validate failed on \"PageReq.Page\"")
-		}
-	}
-	if x.Size == nil {
-		err = errutil.Stack(err, "\"PageReq.Size\" is required")
-	}
-	if x.Size != nil {
-		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			err = errutil.Stack(err, "validate failed on \"PageReq.Size\"")
-		}
-	}
-	return
-}
-
 func (x *PageReq) String() string {
 	if x == nil {
 		return "<nil>"
@@ -334,83 +313,6 @@ type Manager struct {
 // New returns a new instance (implements Object interface).
 func (x *Manager) New() any {
 	return &Manager{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *Manager) Validate() (err error) {
-	if x.Name != nil {
-		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			err = errutil.Stack(err, "validate failed on \"Manager.Name\"")
-		}
-	}
-	if x.Age != nil {
-		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Stack(err, "validate failed on \"Manager.Age\"")
-		}
-	}
-	if x.Salary != nil {
-		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Stack(err, "validate failed on \"Manager.Salary\"")
-		}
-	}
-	if x.Contact != nil {
-		if validateErr := x.Contact.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"Manager.Contact\": %w", validateErr)
-		}
-	}
-	for _, v0 := range x.ContactInfos {
-		if v0 != nil {
-			if validateErr := v0.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"Manager.ContactInfos\": %w", validateErr)
-			}
-		}
-	}
-	for _, v0 := range x.ContactInfoV2s {
-		for _, v1 := range v0 {
-			if v1 != nil {
-				if validateErr := v1.Validate(); validateErr != nil {
-					err = errutil.Stack(err, "validate failed on \"Manager.ContactInfoV2s\": %w", validateErr)
-				}
-			}
-		}
-	}
-	for _, v0 := range x.ContactInfoV3s {
-		for _, v1 := range v0 {
-			for _, v2 := range v1 {
-				if v2 != nil {
-					if validateErr := v2.Validate(); validateErr != nil {
-						err = errutil.Stack(err, "validate failed on \"Manager.ContactInfoV3s\": %w", validateErr)
-					}
-				}
-			}
-		}
-	}
-	for _, v0 := range x.ContactMaps {
-		if v0 != nil {
-			if validateErr := v0.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"Manager.ContactMaps\": %w", validateErr)
-			}
-		}
-	}
-	for _, v0 := range x.ContactMapV2s {
-		for _, v1 := range v0 {
-			if v1 != nil {
-				if validateErr := v1.Validate(); validateErr != nil {
-					err = errutil.Stack(err, "validate failed on \"Manager.ContactMapV2s\": %w", validateErr)
-				}
-			}
-		}
-	}
-	for _, v0 := range x.ContactMapV3s {
-		for _, v1 := range v0 {
-			if v1 != nil {
-				if validateErr := v1.Validate(); validateErr != nil {
-					err = errutil.Stack(err, "validate failed on \"Manager.ContactMapV3s\": %w", validateErr)
-				}
-			}
-		}
-	}
-	return
 }
 
 func (x *Manager) String() string {
@@ -859,27 +761,6 @@ func (x *CreateManagerResp) New() any {
 	return &CreateManagerResp{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *CreateManagerResp) Validate() (err error) {
-	if x.Errno == nil {
-		err = errutil.Stack(err, "\"CreateManagerResp.Errno\" is required")
-	}
-	if x.Errno != nil {
-		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Stack(err, "validate failed on \"CreateManagerResp.Errno\"")
-		}
-	}
-	if x.Errmsg == nil {
-		err = errutil.Stack(err, "\"CreateManagerResp.Errmsg\" is required")
-	}
-	if x.Data != nil {
-		if validateErr := x.Data.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"CreateManagerResp.Data\": %w", validateErr)
-		}
-	}
-	return
-}
-
 func (x *CreateManagerResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -896,27 +777,6 @@ type UpdateManagerResp struct {
 // New returns a new instance (implements Object interface).
 func (x *UpdateManagerResp) New() any {
 	return &UpdateManagerResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *UpdateManagerResp) Validate() (err error) {
-	if x.Errno == nil {
-		err = errutil.Stack(err, "\"UpdateManagerResp.Errno\" is required")
-	}
-	if x.Errno != nil {
-		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Stack(err, "validate failed on \"UpdateManagerResp.Errno\"")
-		}
-	}
-	if x.Errmsg == nil {
-		err = errutil.Stack(err, "\"UpdateManagerResp.Errmsg\" is required")
-	}
-	if x.Data != nil {
-		if validateErr := x.Data.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"UpdateManagerResp.Data\": %w", validateErr)
-		}
-	}
-	return
 }
 
 func (x *UpdateManagerResp) String() string {
@@ -937,27 +797,6 @@ func (x *GetManagerResp) New() any {
 	return &GetManagerResp{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *GetManagerResp) Validate() (err error) {
-	if x.Errno == nil {
-		err = errutil.Stack(err, "\"GetManagerResp.Errno\" is required")
-	}
-	if x.Errno != nil {
-		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Stack(err, "validate failed on \"GetManagerResp.Errno\"")
-		}
-	}
-	if x.Errmsg == nil {
-		err = errutil.Stack(err, "\"GetManagerResp.Errmsg\" is required")
-	}
-	if x.Data != nil {
-		if validateErr := x.Data.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"GetManagerResp.Data\": %w", validateErr)
-		}
-	}
-	return
-}
-
 func (x *GetManagerResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -974,22 +813,6 @@ type DeleteManagerResp struct {
 // New returns a new instance (implements Object interface).
 func (x *DeleteManagerResp) New() any {
 	return &DeleteManagerResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *DeleteManagerResp) Validate() (err error) {
-	if x.Errno == nil {
-		err = errutil.Stack(err, "\"DeleteManagerResp.Errno\" is required")
-	}
-	if x.Errno != nil {
-		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Stack(err, "validate failed on \"DeleteManagerResp.Errno\"")
-		}
-	}
-	if x.Errmsg == nil {
-		err = errutil.Stack(err, "\"DeleteManagerResp.Errmsg\" is required")
-	}
-	return
 }
 
 func (x *DeleteManagerResp) String() string {
@@ -1011,18 +834,6 @@ func (x *ManagersPageData) New() any {
 	return &ManagersPageData{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *ManagersPageData) Validate() (err error) {
-	for _, v0 := range x.Items {
-		if v0 != nil {
-			if validateErr := v0.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"ManagersPageData.Items\": %w", validateErr)
-			}
-		}
-	}
-	return
-}
-
 func (x *ManagersPageData) String() string {
 	if x == nil {
 		return "<nil>"
@@ -1039,27 +850,6 @@ type ListManagersByPageResp struct {
 // New returns a new instance (implements Object interface).
 func (x *ListManagersByPageResp) New() any {
 	return &ListManagersByPageResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageResp) Validate() (err error) {
-	if x.Errno == nil {
-		err = errutil.Stack(err, "\"ListManagersByPageResp.Errno\" is required")
-	}
-	if x.Errno != nil {
-		if !(OneOfErrCode(*x.Errno)) {
-			err = errutil.Stack(err, "validate failed on \"ListManagersByPageResp.Errno\"")
-		}
-	}
-	if x.Errmsg == nil {
-		err = errutil.Stack(err, "\"ListManagersByPageResp.Errmsg\" is required")
-	}
-	if x.Data != nil {
-		if validateErr := x.Data.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"ListManagersByPageResp.Data\": %w", validateErr)
-		}
-	}
-	return
 }
 
 func (x *ListManagersByPageResp) String() string {

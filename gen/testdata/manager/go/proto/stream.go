@@ -141,16 +141,6 @@ func (x *StreamResp) New() any {
 	return &StreamResp{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *StreamResp) Validate() (err error) {
-	if x.Payload != nil {
-		if validateErr := x.Payload.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"StreamResp.Payload\": %w", validateErr)
-		}
-	}
-	return
-}
-
 func (x *StreamResp) String() string {
 	if x == nil {
 		return "<nil>"
@@ -170,14 +160,6 @@ func (x *Payload) New() any {
 	return &Payload{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *Payload) Validate() (err error) {
-	if x.FieldType == nil {
-		err = errutil.Stack(err, "\"Payload.FieldType\" is required")
-	}
-	return
-}
-
 func (x *Payload) String() string {
 	if x == nil {
 		return "<nil>"
@@ -191,11 +173,6 @@ type Payload_1 struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload_1) New() any {
 	return &Payload_1{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *Payload_1) Validate() (err error) {
-	return
 }
 
 func (x *Payload_1) String() string {
@@ -213,11 +190,6 @@ func (x *Payload_2) New() any {
 	return &Payload_2{}
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *Payload_2) Validate() (err error) {
-	return
-}
-
 func (x *Payload_2) String() string {
 	if x == nil {
 		return "<nil>"
@@ -231,11 +203,6 @@ type Payload_3 struct {
 // New returns a new instance (implements Object interface).
 func (x *Payload_3) New() any {
 	return &Payload_3{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *Payload_3) Validate() (err error) {
-	return
 }
 
 func (x *Payload_3) String() string {

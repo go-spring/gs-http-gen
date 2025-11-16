@@ -135,8 +135,10 @@ type Type struct {
 	Position     Position    // Location in source code
 	Comments     Comments    // Associated comments
 
-	Embedded bool // Embedded
-	Validate bool // Validate
+	Embedded  bool // Embedded
+	Validate  bool // Validate
+	Request   bool // Request
+	OnRequest bool // OnRequest
 }
 
 // TypeField represents a single field inside a user-defined type.

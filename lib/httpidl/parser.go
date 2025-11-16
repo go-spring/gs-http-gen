@@ -38,7 +38,6 @@ import (
 type Project struct {
 	Meta  *MetaInfo
 	Files map[string]Document
-	Reqs  map[string]struct{} // request type name
 }
 
 // ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.
@@ -125,7 +124,7 @@ func ParseDir(dir string) (Project, error) {
 		for i := range doc.Types {
 			t := doc.Types[i]
 			if t.GenericParam != nil { // generic type, need instance
-				continue
+				// do nothing ...
 			} else if t.InstType != nil { // generic type instance
 				srcType, ok := GetType(files, t.InstType.Name)
 				if !ok {
@@ -153,12 +152,21 @@ func ParseDir(dir string) (Project, error) {
 				t.Fields = fields
 			}
 
-			// get and update type attr
-			if _, err = getAndUpdateTypeValidate(files, t); err != nil {
-				return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
+			if _, ok := reqs[t.Name]; ok {
+				t.Request = true
 			}
-
 			doc.Types[i] = t // update
+		}
+	}
+
+	// 一般来说，我们只需要最 request 类型进行 validate 操作
+	for _, doc := range files {
+		for _, t := range doc.Types {
+			if t.Request {
+				if _, err = getAndUpdateTypeValidate(files, t); err != nil {
+					return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
+				}
+			}
 		}
 	}
 
@@ -205,11 +213,11 @@ func ParseDir(dir string) (Project, error) {
 	return Project{
 		Meta:  meta,
 		Files: files,
-		Reqs:  reqs,
 	}, nil
 }
 
 func getAndUpdateTypeValidate(files map[string]Document, t Type) (bool, error) {
+	t.OnRequest = true
 	for i, f := range t.Fields {
 		b, err := getTypeValidate(files, f.Type)
 		if err != nil {
@@ -224,7 +232,7 @@ func getAndUpdateTypeValidate(files map[string]Document, t Type) (bool, error) {
 		}
 	}
 	fileName, index := FindType(files, t.Name)
-	files[fileName].Types[index] = t
+	files[fileName].Types[index] = t // update
 	return t.Validate, nil
 }
 

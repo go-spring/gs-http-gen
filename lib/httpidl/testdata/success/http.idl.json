@@ -275,7 +275,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false
+      "Validate": false,
+      "Request": false,
+      "OnRequest": false
     },
     {
       "Name": "User",
@@ -532,7 +534,9 @@
         "Right": null
       },
       "Embedded": true,
-      "Validate": false
+      "Validate": false,
+      "Request": false,
+      "OnRequest": false
     },
     {
       "Name": "Address",
@@ -634,7 +638,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false
+      "Validate": false,
+      "Request": false,
+      "OnRequest": false
     },
     {
       "Name": "Payload",
@@ -749,7 +755,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false
+      "Validate": false,
+      "Request": false,
+      "OnRequest": false
     },
     {
       "Name": "Response",
@@ -875,7 +883,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false
+      "Validate": false,
+      "Request": false,
+      "OnRequest": false
     },
     {
       "Name": "UserResp",
@@ -910,7 +920,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false
+      "Validate": false,
+      "Request": false,
+      "OnRequest": false
     }
   ],
   "RPCs": [

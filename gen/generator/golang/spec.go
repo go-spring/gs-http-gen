@@ -56,6 +56,7 @@ type Type struct {
 	Comment string
 
 	Request     bool
+	OnRequest   bool
 	RequestBody bool
 }
 
@@ -211,7 +212,7 @@ func Convert(dir string) (GoSpec, error) {
 		{
 			var temp []Type
 			for _, t := range types {
-				if _, ok := project.Reqs[t.Name]; ok {
+				if t.Request {
 					req, body := SplitRequestType(t)
 					temp = append(temp, req, body)
 				} else {
@@ -247,9 +248,11 @@ func Convert(dir string) (GoSpec, error) {
 // SplitRequestType splits a type into a whole type and a body type.
 func SplitRequestType(t Type) (req Type, body Type) {
 	req.Request = true
+	req.OnRequest = true
 	req.Name = t.Name
 	req.Comment = t.Comment
 
+	body.OnRequest = true
 	body.RequestBody = true
 	body.Name = t.Name + "Body"
 
@@ -321,7 +324,12 @@ func convertTypes(spec GoSpec, doc httpidl.Document) ([]Type, error) {
 
 // convertType converts an IDL struct type to a Go struct type
 func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
-	r := Type{Name: t.Name}
+	r := Type{
+		Name:      t.Name,
+		Request:   t.Request,
+		OnRequest: t.OnRequest,
+		//Comment: formatComment(t.Comments),
+	}
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)
 
@@ -339,7 +347,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 
 		// Generate validation expressions for the field
 		var validateExpr *string
-		if f.ValidateExpr != nil {
+		if t.OnRequest && f.ValidateExpr != nil {
 			var s string
 			s, err = genValidateExpr(r.Name, fieldName, typeName, f.ValidateExpr, spec.Funcs)
 			if err != nil {
@@ -352,7 +360,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 
 		// Generate validation expressions for nested fields
 		var ValidateNested *string
-		if f.ValidateNested {
+		if t.OnRequest && f.ValidateNested {
 			s := genValidateNested(r.Name, fieldName, "x."+fieldName, typeKind, 0)
 			if s != "" {
 				ValidateNested = &s

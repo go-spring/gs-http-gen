@@ -233,6 +233,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 	}
 {{end}}
 
+{{if $s.OnRequest}}
 	// Validate checks field values using generated validation expressions.
 	func (x *{{$s.Name}}) Validate() (err error) {
 		{{- range $f := $s.Fields}}
@@ -250,6 +251,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		{{- end}}
 		return
 	}
+{{end}}
 
 	func (x *{{$s.Name}}) String() string {
 		if x == nil {
