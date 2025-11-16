@@ -516,7 +516,12 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 		if optional {
 			return nil, "", errutil.Explain(nil, "map type can not be optional")
 		}
-		return []TypeKind{TypeKindMap}, typeName, nil // todo
+		itemInex := strings.Index(typeName, "]")
+		itemType, _, err := getTypeKind(spec, typeName[itemInex+1:])
+		if err != nil {
+			return nil, "", err
+		}
+		return append([]TypeKind{TypeKindMap}, itemType...), typeName, nil
 	default:
 		if _, ok := httpidl.GetEnum(spec.Files, strings.TrimSuffix(typeName, "AsString")); ok {
 			if optional {

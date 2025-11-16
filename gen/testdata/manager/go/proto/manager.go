@@ -419,18 +419,26 @@ func (x *DepartmentInfo) String() string {
 }
 
 type Manager struct {
-	Id             *string               `json:"id,omitempty" form:"id"`
-	Name           *string               `json:"name,omitempty" form:"name"`
-	Age            *int64                `json:"age,omitempty" form:"age"`
-	Vip            *bool                 `json:"vip,omitempty" form:"vip"`
-	Salary         *float64              `json:"salary,omitempty" form:"salary"`
-	Role           *string               `json:"role,omitempty" form:"role"`
-	Level          *ManagerLevelAsString `json:"level,omitempty" form:"level"`
-	DeptInfo       *DepartmentInfo       `json:"deptInfo,omitempty" form:"deptInfo"`
-	Contact        *ContactInfo          `json:"contact,omitempty" form:"contact"`
-	ContactInfos   []*ContactInfo        `json:"contactInfos,omitempty" form:"contactInfos"`
-	ContactInfoV2s [][]*ContactInfo      `json:"contactInfoV2s,omitempty" form:"contactInfoV2s"`
-	ContactInfoV3s [][][]*ContactInfo    `json:"contactInfoV3s,omitempty" form:"contactInfoV3s"`
+	Id             *string                                 `json:"id,omitempty" form:"id"`
+	Name           *string                                 `json:"name,omitempty" form:"name"`
+	Age            *int64                                  `json:"age,omitempty" form:"age"`
+	Vip            *bool                                   `json:"vip,omitempty" form:"vip"`
+	Salary         *float64                                `json:"salary,omitempty" form:"salary"`
+	Role           *string                                 `json:"role,omitempty" form:"role"`
+	Level          *ManagerLevelAsString                   `json:"level,omitempty" form:"level"`
+	DeptInfo       *DepartmentInfo                         `json:"deptInfo,omitempty" form:"deptInfo"`
+	Contact        *ContactInfo                            `json:"contact,omitempty" form:"contact"`
+	ContactInfos   []*ContactInfo                          `json:"contactInfos,omitempty" form:"contactInfos"`
+	ContactInfoV2s [][]*ContactInfo                        `json:"contactInfoV2s,omitempty" form:"contactInfoV2s"`
+	ContactInfoV3s [][][]*ContactInfo                      `json:"contactInfoV3s,omitempty" form:"contactInfoV3s"`
+	ContactMaps    map[string]*ContactInfo                 `json:"contactMaps,omitempty" form:"contactMaps"`
+	ContactMapV2s  map[string][]*ContactInfo               `json:"contactMapV2s,omitempty" form:"contactMapV2s"`
+	ContactMapV3s  map[string]map[int64]*ContactInfo       `json:"contactMapV3s,omitempty" form:"contactMapV3s"`
+	Extra          map[string]string                       `json:"extra,omitempty" form:"extra"`
+	ExtraV2        map[string]map[string]string            `json:"extraV2,omitempty" form:"extraV2"`
+	ExtraV3        map[string]map[string]map[string]string `json:"extraV3,omitempty" form:"extraV3"`
+	ExtraV4        map[string]map[string][]string          `json:"extraV4,omitempty" form:"extraV4"`
+	ExtraV5        map[string][]string                     `json:"extraV5,omitempty" form:"extraV5"`
 }
 
 // New returns a new instance (implements Object interface).
@@ -483,6 +491,31 @@ func (x *Manager) Validate() (err error) {
 					if validateErr := v2.Validate(); validateErr != nil {
 						err = errutil.Stack(err, "validate failed on \"Manager.ContactInfoV3s\": %w", validateErr)
 					}
+				}
+			}
+		}
+	}
+	for _, v0 := range x.ContactMaps {
+		if v0 != nil {
+			if validateErr := v0.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"Manager.ContactMaps\": %w", validateErr)
+			}
+		}
+	}
+	for _, v0 := range x.ContactMapV2s {
+		for _, v1 := range v0 {
+			if v1 != nil {
+				if validateErr := v1.Validate(); validateErr != nil {
+					err = errutil.Stack(err, "validate failed on \"Manager.ContactMapV2s\": %w", validateErr)
+				}
+			}
+		}
+	}
+	for _, v0 := range x.ContactMapV3s {
+		for _, v1 := range v0 {
+			if v1 != nil {
+				if validateErr := v1.Validate(); validateErr != nil {
+					err = errutil.Stack(err, "validate failed on \"Manager.ContactMapV3s\": %w", validateErr)
 				}
 			}
 		}
@@ -620,6 +653,94 @@ func (x *Manager) GetContactInfoV3s() (_ [][][]*ContactInfo) {
 
 func (x *Manager) SetContactInfoV3s(v [][][]*ContactInfo) {
 	x.ContactInfoV3s = v
+}
+
+func (x *Manager) GetContactMaps() (_ map[string]*ContactInfo) {
+	if x.ContactMaps != nil {
+		return x.ContactMaps
+	}
+	return
+}
+
+func (x *Manager) SetContactMaps(v map[string]*ContactInfo) {
+	x.ContactMaps = v
+}
+
+func (x *Manager) GetContactMapV2s() (_ map[string][]*ContactInfo) {
+	if x.ContactMapV2s != nil {
+		return x.ContactMapV2s
+	}
+	return
+}
+
+func (x *Manager) SetContactMapV2s(v map[string][]*ContactInfo) {
+	x.ContactMapV2s = v
+}
+
+func (x *Manager) GetContactMapV3s() (_ map[string]map[int64]*ContactInfo) {
+	if x.ContactMapV3s != nil {
+		return x.ContactMapV3s
+	}
+	return
+}
+
+func (x *Manager) SetContactMapV3s(v map[string]map[int64]*ContactInfo) {
+	x.ContactMapV3s = v
+}
+
+func (x *Manager) GetExtra() (_ map[string]string) {
+	if x.Extra != nil {
+		return x.Extra
+	}
+	return
+}
+
+func (x *Manager) SetExtra(v map[string]string) {
+	x.Extra = v
+}
+
+func (x *Manager) GetExtraV2() (_ map[string]map[string]string) {
+	if x.ExtraV2 != nil {
+		return x.ExtraV2
+	}
+	return
+}
+
+func (x *Manager) SetExtraV2(v map[string]map[string]string) {
+	x.ExtraV2 = v
+}
+
+func (x *Manager) GetExtraV3() (_ map[string]map[string]map[string]string) {
+	if x.ExtraV3 != nil {
+		return x.ExtraV3
+	}
+	return
+}
+
+func (x *Manager) SetExtraV3(v map[string]map[string]map[string]string) {
+	x.ExtraV3 = v
+}
+
+func (x *Manager) GetExtraV4() (_ map[string]map[string][]string) {
+	if x.ExtraV4 != nil {
+		return x.ExtraV4
+	}
+	return
+}
+
+func (x *Manager) SetExtraV4(v map[string]map[string][]string) {
+	x.ExtraV4 = v
+}
+
+func (x *Manager) GetExtraV5() (_ map[string][]string) {
+	if x.ExtraV5 != nil {
+		return x.ExtraV5
+	}
+	return
+}
+
+func (x *Manager) SetExtraV5(v map[string][]string) {
+	x.ExtraV5 = v
 }
 
 func (x *Manager) String() string {

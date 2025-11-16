@@ -98,6 +98,14 @@ type Manager {
     list<ContactInfo> contactInfos
     list<list<ContactInfo>> contactInfoV2s
     list<list<list<ContactInfo>>> contactInfoV3s
+    map<string,ContactInfo> contactMaps
+    map<string,list<ContactInfo>> contactMapV2s
+    map<string,map<int,ContactInfo>> contactMapV3s
+    map<string,string> extra
+    map<string,map<string,string>> extraV2
+    map<string,map<string,map<string,string>>> extraV3
+    map<string,map<string,list<string>>> extraV4
+    map<string,list<string>> extraV5
 }
 
 // ---- Request types ----
