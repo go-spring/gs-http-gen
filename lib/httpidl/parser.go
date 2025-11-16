@@ -38,6 +38,7 @@ import (
 type Project struct {
 	Meta  *MetaInfo
 	Files map[string]Document
+	Reqs  map[string]struct{} // request type name
 }
 
 // ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.
@@ -45,6 +46,7 @@ type Project struct {
 func ParseDir(dir string) (Project, error) {
 	var meta *MetaInfo
 	files := make(map[string]Document)
+	reqs := make(map[string]struct{})
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -81,11 +83,17 @@ func ParseDir(dir string) (Project, error) {
 		if b, err = os.ReadFile(fileName); err != nil {
 			return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 		}
+
 		var doc Document
 		if doc, err = Parse(b); err != nil {
 			return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 		}
 		files[e.Name()] = doc
+
+		// validate request type
+		for _, r := range doc.RPCs {
+			reqs[r.Request.Name] = struct{}{}
+		}
 	}
 
 	if meta == nil {
@@ -197,6 +205,7 @@ func ParseDir(dir string) (Project, error) {
 	return Project{
 		Meta:  meta,
 		Files: files,
+		Reqs:  reqs,
 	}, nil
 }
 

@@ -138,7 +138,6 @@ type GoSpec struct {
 	Enums  map[string][]Enum
 	Types  map[string][]Type
 	RPCs   []RPC
-	Reqs   map[string]ReqIndex     // request type name
 	Funcs  map[string]ValidateFunc // Collected validation functions
 }
 
@@ -167,7 +166,6 @@ func Convert(dir string) (GoSpec, error) {
 		Consts: make(map[string][]Const),
 		Enums:  make(map[string][]Enum),
 		Types:  make(map[string][]Type),
-		Reqs:   make(map[string]ReqIndex),
 		Funcs:  make(map[string]ValidateFunc),
 	}
 
@@ -191,7 +189,6 @@ func Convert(dir string) (GoSpec, error) {
 				WriteTimeout: r.WriteTimeout,
 			}
 			spec.RPCs = append(spec.RPCs, rpc)
-			spec.Reqs[rpc.Request] = ReqIndex{}
 		}
 	}
 	sort.Slice(spec.RPCs, func(i, j int) bool {
@@ -214,8 +211,7 @@ func Convert(dir string) (GoSpec, error) {
 		{
 			var temp []Type
 			for _, t := range types {
-				if _, ok := spec.Reqs[t.Name]; ok {
-					spec.Reqs[t.Name] = ReqIndex{File: fileName, Index: len(temp)}
+				if _, ok := project.Reqs[t.Name]; ok {
 					req, body := SplitRequestType(t)
 					temp = append(temp, req, body)
 				} else {
