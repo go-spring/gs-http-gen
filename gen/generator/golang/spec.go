@@ -625,7 +625,7 @@ func genValidateExpr(receiverType, fieldName, fieldType string,
 	}
 
 	// Generate the Go expression for validation
-	str, err := genValidateExpr0(dollar, fieldType, expr, funcs)
+	str, err := compileValidateExpr(dollar, fieldType, expr, funcs)
 	if err != nil {
 		return "", errutil.Explain(err, `failed to generate validate expression for %s.%s`, receiverType, fieldName)
 	}
@@ -641,28 +641,28 @@ func genValidateExpr(receiverType, fieldName, fieldType string,
 	return str, nil
 }
 
-// genValidateExpr0 recursively generates Go code for a validation expression
-func genValidateExpr0(fieldName, fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
+// compileValidateExpr recursively generates Go code for a validation expression
+func compileValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
 	switch x := expr.(type) {
 	case validate.BinaryExpr:
 		if x.Left == nil {
 			return "", nil
 		}
-		left, err := genValidateExpr0(fieldName, fieldType, x.Left, funcs)
+		left, err := compileValidateExpr(fieldName, fieldType, x.Left, funcs)
 		if err != nil {
 			return "", err
 		}
 		if x.Right == nil {
 			return left, nil
 		}
-		right, err := genValidateExpr0(fieldName, fieldType, x.Right, funcs)
+		right, err := compileValidateExpr(fieldName, fieldType, x.Right, funcs)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("%s %s %s", left, x.Op, right), nil
 
 	case validate.UnaryExpr:
-		str, err := genValidateExpr0(fieldName, fieldType, x.Expr, funcs)
+		str, err := compileValidateExpr(fieldName, fieldType, x.Expr, funcs)
 		if err != nil {
 			return "", err
 		}
@@ -703,7 +703,7 @@ func genValidateExpr0(fieldName, fieldType string, expr validate.Expr, funcs map
 
 		var args []string
 		for _, arg := range x.Args {
-			str, err := genValidateExpr0(fieldName, fieldType, arg, funcs)
+			str, err := compileValidateExpr(fieldName, fieldType, arg, funcs)
 			if err != nil {
 				return "", err
 			}
@@ -712,7 +712,7 @@ func genValidateExpr0(fieldName, fieldType string, expr validate.Expr, funcs map
 		return fmt.Sprintf("%s(%s)", x.Name, strings.Join(args, ", ")), nil
 
 	case *validate.InnerExpr:
-		str, err := genValidateExpr0(fieldName, fieldType, x.Expr, funcs)
+		str, err := compileValidateExpr(fieldName, fieldType, x.Expr, funcs)
 		if err != nil {
 			return "", err
 		}
@@ -720,10 +720,10 @@ func genValidateExpr0(fieldName, fieldType string, expr validate.Expr, funcs map
 
 	case validate.PrimaryExpr:
 		if x.Inner != nil {
-			return genValidateExpr0(fieldName, fieldType, x.Inner, funcs)
+			return compileValidateExpr(fieldName, fieldType, x.Inner, funcs)
 		}
 		if x.Call != nil {
-			return genValidateExpr0(fieldName, fieldType, x.Call, funcs)
+			return compileValidateExpr(fieldName, fieldType, x.Call, funcs)
 		}
 		if x.Value == "$" {
 			return fieldName, nil
