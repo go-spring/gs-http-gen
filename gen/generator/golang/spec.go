@@ -73,8 +73,9 @@ type TypeField struct {
 	FormTag httpidl.FormTag
 	Binding *httpidl.Binding
 
-	FieldTag string
-	Validate *string
+	FieldTag       string
+	ValidateExpr   *string
+	ValidateNested *string
 }
 
 // IsPointer returns true if the field is a pointer
@@ -328,41 +329,10 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)
 
-		var typeName string
-		if a, ok := httpidl.GetAnnotation(f.Annotations, "go.type"); ok {
-			if a.Value == nil {
-				return Type{}, errutil.Explain(nil, `annotation "go.type" must have a value`)
-			}
-			s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
-			if s == "" {
-				return Type{}, errutil.Explain(nil, `annotation "go.type" must not be empty`)
-			}
-			typeName = s
-		} else {
-			switch typ := f.Type.(type) {
-			case httpidl.AnyType:
-				return Type{}, errutil.Explain(nil, `any type must have annotation "go.type"`)
-			case httpidl.BinaryType:
-				typeName = "[]byte" // todo (lvan100) file
-			case httpidl.BaseType:
-				s, err := getBaseTypeName(typ.Name)
-				if err != nil {
-					return Type{}, err
-				}
-				typeName = "*" + s
-			case httpidl.UserType:
-				typeName = typ.Name
-				if f.EnumAsString {
-					typeName += "AsString"
-				}
-				typeName = "*" + typeName
-			default:
-				s, err := getTypeName(spec, typ)
-				if err != nil {
-					return Type{}, err
-				}
-				typeName = s
-			}
+		// Get the type name
+		typeName, err := getTypeName(spec, f)
+		if err != nil {
+			return Type{}, errutil.Explain(nil, "get type name for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
@@ -373,9 +343,9 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 
 		// Generate validation expressions for the field
 		var validateExpr *string
-		if f.ValidateExpr != nil || f.ValidateNested {
+		if f.ValidateExpr != nil {
 			var s string
-			s, err = genValidate(r.Name, fieldName, typeName, typeKind, f.ValidateExpr, spec.Funcs)
+			s, err = genValidateExpr(r.Name, fieldName, typeName, f.ValidateExpr, spec.Funcs)
 			if err != nil {
 				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
 			}
@@ -384,23 +354,76 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 			}
 		}
 
+		// Generate validation expressions for nested fields
+		var ValidateNested *string
+		if f.ValidateNested {
+			var s string
+			s, err = genValidateNested(r.Name, fieldName, typeName, typeKind)
+			if err != nil {
+				return Type{}, errutil.Explain(nil, "generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
+			}
+			if s != "" {
+				ValidateNested = &s
+			}
+		}
+
 		// Add the field to the struct
 		field := TypeField{
-			Name:      fieldName,
-			Type:      typeName,
-			Required:  f.Required,
-			Comment:   formatComment(f.Comments),
-			TypeKind:  typeKind,
-			ValueType: valueType,
-			JSONTag:   f.JSONTag,
-			FormTag:   f.FormTag,
-			Binding:   f.Binding,
-			Validate:  validateExpr,
+			Name:           fieldName,
+			Type:           typeName,
+			Required:       f.Required,
+			Comment:        formatComment(f.Comments),
+			TypeKind:       typeKind,
+			ValueType:      valueType,
+			JSONTag:        f.JSONTag,
+			FormTag:        f.FormTag,
+			Binding:        f.Binding,
+			ValidateExpr:   validateExpr,
+			ValidateNested: ValidateNested,
 		}
 		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
 	}
 	return r, nil
+}
+
+// getTypeName returns the Go type name for a given IDL type
+func getTypeName(spec GoSpec, f httpidl.TypeField) (string, error) {
+	if a, ok := httpidl.GetAnnotation(f.Annotations, "go.type"); ok {
+		if a.Value == nil {
+			return "", errutil.Explain(nil, `annotation "go.type" must have a value`)
+		}
+		s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
+		if s == "" {
+			return "", errutil.Explain(nil, `annotation "go.type" must not be empty`)
+		}
+		return s, nil
+	}
+
+	switch typ := f.Type.(type) {
+	case httpidl.AnyType:
+		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
+	case httpidl.BinaryType:
+		return "[]byte", nil // todo (lvan100) file
+	case httpidl.BaseType:
+		s, err := getBaseTypeName(typ.Name)
+		if err != nil {
+			return "", err
+		}
+		return "*" + s, nil
+	case httpidl.UserType:
+		typeName := typ.Name
+		if f.EnumAsString {
+			typeName += "AsString"
+		}
+		return "*" + typeName, nil
+	default:
+		s, err := getTypeName0(spec, typ)
+		if err != nil {
+			return "", err
+		}
+		return s, nil
+	}
 }
 
 // getBaseTypeName returns the Go type name for a given IDL base type.
@@ -419,8 +442,8 @@ func getBaseTypeName(typeName string) (string, error) {
 	}
 }
 
-// getTypeName returns the Go type name for a given IDL type.
-func getTypeName(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
+// getTypeName0 returns the Go type name for a given IDL type.
+func getTypeName0(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 	switch typ := t.(type) {
 	case httpidl.BaseType:
 		return getBaseTypeName(typ.Name)
@@ -430,7 +453,7 @@ func getTypeName(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 		}
 		return "*" + typ.Name, nil
 	case httpidl.ListType:
-		itemType, err := getTypeName(spec, typ.Item)
+		itemType, err := getTypeName0(spec, typ.Item)
 		if err != nil {
 			return "", err
 		}
@@ -440,7 +463,7 @@ func getTypeName(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 		if typ.Key == "int" {
 			keyType = "int64"
 		}
-		valueType, err := getTypeName(spec, typ.Value)
+		valueType, err := getTypeName0(spec, typ.Value)
 		if err != nil {
 			return "", err
 		}
@@ -550,6 +573,25 @@ func genFieldTag(f TypeField) string {
 	return "`" + strings.Join(tags, " ") + "`"
 }
 
+// genValidateNested generates the Go code for validating nested fields
+func genValidateNested(receiverType, fieldName, fieldType string, typeKind []TypeKind) (string, error) {
+	if typeKind[0] == TypeKindPointer {
+		if typeKind[1] != TypeKindStruct {
+			return "", nil
+		}
+		str := fmt.Sprintf(`if validateErr := x.%s.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
+			}`, fieldName, receiverType, fieldName)
+		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
+		return str, nil
+	} else if typeKind[0] == TypeKindList {
+		return "", nil // todo
+	} else if typeKind[0] == TypeKindMap {
+		return "", nil // todo
+	}
+	return "", errutil.Explain(nil, "unknown type: %s", fieldType)
+}
+
 // ValidateFunc represents a custom validation function
 type ValidateFunc struct {
 	Name      string
@@ -561,27 +603,9 @@ var builtinFuncs = map[string]struct{}{
 	"len": {},
 }
 
-// genValidate generates validation code for a struct field based on its "validate" annotation.
-// Returns a Go code snippet that checks the field and returns an error if validation fails.
-func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
+// genValidateExpr generates the Go code for a validation expression
+func genValidateExpr(receiverType, fieldName, fieldType string,
 	expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
-
-	if expr == nil {
-		if typeKind[0] == TypeKindPointer {
-			if typeKind[1] != TypeKindStruct {
-				return "", nil
-			}
-			str := fmt.Sprintf(`if validateErr := x.%s.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
-			}`, fieldName, receiverType, fieldName)
-			str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
-			return str, nil
-		} else if typeKind[0] == TypeKindList {
-			return "", nil // todo
-		} else if typeKind[0] == TypeKindMap {
-			return "", nil // todo
-		}
-	}
 
 	optional := strings.HasPrefix(fieldType, "*")
 	dollar := "x." + fieldName
@@ -590,7 +614,7 @@ func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
 	}
 
 	// Generate the Go expression for validation
-	str, err := genValidateExpr(dollar, fieldType, expr, funcs)
+	str, err := genValidateExpr0(dollar, fieldType, expr, funcs)
 	if err != nil {
 		return "", errutil.Explain(err, `failed to generate validate expression for %s.%s`, receiverType, fieldName)
 	}
@@ -606,28 +630,28 @@ func genValidate(receiverType, fieldName, fieldType string, typeKind []TypeKind,
 	return str, nil
 }
 
-// genValidateExpr recursively generates Go code for a validation expression
-func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
+// genValidateExpr0 recursively generates Go code for a validation expression
+func genValidateExpr0(fieldName, fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) (string, error) {
 	switch x := expr.(type) {
 	case validate.BinaryExpr:
 		if x.Left == nil {
 			return "", nil
 		}
-		left, err := genValidateExpr(fieldName, fieldType, x.Left, funcs)
+		left, err := genValidateExpr0(fieldName, fieldType, x.Left, funcs)
 		if err != nil {
 			return "", err
 		}
 		if x.Right == nil {
 			return left, nil
 		}
-		right, err := genValidateExpr(fieldName, fieldType, x.Right, funcs)
+		right, err := genValidateExpr0(fieldName, fieldType, x.Right, funcs)
 		if err != nil {
 			return "", err
 		}
 		return fmt.Sprintf("%s %s %s", left, x.Op, right), nil
 
 	case validate.UnaryExpr:
-		str, err := genValidateExpr(fieldName, fieldType, x.Expr, funcs)
+		str, err := genValidateExpr0(fieldName, fieldType, x.Expr, funcs)
 		if err != nil {
 			return "", err
 		}
@@ -668,7 +692,7 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 
 		var args []string
 		for _, arg := range x.Args {
-			str, err := genValidateExpr(fieldName, fieldType, arg, funcs)
+			str, err := genValidateExpr0(fieldName, fieldType, arg, funcs)
 			if err != nil {
 				return "", err
 			}
@@ -677,7 +701,7 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 		return fmt.Sprintf("%s(%s)", x.Name, strings.Join(args, ", ")), nil
 
 	case *validate.InnerExpr:
-		str, err := genValidateExpr(fieldName, fieldType, x.Expr, funcs)
+		str, err := genValidateExpr0(fieldName, fieldType, x.Expr, funcs)
 		if err != nil {
 			return "", err
 		}
@@ -685,10 +709,10 @@ func genValidateExpr(fieldName, fieldType string, expr validate.Expr, funcs map[
 
 	case validate.PrimaryExpr:
 		if x.Inner != nil {
-			return genValidateExpr(fieldName, fieldType, x.Inner, funcs)
+			return genValidateExpr0(fieldName, fieldType, x.Inner, funcs)
 		}
 		if x.Call != nil {
-			return genValidateExpr(fieldName, fieldType, x.Call, funcs)
+			return genValidateExpr0(fieldName, fieldType, x.Call, funcs)
 		}
 		if x.Value == "$" {
 			return fieldName, nil

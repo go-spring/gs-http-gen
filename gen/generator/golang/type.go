@@ -241,8 +241,11 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 					err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
 				}
 			{{- end}}
-			{{- if $f.Validate}}
-				{{$f.Validate}}
+			{{- if $f.ValidateExpr}}
+				{{$f.ValidateExpr}}
+			{{- end}}
+			{{- if $f.ValidateNested}}
+				{{$f.ValidateNested}}
 			{{- end}}
 		{{- end}}
 		return
