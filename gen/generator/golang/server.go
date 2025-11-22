@@ -51,7 +51,11 @@ type {{.Service}}Server interface {
 			{{formatComments $r.Comments}}
 		{{- end}}
 		{{- if $r.SSE}}
-            {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[*AssistantResp])
+			{{- if eq $r.Response "string" }}
+				 {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[string])
+			{{- else}}
+				 {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[*{{$r.Response}}])
+			{{- end }}
 		{{- else}}
 			{{$r.Name}}(context.Context, *{{$r.Request}}) *{{$r.Response}}
 		{{- end}}

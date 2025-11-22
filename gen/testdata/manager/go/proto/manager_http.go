@@ -11,6 +11,8 @@ import (
 type ManagerServer interface {
 	// Assistant ...
 	Assistant(context.Context, *AssistantReq, chan<- *SSEEvent[*AssistantResp])
+	// AssistantV2 ...
+	AssistantV2(context.Context, *AssistantReq, chan<- *SSEEvent[string])
 	// Create a new manager
 	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
 	// Delete a manager
@@ -35,6 +37,12 @@ func SetupRouter(r Router, server ManagerServer) {
 		func(w http.ResponseWriter, r *http.Request) {
 			req := &AssistantReq{}
 			HandleStream(w, r, req, server.Assistant)
+		})
+
+	r.HandleFunc("GET", "/assistantV2",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &AssistantReq{}
+			HandleStream(w, r, req, server.AssistantV2)
 		})
 
 	r.HandleFunc("POST", "/managers",

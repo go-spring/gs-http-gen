@@ -37,3 +37,16 @@ sse Assistant(AssistantReq) AssistantResp {
     readTimeout=100
     writeTimeout=100
 }
+
+// AssistantV2 ...
+sse AssistantV2(AssistantReq) string {
+    method="GET"
+    path="/assistantV2"
+    contentType="form"
+    summary="assistantV2"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
+}

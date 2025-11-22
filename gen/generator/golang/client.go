@@ -59,10 +59,9 @@ type Client struct {
 		{{- if $r.Comments.Exists }}
 			{{formatComments $r.Comments}}
 		{{- end}}
-		{{- $respType := $r.Response }}
-	func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$respType}}, error) {
+	func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$r.Response}}, error) {
 		if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
-			return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
+			return gsmock.Unbox3[*http.Response, *{{$r.Response}}, error](ret)
 		}
 	
 		path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $unused, $p := $r.PathParams}} req.{{$p}}, {{- end}})
