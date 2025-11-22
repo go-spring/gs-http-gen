@@ -1,0 +1,39 @@
+// assistant.idl
+
+type AssistantReq {
+    list<Item> items
+}
+
+type Item {
+    string id
+}
+
+type AssistantResp {
+    string id
+    string data
+    Payload payload
+    binary image
+}
+
+oneof Payload {
+    Payload_1
+    Payload_2
+    Payload_3
+}
+
+type Payload_1 {}
+type Payload_2 {}
+type Payload_3 {}
+
+// Assistant ...
+sse Assistant(AssistantReq) AssistantResp {
+    method="GET"
+    path="/assistant"
+    contentType="form"
+    summary="assistant"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
+}

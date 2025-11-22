@@ -17,17 +17,54 @@ type ManagerServer interface {
 	GetManager(context.Context, *ManagerReq) *GetManagerResp
 	// List managers with pagination
 	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
-	Stream(context.Context, *StreamReq, chan<- *StreamResp)
 	// Update manager info
 	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
+	// Assistant ...
+	Assistant(context.Context, *AssistantReq, chan<- *SSEEvent[*AssistantResp])
 }
 
-// InitRouter registers the service handlers into the given *http.ServeMux.
-func InitRouter(mux *http.ServeMux, server ManagerServer) {
-	mux.HandleFunc("POST /managers", HandleJSON(server.CreateManager))
-	mux.HandleFunc("DELETE /managers/{id}", HandleJSON(server.DeleteManager))
-	mux.HandleFunc("GET /managers/{id}", HandleJSON(server.GetManager))
-	mux.HandleFunc("GET /managers/page", HandleJSON(server.ListManagersByPage))
-	mux.HandleFunc("GET /stream", HandleStream(server.Stream))
-	mux.HandleFunc("PUT /managers/{id}", HandleJSON(server.UpdateManager))
+// Router defines the interface that router must implement.
+type Router interface {
+	HandleFunc(method string, pattern string, handler http.HandlerFunc)
+}
+
+// SetupRouter sets up the router with the given server.
+func SetupRouter(r Router, server ManagerServer) {
+
+	r.HandleFunc("POST", "/managers",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &CreateManagerReq{}
+			HandleJSON(w, r, req, server.CreateManager)
+		})
+
+	r.HandleFunc("DELETE", "/managers/{id}",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &ManagerReq{}
+			HandleJSON(w, r, req, server.DeleteManager)
+		})
+
+	r.HandleFunc("GET", "/managers/{id}",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &ManagerReq{}
+			HandleJSON(w, r, req, server.GetManager)
+		})
+
+	r.HandleFunc("GET", "/managers/page",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &ListManagersByPageReq{}
+			HandleJSON(w, r, req, server.ListManagersByPage)
+		})
+
+	r.HandleFunc("PUT", "/managers/{id}",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &UpdateManagerReq{}
+			HandleJSON(w, r, req, server.UpdateManager)
+		})
+
+	r.HandleFunc("GET", "/assistant",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &AssistantReq{}
+			HandleStream(w, r, req, server.Assistant)
+		})
+
 }

@@ -19,25 +19,301 @@ package golang
 import (
 	"bytes"
 	"fmt"
+	"go/format"
+	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/template"
 
-	"github.com/go-spring/gs-http-gen/lib/tidl"
-	"github.com/go-spring/gs-http-gen/lib/vidl"
+	"github.com/go-spring/gs-http-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/lib/httpidl"
+	"github.com/go-spring/gs-http-gen/lib/validate"
+	"github.com/lvan100/golib/errutil"
 )
+
+// formatFile formats Go source code using `go format`
+// and writes the formatted code to the given file.
+func formatFile(fileName string, b []byte) error {
+	b, err := format.Source(b)
+	if err != nil {
+		return errutil.Explain(nil, "format source for file %s error: %w", fileName, err)
+	}
+	err = os.WriteFile(fileName, b, os.ModePerm)
+	if err != nil {
+		return errutil.Explain(nil, "write file %s error: %w", fileName, err)
+	}
+	return nil
+}
+
+// formatComments converts a tidl.Comments into Go comments.
+func formatComments(c httpidl.Comments) string {
+	var lines []string
+	for _, s := range c.Above {
+		lines = append(lines, s.Text...)
+	}
+	if c.Right != nil {
+		lines = append(lines, c.Right.Text...)
+	}
+	return strings.Join(lines, "\n")
+}
+
+// encodeFormValue generates Go code to encode a field value to form data.
+func encodeFormValue(fieldName string, typeKind []TypeKind, formName string) string {
+	var sb strings.Builder
+
+	// pointer
+	if typeKind[0] == TypeKindPointer {
+		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
+		sb.WriteString(encodeFormValue("*"+fieldName, typeKind[1:], formName))
+		sb.WriteString(fmt.Sprintf("\n}"))
+		return sb.String()
+	}
+
+	switch typeKind[0] {
+	case TypeKindBool:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, fieldName))
+	case TypeKindInt:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+	case TypeKindUint:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, fieldName))
+	case TypeKindFloat:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, fieldName))
+	case TypeKindString:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, fieldName))
+	case TypeKindEnum:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+	case TypeKindEnumAsString:
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, fieldName))
+	case TypeKindStruct, TypeKindMap:
+		sb.WriteString(fmt.Sprintf("b, err := json.Marshal(%s)", fieldName))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf(`if err != nil {
+			return "", err
+		}`))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, formName))
+	case TypeKindList:
+		sb.WriteString(fmt.Sprintf("for i := range len(%s) {", fieldName))
+		sb.WriteString("\n")
+		sb.WriteString(encodeFormValue(fieldName+"[i]", typeKind[1:], formName))
+		sb.WriteString("\n")
+		sb.WriteString(fmt.Sprintf("}"))
+	default:
+		panic("unsupported type")
+	}
+
+	return sb.String()
+}
+
+// decodeFormValue generates Go code to decode a field value from form data.
+func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, formName string) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf(`if v, ok := values["%s"]; ok {`, formName))
+
+	switch typeKind[0] {
+	case TypeKindList:
+		valueType := strings.TrimPrefix(typeName, "[]")
+		sb.WriteString(fmt.Sprintf(`for _, s := range v {
+				var i %s
+				parseErr := json.Unmarshal([]byte(s), &i)
+				if parseErr != nil {
+					err = errutil.Stack(err, "json decode error: %%w", parseErr)
+				}
+				%s = append(%s, i)
+			}`, valueType, fieldName, fieldName))
+	case TypeKindMap:
+		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
+		sb.WriteString(fmt.Sprintf(`parseErr := json.Unmarshal([]byte(v[0]), &%s)
+			if parseErr != nil {
+				err = errutil.Stack(err, "json decode error: %%w", parseErr)
+			}`, fieldName))
+		sb.WriteString(fmt.Sprintf(`} else {
+				err = errutil.Stack(err, "invalid value for \"%s\"")
+			}`, formName))
+	case TypeKindPointer:
+		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
+		{
+			switch typeKind[1] {
+			case TypeKindBool:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = &i
+					}`, formName, fieldName))
+			case TypeKindInt:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = &i
+					}`, formName, fieldName))
+			case TypeKindUint:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseUint(v[0], 10, 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = &i
+					}`, formName, fieldName))
+			case TypeKindFloat:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseFloat(v[0], 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = &i
+					}`, formName, fieldName))
+			case TypeKindString:
+				sb.WriteString(fmt.Sprintf(`%s = &v[0]`, fieldName))
+			case TypeKindEnum, TypeKindEnumAsString:
+				valueType := strings.TrimPrefix(typeName, "*")
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						if e := %s(i); !OneOf%s(e) {
+							err = errutil.Stack(err, "invalid value for \"%s\"")
+						} else{
+							%s = &e
+						}
+					}`, formName, valueType, valueType, formName, fieldName))
+			case TypeKindStruct:
+				sb.WriteString(fmt.Sprintf(`if parseErr := json.Unmarshal([]byte(v[0]), &%s); parseErr != nil {
+						err = errutil.Stack(err, "json decode error: %%w", parseErr)
+					}`, fieldName))
+			default:
+				panic("unsupported type")
+			}
+		}
+		sb.WriteString(fmt.Sprintf(`} else {
+				err = errutil.Stack(err, "invalid value for \"%s\"")
+			}`, formName))
+	default:
+		panic("unsupported type")
+	}
+
+	sb.WriteString("}")
+	return sb.String()
+}
+
+// genValidateExpr generates the Go code for a validation expression
+func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Expr) (string, error) {
+	receiverType = strings.TrimSuffix(receiverType, "Body") // todo
+
+	// 对于结构体而言，只应当验证字段非空，其内部字段的验证应当由自己完成
+	fieldType, optional := strings.CutPrefix(fieldType, "*")
+	dollar := "x." + fieldName
+	if optional {
+		dollar = "*" + dollar
+	}
+
+	// Generate the Go expression for validation
+	str, err := compileValidateExpr(dollar, fieldType, expr)
+	if err != nil {
+		return "", errutil.Explain(err, `failed to generate validate expression for %s.%s`, receiverType, fieldName)
+	}
+
+	// Wrap in an if statement returning an error on failure
+	str = fmt.Sprintf(`if !(%s) {
+		err = errutil.Stack(err,"validate failed on \"%s.%s\"")
+	}`, str, receiverType, fieldName)
+
+	if optional {
+		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
+	}
+	return str, nil
+}
+
+// compileValidateExpr recursively generates Go code for a validation expression
+func compileValidateExpr(fieldName, fieldType string, expr validate.Expr) (string, error) {
+	switch x := expr.(type) {
+	case validate.BinaryExpr:
+		left, err := compileValidateExpr(fieldName, fieldType, x.Left)
+		if err != nil {
+			return "", err
+		}
+		right, err := compileValidateExpr(fieldName, fieldType, x.Right)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s %s %s", left, x.Op, right), nil
+
+	case validate.UnaryExpr:
+		str, err := compileValidateExpr(fieldName, fieldType, x.Expr)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s%s", x.Op, str), nil
+
+	case *validate.FuncCall:
+		if len(x.Args) == 0 {
+			return x.Name + "()", nil
+		}
+		var args []string
+		for _, arg := range x.Args {
+			str, err := compileValidateExpr(fieldName, fieldType, arg)
+			if err != nil {
+				return "", err
+			}
+			args = append(args, str)
+		}
+		return fmt.Sprintf("%s(%s)", x.Name, strings.Join(args, ", ")), nil
+
+	case *validate.InnerExpr:
+		str, err := compileValidateExpr(fieldName, fieldType, x.Expr)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("(%s)", str), nil
+
+	case validate.PrimaryExpr:
+		if x.Inner != nil {
+			return compileValidateExpr(fieldName, fieldType, x.Inner)
+		}
+		if x.Call != nil {
+			return compileValidateExpr(fieldName, fieldType, x.Call)
+		}
+		if x.Value == "$" {
+			return fieldName, nil
+		}
+		return x.Value, nil
+
+	default:
+		return "", errutil.Explain(nil, "unknown expression type: %s", x.Text())
+	}
+}
+
+// genValidateNested generates the nested validation code for a Go struct field.
+func genValidateNested(receiverType, fieldName string, itemName string, typeKind []TypeKind, depth int) string {
+	receiverType = strings.TrimSuffix(receiverType, "Body") // todo
+	childName := fmt.Sprintf("v%d", depth)
+	switch typeKind[0] {
+	case TypeKindList, TypeKindMap:
+		str := genValidateNested(receiverType, fieldName, childName, typeKind[1:], depth+1)
+		if str == "" {
+			return ""
+		}
+		str = fmt.Sprintf(`for _, %s := range %s {
+				%s
+			}`, childName, itemName, str)
+		return str
+	case TypeKindPointer:
+		if typeKind[1] != TypeKindStruct {
+			return ""
+		}
+		str := fmt.Sprintf(`if %s != nil {
+				if validateErr := %s.Validate(); validateErr != nil {
+					err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
+				}
+			}`, itemName, itemName, receiverType, fieldName)
+		return str
+	default:
+		return ""
+	}
+}
 
 // typeTmpl is a Go template used to generate Go source code from IDL definitions.
 var typeTmpl = template.Must(template.New("type").
 	Funcs(map[string]any{
-		"TrimPrefix": strings.TrimPrefix,
-		"OptionalBaseType": func(k TypeKind) bool {
-			return k == TypeKindOptionalBaseType
-		},
-		"OptionalEnumType": func(k TypeKind) bool {
-			return k == TypeKindOptionalEnumType
-		},
+		"formatComments":    formatComments,
+		"encodeFormValue":   encodeFormValue,
+		"decodeFormValue":   decodeFormValue,
+		"genValidateExpr":   genValidateExpr,
+		"genValidateNested": genValidateNested,
 	}).
 	Parse(`
 // Code generated by gs-http-gen compiler. DO NOT EDIT.
@@ -45,33 +321,38 @@ var typeTmpl = template.Must(template.New("type").
 package {{.Package}}
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/lvan100/golib/errutil"
 )
 
-var _ = errors.New
-var _ = strings.Count
+var _ = json.Marshal
+var _ = strings.Contains
 var _ = http.NewServeMux
+var _ = strconv.FormatInt
 
 {{ range $c := .Consts }}
-{{- if $c.Comment }}
-	{{$c.Comment}}
-{{- end}}
-const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
+	{{- if $c.Comments.Exists }}
+		{{formatComments $c.Comments}}
+	{{- end}}
+	const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 {{end}}
 
 {{ range $e := .Enums }}
-	{{- if $e.Comment}}
-		{{$e.Comment}}
+	{{- if $e.Comments.Exists }}
+		{{formatComments $e.Comments}}
 	{{- end}}
 	type {{$e.Name}} int32
 
 	const (
 		{{range $f := $e.Fields}}
-			{{- if $f.Comment}}
-				{{$f.Comment}}
+			{{- if $f.Comments.Exists }}
+				{{formatComments $f.Comments}}
 			{{- end}}
 			{{$e.Name}}_{{$f.Name}} {{$e.Name}} = {{$f.Value}}
 		{{- end}}
@@ -96,6 +377,12 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		return ok
 	}
 
+	// OneOf{{$e.Name}}AsString is usually used for validation.
+	func OneOf{{$e.Name}}AsString(i {{$e.Name}}AsString) bool {
+		_, ok := {{$e.Name}}_name[{{$e.Name}}(i)]
+		return ok
+	}
+
 	// {{$e.Name}}AsString wraps {{$e.Name}} to encode/decode as a JSON string.
 	type {{$e.Name}}AsString {{$e.Name}}
 
@@ -104,7 +391,7 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 		if s, ok := {{$e.Name}}_name[{{$e.Name}}(x)]; ok {
 			return []byte(fmt.Sprintf("\"%s\"", s)), nil
 		}
-		return nil, fmt.Errorf("invalid {{$e.Name}}: %d", x)
+		return nil, errutil.Explain(nil,"invalid {{$e.Name}}: %d", x)
 	}
 
 	// UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -114,752 +401,147 @@ const {{$c.Name}} {{$c.Type}} = {{$c.Value}}
 			*x = {{$e.Name}}AsString(v)
 			return nil
 		}
-		return fmt.Errorf("invalid {{$e.Name}} value: %q", str)
+		return errutil.Explain(nil,"invalid {{$e.Name}} value: %q", str)
 	}
 {{end}}
 
 {{range $s := .Structs}}
-	{{- if $s.Comment}}
-		{{$s.Comment}}
+	{{- if $s.Comments.Exists }}
+		{{formatComments $s.Comments}}
 	{{- end}}
 	type {{$s.Name}} struct {
-		ObjectBase
+		{{- if $s.Request}}
+			{{$s.Name}}Body
+		{{- end}}
 		{{- range $f := $s.Fields}}
-			{{- if $f.Comment}}
-				{{$f.Comment}}
+			{{- if $f.Comments.Exists }}
+				{{formatComments $f.Comments}}
 			{{- end}}
-			{{$f.Name}} {{$f.Type}} {{$f.Tag}}
+			{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 		{{- end}}
 	}
 
-	// New returns a new instance (implements Object interface).
-	func (x *{{$s.Name}}) New() any {
-		return &{{$s.Name}}{}
-	}
-
-	{{- if $s.BindingCount}}
-		// Binding extracts non-body values (header, path, query) from *http.Request.
-		func (x *{{$s.Name}}) Binding(r *http.Request) error {
-			return Binding(r, []BindingField {
+	{{if $s.Request}}
+		// QueryForm returns the form values of the object.
+		func (x *{{$s.Name}}) QueryForm() (string, error) {
+			{{- if $s.QueryCount}}
+				m := make(url.Values)
 				{{- range $f := $s.Fields}}
 					{{- if $f.Binding}}
-				{"{{$s.Name}}.{{$f.Name}}", "{{$f.Binding.From}}", "{{$f.Binding.Name}}", &x.{{$f.Name}}},
+						{{- if eq $f.Binding.From "query"}}
+							{{$fieldName := printf "x.%s" $f.Name}}
+							{{- encodeFormValue $fieldName $f.TypeKind $f.Binding.Name}}
+						{{- end}}
 					{{- end}}
 				{{- end}}
-			})
+				return m.Encode(), nil
+			{{- else}}
+				return "", nil
+			{{- end}}
 		}
-	{{- end}}
+	
+		// Binding extracts non-body values (path, query) from *http.Request.
+		func (x *{{$s.Name}}) Bind(r *http.Request) error {
+			{{- if $s.BindingCount}}
+				values, err := url.ParseQuery(r.URL.RawQuery)
+				if err != nil {
+					return errutil.Explain(err, "parse query error")
+				}
+				if len(values) == 0 {
+					return nil
+				}
+				{{- range $f := $s.Fields}}
+					{{- if and $f.Binding (eq $f.Binding.From "query")}}
+						{{$fieldName := printf "x.%s" $f.Name}}
+						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.Binding.Name}}
+					{{- end}}
+				{{- end}}
+				return err
+			{{- else}}
+				return nil
+			{{- end}}
+		}
+	{{end}}
 
-	{{- if $s.ValidateCount}}
+	{{if $s.OnForm}}
+		// EncodeForm encodes the object to form data.
+		func (x *{{$s.Name}}) EncodeForm() (string, error) {
+			{{- if $s.FieldCount}}
+				m := make(url.Values)
+				{{- range $f := $s.Fields}}
+					{{$fieldName := printf "x.%s" $f.Name}}
+					{{- encodeFormValue $fieldName $f.TypeKind $f.FormTag.Name}}
+				{{- end}}
+				return m.Encode(), nil
+			{{- else}}
+				return "", nil
+			{{- end}}
+		}
+
+		// DecodeForm decodes the object from form data.
+		func (x *{{$s.Name}}) DecodeForm(b []byte) error {
+			{{- if $s.FieldCount}}
+				values, err := url.ParseQuery(string(b))
+				if err != nil {
+					return errutil.Explain(err, "parse query error")
+				}
+				if len(values) == 0 {
+					return nil
+				}
+				{{- range $f := $s.Fields}}
+					{{$fieldName := printf "x.%s" $f.Name}}
+					{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.FormTag.Name}}
+				{{- end}}
+				return err
+			{{- else}}
+				return nil
+			{{- end}}
+		}
+	{{end}}
+
+	{{if $s.OnRequest}}
 		// Validate checks field values using generated validation expressions.
-		func (x *{{$s.Name}}) Validate() error {
+		func (x *{{$s.Name}}) Validate() (err error) {
 			{{- range $f := $s.Fields}}
-				{{- if $f.Validate}}
-			{{$f.Validate}}
+				{{- if $f.Required}}
+					if x.{{$f.Name}} == nil {
+						err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
+					}
+				{{- end}}
+				{{- if $f.ValidateExpr}}
+					{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
+				{{- end}}
+				{{- if $f.ValidateNested}}
+					{{- $fieldName := printf "x.%s" $f.Name}}
+					{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
 				{{- end}}
 			{{- end}}
-			return nil
+			{{- if $s.Request}}
+				if validateErr := x.{{$s.Name}}Body.Validate(); validateErr != nil {
+					err = errutil.Stack(err, "validate failed on \"{{$s.Name}}\": %w", validateErr)
+				}
+			{{- end}}
+			return
 		}
-	{{- end}}
-
-	func (x *{{$s.Name}}) String() string {
-		if x == nil {
-			return "<nil>"
-		}
-		return fmt.Sprintf("{{$s.Name}}(%+v)", *x)
-	}
+	{{end}}
 
 {{end}}
 `))
 
 // genType generates a Go source file corresponding to the IDL file.
 // It includes constants, enums, and struct types.
-func (g *Generator) genType(ctx Context, fileName string, doc tidl.Document) error {
-	consts, err := convertConsts(ctx, doc)
-	if err != nil {
-		return fmt.Errorf("convert consts error: %w", err)
-	}
-	enums, err := convertEnums(ctx, doc)
-	if err != nil {
-		return fmt.Errorf("convert enums error: %w", err)
-	}
-	types, err := convertTypes(ctx, doc)
-	if err != nil {
-		return fmt.Errorf("convert types error: %w", err)
-	}
-
+func (g *Generator) genType(config *generator.Config, fileName string, spec GoSpec) error {
 	buf := &bytes.Buffer{}
-	err = typeTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
-		"Consts":  consts,
-		"Enums":   enums,
-		"Structs": types,
+	err := typeTmpl.Execute(buf, map[string]any{
+		"Package": config.GoPackage,
+		"Consts":  spec.Consts[fileName],
+		"Enums":   spec.Enums[fileName],
+		"Structs": spec.Types[fileName],
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
-	fileName = filepath.Join(ctx.config.OutputDir, fileName)
+	fileName = filepath.Join(config.OutputDir, fileName)
 	return formatFile(fileName, buf.Bytes())
-}
-
-// Const represents a Go constant
-type Const struct {
-	Type    string
-	Name    string
-	Value   string
-	Comment string
-}
-
-// convertConsts converts IDL constants to Go constants
-func convertConsts(ctx Context, doc tidl.Document) ([]Const, error) {
-	var ret []Const
-	for _, c := range doc.Consts {
-		t := tidl.BaseType{Name: c.Type}
-		typeName, err := getTypeName(ctx, t, nil)
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, Const{
-			Name:    c.Name,
-			Type:    typeName,
-			Value:   c.Value,
-			Comment: formatComment(c.Comments),
-		})
-	}
-	return ret, nil
-}
-
-// Enum represents a Go enum
-type Enum struct {
-	Name    string
-	Fields  []EnumField
-	Comment string
-}
-
-// EnumField represents a single field in a Go enum
-type EnumField struct {
-	Name    string
-	Value   int64
-	Comment string
-}
-
-// convertEnums converts IDL enums to Go enums
-func convertEnums(ctx Context, doc tidl.Document) ([]Enum, error) {
-	var ret []Enum
-
-	// Convert standard enums
-	for _, e := range doc.Enums {
-		var fields []EnumField
-		for _, f := range e.Fields {
-			fields = append(fields, EnumField{
-				Name:    f.Name,
-				Value:   f.Value,
-				Comment: formatComment(f.Comments),
-			})
-		}
-		ret = append(ret, Enum{
-			Name:    e.Name,
-			Fields:  fields,
-			Comment: formatComment(e.Comments),
-		})
-	}
-
-	// Convert enums from oneof types
-	for _, t := range doc.Types {
-		if !t.OneOf { // skip non-oneof types
-			continue
-		}
-		var fields []EnumField
-		for i, f := range t.Fields {
-			fieldName, err := getJSONName(f.Name, f.Annotations)
-			if err != nil {
-				return nil, fmt.Errorf("get json name for type %s field %s error: %w", t.Name, f.Name, err)
-			}
-			fields = append(fields, EnumField{
-				Name:  fieldName,
-				Value: int64(i),
-			})
-		}
-		ret = append(ret, Enum{
-			Name:   t.Name + "Type",
-			Fields: fields,
-		})
-	}
-	return ret, nil
-}
-
-// getJSONName returns the JSON name for a struct field.
-func getJSONName(fieldName string, arr []tidl.Annotation) (string, error) {
-	if a, ok := tidl.GetAnnotation(arr, "json"); ok {
-		if a.Value == nil {
-			return "", fmt.Errorf(`annotation "json" value is nil`)
-		}
-		s := strings.TrimSpace(*a.Value)
-		if s == "" {
-			return "", fmt.Errorf(`annotation "json" value is empty`)
-		}
-		s = strings.Trim(s, "\"") // remove quotes
-		s = strings.TrimSpace(strings.SplitN(s, ",", 2)[0])
-		if s != "" {
-			return s, nil
-		}
-	}
-	return fieldName, nil
-}
-
-// TypeKind represents kind of a Go field type
-type TypeKind int
-
-const (
-	TypeKindUnknown TypeKind = iota
-	TypeKindBaseType
-	TypeKindOptionalBaseType
-	TypeKindEnumType
-	TypeKindOptionalEnumType
-	TypeKindStructType
-	TypeKindOptionalStructType
-	TypeKindListType
-	TypeKindMapType
-)
-
-// Type represents a Go struct
-type Type struct {
-	Name    string
-	Fields  []TypeField
-	Comment string
-}
-
-// TypeField represents a field in a Go struct
-type TypeField struct {
-	Type     string
-	TypeKind TypeKind
-	Name     string
-	Tag      string
-	Validate *string
-	Binding  *Binding
-	Comment  string
-}
-
-// Binding represents a field binding from headers, path, or query
-type Binding struct {
-	From string // Source: header/path/query
-	Name string // Field name in the source
-}
-
-// BindingCount returns the number of fields in the struct that have binding info
-func (t *Type) BindingCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Binding != nil {
-			count++
-		}
-	}
-	return count
-}
-
-// ValidateCount returns the number of fields in the struct that have validation expressions
-func (t *Type) ValidateCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Validate != nil {
-			count++
-		}
-	}
-	return count
-}
-
-// convertTypes converts IDL struct types to Go struct types
-func convertTypes(ctx Context, doc tidl.Document) ([]Type, error) {
-	var ret []Type
-	for _, t := range doc.Types {
-		// Skip generic types (they need instantiation via Redefined)
-		if t.GenericName != nil {
-			continue
-		}
-		var (
-			typ Type
-			err error
-		)
-		if t.Redefined != nil {
-			typ, err = convertRedefinedType(ctx, t)
-		} else {
-			typ, err = convertType(ctx, t)
-		}
-		if err != nil {
-			return nil, err
-		}
-		ret = append(ret, typ)
-	}
-	return ret, nil
-}
-
-// convertRedefinedType instantiates a redefined generic struct type
-func convertRedefinedType(ctx Context, r tidl.Type) (Type, error) {
-
-	t, ok := tidl.GetType(ctx.files, r.Redefined.Name)
-	if !ok {
-		err := fmt.Errorf("type %s not found", r.Redefined.Name)
-		return Type{}, fmt.Errorf("convert redefined type %s error: %w", r.Name, err)
-	}
-
-	var fields []tidl.TypeField
-	for _, f := range t.Fields {
-		// Replace generic placeholders with concrete types
-		f.FieldType = replaceGenericType(f.FieldType, *t.GenericName, r.Redefined.GenericType)
-		fields = append(fields, f)
-	}
-
-	return convertType(ctx, tidl.Type{
-		Name:     r.Name,
-		Fields:   fields,
-		Position: r.Position,
-		Comments: r.Comments,
-	})
-}
-
-// replaceGenericType replaces a generic type in a field with a concrete type
-func replaceGenericType(t tidl.TypeDefinition, genericName string, genericType tidl.TypeDefinition) tidl.TypeDefinition {
-	switch u := t.(type) {
-	case tidl.UserType:
-		if u.Name == genericName {
-			return genericType
-		}
-		return u
-	case tidl.ListType:
-		u.Item = replaceGenericType(u.Item, genericName, genericType)
-		return u
-	case tidl.MapType:
-		u.Value = replaceGenericType(u.Value, genericName, genericType)
-		return u
-	default:
-		return t
-	}
-}
-
-// convertType converts an IDL struct type to a Go struct type
-func convertType(ctx Context, t tidl.Type) (Type, error) {
-	r := Type{
-		Name: t.Name,
-	}
-
-	// Handle oneof
-	if t.OneOf {
-		r.Fields = append(r.Fields, TypeField{
-			Type:     r.Name + "TypeAsString",
-			TypeKind: TypeKindEnumType,
-			Name:     "FieldType",
-			Tag:      "`json:\"field_type\"`",
-		})
-	}
-
-	// Handle fields
-	for _, f := range t.Fields {
-
-		// Handle embedded types (flatten their fields into the struct)
-		if embedType, ok := f.FieldType.(tidl.EmbedType); ok {
-			srcType, ok := tidl.GetType(ctx.files, embedType.Name)
-			if !ok {
-				return Type{}, fmt.Errorf("embedded type %s not found for field in type %s", embedType.Name, r.Name)
-			}
-			retType, err := convertType(ctx, srcType)
-			if err != nil {
-				return Type{}, fmt.Errorf("failed to convert embedded type %s in type %s: %w", embedType.Name, r.Name, err)
-			}
-			// Append embedded type's fields
-			r.Fields = append(r.Fields, retType.Fields...)
-			continue
-		}
-
-		// Convert field name to PascalCase for Go
-		fieldName := tidl.ToPascal(f.Name)
-
-		// Determine Go type for the field
-		typeName, err := getTypeName(ctx, f.FieldType, f.Annotations)
-		if err != nil {
-			return Type{}, fmt.Errorf("get type name for field %s in type %s error: %w", f.Name, r.Name, err)
-		}
-
-		// Determine the category of the field (base, enum, struct, list, map)
-		typeKind, err := getTypeKind(ctx, typeName)
-		if err != nil {
-			return Type{}, fmt.Errorf("get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
-		}
-
-		// Parse HTTP binding info from annotations (header, path, query)
-		binding, err := parseBinding(f.Annotations)
-		if err != nil {
-			return Type{}, fmt.Errorf("parse binding for field %s in type %s error: %w", f.Name, r.Name, err)
-		}
-
-		// Generate struct tag for JSON, query/path/header bindings
-		fieldTag, err := genFieldTag(f.Name, typeName, f.Annotations, binding)
-		if err != nil {
-			return Type{}, fmt.Errorf("generate field tag for field %s in type %s error: %w", f.Name, r.Name, err)
-		}
-
-		// Generate validation expressions for the field
-		validate, err := genValidate(r.Name, fieldName, typeName, f.Annotations, ctx.funcs)
-		if err != nil {
-			return Type{}, fmt.Errorf("generate validate for field %s in type %s error: %w", f.Name, r.Name, err)
-		}
-
-		// Add the field to the struct
-		r.Fields = append(r.Fields, TypeField{
-			Type:     typeName,
-			TypeKind: typeKind,
-			Name:     fieldName,
-			Tag:      fieldTag,
-			Validate: validate,
-			Binding:  binding,
-			Comment:  formatComment(f.Comments),
-		})
-	}
-	return r, nil
-}
-
-// getTypeName returns the Go type name for a given IDL type.
-// It also respects the "go.type" annotation, which overrides the default type.
-func getTypeName(ctx Context, t tidl.TypeDefinition, arr []tidl.Annotation) (string, error) {
-
-	// Handle explicit "go.type" annotation
-	if a, ok := tidl.GetAnnotation(arr, "go.type"); ok {
-		if a.Value == nil {
-			return "", fmt.Errorf(`annotation "go.type" must have a value`)
-		}
-		s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
-		if s == "" {
-			return "", fmt.Errorf(`annotation "go.type" must not be empty`)
-		}
-		return s, nil
-	}
-
-	switch typ := t.(type) {
-	case tidl.AnyType:
-		return "", fmt.Errorf(`any type must have annotation "go.type"`)
-	case tidl.BaseType:
-		var typeName string
-		switch typ.Name {
-		case "string":
-			typeName = "string"
-		case "int":
-			typeName = "int64"
-		case "float":
-			typeName = "float64"
-		case "bool":
-			typeName = "bool"
-		default:
-			return "", fmt.Errorf("unknown base type: %s", typ.Name)
-		}
-		if typ.Optional {
-			typeName = "*" + typeName
-		}
-		return typeName, nil
-	case tidl.UserType:
-		typeName := typ.Name
-		// Handle enum_as_string annotation
-		if _, ok := tidl.GetAnnotation(arr, "enum_as_string"); ok {
-			if _, ok := tidl.GetEnum(ctx.files, typ.Name); !ok {
-				return "", fmt.Errorf("enum %s not found", typ.Name)
-			}
-			typeName += "AsString"
-		}
-		if typ.Optional {
-			typeName = "*" + typeName
-		}
-		return typeName, nil
-	case tidl.ListType:
-		itemType, err := getTypeName(ctx, typ.Item, nil)
-		if err != nil {
-			return "", err
-		}
-		return "[]" + itemType, nil
-	case tidl.MapType:
-		keyType := "string"
-		if typ.Key == "int" {
-			keyType = "int64"
-		}
-		valueType, err := getTypeName(ctx, typ.Value, nil)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("map[%s]%s", keyType, valueType), nil
-	case tidl.BinaryType:
-		return "[]byte", nil // todo (lvan100) handle file
-	default:
-		return "", fmt.Errorf("unknown type: %s", t.Text())
-	}
-}
-
-// getTypeKind categorizes a Go type for code generation purposes.
-func getTypeKind(ctx Context, typeName string) (TypeKind, error) {
-	typeName, optional := strings.CutPrefix(typeName, "*")
-
-	switch typeName {
-	case "int", "int8", "int16", "int32", "int64",
-		"uint", "uint8", "uint16", "uint32", "uint64",
-		"float32", "float64", "string", "bool":
-		if optional {
-			return TypeKindOptionalBaseType, nil
-		}
-		return TypeKindBaseType, nil
-	default: // for linter
-	}
-
-	switch {
-	case strings.HasPrefix(typeName, "[]"):
-		if optional {
-			return TypeKindUnknown, fmt.Errorf("list type can not be optional")
-		}
-		return TypeKindListType, nil
-	case strings.HasPrefix(typeName, "map["):
-		if optional {
-			return TypeKindUnknown, fmt.Errorf("map type can not be optional")
-		}
-		return TypeKindMapType, nil
-	default:
-		if _, ok := tidl.GetEnum(ctx.files, strings.TrimSuffix(typeName, "AsString")); ok {
-			if optional {
-				return TypeKindOptionalEnumType, nil
-			}
-			return TypeKindEnumType, nil
-		}
-		if _, ok := tidl.GetType(ctx.files, typeName); ok {
-			if optional {
-				return TypeKindOptionalStructType, nil
-			}
-			return TypeKindStructType, nil
-		}
-		return TypeKindUnknown, fmt.Errorf("unknown type: %s", typeName)
-	}
-}
-
-// parseBinding parses a field's HTTP binding information from annotations.
-// Supported sources: header, path, query.
-func parseBinding(arr []tidl.Annotation) (*Binding, error) {
-	a, ok := tidl.GetAnnotation(arr, "header", "path", "query")
-	if !ok {
-		return nil, nil
-	}
-	if a.Value == nil {
-		return nil, fmt.Errorf("annotation %q value is nil", a.Key)
-	}
-	val := strings.TrimSpace(strings.Trim(*a.Value, "\""))
-	if val == "" {
-		return nil, fmt.Errorf("annotation %q value is empty", a.Key)
-	}
-	return &Binding{From: a.Key, Name: val}, nil
-}
-
-// genFieldTag generates the struct tag for a Go struct field.
-// It includes JSON tags and optional binding tags (header, path, query).
-func genFieldTag(fieldName, typeName string, arr []tidl.Annotation, binding *Binding) (string, error) {
-	var tags []string
-
-	var jsonName string
-	var omitZero bool
-	omitEmpty := strings.HasPrefix(typeName, "*")
-
-	// Parse "json" annotation
-	if a, ok := tidl.GetAnnotation(arr, "json"); ok {
-		if a.Value == nil {
-			return "", fmt.Errorf(`annotation "json" value is nil`)
-		}
-		s := strings.TrimSpace(*a.Value)
-		if s == "" {
-			return "", fmt.Errorf(`annotation "json" value is empty`)
-		}
-		s = strings.Trim(s, "\"") // Remove quotes
-		for i, v := range strings.Split(s, ",") {
-			v = strings.TrimSpace(v)
-			if i == 0 {
-				if v != "" {
-					jsonName = v
-				}
-				continue
-			}
-			switch v {
-			case "omitempty":
-				omitEmpty = true
-			case "non-omitempty":
-				omitEmpty = false
-			case "omitzero":
-				omitZero = true
-			default: // for linter
-			}
-		}
-	}
-
-	if jsonName == "" {
-		jsonName += fieldName
-	}
-	if omitEmpty {
-		jsonName += ",omitempty"
-	}
-	if omitZero {
-		jsonName += ",omitzero"
-	}
-	tags = append(tags, fmt.Sprintf("json:\"%s\"", jsonName))
-
-	// Generate binding tag
-	if binding != nil {
-		tags = append(tags, fmt.Sprintf("%s:\"%s\"", binding.From, binding.Name))
-	}
-
-	return "`" + strings.Join(tags, " ") + "`", nil
-}
-
-// ValidateFunc represents a custom validation function
-type ValidateFunc struct {
-	Name      string
-	FieldType string
-}
-
-// builtinFuncs is a set of built-in validation functions
-var builtinFuncs = map[string]struct{}{
-	"len": {},
-}
-
-// genValidate generates validation code for a struct field based on its "validate" annotation.
-// Returns a Go code snippet that checks the field and returns an error if validation fails.
-func genValidate(receiverType, fieldName, fieldType string, arr []tidl.Annotation, funcs map[string]ValidateFunc) (*string, error) {
-	a, ok := tidl.GetAnnotation(arr, "validate")
-	if !ok {
-		return nil, nil
-	}
-	if a.Value == nil {
-		return nil, fmt.Errorf(`annotation "validate" value is nil`)
-	}
-
-	// Unquote the validation expression string
-	strValue, err := strconv.Unquote(*a.Value)
-	if err != nil {
-		return nil, fmt.Errorf(`annotation "validate" value is not properly quoted`)
-	}
-	if strValue == "" {
-		return nil, fmt.Errorf(`annotation "validate" value is empty`)
-	}
-
-	// Parse the validation expression
-	expr, err := vidl.Parse(strValue)
-	if err != nil {
-		return nil, fmt.Errorf(`failed to parse validate expression %s: %w`, strValue, err)
-	}
-
-	optional := strings.HasPrefix(fieldType, "*")
-	dollar := "x." + fieldName
-	if optional {
-		dollar = "*" + dollar
-	}
-
-	// Generate the Go expression for validation
-	str, err := genValidateExpr(dollar, fieldType, expr, funcs)
-	if err != nil {
-		return nil, fmt.Errorf(`failed to generate validate expression for %s: %w`, strValue, err)
-	}
-
-	// Wrap in an if statement returning an error on failure
-	str = fmt.Sprintf(`if !(%s) {
-		return errors.New("validate failed on %s.%s")
-	}`, str, receiverType, fieldName)
-
-	if optional {
-		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
-	}
-	return &str, nil
-}
-
-// genValidateExpr recursively generates Go code for a validation expression
-func genValidateExpr(fieldName, fieldType string, expr vidl.Expr, funcs map[string]ValidateFunc) (string, error) {
-	switch x := expr.(type) {
-	case vidl.BinaryExpr:
-		if x.Left == nil {
-			return "", nil
-		}
-		left, err := genValidateExpr(fieldName, fieldType, x.Left, funcs)
-		if err != nil {
-			return "", err
-		}
-		if x.Right == nil {
-			return left, nil
-		}
-		right, err := genValidateExpr(fieldName, fieldType, x.Right, funcs)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("%s %s %s", left, x.Op, right), nil
-
-	case vidl.UnaryExpr:
-		str, err := genValidateExpr(fieldName, fieldType, x.Expr, funcs)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("%s%s", x.Op, str), nil
-
-	case *vidl.FuncCall:
-		if len(x.Args) == 0 {
-			return x.Name + "()", nil
-		}
-
-		// Register or validate custom functions
-		if _, ok := builtinFuncs[x.Name]; !ok {
-			if len(x.Args) != 1 {
-				return "", fmt.Errorf("func %s only accepts 1 argument of type %s", x.Name, fieldType)
-			}
-			if !strings.HasPrefix(x.Name, "OneOf") {
-				if f, ok := funcs[x.Name]; ok {
-					if f.FieldType != fieldType {
-						return "", fmt.Errorf("func %s only accepts type %s", x.Name, f.FieldType)
-					}
-				} else {
-					funcs[x.Name] = ValidateFunc{
-						Name:      x.Name,
-						FieldType: fieldType,
-					}
-				}
-			}
-		} else {
-			// Validate built-in functions
-			switch x.Name {
-			case "len":
-				if len(x.Args) != 1 {
-					return "", fmt.Errorf("func len only accepts 1 argument")
-				}
-			default: // for linter
-			}
-		}
-
-		var args []string
-		for _, arg := range x.Args {
-			str, err := genValidateExpr(fieldName, fieldType, arg, funcs)
-			if err != nil {
-				return "", err
-			}
-			args = append(args, str)
-		}
-		return fmt.Sprintf("%s(%s)", x.Name, strings.Join(args, ", ")), nil
-
-	case *vidl.InnerExpr:
-		str, err := genValidateExpr(fieldName, fieldType, x.Expr, funcs)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("(%s)", str), nil
-
-	case vidl.PrimaryExpr:
-		if x.Inner != nil {
-			return genValidateExpr(fieldName, fieldType, x.Inner, funcs)
-		}
-		if x.Call != nil {
-			return genValidateExpr(fieldName, fieldType, x.Call, funcs)
-		}
-		if x.Value == "$" {
-			return fieldName, nil
-		}
-		return x.Value, nil
-
-	default:
-		return "", fmt.Errorf("unknown expression type: %s", x.Text())
-	}
 }

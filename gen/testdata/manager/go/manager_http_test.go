@@ -6,19 +6,99 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
+	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/pathidl"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
+// GinServer defines the interface that service must implement.
+type GinServer struct {
+	*http.Server
+	engine *gin.Engine
+}
+
+// NewGinServer creates a new GinServer instance.
+func NewGinServer(addr string) *GinServer {
+	engine := gin.New()
+	svr := &http.Server{Addr: addr, Handler: engine.Handler()}
+	return &GinServer{Server: svr, engine: engine}
+}
+
+// ToGinPath converts a pathidl.Path to a Gin compatible path.
+func ToGinPath(pattern string) string {
+	path, _ := pathidl.Parse(pattern)
+	var sb strings.Builder
+	for _, s := range path {
+		sb.WriteString("/")
+		switch s.Type {
+		case pathidl.Static:
+			sb.WriteString(s.Value)
+		case pathidl.Param:
+			sb.WriteString(":")
+			sb.WriteString(s.Value)
+		case pathidl.Wildcard:
+			sb.WriteString("*")
+			sb.WriteString(s.Value)
+		}
+	}
+	return sb.String()
+}
+
+// HandleFunc registers a new route for the given HTTP method and pattern.
+func (s *GinServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
+	pattern = ToGinPath(pattern)
+	switch method {
+	case "GET":
+		s.engine.GET(pattern, gin.WrapF(handler))
+	case "POST":
+		s.engine.POST(pattern, gin.WrapF(handler))
+	case "PUT":
+		s.engine.PUT(pattern, gin.WrapF(handler))
+	case "DELETE":
+		s.engine.DELETE(pattern, gin.WrapF(handler))
+	case "HEAD":
+		s.engine.HEAD(pattern, gin.WrapF(handler))
+	default:
+		panic(fmt.Sprintf("unsupported method: %s", method))
+	}
+}
+
+// HttpServer defines the interface that service must implement.
+type HttpServer struct {
+	*http.Server
+	mux *http.ServeMux
+}
+
+// NewHttpServer creates a new HttpServer instance.
+func NewHttpServer(addr string) *HttpServer {
+	mux := http.NewServeMux()
+	svr := &http.Server{Addr: addr, Handler: mux}
+	return &HttpServer{Server: svr, mux: mux}
+}
+
+// HandleFunc registers a new route for the given HTTP method and pattern.
+func (s *HttpServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
+	s.mux.HandleFunc(strings.TrimSpace(method+" "+pattern), handler)
+}
+
 type MyManagerServer struct{}
+
+var _ proto.ManagerServer = (*MyManagerServer)(nil)
 
 func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
 	return &proto.GetManagerResp{
 		Data: &proto.Manager{
-			Name:  "Jim",
-			Level: proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR),
+			Name:  httputil.Ptr("Jim"),
+			Level: httputil.Ptr(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
 		},
 	}
 }
@@ -39,25 +119,25 @@ func (m *MyManagerServer) ListManagersByPage(ctx context.Context, req *proto.Lis
 	return nil
 }
 
-func (m *MyManagerServer) Stream(ctx context.Context, req *proto.StreamReq, resp chan<- *proto.StreamResp) {
+func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[*proto.AssistantResp]) {
 	for i := 0; i < 5; i++ {
-		resp <- &proto.StreamResp{
-			Id: strconv.Itoa(i),
-			Payload: proto.Payload{
-				FieldType: proto.PayloadTypeAsString(proto.PayloadType_text_data),
-				TextData:  "123",
-			},
-		}
+		event := proto.NewSSEEvent[*proto.AssistantResp]().ID("1").Event("message").Data(
+			&proto.AssistantResp{
+				Id: httputil.Ptr(strconv.Itoa(i)),
+				Payload: httputil.Ptr(proto.Payload{
+					FieldType: httputil.Ptr(proto.PayloadTypeAsString(proto.PayloadType_Payload_1)),
+					Payload1:  httputil.Ptr(proto.Payload_1{}),
+				}),
+				Image: []byte("000111222333444555666777888999000"),
+			})
+		resp <- event
+		time.Sleep(time.Second)
 	}
 }
 
 func TestManager(t *testing.T) {
-	mux := http.NewServeMux()
-	proto.InitRouter(mux, &MyManagerServer{})
-	svr := &http.Server{
-		Addr:    ":9191",
-		Handler: mux,
-	}
+	svr := NewGinServer(":9191")
+	proto.SetupRouter(svr, &MyManagerServer{})
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
@@ -77,22 +157,18 @@ func TestManager(t *testing.T) {
 }
 
 func TestStream(t *testing.T) {
-	mux := http.NewServeMux()
-	proto.InitRouter(mux, &MyManagerServer{})
-	svr := &http.Server{
-		Addr:    ":9191",
-		Handler: mux,
-	}
+	svr := NewHttpServer(":9191")
+	proto.SetupRouter(svr, &MyManagerServer{})
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
 	time.Sleep(time.Millisecond * 300)
 
-	resp, err := http.Get("http://localhost:9191/stream")
+	resp, err := http.Get("http://localhost:9191/assistant")
 	if err != nil {
 		panic(err)
 	}
-	b, err := io.ReadAll(resp.Body)
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 1025))
 	if err != nil {
 		panic(err)
 	}

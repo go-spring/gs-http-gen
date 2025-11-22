@@ -45,15 +45,15 @@ enum Department {
 
 // Generic response wrapper for all RPCs
 type Response<T> {
-    ErrCode errno (validate="OneOfErrCode($)")
-    string errmsg
+    required ErrCode errno (validate="OneOfErrCode($)")
+    required string errmsg
     T data
 }
 
 // Pagination request and response
 type PageReq {
-    int page (json="page", validate="$ >= 1", query="page")
-    int size (validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
+    required int page (json="page", validate="$ >= 1", query="page")
+    required int size (validate="$ >= 1 && $ <= MAX_PAGE_SIZE", query="size")
 }
 
 type PageResp<T> {
@@ -66,13 +66,13 @@ type PageResp<T> {
 // Address & Contact info
 type Address {
     string city
-    string? street (go.type="*string")
-    string? postalCode
+    string street (go.type="*string")
+    string postalCode
 }
 
 type ContactInfo {
-    string email (validate="Email($)")
-    string? phone
+    required string email (validate="Email($)")
+    string phone
     Address address
 }
 
@@ -88,13 +88,24 @@ type DepartmentInfo {
 type Manager {
     string id
     string name (validate="len($) > 0 && len($) <= 64")
-    int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
+    int age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
     bool vip
     float salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
     string role
     ManagerLevel level (enum_as_string)
     DepartmentInfo deptInfo
     ContactInfo contact
+    list<ContactInfo> contactInfos
+    list<list<ContactInfo>> contactInfoV2s
+    list<list<list<ContactInfo>>> contactInfoV3s
+    map<string,ContactInfo> contactMaps
+    map<string,list<ContactInfo>> contactMapV2s
+    map<string,map<int,ContactInfo>> contactMapV3s
+    map<string,string> extra
+    map<string,map<string,string>> extraV2
+    map<string,map<string,map<string,string>>> extraV3
+    map<string,map<string,list<string>>> extraV4
+    map<string,list<string>> extraV5
 }
 
 // ---- Request types ----
@@ -107,11 +118,11 @@ type ManagerReq {
 // Create new manager
 type CreateManagerReq {
     string name (validate="len($) > 0 && len($) <= 64")
-    int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
+    int age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
     bool vip
     float salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
     string role
-    ManagerLevel level
+    ManagerLevel level (enum_as_string)
     DepartmentInfo deptInfo
     ContactInfo contact
 }
@@ -119,37 +130,39 @@ type CreateManagerReq {
 // Update existing manager
 type UpdateManagerReq {
     string ID (json="id", path="id")
-    string? name
-    int? age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
-    bool? vip (json=",non-omitempty")
-    float? salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
-    string? role
-    ManagerLevel? level
-    DepartmentInfo? dept_info
-    ContactInfo? contact
+    string name
+    int age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
+    bool vip (json=",non-omitempty")
+    float salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
+    string role
+    ManagerLevel level
+    DepartmentInfo dept_info
+    ContactInfo contact
 }
 
 // Paginated manager query
 type ListManagersByPageReq {
     PageReq
-    string? keyword (query="keyword")
-    Department? dept (query="dept")
-    ManagerLevel? minLevel (query="minLevel")
-    bool? vip (query="vip")
-    string? authToken (header="X-Auth-Token")
+    list<string> keyword (
+        query="keyword"
+        validate="len($)<=5"
+    )
+    Department dept (query="dept")
+    ManagerLevel minLevel (query="minLevel")
+    bool vip (query="vip")
 }
 
 // ---- Response types ----
 
 // Create / Update / Get responses
-type CreateManagerResp Response<Manager?>
-type UpdateManagerResp Response<Manager?>
-type GetManagerResp Response<Manager?>
+type CreateManagerResp Response<Manager>
+type UpdateManagerResp Response<Manager>
+type GetManagerResp Response<Manager>
 type DeleteManagerResp Response<bool>
 
 // Paginated response
-type ManagersPageData PageResp<Manager?>
-type ListManagersByPageResp Response<ManagersPageData?>
+type ManagersPageData PageResp<Manager>
+type ListManagersByPageResp Response<ManagersPageData>
 
 // ---- RPC definitions ----
 
@@ -157,33 +170,63 @@ type ListManagersByPageResp Response<ManagersPageData?>
 rpc CreateManager(CreateManagerReq) CreateManagerResp {
     method="POST"
     path="/managers"
+    contentType="json"
     summary="Create a new manager"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // Get manager by ID
 rpc GetManager(ManagerReq) GetManagerResp {
     method="GET"
     path="/managers/{id}"
+    contentType="form"
     summary="Get manager by ID"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // Update manager info
 rpc UpdateManager(UpdateManagerReq) UpdateManagerResp {
     method="PUT"
     path="/managers/{id}"
+    contentType="json"
     summary="Update a manager"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // Delete a manager
 rpc DeleteManager(ManagerReq) DeleteManagerResp {
     method="DELETE"
     path="/managers/{id}"
+    contentType="form"
     summary="Delete a manager"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }
 
 // List managers with pagination
 rpc ListManagersByPage(ListManagersByPageReq) ListManagersByPageResp {
     method="GET"
     path="/managers/page"
+    contentType="form"
     summary="List managers with pagination"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
 }

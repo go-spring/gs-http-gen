@@ -1,0 +1,75 @@
+/*
+  * Example file
+  */
+// ----------------------
+// Example file
+// ----------------------
+
+// ---- Const definitions ----
+const int MAX_COUNT = 100 // max count
+const bool ENABLE_FEATURE = true /* enable feature */
+const string DEFAULT_NAME = "guest" /*
+  * default name
+  */
+
+// ---- Enum definition ----
+enum ErrCode {
+    ErrOk = 0
+    PARAM_ERROR = 1003
+}
+
+// ---- Type definition ----
+type UserReq {
+    string userId
+}
+
+//---- User definition 1 ----
+/*
+  * User info
+ */
+//---- User definition 2 ----
+type User {
+    any name ( go.type="*string" , a="123")
+    int age ( validate="$<18" )
+    binary avatar
+    // embedded type
+    Address /* embedded */
+    Payload payload
+}
+
+type Address {
+    string street
+    required string city
+    string country
+}
+
+oneof Payload {
+    User
+    Address
+}
+
+// Generic type definition
+type Response<T> {
+    ErrCode errno ( enum_as_string )
+    string errmsg
+    T data
+}
+
+// ---- RPC definitions ----
+rpc GetUser (UserReq) UserResp {
+    // request path
+    path="/user"
+    method="GET"
+    contentType="form"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
+
+    // others
+    go.type="*string"
+}
+
+// ---- type re-definition ----
+type UserResp Response<list<User>>

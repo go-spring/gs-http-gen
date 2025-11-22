@@ -6,13 +6,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
-	"net/url"
+	"strconv"
 
-	"github.com/go-playground/form/v4"
+	"github.com/lvan100/golib/errutil"
 )
 
 // ErrorHandler is the default handler for reporting errors back to the client.
@@ -21,13 +20,7 @@ var ErrorHandler = func(r *http.Request, w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
-const (
-	defaultMaxMemory = 32 << 20 // 32 MB
-)
-
-var (
-	ctxKey int64
-)
+var ctxKey int64
 
 // httpReqResp wraps both *http.Request and http.ResponseWriter.
 type httpReqResp struct {
@@ -60,8 +53,8 @@ func GetHeader(ctx context.Context, key string) string {
 	return ""
 }
 
-// SetHTTPCode sets the HTTP response status code.
-func SetHTTPCode(ctx context.Context, httpCode int) {
+// SetCode sets the HTTP response status code.
+func SetCode(ctx context.Context, httpCode int) {
 	if w := getHTTPReqResp(ctx).w; w != nil {
 		w.WriteHeader(httpCode)
 	}
@@ -83,215 +76,296 @@ func SetCookie(ctx context.Context, cookie *http.Cookie) {
 	}
 }
 
-// BindingField describes a mapping rule for extracting values
-// from request headers, path parameters, or query parameters.
-type BindingField struct {
-	Field  string // Struct field name
-	From   string // "header", "path", or "query"
-	Name   string // Parameter name
-	Target any    // Target struct field pointer
+// RequestObject defines the interface that all request types must implement.
+type RequestObject interface {
+	Bind(*http.Request) error
+	Validate() error
 }
 
-var formDecoder = form.NewDecoder()
-
-// Binding applies multiple BindingField rules to extract values
-// from a request and bind them into a target object.
-func Binding(req *http.Request, params []BindingField) error {
-	for _, p := range params {
-		if err := bindField(req, p); err != nil {
-			return fmt.Errorf("bind field %s error: %w", p.Field, err)
-		}
+// shouldParseBody determines whether the incoming HTTP method
+// is expected to carry a request body that should be parsed.
+func shouldParseBody(method string) bool {
+	switch method {
+	case http.MethodPost, http.MethodPut, http.MethodPatch:
+		return true
+	default:
+		return false
 	}
-	return nil
 }
 
-// bindField extracts a single field value from a request source
-// (header, path, or query) and decodes it into the target struct field.
-func bindField(req *http.Request, f BindingField) error {
-	values := url.Values{}
-	switch f.From {
-	case "header":
-		values[f.Name] = req.Header.Values(f.Name)
-	case "path":
-		values.Set(f.Name, req.PathValue(f.Name))
-	case "query":
-		values[f.Name] = req.URL.Query()[f.Name]
-	default: // for linter
+// ReadBody reads the request body into a byte slice.
+var ReadBody = func(r *http.Request) ([]byte, error) {
+	const maxBodySize = int64(10 << 20) // 10 MB is a lot of text
+
+	oldBody := r.Body
+	defer func() { _ = oldBody.Close() }()
+
+	reader := io.LimitReader(oldBody, maxBodySize+1)
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		return nil, errutil.Explain(err, "read body error")
 	}
-	return formDecoder.Decode(f.Target, values)
+	if int64(len(b)) > maxBodySize {
+		return nil, errutil.Explain(nil, "body too large")
+	}
+
+	r.Body = io.NopCloser(bytes.NewReader(b))
+	return b, nil
 }
 
-// Object defines the interface that all request/response types must implement.
-type Object interface {
-	New() any                        // Returns a new instance of the object
-	Binding(req *http.Request) error // Extracts additional values from the request
-	Validate() error                 // Validates object fields
-}
+// decodeBodyInto reads and decodes the request body into `i` based on Content-Type.
+// It also restores r.Body so it can be read again later if needed.
+func decodeBodyInto(r *http.Request, i RequestObject) error {
 
-// ObjectBase is a base struct for implementing Object.
-type ObjectBase struct{}
-
-// New implements the Object interface.
-func (x *ObjectBase) New() any {
-	return nil
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ObjectBase) Binding(r *http.Request) error {
-	return nil
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ObjectBase) Validate() error {
-	return nil
-}
-
-// ReadRequest parses the request body based on Content-Type
-// and decodes it into the given Object.
-func ReadRequest(r *http.Request, i Object) error {
-	defer func() { _ = r.Body.Close() }()
+	// Read request body
+	b, err := ReadBody(r)
+	if err != nil {
+		return err
+	}
 
 	contentType := r.Header.Get("Content-Type")
 	mediaType, _, _ := mime.ParseMediaType(contentType)
 
+	var asJSON bool
 	switch mediaType {
 	case "application/json":
-		if b, err := io.ReadAll(r.Body); err != nil {
-			return fmt.Errorf("read body: %w", err)
-		} else if len(b) > 0 {
-			if err = json.Unmarshal(b, i); err != nil {
-				return fmt.Errorf("json decode: %w", err)
-			}
-		}
-
+		asJSON = true
 	case "application/x-www-form-urlencoded":
-		if err := r.ParseForm(); err != nil {
-			return fmt.Errorf("parse form: %w", err)
-		}
-		if err := formDecoder.Decode(i, r.PostForm); err != nil {
-			return fmt.Errorf("form decode: %w", err)
-		}
-
-	case "multipart/form-data":
-		if err := r.ParseMultipartForm(defaultMaxMemory); err != nil {
-			return fmt.Errorf("parse multipart form: %w", err)
-		}
-		defer func() { _ = r.MultipartForm.RemoveAll() }()
-		if r.MultipartForm != nil && len(r.MultipartForm.Value) > 0 {
-			if err := formDecoder.Decode(i, r.MultipartForm.Value); err != nil {
-				return fmt.Errorf("multipart form decode: %w", err)
-			}
-		}
-
+		asJSON = false
 	default:
-		// Fallback: Try JSON or form decoding
-		b, err := io.ReadAll(r.Body)
-		if err != nil {
-			return fmt.Errorf("read body: %w", err)
-		}
-		var asJSON bool
 		if b = bytes.TrimSpace(b); len(b) > 0 {
 			if b[0] == '{' || b[0] == '[' { // Looks like JSON
-				if err = json.Unmarshal(b, i); err != nil {
-					return fmt.Errorf("json decode: %w", err)
-				}
 				asJSON = true
 			} else {
-				r.Body = io.NopCloser(bytes.NewReader(b))
-			}
-		}
-		if !asJSON {
-			if err = r.ParseForm(); err != nil {
-				return fmt.Errorf("parse form: %w", err)
-			}
-			if err = formDecoder.Decode(i, r.PostForm); err != nil {
-				return fmt.Errorf("form decode: %w", err)
+				asJSON = false
 			}
 		}
 	}
 
-	// Apply bindings
-	return i.Binding(r)
+	if b = bytes.TrimSpace(b); len(b) > 0 {
+		if asJSON {
+			if err = json.Unmarshal(b, i); err != nil {
+				return errutil.Explain(err, "json decode error")
+			}
+		} else {
+			v, ok := i.(interface{ DecodeForm(b []byte) error })
+			if !ok {
+				return errutil.Explain(nil, "decode form error: not a DecodeForm implementer")
+			}
+			if err = v.DecodeForm(b); err != nil {
+				return errutil.Explain(err, "decode form error")
+			}
+		}
+	}
+
+	return nil
 }
 
-type JSONHandler[Req, Resp Object] func(context.Context, Req) Resp
+// ReadRequest parses the request body based on Content-Type
+// and decodes it into the given RequestObject.
+func ReadRequest(r *http.Request, i RequestObject) error {
+
+	// Only parse body for methods that typically include a body
+	if shouldParseBody(r.Method) {
+		if err := decodeBodyInto(r, i); err != nil {
+			return err
+		}
+	}
+
+	// Bind fields
+	if err := i.Bind(r); err != nil {
+		return errutil.Explain(err, "bind fileds error")
+	}
+
+	// Validate fields
+	if err := i.Validate(); err != nil {
+		return errutil.Explain(err, "validate error")
+	}
+	return nil
+}
+
+type JSONHandler[Req any, Resp any] func(context.Context, Req) Resp
 
 // HandleJSON wraps a JSONHandler into an http.HandlerFunc.
-func HandleJSON[Req, Resp Object](h JSONHandler[Req, Resp]) http.HandlerFunc {
-	var x Req
-	return func(w http.ResponseWriter, r *http.Request) {
-		req := x.New().(Req)
-		if err := ReadRequest(r, req); err != nil {
-			ErrorHandler(r, w, err)
-			return
-		}
+func HandleJSON[Req RequestObject, Resp any](w http.ResponseWriter, r *http.Request,
+	req Req, h JSONHandler[Req, Resp]) {
 
-		w.Header().Set("Content-Type", "application/json")
-		ctx := setHTTPReqResp(r.Context(), r, w)
-		resp := h(ctx, req)
+	if err := ReadRequest(r, req); err != nil {
+		ErrorHandler(r, w, err)
+		return
+	}
 
-		if err := json.NewEncoder(w).Encode(resp); err != nil {
-			ErrorHandler(r, w, err)
-		}
+	w.Header().Set("Content-Type", "application/json")
+	ctx := setHTTPReqResp(r.Context(), r, w)
+	resp := h(ctx, req)
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		ErrorHandler(r, w, err)
 	}
 }
 
-type StreamHandler[Req, Resp Object] func(context.Context, Req, chan<- Resp)
+// SSEEvent defines the interface that all SSE events must implement.
+type ISSEEvent interface {
+	HasID() bool
+	GetID() string
+	HasEvent() bool
+	GetEvent() string
+	GetData() any
+	HasRetry() bool
+	GetRetry() int
+}
+
+// SSEEvent represents an SSE event.
+type SSEEvent[T any] struct {
+	id    *string
+	event *string
+	data  T
+	retry *int
+}
+
+// NewSSEEvent creates a new SSEEvent.
+func NewSSEEvent[T any]() *SSEEvent[T] {
+	return &SSEEvent[T]{}
+}
+
+// ID sets the ID of the SSE event.
+func (e *SSEEvent[T]) ID(id string) *SSEEvent[T] {
+	e.id = &id
+	return e
+}
+
+// Event sets the event type of the SSE event.
+func (e *SSEEvent[T]) Event(event string) *SSEEvent[T] {
+	e.event = &event
+	return e
+}
+
+// Data sets the data of the SSE event.
+func (e *SSEEvent[T]) Data(data T) *SSEEvent[T] {
+	e.data = data
+	return e
+}
+
+// Retry sets the retry interval of the SSE event.
+func (e *SSEEvent[T]) Retry(retry int) *SSEEvent[T] {
+	e.retry = &retry
+	return e
+}
+
+// HasID returns true if the SSE event has an ID.
+func (e *SSEEvent[T]) HasID() bool {
+	return e.id != nil
+}
+
+// GetID returns the ID of the SSE event.
+func (e *SSEEvent[T]) GetID() string {
+	return *e.id
+}
+
+// HasEvent returns true if the SSE event has an event type.
+func (e *SSEEvent[T]) HasEvent() bool {
+	return e.event != nil
+}
+
+// GetEvent returns the event type of the SSE event.
+func (e *SSEEvent[T]) GetEvent() string {
+	return *e.event
+}
+
+func (e *SSEEvent[T]) GetData() any {
+	return e.data
+}
+
+// HasRetry returns true if the SSE event has a retry interval.
+func (e *SSEEvent[T]) HasRetry() bool {
+	return e.retry != nil
+}
+
+// GetRetry returns the retry interval of the SSE event.
+func (e *SSEEvent[T]) GetRetry() int {
+	return *e.retry
+}
+
+type StreamHandler[Req any, Resp any] func(context.Context, Req, chan<- Resp)
 
 // HandleStream wraps a StreamHandler into an http.HandlerFunc.
 // It supports server-sent event style streaming (SSE).
-func HandleStream[Req, Resp Object](h StreamHandler[Req, Resp]) http.HandlerFunc {
-	var x Req
-	return func(w http.ResponseWriter, r *http.Request) {
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			err := fmt.Errorf("streaming not supported")
-			ErrorHandler(r, w, err)
-			return
-		}
+func HandleStream[Req RequestObject, Resp ISSEEvent](w http.ResponseWriter, r *http.Request,
+	req Req, h StreamHandler[Req, Resp]) {
 
-		req := x.New().(Req)
-		if err := ReadRequest(r, req); err != nil {
-			ErrorHandler(r, w, err)
-			return
-		}
-
-		done := make(chan struct{})
-		responses := make(chan Resp)
-		encoder := json.NewEncoder(w)
-
-		go func() {
-			defer close(done)
-			for res := range responses {
-				select {
-				case <-r.Context().Done():
-					return
-				default: // for linter
-				}
-				if _, err := w.Write([]byte("data:")); err != nil {
-					ErrorHandler(r, w, err)
-					continue
-				}
-				if err := encoder.Encode(res); err != nil {
-					ErrorHandler(r, w, err)
-					continue
-				}
-				if _, err := w.Write([]byte("\n")); err != nil {
-					ErrorHandler(r, w, err)
-					continue
-				}
-				flusher.Flush()
-			}
-		}()
-
-		// Set response headers for SSE
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Connection", "keep-alive")
-
-		ctx := setHTTPReqResp(r.Context(), r, w)
-		h(ctx, req, responses)
-		close(responses)
-		<-done
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		err := errutil.Explain(nil, "streaming not supported")
+		ErrorHandler(r, w, err)
+		return
 	}
+
+	if err := ReadRequest(r, req); err != nil {
+		ErrorHandler(r, w, err)
+		return
+	}
+
+	done := make(chan struct{})
+	responses := make(chan Resp)
+	encoder := json.NewEncoder(w)
+
+	go func() {
+		defer close(done)
+		for res := range responses {
+			select {
+			case <-r.Context().Done():
+				return
+			default: // for linter
+			}
+
+			// Write SSE event
+			if res.HasID() {
+				if _, err := w.Write([]byte("id: " + res.GetID() + "\n")); err != nil {
+					ErrorHandler(r, w, err)
+					continue
+				}
+			}
+
+			// Write SSE event
+			if res.HasEvent() {
+				if _, err := w.Write([]byte("event: " + res.GetEvent() + "\n")); err != nil {
+					ErrorHandler(r, w, err)
+					continue
+				}
+			}
+
+			// Write SSE event
+			if _, err := w.Write([]byte("data: ")); err != nil {
+				ErrorHandler(r, w, err)
+				continue
+			}
+			if err := encoder.Encode(res.GetData()); err != nil {
+				ErrorHandler(r, w, err)
+				continue
+			}
+			if _, err := w.Write([]byte("\n")); err != nil {
+				ErrorHandler(r, w, err)
+				continue
+			}
+
+			// Write SSE event
+			if res.HasRetry() {
+				if _, err := w.Write([]byte("retry: " + strconv.Itoa(res.GetRetry()) + "\n")); err != nil {
+					ErrorHandler(r, w, err)
+					continue
+				}
+			}
+			flusher.Flush()
+		}
+	}()
+
+	// Set response headers for SSE
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+
+	ctx := setHTTPReqResp(r.Context(), r, w)
+	h(ctx, req, responses)
+	close(responses)
+	<-done
 }

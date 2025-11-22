@@ -1,5 +1,6 @@
 {
   "go": {
-    "Server": true
+    "Server": true,
+    "Client": true
   }
 }

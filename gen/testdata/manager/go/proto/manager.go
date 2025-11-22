@@ -3,15 +3,20 @@
 package proto
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
+
+	"github.com/lvan100/golib/errutil"
 )
 
-var _ = errors.New
-var _ = strings.Count
+var _ = json.Marshal
+var _ = strings.Contains
 var _ = http.NewServeMux
+var _ = strconv.FormatInt
 
 // years
 const MAX_AGE int64 = 150
@@ -66,6 +71,12 @@ func OneOfErrCode(i ErrCode) bool {
 	return ok
 }
 
+// OneOfErrCodeAsString is usually used for validation.
+func OneOfErrCodeAsString(i ErrCodeAsString) bool {
+	_, ok := ErrCode_name[ErrCode(i)]
+	return ok
+}
+
 // ErrCodeAsString wraps ErrCode to encode/decode as a JSON string.
 type ErrCodeAsString ErrCode
 
@@ -74,7 +85,7 @@ func (x ErrCodeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ErrCode_name[ErrCode(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid ErrCode: %d", x)
+	return nil, errutil.Explain(nil, "invalid ErrCode: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -84,7 +95,7 @@ func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
 		*x = ErrCodeAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid ErrCode value: %q", str)
+	return errutil.Explain(nil, "invalid ErrCode value: %q", str)
 }
 
 // Manager seniority levels
@@ -115,6 +126,12 @@ func OneOfManagerLevel(i ManagerLevel) bool {
 	return ok
 }
 
+// OneOfManagerLevelAsString is usually used for validation.
+func OneOfManagerLevelAsString(i ManagerLevelAsString) bool {
+	_, ok := ManagerLevel_name[ManagerLevel(i)]
+	return ok
+}
+
 // ManagerLevelAsString wraps ManagerLevel to encode/decode as a JSON string.
 type ManagerLevelAsString ManagerLevel
 
@@ -123,7 +140,7 @@ func (x ManagerLevelAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := ManagerLevel_name[ManagerLevel(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid ManagerLevel: %d", x)
+	return nil, errutil.Explain(nil, "invalid ManagerLevel: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -133,7 +150,7 @@ func (x *ManagerLevelAsString) UnmarshalJSON(data []byte) error {
 		*x = ManagerLevelAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid ManagerLevel value: %q", str)
+	return errutil.Explain(nil, "invalid ManagerLevel value: %q", str)
 }
 
 // Company departments
@@ -170,6 +187,12 @@ func OneOfDepartment(i Department) bool {
 	return ok
 }
 
+// OneOfDepartmentAsString is usually used for validation.
+func OneOfDepartmentAsString(i DepartmentAsString) bool {
+	_, ok := Department_name[Department(i)]
+	return ok
+}
+
 // DepartmentAsString wraps Department to encode/decode as a JSON string.
 type DepartmentAsString Department
 
@@ -178,7 +201,7 @@ func (x DepartmentAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := Department_name[Department(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, fmt.Errorf("invalid Department: %d", x)
+	return nil, errutil.Explain(nil, "invalid Department: %d", x)
 }
 
 // UnmarshalJSON implements custom JSON decoding for the enum from a string.
@@ -188,460 +211,451 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 		*x = DepartmentAsString(v)
 		return nil
 	}
-	return fmt.Errorf("invalid Department value: %q", str)
+	return errutil.Explain(nil, "invalid Department value: %q", str)
 }
 
+// Pagination request and response
 type PageReq struct {
-	ObjectBase
-	Page int64 `json:"page" query:"page"`
-	Size int64 `json:"size" query:"size"`
+	Page *int64 `json:"page,omitempty" query:"page" validate:"required"`
+	Size *int64 `json:"size,omitempty" query:"size" validate:"required"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *PageReq) New() any {
-	return &PageReq{}
-}
-
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *PageReq) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{
-		{"PageReq.Page", "query", "page", &x.Page},
-		{"PageReq.Size", "query", "size", &x.Size},
-	})
+// Address & Contact info
+type Address struct {
+	City       *string `json:"city,omitempty" form:"city"`
+	Street     *string `json:"street,omitempty" form:"street"`
+	PostalCode *string `json:"postalCode,omitempty" form:"postalCode"`
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *PageReq) Validate() error {
-	if !(x.Page >= 1) {
-		return errors.New("validate failed on PageReq.Page")
-	}
-	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errors.New("validate failed on PageReq.Size")
-	}
-	return nil
-}
-
-func (x *PageReq) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("PageReq(%+v)", *x)
-}
-
-type Address struct {
-	ObjectBase
-	City       string  `json:"city"`
-	Street     *string `json:"street,omitempty"`
-	PostalCode *string `json:"postalCode,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *Address) New() any {
-	return &Address{}
-}
-
-func (x *Address) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("Address(%+v)", *x)
+func (x *Address) Validate() (err error) {
+	return
 }
 
 type ContactInfo struct {
-	ObjectBase
-	Email   string  `json:"email"`
-	Phone   *string `json:"phone,omitempty"`
-	Address Address `json:"address"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ContactInfo) New() any {
-	return &ContactInfo{}
+	Email   *string  `json:"email,omitempty" form:"email" validate:"required"`
+	Phone   *string  `json:"phone,omitempty" form:"phone"`
+	Address *Address `json:"address,omitempty" form:"address"`
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ContactInfo) Validate() error {
-	if !(Email(x.Email)) {
-		return errors.New("validate failed on ContactInfo.Email")
+func (x *ContactInfo) Validate() (err error) {
+	if x.Email == nil {
+		err = errutil.Stack(err, "\"ContactInfo.Email\" is required")
 	}
-	return nil
+	if x.Email != nil {
+		if !(Email(*x.Email)) {
+			err = errutil.Stack(err, "validate failed on \"ContactInfo.Email\"")
+		}
+	}
+	return
 }
 
-func (x *ContactInfo) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ContactInfo(%+v)", *x)
-}
-
+// Department info
 type DepartmentInfo struct {
-	ObjectBase
-	Dept     Department `json:"dept"`
-	DeptName string     `json:"deptName"`
+	Dept     *Department `json:"dept,omitempty" form:"dept"`
+	DeptName *string     `json:"deptName,omitempty" form:"deptName"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *DepartmentInfo) New() any {
-	return &DepartmentInfo{}
+// Validate checks field values using generated validation expressions.
+func (x *DepartmentInfo) Validate() (err error) {
+	return
 }
 
-func (x *DepartmentInfo) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("DepartmentInfo(%+v)", *x)
-}
-
+// Manager entity definition
 type Manager struct {
-	ObjectBase
-	Id       string               `json:"id"`
-	Name     string               `json:"name"`
-	Age      *int64               `json:"age,omitempty"`
-	Vip      bool                 `json:"vip"`
-	Salary   float64              `json:"salary"`
-	Role     string               `json:"role"`
-	Level    ManagerLevelAsString `json:"level"`
-	DeptInfo DepartmentInfo       `json:"deptInfo"`
-	Contact  ContactInfo          `json:"contact"`
+	Id             *string                                 `json:"id,omitempty" form:"id"`
+	Name           *string                                 `json:"name,omitempty" form:"name"`
+	Age            *int64                                  `json:"age,omitempty" form:"age"`
+	Vip            *bool                                   `json:"vip,omitempty" form:"vip"`
+	Salary         *float64                                `json:"salary,omitempty" form:"salary"`
+	Role           *string                                 `json:"role,omitempty" form:"role"`
+	Level          *ManagerLevelAsString                   `json:"level,omitempty" form:"level"`
+	DeptInfo       *DepartmentInfo                         `json:"deptInfo,omitempty" form:"deptInfo"`
+	Contact        *ContactInfo                            `json:"contact,omitempty" form:"contact"`
+	ContactInfos   []*ContactInfo                          `json:"contactInfos,omitempty" form:"contactInfos"`
+	ContactInfoV2s [][]*ContactInfo                        `json:"contactInfoV2s,omitempty" form:"contactInfoV2s"`
+	ContactInfoV3s [][][]*ContactInfo                      `json:"contactInfoV3s,omitempty" form:"contactInfoV3s"`
+	ContactMaps    map[string]*ContactInfo                 `json:"contactMaps,omitempty" form:"contactMaps"`
+	ContactMapV2s  map[string][]*ContactInfo               `json:"contactMapV2s,omitempty" form:"contactMapV2s"`
+	ContactMapV3s  map[string]map[int64]*ContactInfo       `json:"contactMapV3s,omitempty" form:"contactMapV3s"`
+	Extra          map[string]string                       `json:"extra,omitempty" form:"extra"`
+	ExtraV2        map[string]map[string]string            `json:"extraV2,omitempty" form:"extraV2"`
+	ExtraV3        map[string]map[string]map[string]string `json:"extraV3,omitempty" form:"extraV3"`
+	ExtraV4        map[string]map[string][]string          `json:"extraV4,omitempty" form:"extraV4"`
+	ExtraV5        map[string][]string                     `json:"extraV5,omitempty" form:"extraV5"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *Manager) New() any {
-	return &Manager{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *Manager) Validate() error {
-	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
-		return errors.New("validate failed on Manager.Name")
-	}
-	if x.Age != nil {
-		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errors.New("validate failed on Manager.Age")
-		}
-	}
-	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
-		return errors.New("validate failed on Manager.Salary")
-	}
-	return nil
-}
-
-func (x *Manager) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("Manager(%+v)", *x)
-}
-
+// Single manager by ID
 type ManagerReq struct {
-	ObjectBase
-	Id string `json:"id" path:"id"`
+	ManagerReqBody
+	Id *string `json:"id,omitempty" path:"id"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *ManagerReq) New() any {
-	return &ManagerReq{}
+// QueryForm returns the form values of the object.
+func (x *ManagerReq) QueryForm() (string, error) {
+	return "", nil
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ManagerReq) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{
-		{"ManagerReq.Id", "path", "id", &x.Id},
-	})
-}
-
-func (x *ManagerReq) String() string {
-	if x == nil {
-		return "<nil>"
+// Binding extracts non-body values (path, query) from *http.Request.
+func (x *ManagerReq) Bind(r *http.Request) error {
+	values, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		return errutil.Explain(err, "parse query error")
 	}
-	return fmt.Sprintf("ManagerReq(%+v)", *x)
-}
-
-type CreateManagerReq struct {
-	ObjectBase
-	Name     string         `json:"name"`
-	Age      *int64         `json:"age,omitempty"`
-	Vip      bool           `json:"vip"`
-	Salary   float64        `json:"salary"`
-	Role     string         `json:"role"`
-	Level    ManagerLevel   `json:"level"`
-	DeptInfo DepartmentInfo `json:"deptInfo"`
-	Contact  ContactInfo    `json:"contact"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *CreateManagerReq) New() any {
-	return &CreateManagerReq{}
+	if len(values) == 0 {
+		return nil
+	}
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *CreateManagerReq) Validate() error {
-	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
-		return errors.New("validate failed on CreateManagerReq.Name")
+func (x *ManagerReq) Validate() (err error) {
+	if validateErr := x.ManagerReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"ManagerReq\": %w", validateErr)
 	}
-	if x.Age != nil {
-		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errors.New("validate failed on CreateManagerReq.Age")
-		}
-	}
-	if !(x.Salary >= SALARY_MIN && x.Salary <= SALARY_MAX) {
-		return errors.New("validate failed on CreateManagerReq.Salary")
-	}
+	return
+}
+
+type ManagerReqBody struct {
+}
+
+// EncodeForm encodes the object to form data.
+func (x *ManagerReqBody) EncodeForm() (string, error) {
+	return "", nil
+}
+
+// DecodeForm decodes the object from form data.
+func (x *ManagerReqBody) DecodeForm(b []byte) error {
 	return nil
 }
 
-func (x *CreateManagerReq) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("CreateManagerReq(%+v)", *x)
+// Validate checks field values using generated validation expressions.
+func (x *ManagerReqBody) Validate() (err error) {
+	return
 }
 
-type UpdateManagerReq struct {
-	ObjectBase
-	ID       string          `json:"id" path:"id"`
-	Name     *string         `json:"name,omitempty"`
-	Age      *int64          `json:"age,omitempty"`
-	Vip      *bool           `json:"vip"`
-	Salary   *float64        `json:"salary,omitempty"`
-	Role     *string         `json:"role,omitempty"`
-	Level    *ManagerLevel   `json:"level,omitempty"`
-	DeptInfo *DepartmentInfo `json:"dept_info,omitempty"`
-	Contact  *ContactInfo    `json:"contact,omitempty"`
+// Create new manager
+type CreateManagerReq struct {
+	CreateManagerReqBody
 }
 
-// New returns a new instance (implements Object interface).
-func (x *UpdateManagerReq) New() any {
-	return &UpdateManagerReq{}
+// QueryForm returns the form values of the object.
+func (x *CreateManagerReq) QueryForm() (string, error) {
+	return "", nil
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *UpdateManagerReq) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{
-		{"UpdateManagerReq.ID", "path", "id", &x.ID},
-	})
+// Binding extracts non-body values (path, query) from *http.Request.
+func (x *CreateManagerReq) Bind(r *http.Request) error {
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *UpdateManagerReq) Validate() error {
+func (x *CreateManagerReq) Validate() (err error) {
+	if validateErr := x.CreateManagerReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"CreateManagerReq\": %w", validateErr)
+	}
+	return
+}
+
+type CreateManagerReqBody struct {
+	Name     *string               `json:"name,omitempty" form:"name"`
+	Age      *int64                `json:"age,omitempty" form:"age"`
+	Vip      *bool                 `json:"vip,omitempty" form:"vip"`
+	Salary   *float64              `json:"salary,omitempty" form:"salary"`
+	Role     *string               `json:"role,omitempty" form:"role"`
+	Level    *ManagerLevelAsString `json:"level,omitempty" form:"level"`
+	DeptInfo *DepartmentInfo       `json:"deptInfo,omitempty" form:"deptInfo"`
+	Contact  *ContactInfo          `json:"contact,omitempty" form:"contact"`
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *CreateManagerReqBody) Validate() (err error) {
+	if x.Name != nil {
+		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Name\"")
+		}
+	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errors.New("validate failed on UpdateManagerReq.Age")
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			return errors.New("validate failed on UpdateManagerReq.Salary")
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Salary\"")
 		}
 	}
-	return nil
-}
-
-func (x *UpdateManagerReq) String() string {
-	if x == nil {
-		return "<nil>"
+	if x.Contact != nil {
+		if validateErr := x.Contact.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Contact\": %w", validateErr)
+		}
 	}
-	return fmt.Sprintf("UpdateManagerReq(%+v)", *x)
+	return
 }
 
+// Update existing manager
+type UpdateManagerReq struct {
+	UpdateManagerReqBody
+	ID *string `json:"id,omitempty" path:"id"`
+}
+
+// QueryForm returns the form values of the object.
+func (x *UpdateManagerReq) QueryForm() (string, error) {
+	return "", nil
+}
+
+// Binding extracts non-body values (path, query) from *http.Request.
+func (x *UpdateManagerReq) Bind(r *http.Request) error {
+	values, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		return errutil.Explain(err, "parse query error")
+	}
+	if len(values) == 0 {
+		return nil
+	}
+	return err
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *UpdateManagerReq) Validate() (err error) {
+	if validateErr := x.UpdateManagerReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"UpdateManagerReq\": %w", validateErr)
+	}
+	return
+}
+
+type UpdateManagerReqBody struct {
+	Name     *string         `json:"name,omitempty" form:"name"`
+	Age      *int64          `json:"age,omitempty" form:"age"`
+	Vip      *bool           `json:"vip" form:"vip"`
+	Salary   *float64        `json:"salary,omitempty" form:"salary"`
+	Role     *string         `json:"role,omitempty" form:"role"`
+	Level    *ManagerLevel   `json:"level,omitempty" form:"level"`
+	DeptInfo *DepartmentInfo `json:"dept_info,omitempty" form:"dept_info"`
+	Contact  *ContactInfo    `json:"contact,omitempty" form:"contact"`
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *UpdateManagerReqBody) Validate() (err error) {
+	if x.Age != nil {
+		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Age\"")
+		}
+	}
+	if x.Salary != nil {
+		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Salary\"")
+		}
+	}
+	if x.Contact != nil {
+		if validateErr := x.Contact.Validate(); validateErr != nil {
+			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Contact\": %w", validateErr)
+		}
+	}
+	return
+}
+
+// Paginated manager query
 type ListManagersByPageReq struct {
-	ObjectBase
-	Page      int64         `json:"page" query:"page"`
-	Size      int64         `json:"size" query:"size"`
-	Keyword   *string       `json:"keyword,omitempty" query:"keyword"`
-	Dept      *Department   `json:"dept,omitempty" query:"dept"`
-	MinLevel  *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
-	Vip       *bool         `json:"vip,omitempty" query:"vip"`
-	AuthToken *string       `json:"authToken,omitempty" header:"X-Auth-Token"`
+	ListManagersByPageReqBody
+	Page     *int64        `json:"page,omitempty" query:"page" validate:"required"`
+	Size     *int64        `json:"size,omitempty" query:"size" validate:"required"`
+	Keyword  []string      `json:"keyword,omitempty" query:"keyword"`
+	Dept     *Department   `json:"dept,omitempty" query:"dept"`
+	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
+	Vip      *bool         `json:"vip,omitempty" query:"vip"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *ListManagersByPageReq) New() any {
-	return &ListManagersByPageReq{}
+// QueryForm returns the form values of the object.
+func (x *ListManagersByPageReq) QueryForm() (string, error) {
+	m := make(url.Values)
+	if x.Page != nil {
+		m.Add("page", strconv.FormatInt(int64(*x.Page), 10))
+	}
+	if x.Size != nil {
+		m.Add("size", strconv.FormatInt(int64(*x.Size), 10))
+	}
+	for i := range len(x.Keyword) {
+		m.Add("keyword", x.Keyword[i])
+	}
+	if x.Dept != nil {
+		m.Add("dept", strconv.FormatInt(int64(*x.Dept), 10))
+	}
+	if x.MinLevel != nil {
+		m.Add("minLevel", strconv.FormatInt(int64(*x.MinLevel), 10))
+	}
+	if x.Vip != nil {
+		m.Add("vip", strconv.FormatBool(*x.Vip))
+	}
+	return m.Encode(), nil
 }
 
-// Binding extracts non-body values (header, path, query) from *http.Request.
-func (x *ListManagersByPageReq) Binding(r *http.Request) error {
-	return Binding(r, []BindingField{
-		{"ListManagersByPageReq.Page", "query", "page", &x.Page},
-		{"ListManagersByPageReq.Size", "query", "size", &x.Size},
-		{"ListManagersByPageReq.Keyword", "query", "keyword", &x.Keyword},
-		{"ListManagersByPageReq.Dept", "query", "dept", &x.Dept},
-		{"ListManagersByPageReq.MinLevel", "query", "minLevel", &x.MinLevel},
-		{"ListManagersByPageReq.Vip", "query", "vip", &x.Vip},
-		{"ListManagersByPageReq.AuthToken", "header", "X-Auth-Token", &x.AuthToken},
-	})
+// Binding extracts non-body values (path, query) from *http.Request.
+func (x *ListManagersByPageReq) Bind(r *http.Request) error {
+	values, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		return errutil.Explain(err, "parse query error")
+	}
+	if len(values) == 0 {
+		return nil
+	}
+	if v, ok := values["page"]; ok {
+		if len(v) == 1 {
+			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"page\" error: %w", parseErr)
+			} else {
+				x.Page = &i
+			}
+		} else {
+			err = errutil.Stack(err, "invalid value for \"page\"")
+		}
+	}
+	if v, ok := values["size"]; ok {
+		if len(v) == 1 {
+			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"size\" error: %w", parseErr)
+			} else {
+				x.Size = &i
+			}
+		} else {
+			err = errutil.Stack(err, "invalid value for \"size\"")
+		}
+	}
+	if v, ok := values["keyword"]; ok {
+		for _, s := range v {
+			var i string
+			parseErr := json.Unmarshal([]byte(s), &i)
+			if parseErr != nil {
+				err = errutil.Stack(err, "json decode error: %w", parseErr)
+			}
+			x.Keyword = append(x.Keyword, i)
+		}
+	}
+	if v, ok := values["dept"]; ok {
+		if len(v) == 1 {
+			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"dept\" error: %w", parseErr)
+			} else {
+				if e := Department(i); !OneOfDepartment(e) {
+					err = errutil.Stack(err, "invalid value for \"dept\"")
+				} else {
+					x.Dept = &e
+				}
+			}
+		} else {
+			err = errutil.Stack(err, "invalid value for \"dept\"")
+		}
+	}
+	if v, ok := values["minLevel"]; ok {
+		if len(v) == 1 {
+			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"minLevel\" error: %w", parseErr)
+			} else {
+				if e := ManagerLevel(i); !OneOfManagerLevel(e) {
+					err = errutil.Stack(err, "invalid value for \"minLevel\"")
+				} else {
+					x.MinLevel = &e
+				}
+			}
+		} else {
+			err = errutil.Stack(err, "invalid value for \"minLevel\"")
+		}
+	}
+	if v, ok := values["vip"]; ok {
+		if len(v) == 1 {
+			if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
+				err = errutil.Stack(err, "parse \"vip\" error: %w", parseErr)
+			} else {
+				x.Vip = &i
+			}
+		} else {
+			err = errutil.Stack(err, "invalid value for \"vip\"")
+		}
+	}
+	return err
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageReq) Validate() error {
-	if !(x.Page >= 1) {
-		return errors.New("validate failed on PageReq.Page")
+func (x *ListManagersByPageReq) Validate() (err error) {
+	if x.Page == nil {
+		err = errutil.Stack(err, "\"ListManagersByPageReq.Page\" is required")
 	}
-	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errors.New("validate failed on PageReq.Size")
+	if x.Page != nil {
+		if !(*x.Page >= 1) {
+			err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Page\"")
+		}
 	}
+	if x.Size == nil {
+		err = errutil.Stack(err, "\"ListManagersByPageReq.Size\" is required")
+	}
+	if x.Size != nil {
+		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
+			err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Size\"")
+		}
+	}
+	if !(len(x.Keyword) <= 5) {
+		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Keyword\"")
+	}
+	if validateErr := x.ListManagersByPageReqBody.Validate(); validateErr != nil {
+		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq\": %w", validateErr)
+	}
+	return
+}
+
+type ListManagersByPageReqBody struct {
+}
+
+// EncodeForm encodes the object to form data.
+func (x *ListManagersByPageReqBody) EncodeForm() (string, error) {
+	return "", nil
+}
+
+// DecodeForm decodes the object from form data.
+func (x *ListManagersByPageReqBody) DecodeForm(b []byte) error {
 	return nil
 }
 
-func (x *ListManagersByPageReq) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ListManagersByPageReq(%+v)", *x)
+// Validate checks field values using generated validation expressions.
+func (x *ListManagersByPageReqBody) Validate() (err error) {
+	return
 }
 
+// Create / Update / Get responses
 type CreateManagerResp struct {
-	ObjectBase
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
-	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *CreateManagerResp) New() any {
-	return &CreateManagerResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *CreateManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on CreateManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *CreateManagerResp) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("CreateManagerResp(%+v)", *x)
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type UpdateManagerResp struct {
-	ObjectBase
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
-	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *UpdateManagerResp) New() any {
-	return &UpdateManagerResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *UpdateManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on UpdateManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *UpdateManagerResp) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("UpdateManagerResp(%+v)", *x)
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type GetManagerResp struct {
-	ObjectBase
-	Errno  ErrCode  `json:"errno"`
-	Errmsg string   `json:"errmsg"`
-	Data   *Manager `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *GetManagerResp) New() any {
-	return &GetManagerResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *GetManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on GetManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *GetManagerResp) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("GetManagerResp(%+v)", *x)
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type DeleteManagerResp struct {
-	ObjectBase
-	Errno  ErrCode `json:"errno"`
-	Errmsg string  `json:"errmsg"`
-	Data   bool    `json:"data"`
+	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Data   *bool    `json:"data,omitempty" form:"data"`
 }
 
-// New returns a new instance (implements Object interface).
-func (x *DeleteManagerResp) New() any {
-	return &DeleteManagerResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *DeleteManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on DeleteManagerResp.Errno")
-	}
-	return nil
-}
-
-func (x *DeleteManagerResp) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("DeleteManagerResp(%+v)", *x)
-}
-
+// Paginated response
 type ManagersPageData struct {
-	ObjectBase
-	Total int64      `json:"total"`
-	Page  int64      `json:"page"`
-	Size  int64      `json:"size"`
-	Items []*Manager `json:"items"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ManagersPageData) New() any {
-	return &ManagersPageData{}
-}
-
-func (x *ManagersPageData) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ManagersPageData(%+v)", *x)
+	Total *int64     `json:"total,omitempty" form:"total"`
+	Page  *int64     `json:"page,omitempty" form:"page"`
+	Size  *int64     `json:"size,omitempty" form:"size"`
+	Items []*Manager `json:"items,omitempty" form:"items"`
 }
 
 type ListManagersByPageResp struct {
-	ObjectBase
-	Errno  ErrCode           `json:"errno"`
-	Errmsg string            `json:"errmsg"`
-	Data   *ManagersPageData `json:"data,omitempty"`
-}
-
-// New returns a new instance (implements Object interface).
-func (x *ListManagersByPageResp) New() any {
-	return &ListManagersByPageResp{}
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errors.New("validate failed on ListManagersByPageResp.Errno")
-	}
-	return nil
-}
-
-func (x *ListManagersByPageResp) String() string {
-	if x == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("ListManagersByPageResp(%+v)", *x)
+	Errno  *ErrCode          `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg *string           `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
 }

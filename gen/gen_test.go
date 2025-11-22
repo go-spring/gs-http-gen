@@ -22,7 +22,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	_ "github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/generator"
+	_ "github.com/go-spring/gs-mock/gsmock"
 )
 
 func TestGen(t *testing.T) {

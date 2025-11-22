@@ -17,9 +17,7 @@
 package generator
 
 import (
-	"fmt"
-
-	"github.com/go-spring/gs-http-gen/lib/tidl"
+	"github.com/lvan100/golib/errutil"
 )
 
 // Config holds the configuration options for the code generator.
@@ -38,7 +36,7 @@ var generators = map[string]Generator{}
 // must implement. The Gen method generates code based on the given
 // configuration, documents, and metadata.
 type Generator interface {
-	Gen(config *Config, files map[string]tidl.Document, meta *tidl.MetaInfo) error
+	Gen(config *Config) error
 }
 
 // GetGenerator retrieves a registered generator for a given language.
@@ -50,7 +48,7 @@ func GetGenerator(language string) (Generator, bool) {
 // RegisterGenerator registers a new generator for the given language.
 func RegisterGenerator(language string, g Generator) {
 	if _, ok := generators[language]; ok {
-		panic(fmt.Errorf("duplicate generator for %s", language))
+		panic(errutil.Explain(nil, "duplicate generator for %s", language))
 	}
 	generators[language] = g
 }

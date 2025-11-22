@@ -18,11 +18,15 @@ package golang
 
 import (
 	"bytes"
-	"fmt"
 	"maps"
 	"path/filepath"
 	"slices"
+	"strings"
 	"text/template"
+
+	"github.com/go-spring/gs-http-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/lib/httpidl"
+	"github.com/lvan100/golib/errutil"
 )
 
 // validateTmpl is a Go template for generating default validation functions.
@@ -32,30 +36,33 @@ var validateTmpl = template.Must(template.New("validate").Parse(`
 package {{.Package}}
 
 {{- range $f := .Funcs}}
-// {{$f.Name}} is a default validation function for fields of type {{$f.FieldType}}.
-// This serves as a placeholder that can be overridden or extended.
-var {{$f.Name}} = func ({{$f.FieldType}}) bool { return true }
+	// {{$f.Name}} is a default validation function for fields of type {{$f.Type}}.
+	// This serves as a placeholder that can be overridden or extended.
+	var {{$f.Name}} = func ({{$f.Type}}) bool { return true }
 {{- end}}
 `))
 
 // genValidate generates the Go file containing default validation functions.
-func (g *Generator) genValidate(ctx Context) error {
+func (g *Generator) genValidate(config *generator.Config, spec GoSpec) error {
 
 	// Sort the functions by name
-	var funcs []ValidateFunc
-	for _, s := range slices.Sorted(maps.Keys(ctx.funcs)) {
-		funcs = append(funcs, ctx.funcs[s])
+	var funcs []httpidl.ValidateFunc
+	for _, s := range slices.Sorted(maps.Keys(spec.Funcs)) {
+		if strings.HasPrefix(s, "OneOf") {
+			continue
+		}
+		funcs = append(funcs, spec.Funcs[s])
 	}
 
 	buf := &bytes.Buffer{}
 	err := validateTmpl.Execute(buf, map[string]any{
-		"Package": ctx.config.GoPackage,
+		"Package": config.GoPackage,
 		"Funcs":   funcs,
 	})
 	if err != nil {
-		return fmt.Errorf("execute template error: %w", err)
+		return errutil.Explain(nil, "execute template error: %w", err)
 	}
-	fileName := ctx.meta.Name + "_validate.go"
-	fileName = filepath.Join(ctx.config.OutputDir, fileName)
+	fileName := spec.Meta.Name + "_validate.go"
+	fileName = filepath.Join(config.OutputDir, fileName)
 	return formatFile(fileName, buf.Bytes())
 }
