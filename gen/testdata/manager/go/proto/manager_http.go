@@ -25,54 +25,21 @@ type ManagerServer interface {
 	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
 }
 
-// Router defines the interface that router must implement.
-type Router interface {
-	HandleFunc(method string, pattern string, handler http.HandlerFunc)
+type Router struct {
+	Method  string
+	Pattern string
+	Handler http.HandlerFunc
 }
 
-// SetupRouter sets up the router with the given server.
-func SetupRouter(r Router, server ManagerServer) {
-
-	r.HandleFunc("GET", "/assistant",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &AssistantReq{}
-			HandleStream(w, r, req, server.Assistant)
-		})
-
-	r.HandleFunc("GET", "/assistantV2",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &AssistantReq{}
-			HandleStream(w, r, req, server.AssistantV2)
-		})
-
-	r.HandleFunc("POST", "/managers",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &CreateManagerReq{}
-			HandleJSON(w, r, req, server.CreateManager)
-		})
-
-	r.HandleFunc("DELETE", "/managers/{id}",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &ManagerReq{}
-			HandleJSON(w, r, req, server.DeleteManager)
-		})
-
-	r.HandleFunc("GET", "/managers/{id}",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &ManagerReq{}
-			HandleJSON(w, r, req, server.GetManager)
-		})
-
-	r.HandleFunc("GET", "/managers/page",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &ListManagersByPageReq{}
-			HandleJSON(w, r, req, server.ListManagersByPage)
-		})
-
-	r.HandleFunc("PUT", "/managers/{id}",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &UpdateManagerReq{}
-			HandleJSON(w, r, req, server.UpdateManager)
-		})
-
+func Routers(server ManagerServer) []Router {
+	return []Router{
+		{
+			Method:  "GET",
+			Pattern: "/assistant",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &AssistantReq{}
+				HandleStream(w, r, req, server.Assistant)
+			},
+		},
+	}
 }

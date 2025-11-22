@@ -62,28 +62,32 @@ type {{.Service}}Server interface {
     {{- end}}
 }
 
-// Router defines the interface that router must implement.
-type Router interface {
-	HandleFunc(method string, pattern string, handler http.HandlerFunc)
+type Router struct {
+	Method  string
+	Pattern string
+	Handler http.HandlerFunc
 }
 
-// SetupRouter sets up the router with the given server.
-func SetupRouter(r Router, server ManagerServer) {
-    {{range $r := .RPCs}}
-		{{- if $r.SSE}}
-			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", 
-				func(w http.ResponseWriter, r *http.Request) {
-					req := &{{$r.Request}}{}
-					HandleStream(w, r, req, server.{{$r.Name}})
-				})
-		{{- else}}
-			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}",
-				func(w http.ResponseWriter, r *http.Request) {
-					req := &{{$r.Request}}{}
-					HandleJSON(w, r, req, server.{{$r.Name}})
-				})
-		{{- end}}
-    {{end}}
+func Routers(server {{.Service}}Server) []Router {
+	return []Router{
+		{{range $r := .RPCs}}
+			{
+				Method:  "{{$r.Method}}",
+				Pattern: "{{$r.Path}}",
+				{{- if $r.SSE}}
+					Handler: func(w http.ResponseWriter, r *http.Request) {
+						req := &{{$r.Request}}{}
+						HandleStream(w, r, req, server.{{$r.Name}})
+					},
+				{{- else}}
+					Handler: func(w http.ResponseWriter, r *http.Request) {
+							req := &{{$r.Request}}{}
+							HandleJSON(w, r, req, server.{{$r.Name}})
+					},
+				{{- end}}
+			},
+	    {{end}}
+	}
 }
 `))
 
