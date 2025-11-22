@@ -797,9 +797,6 @@ func collectValidateFuncs(fieldType string, expr validate.Expr, funcs map[string
 
 // parseCommonFieldType distinguishes between built-in, user-defined, or container types.
 func (l *ParseTreeListener) parseCommonFieldType(ctx ICommon_field_typeContext, t *Type) TypeDefinition {
-	if ctx.TYPE_ANY() != nil {
-		return AnyType{}
-	}
 	if ctx.TYPE_BINARY() != nil {
 		return BinaryType{}
 	}

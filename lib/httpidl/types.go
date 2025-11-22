@@ -182,18 +182,6 @@ func (t EmbedType) Text() string {
 	return t.Name
 }
 
-// AnyType represents the special "any" type.
-type AnyType struct{}
-
-func (t AnyType) Text() string {
-	return "any"
-}
-
-// MarshalText implements encoding.TextMarshaler for AnyType.
-func (t AnyType) MarshalText() (text []byte, err error) {
-	return []byte(t.Text()), nil
-}
-
 // BaseType represents a primitive type (e.g., int, string, bool).
 type BaseType struct {
 	Name string // Name of the primitive type
