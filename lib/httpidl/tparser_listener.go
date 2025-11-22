@@ -55,18 +55,6 @@ type TParserListener interface {
 	// EnterRpc_annotations is called when entering the rpc_annotations production.
 	EnterRpc_annotations(c *Rpc_annotationsContext)
 
-	// EnterSse_def is called when entering the sse_def production.
-	EnterSse_def(c *Sse_defContext)
-
-	// EnterSse_req is called when entering the sse_req production.
-	EnterSse_req(c *Sse_reqContext)
-
-	// EnterSse_resp is called when entering the sse_resp production.
-	EnterSse_resp(c *Sse_respContext)
-
-	// EnterSse_annotations is called when entering the sse_annotations production.
-	EnterSse_annotations(c *Sse_annotationsContext)
-
 	// EnterAnnotation is called when entering the annotation production.
 	EnterAnnotation(c *AnnotationContext)
 
@@ -144,18 +132,6 @@ type TParserListener interface {
 
 	// ExitRpc_annotations is called when exiting the rpc_annotations production.
 	ExitRpc_annotations(c *Rpc_annotationsContext)
-
-	// ExitSse_def is called when exiting the sse_def production.
-	ExitSse_def(c *Sse_defContext)
-
-	// ExitSse_req is called when exiting the sse_req production.
-	ExitSse_req(c *Sse_reqContext)
-
-	// ExitSse_resp is called when exiting the sse_resp production.
-	ExitSse_resp(c *Sse_respContext)
-
-	// ExitSse_annotations is called when exiting the sse_annotations production.
-	ExitSse_annotations(c *Sse_annotationsContext)
 
 	// ExitAnnotation is called when exiting the annotation production.
 	ExitAnnotation(c *AnnotationContext)

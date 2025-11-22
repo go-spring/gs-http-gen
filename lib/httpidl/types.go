@@ -66,7 +66,6 @@ type Document struct {
 	Enums    []Enum
 	Types    []Type
 	RPCs     []RPC
-	SSEs     []SSE
 
 	EnumTypes map[string]int // Name -> index
 	TypeTypes map[string]int // Name -> index
@@ -246,31 +245,11 @@ func (t ListType) Text() string {
 
 // RPC represents a remote procedure call definition.
 type RPC struct {
+	SSE         bool         // Indicates whether this is an SSE
 	Name        string       // Name of the RPC
 	Request     string       // Request type
 	Response    string       // Response type
 	Annotations []Annotation // Metadata attached to the RPC
-	Position    Position     // Location in source code
-	Comments    Comments     // Associated comments
-
-	Path        string // HTTP path
-	Method      string // HTTP method (GET, POST, etc.)
-	ContentType string // HTTP Content-Type
-
-	ConnTimeout  int // Connection timeout, ms
-	ReadTimeout  int // Read timeout, ms
-	WriteTimeout int // Write timeout, ms
-
-	PathSegments []pathidl.Segment
-	PathParams   map[string]string // path => field name of request type
-}
-
-// SSE represents a server-sent event definition.
-type SSE struct {
-	Name        string       // Name of the SSE
-	Request     string       // Request type
-	Response    string       // Response type
-	Annotations []Annotation // Metadata attached to the SSE
 	Position    Position     // Location in source code
 	Comments    Comments     // Associated comments
 

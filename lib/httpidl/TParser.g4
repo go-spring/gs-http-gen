@@ -18,7 +18,7 @@ document
 // Top-level definitions: const, enum, type, oneof, rpc
 // --------------------
 definition
-    : const_def | enum_def | type_def | oneof_def | rpc_def | sse_def
+    : const_def | enum_def | type_def | oneof_def | rpc_def
     ;
 
 // --------------------
@@ -117,7 +117,7 @@ oneof_def
 // rpc GetUser (ReqType) RespType { method="GET" }
 // --------------------
 rpc_def
-    : KW_RPC IDENTIFIER LEFT_PAREN rpc_req RIGHT_PAREN rpc_resp rpc_annotations
+    : (KW_RPC | KW_SSE) IDENTIFIER LEFT_PAREN rpc_req RIGHT_PAREN rpc_resp rpc_annotations
     ;
 
 // RPC request type: a user-defined type
@@ -127,35 +127,11 @@ rpc_req
 
 // RPC response type: a user-defined type
 rpc_resp
-    : user_type
+    : user_type | TYPE_STRING
     ;
 
 // RPC annotations (inside { ... })
 rpc_annotations
-    : LEFT_BRACE terminator? (annotation terminator)* terminator? RIGHT_BRACE
-    ;
-
-// --------------------
-// SSE definition
-// Example:
-// sse GetUser (ReqType) RespType { method="GET" }
-// --------------------
-sse_def
-    : KW_SSE IDENTIFIER LEFT_PAREN sse_req RIGHT_PAREN sse_resp sse_annotations
-    ;
-
-// SSE request type: a user-defined type
-sse_req
-    : user_type
-    ;
-
-// SSE response type: a user-defined type
-sse_resp
-    : user_type
-    ;
-
-// SSE annotations (inside { ... })
-sse_annotations
     : LEFT_BRACE terminator? (annotation terminator)* terminator? RIGHT_BRACE
     ;
 

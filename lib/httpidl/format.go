@@ -127,15 +127,6 @@ func Dump(doc Document) string {
 		})
 	}
 
-	// Collect SSEs
-	for _, s := range doc.SSEs {
-		items = append(items, docItem{
-			kind: docItemKindSSE,
-			pos:  s.Position.Start,
-			buf:  dumpSSE(s),
-		})
-	}
-
 	// Sort all collected items by their original source position
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].pos < items[j].pos
@@ -331,38 +322,6 @@ func dumpRPC(r RPC) string {
 	dumpAboveComments(r.Comments.Above, &sb, "")
 
 	sb.WriteString("rpc ")
-	sb.WriteString(r.Name)
-	sb.WriteString("(")
-	sb.WriteString(r.Request)
-	sb.WriteString(") ")
-	sb.WriteString(r.Response)
-	sb.WriteString(" {")
-
-	for _, a := range r.Annotations {
-		sb.WriteString("\n")
-		dumpAboveComments(a.Comments.Above, &sb, indent)
-
-		sb.WriteString(indent)
-		sb.WriteString(a.Key)
-		if a.Value != nil {
-			sb.WriteString("=")
-			sb.WriteString(*a.Value)
-		}
-
-		dumpRightComment(a.Comments.Right, &sb, indent)
-	}
-
-	sb.WriteString("\n}")
-	return sb.String()
-}
-
-// dumpSSE formats an SSE declaration including its request/response types,
-// annotations, and associated comments.
-func dumpSSE(r SSE) string {
-	var sb strings.Builder
-	dumpAboveComments(r.Comments.Above, &sb, "")
-
-	sb.WriteString("sse ")
 	sb.WriteString(r.Name)
 	sb.WriteString("(")
 	sb.WriteString(r.Request)

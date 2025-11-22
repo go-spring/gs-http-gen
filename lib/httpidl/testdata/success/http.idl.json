@@ -918,6 +918,7 @@
   ],
   "RPCs": [
     {
+      "SSE": false,
       "Name": "GetUser",
       "Request": "UserReq",
       "Response": "UserResp",
@@ -1069,7 +1070,6 @@
       "PathParams": null
     }
   ],
-  "SSEs": null,
   "EnumTypes": {
     "ErrCode": 0,
     "PayloadType": 1
