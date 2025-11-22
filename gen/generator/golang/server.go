@@ -68,9 +68,10 @@ type Router struct {
 	Handler http.HandlerFunc
 }
 
+// Routers returns a list of HTTP routers for the service.
 func Routers(server {{.Service}}Server) []Router {
 	return []Router{
-		{{range $r := .RPCs}}
+		{{- range $r := .RPCs}}
 			{
 				Method:  "{{$r.Method}}",
 				Pattern: "{{$r.Path}}",
@@ -86,7 +87,7 @@ func Routers(server {{.Service}}Server) []Router {
 					},
 				{{- end}}
 			},
-	    {{end}}
+	    {{- end}}
 	}
 }
 `))

@@ -31,6 +31,7 @@ type Router struct {
 	Handler http.HandlerFunc
 }
 
+// Routers returns a list of HTTP routers for the service.
 func Routers(server ManagerServer) []Router {
 	return []Router{
 		{
@@ -39,6 +40,54 @@ func Routers(server ManagerServer) []Router {
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &AssistantReq{}
 				HandleStream(w, r, req, server.Assistant)
+			},
+		},
+		{
+			Method:  "GET",
+			Pattern: "/assistantV2",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &AssistantReq{}
+				HandleStream(w, r, req, server.AssistantV2)
+			},
+		},
+		{
+			Method:  "POST",
+			Pattern: "/managers",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &CreateManagerReq{}
+				HandleJSON(w, r, req, server.CreateManager)
+			},
+		},
+		{
+			Method:  "DELETE",
+			Pattern: "/managers/{id}",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &ManagerReq{}
+				HandleJSON(w, r, req, server.DeleteManager)
+			},
+		},
+		{
+			Method:  "GET",
+			Pattern: "/managers/{id}",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &ManagerReq{}
+				HandleJSON(w, r, req, server.GetManager)
+			},
+		},
+		{
+			Method:  "GET",
+			Pattern: "/managers/page",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &ListManagersByPageReq{}
+				HandleJSON(w, r, req, server.ListManagersByPage)
+			},
+		},
+		{
+			Method:  "PUT",
+			Pattern: "/managers/{id}",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				req := &UpdateManagerReq{}
+				HandleJSON(w, r, req, server.UpdateManager)
 			},
 		},
 	}

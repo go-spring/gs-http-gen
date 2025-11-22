@@ -144,7 +144,9 @@ func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantR
 
 func TestManager(t *testing.T) {
 	svr := NewGinServer(":9191")
-	proto.SetupRouter(svr, &MyManagerServer{})
+	for _, r := range proto.Routers(&MyManagerServer{}) {
+		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
@@ -165,7 +167,9 @@ func TestManager(t *testing.T) {
 
 func TestStream(t *testing.T) {
 	svr := NewHttpServer(":9191")
-	proto.SetupRouter(svr, &MyManagerServer{})
+	for _, r := range proto.Routers(&MyManagerServer{}) {
+		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
@@ -186,7 +190,9 @@ func TestStream(t *testing.T) {
 
 func TestStreamV2(t *testing.T) {
 	svr := NewHttpServer(":9191")
-	proto.SetupRouter(svr, &MyManagerServer{})
+	for _, r := range proto.Routers(&MyManagerServer{}) {
+		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
