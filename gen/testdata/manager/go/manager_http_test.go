@@ -107,7 +107,7 @@ func (m *MyManagerServer) CreateManager(ctx context.Context, req *proto.CreateMa
 	return nil
 }
 
-func (m *MyManagerServer) UpdateManager(ctx context.Context, req *proto.UpdateManagerReq) *proto.UpdateManagerResp {
+func (m *MyManagerServer) UpdateManager(ctx context.Context, req *proto.UpdateManagerReq) map[string]any {
 	return nil
 }
 

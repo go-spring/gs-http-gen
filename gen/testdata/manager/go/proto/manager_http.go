@@ -22,7 +22,7 @@ type ManagerServer interface {
 	// List managers with pagination
 	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
 	// Update manager info
-	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
+	UpdateManager(context.Context, *UpdateManagerReq) map[string]any
 }
 
 type Router struct {

@@ -51,13 +51,9 @@ type {{.Service}}Server interface {
 			{{formatComments $r.Comments}}
 		{{- end}}
 		{{- if $r.SSE}}
-			{{- if eq $r.Response "string" }}
-				 {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[string])
-			{{- else}}
-				 {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[*{{$r.Response}}])
-			{{- end }}
+			{{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[{{$r.Response}}])
 		{{- else}}
-			{{$r.Name}}(context.Context, *{{$r.Request}}) *{{$r.Response}}
+			{{$r.Name}}(context.Context, *{{$r.Request}}) {{$r.Response}}
 		{{- end}}
     {{- end}}
 }

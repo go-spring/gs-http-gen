@@ -112,6 +112,7 @@ func (t *Type) QueryCount() int {
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
 	httpidl.RPC
+	Response string // Response type
 
 	FormatPath   string            // Formatted HTTP path
 	PathParams   map[string]string // HTTP path parameters
@@ -147,8 +148,25 @@ func Convert(dir string) (GoSpec, error) {
 	// Collect all RPC definitions
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
+			var response string
+			if r.Response == "string" {
+				response = "string"
+			} else {
+				response = "*" + r.Response
+			}
+			if a, ok := httpidl.GetAnnotation(r.Annotations, "resp.go.type"); ok {
+				if a.Value == nil {
+					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must have a value`)
+				}
+				s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
+				if s == "" {
+					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must not be empty`)
+				}
+				response = s
+			}
 			rpc := RPC{
 				RPC:          r,
+				Response:     response,
 				FormatPath:   r.Path, // 假设是普通路径
 				PathParams:   r.PathParams,
 				PathSegments: r.PathSegments,

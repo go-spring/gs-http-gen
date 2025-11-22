@@ -154,14 +154,14 @@ func buildMeta(opts []RequestOption) RequestMeta {
 
 // JSONResponse executes the given HTTP request using the provided HTTPClient,
 // reads the response body, and unmarshals it into a value of type RespType.
-func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
+func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, RespType, error) {
+	var ret RespType
 	resp, b, err := DefaultClient.JSON(r, buildMeta(opts))
 	if err != nil {
-		return nil, nil, err
+		return nil, ret, err
 	}
-	var ret RespType
 	if err = json.Unmarshal(b, &ret); err != nil {
-		return nil, nil, err
+		return nil, ret, err
 	}
-	return resp, &ret, nil
+	return resp, ret, nil
 }

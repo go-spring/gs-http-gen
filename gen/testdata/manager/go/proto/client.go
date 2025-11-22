@@ -51,7 +51,7 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 	opts = append(opts, httputil.WithPath("/managers"))
 	opts = append(opts, httputil.WithSchema("http"))
 
-	return httputil.JSONResponse[CreateManagerResp](r, opts...)
+	return httputil.JSONResponse[*CreateManagerResp](r, opts...)
 }
 
 // Delete a manager
@@ -85,7 +85,7 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 	opts = append(opts, httputil.WithPath("/managers/{id}"))
 	opts = append(opts, httputil.WithSchema("http"))
 
-	return httputil.JSONResponse[DeleteManagerResp](r, opts...)
+	return httputil.JSONResponse[*DeleteManagerResp](r, opts...)
 }
 
 // Get manager by ID
@@ -119,7 +119,7 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 	opts = append(opts, httputil.WithPath("/managers/{id}"))
 	opts = append(opts, httputil.WithSchema("http"))
 
-	return httputil.JSONResponse[GetManagerResp](r, opts...)
+	return httputil.JSONResponse[*GetManagerResp](r, opts...)
 }
 
 // List managers with pagination
@@ -153,13 +153,13 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 	opts = append(opts, httputil.WithPath("/managers/page"))
 	opts = append(opts, httputil.WithSchema("http"))
 
-	return httputil.JSONResponse[ListManagersByPageResp](r, opts...)
+	return httputil.JSONResponse[*ListManagersByPageResp](r, opts...)
 }
 
 // Update manager info
-func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, *UpdateManagerResp, error) {
+func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, map[string]any, error) {
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "UpdateManager", ctx, req, opts); ok {
-		return gsmock.Unbox3[*http.Response, *UpdateManagerResp, error](ret)
+		return gsmock.Unbox3[*http.Response, map[string]any, error](ret)
 	}
 
 	path := fmt.Sprintf("/managers/%v", req.ID)
@@ -185,5 +185,5 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 	opts = append(opts, httputil.WithPath("/managers/{id}"))
 	opts = append(opts, httputil.WithSchema("http"))
 
-	return httputil.JSONResponse[UpdateManagerResp](r, opts...)
+	return httputil.JSONResponse[map[string]any](r, opts...)
 }

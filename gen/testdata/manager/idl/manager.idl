@@ -203,6 +203,9 @@ rpc UpdateManager(UpdateManagerReq) UpdateManagerResp {
     connTimeout=100
     readTimeout=100
     writeTimeout=100
+
+    // response type
+    resp.go.type="map[string]any"
 }
 
 // Delete a manager
