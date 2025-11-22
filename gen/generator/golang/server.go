@@ -50,13 +50,11 @@ type {{.Service}}Server interface {
 		{{- if $r.Comments.Exists }}
 			{{formatComments $r.Comments}}
 		{{- end}}
-        {{$r.Name}}(context.Context, *{{$r.Request}}) *{{$r.Response}}
-    {{- end}}
-	{{- range $r := .SSEs}}
-		{{- if $r.Comments.Exists }}
-			{{formatComments $r.Comments}}
+		{{- if $r.SSE}}
+            {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[*AssistantResp])
+		{{- else}}
+			{{$r.Name}}(context.Context, *{{$r.Request}}) *{{$r.Response}}
 		{{- end}}
-        {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[*AssistantResp])
     {{- end}}
 }
 
@@ -68,18 +66,19 @@ type Router interface {
 // SetupRouter sets up the router with the given server.
 func SetupRouter(r Router, server ManagerServer) {
     {{range $r := .RPCs}}
-		r.HandleFunc("{{$r.Method}}", "{{$r.Path}}",
-			func(w http.ResponseWriter, r *http.Request) {
-				req := &{{$r.Request}}{}
-				HandleJSON(w, r, req, server.{{$r.Name}})
-			})
-    {{end}}
-	{{range $r := .SSEs}}
-		r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", 
-			func(w http.ResponseWriter, r *http.Request) {
-				req := &{{$r.Request}}{}
-				HandleStream(w, r, req, server.{{$r.Name}})
-			})
+		{{- if $r.SSE}}
+			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", 
+				func(w http.ResponseWriter, r *http.Request) {
+					req := &{{$r.Request}}{}
+					HandleStream(w, r, req, server.{{$r.Name}})
+				})
+		{{- else}}
+			r.HandleFunc("{{$r.Method}}", "{{$r.Path}}",
+				func(w http.ResponseWriter, r *http.Request) {
+					req := &{{$r.Request}}{}
+					HandleJSON(w, r, req, server.{{$r.Name}})
+				})
+		{{- end}}
     {{end}}
 }
 `))

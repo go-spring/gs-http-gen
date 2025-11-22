@@ -9,6 +9,8 @@ import (
 
 // ManagerServer defines the interface that service must implement.
 type ManagerServer interface {
+	// Assistant ...
+	Assistant(context.Context, *AssistantReq, chan<- *SSEEvent[*AssistantResp])
 	// Create a new manager
 	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
 	// Delete a manager
@@ -19,8 +21,6 @@ type ManagerServer interface {
 	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
 	// Update manager info
 	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
-	// Assistant ...
-	Assistant(context.Context, *AssistantReq, chan<- *SSEEvent[*AssistantResp])
 }
 
 // Router defines the interface that router must implement.
@@ -30,6 +30,12 @@ type Router interface {
 
 // SetupRouter sets up the router with the given server.
 func SetupRouter(r Router, server ManagerServer) {
+
+	r.HandleFunc("GET", "/assistant",
+		func(w http.ResponseWriter, r *http.Request) {
+			req := &AssistantReq{}
+			HandleStream(w, r, req, server.Assistant)
+		})
 
 	r.HandleFunc("POST", "/managers",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -59,12 +65,6 @@ func SetupRouter(r Router, server ManagerServer) {
 		func(w http.ResponseWriter, r *http.Request) {
 			req := &UpdateManagerReq{}
 			HandleJSON(w, r, req, server.UpdateManager)
-		})
-
-	r.HandleFunc("GET", "/assistant",
-		func(w http.ResponseWriter, r *http.Request) {
-			req := &AssistantReq{}
-			HandleStream(w, r, req, server.Assistant)
 		})
 
 }
