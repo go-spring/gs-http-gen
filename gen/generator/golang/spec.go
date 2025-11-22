@@ -118,26 +118,14 @@ type RPC struct {
 	PathSegments []pathidl.Segment // HTTP path segments
 }
 
-// SSE represents a single server-sent event with HTTP metadata.
-type SSE struct {
-	httpidl.SSE
-
-	FormatPath   string            // Formatted HTTP path
-	PathParams   map[string]string // HTTP path parameters
-	PathSegments []pathidl.Segment // HTTP path segments
-}
-
 type GoSpec struct {
-	Meta  *httpidl.MetaInfo
-	Files map[string]httpidl.Document
-	Funcs map[string]httpidl.ValidateFunc
-
+	Meta   *httpidl.MetaInfo
+	Files  map[string]httpidl.Document
+	Funcs  map[string]httpidl.ValidateFunc
 	Consts map[string][]Const
 	Enums  map[string][]Enum
 	Types  map[string][]Type
-
-	RPCs []RPC
-	SSEs []SSE
+	RPCs   []RPC
 }
 
 // Convert converts an IDL project to Go code.
@@ -170,22 +158,6 @@ func Convert(dir string) (GoSpec, error) {
 	}
 	sort.Slice(spec.RPCs, func(i, j int) bool {
 		return spec.RPCs[i].Name < spec.RPCs[j].Name
-	})
-
-	// Collect all SSE definitions
-	for _, doc := range project.Files {
-		for _, r := range doc.SSEs {
-			sse := SSE{
-				SSE:          r,
-				FormatPath:   r.Path, // 假设是普通路径
-				PathParams:   r.PathParams,
-				PathSegments: r.PathSegments,
-			}
-			spec.SSEs = append(spec.SSEs, sse)
-		}
-	}
-	sort.Slice(spec.SSEs, func(i, j int) bool {
-		return spec.SSEs[i].Name < spec.SSEs[j].Name
 	})
 
 	for fileName, doc := range project.Files {
@@ -222,24 +194,6 @@ func Convert(dir string) (GoSpec, error) {
 		}
 		rpc.FormatPath = formatPath.String()
 		spec.RPCs[i] = rpc
-	}
-
-	// SSEs
-	for i, sse := range spec.SSEs {
-		for k, s := range sse.PathParams {
-			sse.PathParams[k] = httpidl.ToPascal(s)
-		}
-		var formatPath strings.Builder
-		for _, seg := range sse.PathSegments {
-			formatPath.WriteString("/")
-			if seg.Type == pathidl.Static {
-				formatPath.WriteString(seg.Value)
-				continue
-			}
-			formatPath.WriteString("%v")
-		}
-		sse.FormatPath = formatPath.String()
-		spec.SSEs[i] = sse
 	}
 
 	return spec, nil

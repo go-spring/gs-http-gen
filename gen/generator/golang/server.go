@@ -113,7 +113,6 @@ func (g *Generator) genServer(config *generator.Config, spec GoSpec) error {
 		"Package": config.GoPackage,
 		"Service": spec.Meta.Name,
 		"RPCs":    spec.RPCs,
-		"SSEs":    spec.SSEs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)
