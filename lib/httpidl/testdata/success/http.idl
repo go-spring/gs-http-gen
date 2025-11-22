@@ -67,8 +67,8 @@ rpc GetUser (UserReq) UserResp {
     readTimeout=100
     writeTimeout=100
 
-    // others
-    go.type="*string"
+    // response type
+    resp.go.type="*string"
 }
 
 // ---- type re-definition ----

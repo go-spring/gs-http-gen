@@ -897,9 +897,6 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		}
 		l.Document.UserTypes[r.Response] = struct{}{}
 	} else {
-		if !sse {
-			panic(errutil.Explain(nil, "RPC response type cannot be string in rpc mode in line %d", r.Position.Start))
-		}
 		r.Response = "string"
 	}
 

@@ -1020,7 +1020,7 @@
           }
         },
         {
-          "Key": "go.type",
+          "Key": "resp.go.type",
           "Value": "\"*string\"",
           "Position": {
             "Start": 71,
@@ -1030,7 +1030,7 @@
             "Above": [
               {
                 "Text": [
-                  "// others"
+                  "// response type"
                 ],
                 "Single": true,
                 "Position": {
