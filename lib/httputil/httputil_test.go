@@ -176,7 +176,7 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	opts = append(opts, httputil.WithTarget(c.ServiceName))
 	opts = append(opts, httputil.WithPath("/v1/hello"))
 	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.JSONResponse[HelloResponse](r, opts...)
+	return httputil.JSONResponse[*HelloResponse](r, opts...)
 }
 
 func TestHello(t *testing.T) {
