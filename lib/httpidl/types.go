@@ -58,7 +58,7 @@ func (c Comments) Exists() bool {
 }
 
 // Document represents the root node of the parsed file.
-// It contains all top-level definitions such as constants, enums, types, RPCs, and SSEs.
+// It contains all top-level definitions such as constants, enums, types, and RPCs.
 // Additionally, it stores any global comments that are not attached to specific nodes.
 type Document struct {
 	Comments []Comment
@@ -72,7 +72,7 @@ type Document struct {
 	UserTypes map[string]struct{}
 }
 
-// Annotation represents metadata attached to types, fields, RPCs, or SSEs.
+// Annotation represents metadata attached to types, fields, or RPCs.
 type Annotation struct {
 	Key      string   // Annotation key
 	Value    *string  // Optional annotation value
@@ -245,7 +245,8 @@ func (t ListType) Text() string {
 
 // RPC represents a remote procedure call definition.
 type RPC struct {
-	SSE         bool         // Indicates whether this is an SSE
+	SSE bool // Indicates whether this is an SSE
+
 	Name        string       // Name of the RPC
 	Request     string       // Request type
 	Response    string       // Response type

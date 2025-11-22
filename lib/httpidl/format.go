@@ -46,9 +46,6 @@ const (
 
 	// RPC (remote procedure call) declaration
 	docItemKindRPC
-
-	// SSE (server-sent events) declaration
-	docItemKindSSE
 )
 
 // docItem represents one piece of a document (comment, const, type, etc.)
@@ -137,7 +134,7 @@ func Dump(doc Document) string {
 	lastKind := docItemKindSLComment
 	for i, item := range items {
 		switch lastKind {
-		case docItemKindEnum, docItemKindType, docItemKindRPC, docItemKindSSE:
+		case docItemKindEnum, docItemKindType, docItemKindRPC:
 			sb.WriteString("\n")
 		default:
 			if i > 0 && (lastKind != item.kind || item.kind == docItemKindMLComment) {

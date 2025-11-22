@@ -859,7 +859,13 @@ func (l *ParseTreeListener) parseValueType(ctx interface {
 func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	var err error
 
+	sse := false
+	if ctx.KW_SSE() != nil {
+		sse = true
+	}
+
 	r := RPC{
+		SSE:  sse,
 		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
 			Start: ctx.GetStart().GetLine(),
@@ -884,15 +890,21 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	l.Document.UserTypes[r.Request] = struct{}{}
 
 	// Response
-	respType := ctx.Rpc_resp().User_type()
-	r.Response = respType.IDENTIFIER().GetText()
-	if !IsPascal(r.Response) {
-		panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response, r.Position.Start))
+	if respType := ctx.Rpc_resp().User_type(); respType != nil {
+		r.Response = respType.IDENTIFIER().GetText()
+		if !IsPascal(r.Response) {
+			panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response, r.Position.Start))
+		}
+		if !strings.HasSuffix(r.Response, "Resp") {
+			panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response, r.Position.Start))
+		}
+		l.Document.UserTypes[r.Response] = struct{}{}
+	} else {
+		if !sse {
+			panic(errutil.Explain(nil, "RPC response type cannot be string in rpc mode in line %d", r.Position.Start))
+		}
+		r.Response = "string"
 	}
-	if !strings.HasSuffix(r.Response, "Resp") {
-		panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response, r.Position.Start))
-	}
-	l.Document.UserTypes[r.Response] = struct{}{}
 
 	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {
