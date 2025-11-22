@@ -287,7 +287,9 @@
       "Fields": [
         {
           "Name": "name",
-          "Type": "string",
+          "Type": {
+            "Name": "string"
+          },
           "Annotations": [
             {
               "Key": "go.type",

@@ -351,8 +351,6 @@ func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
 	}
 
 	switch typ := f.Type.(type) {
-	case httpidl.AnyType:
-		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
 	case httpidl.BinaryType:
 		return "[]byte", nil
 	case httpidl.BaseType:
