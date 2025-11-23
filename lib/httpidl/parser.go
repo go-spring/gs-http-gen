@@ -152,6 +152,7 @@ func ParseDir(dir string) (Project, error) {
 	for _, doc := range files {
 		for i := range doc.Types {
 			t := doc.Types[i]
+			t.Fields = t.IDLFields
 			if t.GenericParam != nil { // generic type, need instance
 				// do nothing ...
 			} else if t.InstType != nil { // generic type instance
@@ -549,7 +550,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 			l.parseCommonTypeField(ctf, &typeField, t)
 		}
 
-		t.Fields = append(t.Fields, typeField)
+		t.IDLFields = append(t.IDLFields, typeField)
 	}
 }
 
@@ -588,7 +589,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 	}
 
 	e := Enum{Name: o.Name + "Type", OneOf: true}
-	o.Fields = append(o.Fields, TypeField{
+	o.IDLFields = append(o.IDLFields, TypeField{
 		Type:     UserType{Name: e.Name},
 		Name:     "FieldType",
 		Required: true,
@@ -633,7 +634,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 				Right: l.rightComment(f.GetStop()),
 			},
 		}
-		o.Fields = append(o.Fields, typeField)
+		o.IDLFields = append(o.IDLFields, typeField)
 	}
 
 	l.Document.EnumTypes[e.Name] = len(l.Document.EnumTypes)

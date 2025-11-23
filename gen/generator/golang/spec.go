@@ -200,7 +200,6 @@ func Convert(dir string) (GoSpec, error) {
 		if err != nil {
 			return GoSpec{}, errutil.Explain(nil, "convert types error: %w", err)
 		}
-		//types = splitRequestTypes(types)
 		spec.Consts[fileName] = consts
 		spec.Enums[fileName] = enums
 		spec.Types[fileName] = types
@@ -224,46 +223,6 @@ func Convert(dir string) (GoSpec, error) {
 	}
 
 	return spec, nil
-}
-
-// splitRequestTypes splits request types into whole types and body types.
-func splitRequestTypes(types []Type) []Type {
-	var result []Type
-	for _, t := range types {
-		if t.Request {
-			req, body := splitRequestType(t)
-			result = append(result, req, body)
-		} else {
-			result = append(result, t)
-		}
-	}
-	return result
-}
-
-// splitRequestType splits a type into a whole type and a body type.
-func splitRequestType(t Type) (req Type, body Type) {
-	req = Type{
-		Type:      t.Type,
-		Name:      t.Name,
-		Request:   true,
-		OnRequest: true,
-	}
-
-	body = Type{
-		Name:      t.Name + "Body",
-		ReqBody:   true,
-		OnRequest: true,
-		OnForm:    t.OnForm,
-	}
-
-	for _, field := range t.Fields {
-		if field.Binding != nil {
-			req.Fields = append(req.Fields, field)
-		} else {
-			body.Fields = append(body.Fields, field)
-		}
-	}
-	return
 }
 
 // convertConsts converts IDL constants to Go constants

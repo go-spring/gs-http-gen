@@ -135,6 +135,7 @@ type Type struct {
 	OneOf        bool        // Indicates whether this type is a oneof
 	InstType     *InstType   // Represents a type alias (e.g., type A B<T>)
 	GenericParam *string     // Optional generic type parameter (if present)
+	IDLFields    []TypeField // IDL fields
 	Fields       []TypeField // Type fields
 	Position     Position    // Location in source code
 	Comments     Comments    // Associated comments
