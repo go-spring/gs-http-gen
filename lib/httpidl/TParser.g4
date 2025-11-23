@@ -83,7 +83,7 @@ common_field_type
     : base_type
     | user_type
     | container_type
-    | TYPE_BINARY
+    | TYPE_BYTES
     ;
 
 // --------------------

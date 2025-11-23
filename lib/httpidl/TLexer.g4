@@ -26,7 +26,7 @@ TYPE_BOOL   : 'bool';
 TYPE_INT    : 'int';
 TYPE_FLOAT  : 'float';
 TYPE_STRING : 'string';
-TYPE_BINARY : 'binary';
+TYPE_BYTES  : 'bytes';
 
 // --------------------
 // Container types
