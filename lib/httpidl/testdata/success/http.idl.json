@@ -225,7 +225,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "IDLFields": [
         {
           "Name": "userId",
           "Type": {
@@ -254,6 +254,7 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
         "Start": 22,
         "Stop": 24
@@ -284,7 +285,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "IDLFields": [
         {
           "Name": "name",
           "Type": {
@@ -489,6 +490,7 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
         "Start": 31,
         "Stop": 38
@@ -541,7 +543,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "IDLFields": [
         {
           "Name": "street",
           "Type": {
@@ -624,6 +626,7 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
         "Start": 40,
         "Stop": 44
@@ -643,7 +646,7 @@
       "OneOf": true,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "IDLFields": [
         {
           "Name": "FieldType",
           "Type": {
@@ -739,6 +742,7 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
         "Start": 46,
         "Stop": 49
@@ -758,7 +762,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": "T",
-      "Fields": [
+      "IDLFields": [
         {
           "Name": "errno",
           "Type": {
@@ -854,6 +858,7 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
         "Start": 52,
         "Stop": 56
@@ -891,6 +896,7 @@
         }
       },
       "GenericParam": null,
+      "IDLFields": null,
       "Fields": null,
       "Position": {
         "Start": 75,
