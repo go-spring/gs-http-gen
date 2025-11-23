@@ -12,7 +12,7 @@ type AssistantResp {
     string id
     string data
     Payload payload
-    binary image
+    bytes image
 }
 
 oneof Payload {

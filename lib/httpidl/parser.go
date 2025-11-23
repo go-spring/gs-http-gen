@@ -798,8 +798,8 @@ func collectValidateFuncs(fieldType string, expr validate.Expr, funcs map[string
 
 // parseCommonFieldType distinguishes between built-in, user-defined, or container types.
 func (l *ParseTreeListener) parseCommonFieldType(ctx ICommon_field_typeContext, t *Type) TypeDefinition {
-	if ctx.TYPE_BINARY() != nil {
-		return BinaryType{}
+	if ctx.TYPE_BYTES() != nil {
+		return BytesType{}
 	}
 	return l.parseValueType(ctx, t)
 }
@@ -1008,7 +1008,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 // isTerminatorToken returns true if the given token is considered a statement terminator.
 // In this parser, a newline or semicolon marks the end of a statement.
 func isTerminatorToken(t antlr.Token) bool {
-	return t.GetTokenType() == TLexerNEWLINE || t.GetTokenType() == TLexerSEMICOLON
+	return t.GetTokenType() == TLexerNEWLINE
 }
 
 // previousTokenOnChannel finds the index of the previous token that is on the default channel.

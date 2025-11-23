@@ -201,15 +201,15 @@ func (t UserType) Text() string {
 	return t.Name
 }
 
-// BinaryType represents the "binary" type (raw bytes).
-type BinaryType struct{}
+// BytesType represents the "bytes" type (raw bytes).
+type BytesType struct{}
 
-func (t BinaryType) Text() string {
-	return "binary"
+func (t BytesType) Text() string {
+	return "bytes"
 }
 
-// MarshalText implements encoding.TextMarshaler for BinaryType.
-func (t BinaryType) MarshalText() (text []byte, err error) {
+// MarshalText implements encoding.TextMarshaler for BytesType.
+func (t BytesType) MarshalText() (text []byte, err error) {
 	return []byte(t.Text()), nil
 }
 

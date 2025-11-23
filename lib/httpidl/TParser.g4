@@ -80,10 +80,7 @@ common_type_field
 
 // Field type options
 common_field_type
-    : base_type
-    | user_type
-    | container_type
-    | TYPE_BYTES
+    : base_type | user_type | container_type | TYPE_BYTES
     ;
 
 // --------------------

@@ -337,7 +337,7 @@ func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
 	}
 
 	switch typ := f.Type.(type) {
-	case httpidl.BinaryType:
+	case httpidl.BytesType:
 		return "[]byte", nil
 	case httpidl.BaseType:
 		s, err := goBaseType(typ.Name)
