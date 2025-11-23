@@ -75,12 +75,7 @@ embed_type_field
 
 // Common field: type + name + optional annotations
 common_type_field
-    : (KW_REQUIRED|KW_OPTIONAL)? common_field_type IDENTIFIER type_annotations?
-    ;
-
-// Field type options
-common_field_type
-    : base_type | user_type | container_type | TYPE_BYTES
+    : (KW_REQUIRED|KW_OPTIONAL)? value_type IDENTIFIER type_annotations?
     ;
 
 // --------------------
@@ -174,7 +169,7 @@ list_type
 
 // Allowed list/map value types
 value_type
-    : base_type | user_type | container_type
+    : base_type | user_type | container_type | TYPE_BYTES
     ;
 
 // --------------------

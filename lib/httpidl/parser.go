@@ -646,7 +646,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 
 // parseCommonTypeField parses a regular field (not embedded) inside a type or oneof.
 func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, typeField *TypeField, t *Type) {
-	typeField.Type = l.parseCommonFieldType(f.Common_field_type(), t)
+	typeField.Type = l.parseValueType(f.Value_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
 	typeField.Required = f.KW_REQUIRED() != nil
 
@@ -796,23 +796,13 @@ func collectValidateFuncs(fieldType string, expr validate.Expr, funcs map[string
 	}
 }
 
-// parseCommonFieldType distinguishes between built-in, user-defined, or container types.
-func (l *ParseTreeListener) parseCommonFieldType(ctx ICommon_field_typeContext, t *Type) TypeDefinition {
+// parseValueType resolves value types inside container types.
+func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) TypeDefinition {
+
+	// Built-in bytes type
 	if ctx.TYPE_BYTES() != nil {
 		return BytesType{}
 	}
-	return l.parseValueType(ctx, t)
-}
-
-// parseValueType resolves value types inside container types.
-func (l *ParseTreeListener) parseValueType(ctx interface {
-	GetText() string
-	GetStart() antlr.Token
-	GetStop() antlr.Token
-	Base_type() IBase_typeContext
-	User_type() IUser_typeContext
-	Container_type() IContainer_typeContext
-}, t *Type) TypeDefinition {
 
 	// Built-in primitive type
 	if b := ctx.Base_type(); b != nil {
