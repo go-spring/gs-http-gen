@@ -45,7 +45,6 @@ LEFT_BRACE   : '{';
 RIGHT_BRACE  : '}';
 EQUAL        : '=';
 COMMA        : ',';
-SEMICOLON    : ';' ;
 
 // --------------------
 // String literal
