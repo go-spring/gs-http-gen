@@ -87,6 +87,15 @@ func (t *Type) FieldCount() int {
 	return len(t.Fields)
 }
 
+func (t *Type) BodyCount() bool {
+	for _, f := range t.Fields {
+		if f.Binding == nil {
+			return true
+		}
+	}
+	return false
+}
+
 // BindingCount returns the number of fields in the struct that have binding info
 func (t *Type) BindingCount() int {
 	var count int
@@ -191,7 +200,7 @@ func Convert(dir string) (GoSpec, error) {
 		if err != nil {
 			return GoSpec{}, errutil.Explain(nil, "convert types error: %w", err)
 		}
-		types = splitRequestTypes(types)
+		//types = splitRequestTypes(types)
 		spec.Consts[fileName] = consts
 		spec.Enums[fileName] = enums
 		spec.Types[fileName] = types

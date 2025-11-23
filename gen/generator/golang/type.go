@@ -414,10 +414,12 @@ var _ = strconv.FormatInt
 			{{$s.Name}}Body
 		{{- end}}
 		{{- range $f := $s.Fields}}
-			{{- if $f.Comments.Exists }}
-				{{formatComments $f.Comments}}
+			{{- if or $f.Binding (not $s.Request) }}
+				{{- if $f.Comments.Exists }}
+					{{formatComments $f.Comments}}
+				{{- end}}
+				{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 			{{- end}}
-			{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 		{{- end}}
 	}
 
@@ -463,57 +465,23 @@ var _ = strconv.FormatInt
 		}
 	{{end}}
 
-	{{if $s.OnForm}}
-		// EncodeForm encodes the object to form data.
-		func (x *{{$s.Name}}) EncodeForm() (string, error) {
-			{{- if $s.FieldCount}}
-				m := make(url.Values)
-				{{- range $f := $s.Fields}}
-					{{$fieldName := printf "x.%s" $f.Name}}
-					{{- encodeFormValue $fieldName $f.TypeKind $f.FormTag.Name}}
-				{{- end}}
-				return m.Encode(), nil
-			{{- else}}
-				return "", nil
-			{{- end}}
-		}
-
-		// DecodeForm decodes the object from form data.
-		func (x *{{$s.Name}}) DecodeForm(b []byte) error {
-			{{- if $s.FieldCount}}
-				values, err := url.ParseQuery(string(b))
-				if err != nil {
-					return errutil.Explain(err, "parse query error")
-				}
-				if len(values) == 0 {
-					return nil
-				}
-				{{- range $f := $s.Fields}}
-					{{$fieldName := printf "x.%s" $f.Name}}
-					{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.FormTag.Name}}
-				{{- end}}
-				return err
-			{{- else}}
-				return nil
-			{{- end}}
-		}
-	{{end}}
-
 	{{if $s.OnRequest}}
 		// Validate checks field values using generated validation expressions.
 		func (x *{{$s.Name}}) Validate() (err error) {
 			{{- range $f := $s.Fields}}
-				{{- if $f.Required}}
-					if x.{{$f.Name}} == nil {
-						err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
-					}
-				{{- end}}
-				{{- if $f.ValidateExpr}}
-					{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
-				{{- end}}
-				{{- if $f.ValidateNested}}
-					{{- $fieldName := printf "x.%s" $f.Name}}
-					{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
+				{{- if or $f.Binding (not $s.Request) }}
+					{{- if $f.Required}}
+						if x.{{$f.Name}} == nil {
+							err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
+						}
+					{{- end}}
+					{{- if $f.ValidateExpr}}
+						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
+					{{- end}}
+					{{- if $f.ValidateNested}}
+						{{- $fieldName := printf "x.%s" $f.Name}}
+						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
+					{{- end}}
 				{{- end}}
 			{{- end}}
 			{{- if $s.Request}}
@@ -524,6 +492,82 @@ var _ = strconv.FormatInt
 			return
 		}
 	{{end}}
+
+	{{if $s.Request}}
+		type {{$s.Name}}Body struct {
+			{{- range $f := $s.Fields}}
+				{{- if not $f.Binding}}
+					{{- if $f.Comments.Exists }}
+						{{formatComments $f.Comments}}
+					{{- end}}
+					{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
+				{{- end}}
+			{{- end}}
+		}
+	{{- end}}
+
+	{{if $s.OnForm}}
+		// EncodeForm encodes the object to form data.
+		func (x *{{$s.Name}}Body) EncodeForm() (string, error) {
+			{{- if $s.BodyCount}}
+				m := make(url.Values)
+				{{- range $f := $s.Fields}}
+					{{- if not $f.Binding}}
+						{{$fieldName := printf "x.%s" $f.Name}}
+						{{- encodeFormValue $fieldName $f.TypeKind $f.FormTag.Name}}
+					{{- end}}
+				{{- end}}
+				return m.Encode(), nil
+			{{- else}}
+				return "", nil
+			{{- end}}
+		}
+
+		// DecodeForm decodes the object from form data.
+		func (x *{{$s.Name}}Body) DecodeForm(b []byte) error {
+			{{- if $s.BodyCount}}
+				values, err := url.ParseQuery(string(b))
+				if err != nil {
+					return errutil.Explain(err, "parse query error")
+				}
+				if len(values) == 0 {
+					return nil
+				}
+				{{- range $f := $s.Fields}}
+					{{- if not $f.Binding}}
+						{{$fieldName := printf "x.%s" $f.Name}}
+						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.FormTag.Name}}
+					{{- end}}
+				{{- end}}
+				return err
+			{{- else}}
+				return nil
+			{{- end}}
+		}
+	{{end}}
+
+	{{if $s.Request}}
+		// Validate checks field values using generated validation expressions.
+		func (x *{{$s.Name}}Body) Validate() (err error) {
+			{{- range $f := $s.Fields}}
+				{{- if not $f.Binding}}
+					{{- if $f.Required}}
+						if x.{{$f.Name}} == nil {
+							err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
+						}
+					{{- end}}
+					{{- if $f.ValidateExpr}}
+						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
+					{{- end}}
+					{{- if $f.ValidateNested}}
+						{{- $fieldName := printf "x.%s" $f.Name}}
+						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
+					{{- end}}
+				{{- end}}
+			{{- end}}
+			return
+		}
+	{{- end}}
 
 {{end}}
 `))
