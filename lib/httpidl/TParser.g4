@@ -75,7 +75,7 @@ embed_type_field
 
 // Common field: type + name + optional annotations
 common_type_field
-    : KW_REQUIRED? common_field_type IDENTIFIER type_annotations?
+    : (KW_REQUIRED|KW_OPTIONAL)? common_field_type IDENTIFIER type_annotations?
     ;
 
 // Field type options

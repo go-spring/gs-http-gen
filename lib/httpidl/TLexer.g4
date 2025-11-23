@@ -17,6 +17,7 @@ KW_RPC      : 'rpc';
 KW_SSE      : 'sse';
 KW_TRUE     : 'true';
 KW_FALSE    : 'false';
+KW_OPTIONAL : 'optional';
 KW_REQUIRED : 'required';
 
 // --------------------
