@@ -43,7 +43,7 @@ enum_def
 
 // Enum field: name = integer
 enum_field
-    : IDENTIFIER EQUAL INTEGER
+    : IDENTIFIER EQUAL INTEGER field_annotations?
     ;
 
 // --------------------
@@ -54,7 +54,7 @@ enum_field
 //   string field = "1" (go.type="string")
 // }
 // Example 2:
-// type Alias Map<string,User>
+// type UserResp Response<User>
 // --------------------
 type_def
     // Structured type with optional generic parameter
@@ -75,7 +75,7 @@ embed_type_field
 
 // Common field: type + name + optional annotations
 common_type_field
-    : (KW_REQUIRED|KW_OPTIONAL)? value_type IDENTIFIER type_annotations?
+    : (KW_REQUIRED | KW_OPTIONAL)? value_type IDENTIFIER field_annotations?
     ;
 
 // --------------------
@@ -86,7 +86,7 @@ common_type_field
 //     db.index=true
 // )
 // --------------------
-type_annotations
+field_annotations
     : LEFT_PAREN terminator? annotation ((COMMA|terminator) annotation)* terminator? RIGHT_PAREN
     ;
 
