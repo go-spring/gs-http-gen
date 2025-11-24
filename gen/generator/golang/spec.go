@@ -158,11 +158,6 @@ func Convert(dir string) (GoSpec, error) {
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
 			var response string
-			if r.Response == "string" {
-				response = "string"
-			} else {
-				response = "*" + r.Response
-			}
 			if a, ok := httpidl.GetAnnotation(r.Annotations, "resp.go.type"); ok {
 				if a.Value == nil {
 					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must have a value`)
@@ -172,6 +167,25 @@ func Convert(dir string) (GoSpec, error) {
 					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must not be empty`)
 				}
 				response = s
+			} else {
+				switch typ := r.Response.(type) {
+				case httpidl.BytesType:
+					response = "[]byte"
+				case httpidl.BaseType:
+					if response, err = goBaseType(typ.Name); err != nil {
+						return GoSpec{}, err
+					}
+				case httpidl.UserType:
+					if _, ok = httpidl.GetEnum(spec.Files, typ.Name); ok {
+						response = typ.Name
+					} else {
+						response = "*" + typ.Name
+					}
+				default:
+					if response, err = goTypeDef(spec, typ); err != nil {
+						return GoSpec{}, err
+					}
+				}
 			}
 			rpc := RPC{
 				RPC:          r,

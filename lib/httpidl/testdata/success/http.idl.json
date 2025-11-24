@@ -929,7 +929,9 @@
       "SSE": false,
       "Name": "GetUser",
       "Request": "UserReq",
-      "Response": "UserResp",
+      "Response": {
+        "Name": "UserResp"
+      },
       "Annotations": [
         {
           "Key": "path",

@@ -118,7 +118,7 @@ rpc_req
 
 // RPC response type: a user-defined type
 rpc_resp
-    : user_type | TYPE_STRING
+    : value_type
     ;
 
 // RPC annotations (inside { ... })

@@ -236,12 +236,12 @@ func (t ListType) Text() string {
 type RPC struct {
 	SSE bool // Indicates whether this is an SSE
 
-	Name        string       // Name of the RPC
-	Request     string       // Request type
-	Response    string       // Response type
-	Annotations []Annotation // Metadata attached to the RPC
-	Position    Position     // Location in source code
-	Comments    Comments     // Associated comments
+	Name        string         // Name of the RPC
+	Request     string         // Request type
+	Response    TypeDefinition // Response type
+	Annotations []Annotation   // Metadata attached to the RPC
+	Position    Position       // Location in source code
+	Comments    Comments       // Associated comments
 
 	Path        string // HTTP path
 	Method      string // HTTP method (GET, POST, etc.)

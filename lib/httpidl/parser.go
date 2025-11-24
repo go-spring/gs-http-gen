@@ -816,7 +816,7 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 		typ := UserType{
 			Name: u.IDENTIFIER().GetText(),
 		}
-		if t.GenericParam == nil || typ.Name != *t.GenericParam {
+		if t == nil || t.GenericParam == nil || typ.Name != *t.GenericParam {
 			l.Document.UserTypes[typ.Name] = struct{}{}
 		}
 		return typ
@@ -869,27 +869,10 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 
 	// Request
 	r.Request = ctx.Rpc_req().User_type().IDENTIFIER().GetText()
-	if !IsPascal(r.Request) {
-		panic(errutil.Explain(nil, "RPC request type %s is not PascalCase in line %d", r.Request, r.Position.Start))
-	}
-	if !strings.HasSuffix(r.Request, "Req") {
-		panic(errutil.Explain(nil, "RPC request type %s does not end with \"Req\" in line %d", r.Request, r.Position.Start))
-	}
 	l.Document.UserTypes[r.Request] = struct{}{}
 
 	// Response
-	if respType := ctx.Rpc_resp().User_type(); respType != nil {
-		r.Response = respType.IDENTIFIER().GetText()
-		if !IsPascal(r.Response) {
-			panic(errutil.Explain(nil, "RPC response type %s is not PascalCase in line %d", r.Response, r.Position.Start))
-		}
-		if !strings.HasSuffix(r.Response, "Resp") {
-			panic(errutil.Explain(nil, "RPC response type %s does not end with \"Resp\" in line %d", r.Response, r.Position.Start))
-		}
-		l.Document.UserTypes[r.Response] = struct{}{}
-	} else {
-		r.Response = "string"
-	}
+	r.Response = l.parseValueType(ctx.Rpc_resp().Value_type(), nil)
 
 	// Annotations
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {

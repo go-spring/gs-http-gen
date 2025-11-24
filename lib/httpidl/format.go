@@ -323,7 +323,7 @@ func dumpRPC(r RPC) string {
 	sb.WriteString("(")
 	sb.WriteString(r.Request)
 	sb.WriteString(") ")
-	sb.WriteString(r.Response)
+	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
 
 	for _, a := range r.Annotations {
