@@ -34,8 +34,8 @@ type TParserListener interface {
 	// EnterCommon_type_field is called when entering the common_type_field production.
 	EnterCommon_type_field(c *Common_type_fieldContext)
 
-	// EnterType_annotations is called when entering the type_annotations production.
-	EnterType_annotations(c *Type_annotationsContext)
+	// EnterField_annotations is called when entering the field_annotations production.
+	EnterField_annotations(c *Field_annotationsContext)
 
 	// EnterOneof_def is called when entering the oneof_def production.
 	EnterOneof_def(c *Oneof_defContext)
@@ -109,8 +109,8 @@ type TParserListener interface {
 	// ExitCommon_type_field is called when exiting the common_type_field production.
 	ExitCommon_type_field(c *Common_type_fieldContext)
 
-	// ExitType_annotations is called when exiting the type_annotations production.
-	ExitType_annotations(c *Type_annotationsContext)
+	// ExitField_annotations is called when exiting the field_annotations production.
+	ExitField_annotations(c *Field_annotationsContext)
 
 	// ExitOneof_def is called when exiting the oneof_def production.
 	ExitOneof_def(c *Oneof_defContext)

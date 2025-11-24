@@ -74,11 +74,11 @@ func (s *BaseTParserListener) EnterCommon_type_field(ctx *Common_type_fieldConte
 // ExitCommon_type_field is called when production common_type_field is exited.
 func (s *BaseTParserListener) ExitCommon_type_field(ctx *Common_type_fieldContext) {}
 
-// EnterType_annotations is called when production type_annotations is entered.
-func (s *BaseTParserListener) EnterType_annotations(ctx *Type_annotationsContext) {}
+// EnterField_annotations is called when production field_annotations is entered.
+func (s *BaseTParserListener) EnterField_annotations(ctx *Field_annotationsContext) {}
 
-// ExitType_annotations is called when production type_annotations is exited.
-func (s *BaseTParserListener) ExitType_annotations(ctx *Type_annotationsContext) {}
+// ExitField_annotations is called when production field_annotations is exited.
+func (s *BaseTParserListener) ExitField_annotations(ctx *Field_annotationsContext) {}
 
 // EnterOneof_def is called when production oneof_def is entered.
 func (s *BaseTParserListener) EnterOneof_def(ctx *Oneof_defContext) {}

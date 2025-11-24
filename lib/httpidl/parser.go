@@ -651,8 +651,8 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Required = f.KW_REQUIRED() != nil
 
 	// Annotations
-	if f.Type_annotations() != nil {
-		for _, aCtx := range f.Type_annotations().AllAnnotation() {
+	if f.Field_annotations() != nil {
+		for _, aCtx := range f.Field_annotations().AllAnnotation() {
 			a := Annotation{
 				Key: aCtx.IDENTIFIER().GetText(),
 				Position: Position{
