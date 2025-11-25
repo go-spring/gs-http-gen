@@ -100,10 +100,12 @@ type Enum struct {
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
-	Name     string   // Name of the enum field
-	Value    int64    // Integer value assigned to the enum field
-	Position Position // Location in source code
-	Comments Comments // Associated comments
+	Name        string       // Name of the enum field
+	Value       int64        // Integer value assigned to the enum field
+	ErrMsg      *string      // Error message only for error code
+	Annotations []Annotation // Additional metadata (key-value pairs)
+	Position    Position     // Location in source code
+	Comments    Comments     // Associated comments
 }
 
 // TypeDefinition is the interface implemented by all type representations.

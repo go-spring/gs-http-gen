@@ -467,7 +467,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 			panic(errutil.Explain(nil, "enum field value %s is not a valid integer in line %d", fieldValue, f.GetStart().GetLine()))
 		}
 
-		e.Fields = append(e.Fields, EnumField{
+		enumField := EnumField{
 			Name:  fieldName,
 			Value: v,
 			Position: Position{
@@ -478,7 +478,36 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
-		})
+		}
+
+		// Annotations
+		if f.Field_annotations() != nil {
+			for _, aCtx := range f.Field_annotations().AllAnnotation() {
+				a := Annotation{
+					Key: aCtx.IDENTIFIER().GetText(),
+					Position: Position{
+						Start: aCtx.GetStart().GetLine(),
+						Stop:  aCtx.GetStop().GetLine(),
+					},
+				}
+				if aCtx.Const_value() != nil {
+					s := aCtx.Const_value().GetText()
+					a.Value = &s
+				}
+				enumField.Annotations = append(enumField.Annotations, a)
+			}
+		}
+
+		// Error message
+		if errmsg, ok := GetAnnotation(enumField.Annotations, "errmsg"); ok {
+			if errmsg.Value == nil {
+				panic(errutil.Explain(nil, `annotation "errmsg" value is nil in enum %s field %s`, e.Name, fieldName))
+			}
+			s := strings.Trim(*errmsg.Value, `"`)
+			enumField.ErrMsg = &s
+		}
+
+		e.Fields = append(e.Fields, enumField)
 	}
 
 	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)

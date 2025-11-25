@@ -231,6 +231,23 @@ func dumpEnum(e Enum) string {
 		sb.WriteString(" = ")
 		sb.WriteString(strconv.FormatInt(f.Value, 10))
 
+		// Annotations
+		if len(f.Annotations) > 0 {
+			sb.WriteString(" (")
+			for i, a := range f.Annotations {
+				if i > 0 {
+					sb.WriteString(",")
+				}
+				sb.WriteString(" ")
+				sb.WriteString(a.Key)
+				if a.Value != nil {
+					sb.WriteString("=")
+					sb.WriteString(*a.Value)
+				}
+			}
+			sb.WriteString(" )")
+		}
+
 		dumpRightComment(f.Comments.Right, &sb, indent)
 	}
 

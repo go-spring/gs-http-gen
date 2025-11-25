@@ -138,6 +138,21 @@
         {
           "Name": "ErrOk",
           "Value": 0,
+          "ErrMsg": "success",
+          "Annotations": [
+            {
+              "Key": "errmsg",
+              "Value": "\"success\"",
+              "Position": {
+                "Start": 17,
+                "Stop": 17
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "Start": 17,
             "Stop": 17
@@ -150,6 +165,21 @@
         {
           "Name": "PARAM_ERROR",
           "Value": 1003,
+          "ErrMsg": "param error",
+          "Annotations": [
+            {
+              "Key": "errmsg",
+              "Value": "\"param error\"",
+              "Position": {
+                "Start": 18,
+                "Stop": 18
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "Start": 18,
             "Stop": 18
@@ -187,6 +217,8 @@
         {
           "Name": "User",
           "Value": 0,
+          "ErrMsg": null,
+          "Annotations": null,
           "Position": {
             "Start": 0,
             "Stop": 0
@@ -199,6 +231,8 @@
         {
           "Name": "Address",
           "Value": 1,
+          "ErrMsg": null,
+          "Annotations": null,
           "Position": {
             "Start": 0,
             "Stop": 0
