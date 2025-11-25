@@ -63,6 +63,13 @@ var (
 		"PERMISSION_DENIED": 4003,
 		"INTERNAL_ERROR":    5000,
 	}
+	ErrCode_message = map[ErrCode]string{
+		0:    "ERR_OK",
+		1003: "param error",
+		4004: "NOT_FOUND",
+		4003: "PERMISSION_DENIED",
+		5000: "INTERNAL_ERROR",
+	}
 )
 
 // OneOfErrCode is usually used for validation.

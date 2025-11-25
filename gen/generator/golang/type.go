@@ -369,6 +369,17 @@ var _ = strconv.FormatInt
 				"{{$f.Name}}" : {{$f.Value}},
 			{{- end}}
 		}
+		{{- if eq $e.Name "ErrCode"}}
+			{{$e.Name}}_message = map[{{$e.Name}}]string{
+				{{- range $f := $e.Fields}}
+					{{- if $f.ErrMsg}}
+						{{$f.Value}} : "{{$f.ErrMsg}}",
+					{{- else}}
+						{{$f.Value}} : "{{$f.Name}}",
+					{{- end}}
+				{{- end}}
+			}
+		{{- end}}
 	)
 
 	// OneOf{{$e.Name}} is usually used for validation.

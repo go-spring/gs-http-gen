@@ -14,7 +14,7 @@ const string DEFAULT_NAME = "guest" /*
 
 // ---- Enum definition ----
 enum ErrCode {
-    ErrOk = 0 ( errmsg="success" )
+    ErrOk = 0
     PARAM_ERROR = 1003 ( errmsg="param error" )
 }
 
