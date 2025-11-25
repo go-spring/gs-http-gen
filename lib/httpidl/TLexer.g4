@@ -49,7 +49,8 @@ COMMA        : ',';
 
 // --------------------
 // String literal
-// Supports escape sequences (e.g., \" for quote, \\ for backslash)
+// A double-quoted string supporting escape sequences.
+// Examples: "hello", "escaped \" quote".
 // --------------------
 STRING
     : '"' ( '\\' . | ~["\\] )* '"'
@@ -57,7 +58,8 @@ STRING
 
 // --------------------
 // Identifier
-// Starts with a letter, followed by letters, digits, underscores, or dots
+// Begins with a letter; may contain letters, digits, underscores,
+// or dots (supporting namespaced identifiers).
 // --------------------
 IDENTIFIER
     : LETTER (LETTER | DIGIT | '.' | '_')*
@@ -65,7 +67,8 @@ IDENTIFIER
 
 // --------------------
 // Integer literal
-// Decimal integer with optional sign (+/-) or hexadecimal integer prefixed with 0x.
+// Supports decimal (optionally signed) and hexadecimal forms.
+// Examples: 42, -17, +8, 0x1A2B.
 // --------------------
 INTEGER
     : ('+' | '-')? DIGIT+ | '0x' HEX_DIGIT+
@@ -73,7 +76,8 @@ INTEGER
 
 // --------------------
 // Floating-point number
-// Supports decimals and scientific notation (e.g., 1.23e+10)
+// Supports integer+fraction parts and scientific notation.
+// Examples: 1.23, .5, 10., -3.14e+10.
 // --------------------
 FLOAT
     : ('+' | '-')? ( DIGIT+ ('.' DIGIT+)? | '.' DIGIT+ ) (('E' | 'e') ('+'|'-')? DIGIT+ )?
@@ -102,7 +106,7 @@ WHITESPACE
 
 // --------------------
 // Single-line comments
-// Supports both // and # styles
+// Supports '//' and '#' styles.
 // --------------------
 SINGLE_LINE_COMMENT
     : ('//' | '#') ~[\r\n]* -> channel(SL_COMMENT_CHAN)
@@ -110,7 +114,7 @@ SINGLE_LINE_COMMENT
 
 // --------------------
 // Multi-line comments
-// Supports /* ... */ with non-greedy matching
+// Supports C-style block comments using non-greedy matching.
 // --------------------
 MULTI_LINE_COMMENT
     : '/*' .*? '*/' -> channel(ML_COMMENT_CHAN)
