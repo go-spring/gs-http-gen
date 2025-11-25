@@ -23,9 +23,11 @@ import (
 
 // MetaInfo represents metadata about the parsed document.
 type MetaInfo struct {
-	Name    string         `json:"name"`
-	Version string         `json:"version"`
-	Config  map[string]any `json:"config"`
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Version     string         `json:"version"`
+	Import      []string       `json:"import"`
+	Config      map[string]any `json:"config"`
 }
 
 // Position represents the start and stop line numbers of a parsed element.
