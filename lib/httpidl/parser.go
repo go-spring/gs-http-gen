@@ -527,6 +527,69 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 	l.Document.Types = append(l.Document.Types, t)
 }
 
+// parseValueType resolves value types inside container types.
+func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) TypeDefinition {
+
+	// Built-in bytes type
+	if ctx.TYPE_BYTES() != nil {
+		return BytesType{}
+	}
+
+	// Built-in primitive type
+	if b := ctx.Base_type(); b != nil {
+		return BaseType{
+			Name: b.GetText(),
+		}
+	}
+
+	// Reference to a user-defined type
+	if u := ctx.User_type(); u != nil {
+		typ := UserType{
+			Name: u.IDENTIFIER().GetText(),
+		}
+		if t == nil || t.GenericParam == nil || typ.Name != *t.GenericParam {
+			l.Document.UserTypes[typ.Name] = struct{}{}
+		}
+		return typ
+	}
+
+	// Container types (map / list)
+	if c := ctx.Container_type(); c != nil {
+		if c.Map_type() != nil {
+			kt := c.Map_type().Key_type().GetText()
+			vt := l.parseValueType(c.Map_type().Value_type(), t)
+			return MapType{
+				Key:   kt,
+				Value: vt,
+			}
+		} else if c.List_type() != nil {
+			vt := l.parseValueType(c.List_type().Value_type(), t)
+			return ListType{
+				Item: vt,
+			}
+		}
+	}
+
+	panic(errutil.Explain(nil, "invalid type %s in line %d", ctx.GetText(), ctx.GetStart().GetLine()))
+}
+
+// parseInstantiatedType handles instantiated types, including generic types.
+func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
+	t.InstType = &InstType{
+		BaseName: ctx.IDENTIFIER(1).GetText(),
+	}
+	if !IsPascal(t.InstType.BaseName) {
+		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
+	}
+
+	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
+	if t.InstType.GenericType != nil {
+		return
+	}
+
+	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.BaseName, t.Position.StartLine))
+}
+
 // parseCompleteType handles a "struct-like" type with fields and optional generic parameter.
 func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 
@@ -691,23 +754,6 @@ func (l *ParseTreeListener) parseFieldAnnotations(ctx IField_annotationsContext)
 	return ret
 }
 
-// parseInstantiatedType handles instantiated types, including generic types.
-func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
-	t.InstType = &InstType{
-		BaseName: ctx.IDENTIFIER(1).GetText(),
-	}
-	if !IsPascal(t.InstType.BaseName) {
-		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
-	}
-
-	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
-	if t.InstType.GenericType != nil {
-		return
-	}
-
-	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.BaseName, t.Position.StartLine))
-}
-
 // ExitOneof_def handles "oneof" type definitions.
 func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 	o := Type{
@@ -814,52 +860,6 @@ func collectValidateFuncs(fieldType string, expr validate.Expr, funcs map[string
 	default:
 		panic(errutil.Explain(nil, "unexpected validate expression type %T", x))
 	}
-}
-
-// parseValueType resolves value types inside container types.
-func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) TypeDefinition {
-
-	// Built-in bytes type
-	if ctx.TYPE_BYTES() != nil {
-		return BytesType{}
-	}
-
-	// Built-in primitive type
-	if b := ctx.Base_type(); b != nil {
-		return BaseType{
-			Name: b.GetText(),
-		}
-	}
-
-	// Reference to a user-defined type
-	if u := ctx.User_type(); u != nil {
-		typ := UserType{
-			Name: u.IDENTIFIER().GetText(),
-		}
-		if t == nil || t.GenericParam == nil || typ.Name != *t.GenericParam {
-			l.Document.UserTypes[typ.Name] = struct{}{}
-		}
-		return typ
-	}
-
-	// Container types (map / list)
-	if c := ctx.Container_type(); c != nil {
-		if c.Map_type() != nil {
-			kt := c.Map_type().Key_type().GetText()
-			vt := l.parseValueType(c.Map_type().Value_type(), t)
-			return MapType{
-				Key:   kt,
-				Value: vt,
-			}
-		} else if c.List_type() != nil {
-			vt := l.parseValueType(c.List_type().Value_type(), t)
-			return ListType{
-				Item: vt,
-			}
-		}
-	}
-
-	panic(errutil.Explain(nil, "invalid type %s in line %d", ctx.GetText(), ctx.GetStart().GetLine()))
 }
 
 // ExitRpc_def handles RPC definitions, including request/response
