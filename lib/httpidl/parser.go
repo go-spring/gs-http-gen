@@ -156,9 +156,9 @@ func ParseDir(dir string) (Project, error) {
 			if t.GenericParam != nil { // generic type, need instance
 				// do nothing ...
 			} else if t.InstType != nil { // generic type instance
-				srcType, ok := GetType(files, t.InstType.Name)
+				srcType, ok := GetType(files, t.InstType.BaseName)
 				if !ok {
-					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.InstType.Name)
+					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.InstType.BaseName)
 				}
 				var fields []TypeField
 				for _, f := range srcType.Fields {
@@ -586,10 +586,10 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 // parseInstantiatedType handles instantiated types, including generic types.
 func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
 	t.InstType = &InstType{
-		Name: ctx.IDENTIFIER(1).GetText(),
+		BaseName: ctx.IDENTIFIER(1).GetText(),
 	}
-	if !IsPascal(t.InstType.Name) {
-		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.Name, t.Position.StartLine))
+	if !IsPascal(t.InstType.BaseName) {
+		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
 	}
 
 	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
@@ -597,7 +597,7 @@ func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type)
 		return
 	}
 
-	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.Name, t.Position.StartLine))
+	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.BaseName, t.Position.StartLine))
 }
 
 // ExitOneof_def handles "oneof" type definitions.

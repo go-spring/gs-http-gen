@@ -214,12 +214,12 @@ type TypeField struct {
 
 // InstType represents an instantiation of a generic type.
 type InstType struct {
-	Name        string         // Name of the generic type being instantiated
+	BaseName    string         // Name of the generic type being instantiated
 	GenericType TypeDefinition // The concrete type argument applied to the generic
 }
 
 func (t InstType) Text() string {
-	return t.Name + "<" + t.GenericType.Text() + ">"
+	return t.BaseName + "<" + t.GenericType.Text() + ">"
 }
 
 // EmbedType represents an embedded type field (similar to embedded structs in Go).
