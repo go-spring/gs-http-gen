@@ -224,11 +224,11 @@ func ParseDir(dir string) (Project, error) {
 				if f.Binding == nil || f.Binding.Source != "path" {
 					continue
 				}
-				if _, ok = params[f.Binding.Name]; !ok {
-					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Name, rpc.Request)
+				if _, ok = params[f.Binding.Field]; !ok {
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Field, rpc.Request)
 					return Project{}, err
 				}
-				params[f.Binding.Name] = f.Name
+				params[f.Binding.Field] = f.Name
 			}
 			for k, s := range params {
 				if s == "" {
@@ -763,7 +763,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			panic(errutil.Explain(nil, "annotation %s for field %s is empty in line %d", opt.Key, typeField.Name, typeField.Position.StartLine))
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
-		typeField.Binding = &Binding{Source: opt.Key, Name: s}
+		typeField.Binding = &Binding{Source: opt.Key, Field: s}
 	}
 
 	if opt, ok := GetAnnotation(typeField.Annotations, "validate"); ok {

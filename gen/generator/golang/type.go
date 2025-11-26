@@ -443,7 +443,7 @@ var _ = strconv.FormatInt
 					{{- if $f.Binding}}
 						{{- if eq $f.Binding.Source "query"}}
 							{{$fieldName := printf "x.%s" $f.Name}}
-							{{- encodeFormValue $fieldName $f.TypeKind $f.Binding.Name}}
+							{{- encodeFormValue $fieldName $f.TypeKind $f.Binding.Field}}
 						{{- end}}
 					{{- end}}
 				{{- end}}
@@ -466,7 +466,7 @@ var _ = strconv.FormatInt
 				{{- range $f := $s.Fields}}
 					{{- if and $f.Binding (eq $f.Binding.Source "query")}}
 						{{$fieldName := printf "x.%s" $f.Name}}
-						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.Binding.Name}}
+						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
 					{{- end}}
 				{{- end}}
 				return err

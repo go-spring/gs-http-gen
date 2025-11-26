@@ -132,7 +132,7 @@ type FormTag struct {
 // (e.g., from a query string or from a path segment).
 type Binding struct {
 	Source string // "path" or "query"
-	Name   string // Field name from the source
+	Field  string // Field name from the source
 }
 
 // Type represents a user-defined type. It may function like a struct,
