@@ -583,96 +583,6 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 	}
 }
 
-// parseInstantiatedType handles instantiated types, including generic types.
-func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
-	t.InstType = &InstType{
-		BaseName: ctx.IDENTIFIER(1).GetText(),
-	}
-	if !IsPascal(t.InstType.BaseName) {
-		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
-	}
-
-	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
-	if t.InstType.GenericType != nil {
-		return
-	}
-
-	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.BaseName, t.Position.StartLine))
-}
-
-// ExitOneof_def handles "oneof" type definitions.
-func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
-	o := Type{
-		Name:  ctx.IDENTIFIER().GetText(),
-		OneOf: true,
-		Position: Position{
-			StartLine: ctx.GetStart().GetLine(),
-			EndLine:   ctx.GetStop().GetLine(),
-		},
-		Comments: Comments{
-			Above: l.aboveComment(ctx.GetStart()),
-		},
-	}
-	if !IsPascal(o.Name) {
-		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.StartLine))
-	}
-
-	e := Enum{Name: o.Name + "Type", OneOf: true}
-	o.RawFields = append(o.RawFields, TypeField{
-		Type:     UserType{Name: e.Name},
-		Name:     "FieldType",
-		Required: true,
-		JSONTag: JSONTag{
-			Name: "FieldType",
-		},
-		FormTag: FormTag{
-			Name: "FieldType",
-		},
-		EnumAsString: true,
-		Annotations: []Annotation{
-			{Key: "enum_as_string"},
-		},
-	})
-
-	for i, f := range ctx.AllUser_type() {
-
-		// add enum fields
-		e.Fields = append(e.Fields, EnumField{
-			Name:  f.IDENTIFIER().GetText(),
-			Value: int64(i),
-		})
-
-		typeField := TypeField{
-			Type: UserType{
-				Name: f.IDENTIFIER().GetText(),
-			},
-			Name: f.IDENTIFIER().GetText(),
-			JSONTag: JSONTag{
-				Name:      f.IDENTIFIER().GetText(),
-				OmitEmpty: true,
-			},
-			FormTag: FormTag{
-				Name: f.IDENTIFIER().GetText(),
-			},
-			Position: Position{
-				StartLine: f.GetStart().GetLine(),
-				EndLine:   f.GetStop().GetLine(),
-			},
-			Comments: Comments{
-				Above: l.aboveComment(f.GetStart()),
-				Right: l.rightComment(f.GetStop()),
-			},
-		}
-		o.RawFields = append(o.RawFields, typeField)
-	}
-
-	l.Document.EnumTypes[e.Name] = len(l.Document.EnumTypes)
-	l.Document.Enums = append(l.Document.Enums, e)
-
-	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
-	l.Document.Types = append(l.Document.Types, o)
-}
-
 // parseCommonTypeField parses a regular field (not embedded) inside a type or oneof.
 func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, typeField *TypeField, t *Type) {
 	typeField.Type = l.parseValueType(f.Value_type(), t)
@@ -788,6 +698,96 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		typeField.ValidateExpr = expr
 		collectValidateFuncs(typeField.Type.Text(), typeField.ValidateExpr, l.Funcs)
 	}
+}
+
+// parseInstantiatedType handles instantiated types, including generic types.
+func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
+	t.InstType = &InstType{
+		BaseName: ctx.IDENTIFIER(1).GetText(),
+	}
+	if !IsPascal(t.InstType.BaseName) {
+		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
+	}
+
+	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
+	if t.InstType.GenericType != nil {
+		return
+	}
+
+	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.BaseName, t.Position.StartLine))
+}
+
+// ExitOneof_def handles "oneof" type definitions.
+func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
+	o := Type{
+		Name:  ctx.IDENTIFIER().GetText(),
+		OneOf: true,
+		Position: Position{
+			StartLine: ctx.GetStart().GetLine(),
+			EndLine:   ctx.GetStop().GetLine(),
+		},
+		Comments: Comments{
+			Above: l.aboveComment(ctx.GetStart()),
+		},
+	}
+	if !IsPascal(o.Name) {
+		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.StartLine))
+	}
+
+	e := Enum{Name: o.Name + "Type", OneOf: true}
+	o.RawFields = append(o.RawFields, TypeField{
+		Type:     UserType{Name: e.Name},
+		Name:     "FieldType",
+		Required: true,
+		JSONTag: JSONTag{
+			Name: "FieldType",
+		},
+		FormTag: FormTag{
+			Name: "FieldType",
+		},
+		EnumAsString: true,
+		Annotations: []Annotation{
+			{Key: "enum_as_string"},
+		},
+	})
+
+	for i, f := range ctx.AllUser_type() {
+
+		// add enum fields
+		e.Fields = append(e.Fields, EnumField{
+			Name:  f.IDENTIFIER().GetText(),
+			Value: int64(i),
+		})
+
+		typeField := TypeField{
+			Type: UserType{
+				Name: f.IDENTIFIER().GetText(),
+			},
+			Name: f.IDENTIFIER().GetText(),
+			JSONTag: JSONTag{
+				Name:      f.IDENTIFIER().GetText(),
+				OmitEmpty: true,
+			},
+			FormTag: FormTag{
+				Name: f.IDENTIFIER().GetText(),
+			},
+			Position: Position{
+				StartLine: f.GetStart().GetLine(),
+				EndLine:   f.GetStop().GetLine(),
+			},
+			Comments: Comments{
+				Above: l.aboveComment(f.GetStart()),
+				Right: l.rightComment(f.GetStop()),
+			},
+		}
+		o.RawFields = append(o.RawFields, typeField)
+	}
+
+	l.Document.EnumTypes[e.Name] = len(l.Document.EnumTypes)
+	l.Document.Enums = append(l.Document.Enums, e)
+
+	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
+	l.Document.Types = append(l.Document.Types, o)
 }
 
 // collectValidateFuncs collects validate functions from the given expression.
