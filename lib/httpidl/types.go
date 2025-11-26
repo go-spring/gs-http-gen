@@ -154,10 +154,13 @@ type Type struct {
 	OnForm    bool // True if representing form data
 }
 
+// FieldCount returns the number of fields in the struct.
 func (t *Type) FieldCount() int {
 	return len(t.Fields)
 }
 
+// BodyCount returns true if the struct contains fields that are
+// not bound to a specific HTTP input.
 func (t *Type) BodyCount() bool {
 	for _, f := range t.Fields {
 		if f.Binding == nil {
@@ -167,7 +170,8 @@ func (t *Type) BodyCount() bool {
 	return false
 }
 
-// BindingCount returns the number of fields in the struct that have binding info
+// BindingCount returns the number of fields in the struct that
+// have path/query binding info.
 func (t *Type) BindingCount() int {
 	var count int
 	for _, f := range t.Fields {
@@ -178,7 +182,8 @@ func (t *Type) BindingCount() int {
 	return count
 }
 
-// QueryCount returns the number of fields in the struct that have query binding info
+// QueryCount returns the number of fields in the struct that
+// have query binding info.
 func (t *Type) QueryCount() int {
 	var count int
 	for _, f := range t.Fields {
