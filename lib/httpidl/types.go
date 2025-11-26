@@ -47,14 +47,14 @@ type Comment struct {
 }
 
 // Comments groups the two major comment placements:
-//   - Top: comments located above a declaration.
+//   - Above: comments located above a declaration.
 //   - Right: comments located at the end of a declaration's line.
 type Comments struct {
 	Above []Comment
 	Right *Comment
 }
 
-// Exists returns true if there are any comments associated with this node.
+// Exists reports whether any comments (above or right) are associated with the node.
 func (c Comments) Exists() bool {
 	return len(c.Above) > 0 || c.Right != nil
 }
@@ -69,16 +69,17 @@ type Document struct {
 	Types    []Type
 	RPCs     []RPC
 
-	EnumTypes map[string]int // Name -> index
-	TypeTypes map[string]int // Name -> index
-	UserTypes map[string]struct{}
+	EnumTypes map[string]int      // Lookup: enum name → index in Enums
+	TypeTypes map[string]int      // Lookup: type name → index in Types
+	UserTypes map[string]struct{} // Set of names representing user-defined types
 }
 
-// Annotation represents metadata attached to types, fields, or RPCs.
+// Annotation represents a key-value metadata entry attached to a type,
+// field, or RPC. The value is optional.
 type Annotation struct {
-	Key      string   // Annotation key
+	Key      string   // Annotation key (e.g., "deprecated", "route")
 	Value    *string  // Optional annotation value
-	Position Position // Location in source code
+	Position Position // Location in the source file
 	Comments Comments // Associated comments
 }
 
@@ -87,16 +88,16 @@ type Const struct {
 	Type     BaseType // Data type of the constant
 	Name     string   // Name of the constant
 	Value    string   // Literal value
-	Position Position // Location in source code
+	Position Position // Location in the source file
 	Comments Comments // Associated comments
 }
 
 // Enum represents an enum type definition.
 type Enum struct {
 	Name     string      // Name of the enum
-	OneOf    bool        // Indicates whether this enum is used in oneof
+	OneOf    bool        // True if produced from a oneof declaration
 	Fields   []EnumField // List of fields
-	Position Position    // Location in source code
+	Position Position    // Location in the source file
 	Comments Comments    // Associated comments
 }
 
@@ -104,81 +105,83 @@ type Enum struct {
 type EnumField struct {
 	Name        string       // Name of the enum field
 	Value       int64        // Integer value assigned to the enum field
-	ErrMsg      *string      // Error message only for error code
-	Annotations []Annotation // Additional metadata (key-value pairs)
-	Position    Position     // Location in source code
+	ErrMsg      *string      // Error message (only for `ErrCode`)
+	Annotations []Annotation // Attached annotations
+	Position    Position     // Location in the source file
 	Comments    Comments     // Associated comments
 }
 
-// TypeDefinition is the interface implemented by all type representations.
-// The Text() method returns a human-readable representation of the type.
+// TypeDefinition is implemented by all types representable in IDL.
+// The Text method returns a human-readable textual representation.
 type TypeDefinition interface {
 	Text() string
 }
 
-// JSONTag represents the JSON tag of a field.
+// JSONTag represents metadata for a JSON field tag.
 type JSONTag struct {
-	Name      string
-	OmitEmpty bool
+	Name      string // JSON field name
+	OmitEmpty bool   // Whether the json:"...,omitempty" modifier is applied
 }
 
-// FormTag represents the form tag of a field.
+// FormTag represents metadata for a form field binding.
 type FormTag struct {
-	Name string
+	Name string // Key used in form submissions
 }
 
-// Binding represents a field binding from path, or query
+// Binding represents a binding between a struct field and an HTTP input
+// (e.g., from a query string or from a path segment).
 type Binding struct {
-	From string // Source: path/query
-	Name string // Field name in the source
+	From string // "path" or "query"
+	Name string // Field name from the source
 }
 
-// Type represents a custom user-defined type (struct-like).
+// Type represents a user-defined type. It may function like a struct,
+// a oneof union, or an alias to another instanced type.
 type Type struct {
 	Name         string      // Name of the type
-	OneOf        bool        // Indicates whether this type is a oneof
-	InstType     *InstType   // Represents a type alias (e.g., type A B<T>)
-	GenericParam *string     // Optional generic type parameter (if present)
-	IDLFields    []TypeField // IDL fields
-	Fields       []TypeField // Type fields
-	Position     Position    // Location in source code
+	OneOf        bool        // True if representing a oneof type
+	InstType     *InstType   // Represents a generic instantiation
+	GenericParam *string     // Optional generic type parameter
+	IDLFields    []TypeField // Fields defined at the IDL level
+	Fields       []TypeField // Actual fields after processing
+	Position     Position    // Location in the source file
 	Comments     Comments    // Associated comments
 
-	Embedded  bool // Embedded
-	Validate  bool // Validate
-	Request   bool // Request
-	OnRequest bool // OnRequest
-	OnForm    bool // OnForm
+	Embedded  bool // True if contains anonymous embedded fields.
+	Validate  bool // Enable validation
+	Request   bool // True if used as an HTTP request type
+	OnRequest bool // True if used specifically on request side
+	OnForm    bool // True if representing form data
 }
 
-// TypeField represents a single field inside a user-defined type.
+// TypeField represents a field inside a user-defined type.
 type TypeField struct {
 	Name        string         // Name of the field
 	Type        TypeDefinition // Type of the field
-	Annotations []Annotation   // Additional metadata (key-value pairs)
-	Position    Position       // Location in source code
+	Annotations []Annotation   // Attached annotations
+	Position    Position       // Location in the source file
 	Comments    Comments       // Associated comments
 
-	JSONTag        JSONTag       // JSON tag
-	FormTag        FormTag       // Form tag
-	Binding        *Binding      // Field binding
-	Required       bool          // Required
-	ValidateExpr   validate.Expr // Validate expression
-	ValidateNested bool          // Nested validate
-	EnumAsString   bool          // Enum as string
+	JSONTag        JSONTag       // JSON serialization tag info
+	FormTag        FormTag       // Form tag info
+	Binding        *Binding      // Path/query parameter binding
+	Required       bool          // Whether the field is required
+	ValidateExpr   validate.Expr // Validation expression
+	ValidateNested bool          // Whether nested validation applies
+	EnumAsString   bool          // Whether enum should be marshaled as a string
 }
 
-// InstType represents a type alias with optional generic arguments.
+// InstType represents an instantiation of a generic type.
 type InstType struct {
-	Name        string         // Name of the aliased type
-	GenericType TypeDefinition // The generic type parameter
+	Name        string         // Name of the generic type being instantiated
+	GenericType TypeDefinition // The concrete type argument applied to the generic
 }
 
 func (t InstType) Text() string {
 	return t.Name + "<" + t.GenericType.Text() + ">"
 }
 
-// EmbedType represents an embedded type field (similar to composition in Go).
+// EmbedType represents an embedded type field (similar to embedded structs in Go).
 type EmbedType struct {
 	Name string // Name of the embedded type
 }
@@ -198,7 +201,7 @@ func (t BaseType) Text() string {
 
 // UserType represents a reference to a user-defined type.
 type UserType struct {
-	Name string // Name of the referenced type
+	Name string // Name of the user-defined type
 }
 
 func (t UserType) Text() string {
@@ -213,7 +216,7 @@ func (t BytesType) Text() string {
 }
 
 // MarshalText implements encoding.TextMarshaler for BytesType.
-func (t BytesType) MarshalText() (text []byte, err error) {
+func (t BytesType) MarshalText() ([]byte, error) {
 	return []byte(t.Text()), nil
 }
 
@@ -236,25 +239,25 @@ func (t ListType) Text() string {
 	return "list<" + t.Item.Text() + ">"
 }
 
-// RPC represents a remote procedure call definition.
+// RPC represents a remote procedure call definition, including HTTP metadata.
 type RPC struct {
-	SSE bool // Indicates whether this is an SSE
+	SSE bool // True if this RPC uses Server-Sent Events
 
 	Name        string         // Name of the RPC
 	Request     string         // Request type
 	Response    TypeDefinition // Response type
-	Annotations []Annotation   // Metadata attached to the RPC
-	Position    Position       // Location in source code
+	Annotations []Annotation   // Attached annotations
+	Position    Position       // Location in the source file
 	Comments    Comments       // Associated comments
 
-	Path        string // HTTP path
+	Path        string // HTTP request path
 	Method      string // HTTP method (GET, POST, etc.)
 	ContentType string // HTTP Content-Type
 
-	ConnTimeout  int // Connection timeout, ms
-	ReadTimeout  int // Read timeout, ms
-	WriteTimeout int // Write timeout, ms
+	ConnTimeout  int // Connection timeout in milliseconds
+	ReadTimeout  int // Read timeout in milliseconds
+	WriteTimeout int // Write timeout in milliseconds
 
-	PathSegments []pathidl.Segment
-	PathParams   map[string]string // path => field name of request type
+	PathSegments []pathidl.Segment // Parsed path segments
+	PathParams   map[string]string // Mapping: path variable → request field name
 }
