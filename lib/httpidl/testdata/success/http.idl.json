@@ -138,7 +138,7 @@
         {
           "Name": "ErrOk",
           "Value": 0,
-          "ErrMsg": null,
+          "ErrorMessage": null,
           "Annotations": null,
           "Position": {
             "StartLine": 17,
@@ -152,7 +152,7 @@
         {
           "Name": "PARAM_ERROR",
           "Value": 1003,
-          "ErrMsg": "param error",
+          "ErrorMessage": "param error",
           "Annotations": [
             {
               "Key": "errmsg",
@@ -204,7 +204,7 @@
         {
           "Name": "User",
           "Value": 0,
-          "ErrMsg": null,
+          "ErrorMessage": null,
           "Annotations": null,
           "Position": {
             "StartLine": 0,
@@ -218,7 +218,7 @@
         {
           "Name": "Address",
           "Value": 1,
-          "ErrMsg": null,
+          "ErrorMessage": null,
           "Annotations": null,
           "Position": {
             "StartLine": 0,

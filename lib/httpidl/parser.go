@@ -504,7 +504,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 				panic(errutil.Explain(nil, `annotation "errmsg" value is nil in enum %s field %s`, e.Name, fieldName))
 			}
 			s := strings.Trim(*errmsg.Value, `"`)
-			enumField.ErrMsg = &s
+			enumField.ErrorMessage = &s
 		}
 
 		e.Fields = append(e.Fields, enumField)

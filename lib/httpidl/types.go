@@ -103,12 +103,12 @@ type Enum struct {
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
-	Name        string       // Name of the enum field
-	Value       int64        // Integer value assigned to the enum field
-	ErrMsg      *string      // Error message (only for `ErrCode`)
-	Annotations []Annotation // Attached annotations
-	Position    Position     // Location in the source file
-	Comments    Comments     // Associated comments
+	Name         string       // Name of the enum field
+	Value        int64        // Integer value assigned to the enum field
+	ErrorMessage *string      // Error message (only for `ErrCode`)
+	Annotations  []Annotation // Attached annotations
+	Position     Position     // Location in the source file
+	Comments     Comments     // Associated comments
 }
 
 // TypeDefinition is implemented by all types representable in IDL.
