@@ -424,8 +424,8 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 		Name:  ctx.IDENTIFIER().GetText(),
 		Value: ctx.Const_value().GetText(),
 		Position: Position{
-			Start: ctx.GetStart().GetLine(),
-			Stop:  ctx.GetStop().GetLine(),
+			StartLine: ctx.GetStart().GetLine(),
+			EndLine:   ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
 			Above: l.aboveComment(ctx.GetStart()),
@@ -433,7 +433,7 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 		},
 	}
 	if !IsPascal(c.Name) {
-		panic(errutil.Explain(nil, "const name %s is not PascalCase in line %d", c.Name, c.Position.Start))
+		panic(errutil.Explain(nil, "const name %s is not PascalCase in line %d", c.Name, c.Position.StartLine))
 	}
 	l.Document.Consts = append(l.Document.Consts, c)
 }
@@ -443,15 +443,15 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 	e := Enum{
 		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
-			Start: ctx.GetStart().GetLine(),
-			Stop:  ctx.GetStop().GetLine(),
+			StartLine: ctx.GetStart().GetLine(),
+			EndLine:   ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
 			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
 	if !IsPascal(e.Name) {
-		panic(errutil.Explain(nil, "enum name %s is not PascalCase in line %d", e.Name, e.Position.Start))
+		panic(errutil.Explain(nil, "enum name %s is not PascalCase in line %d", e.Name, e.Position.StartLine))
 	}
 
 	for _, f := range ctx.AllEnum_field() {
@@ -471,8 +471,8 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 			Name:  fieldName,
 			Value: v,
 			Position: Position{
-				Start: f.GetStart().GetLine(),
-				Stop:  f.GetStop().GetLine(),
+				StartLine: f.GetStart().GetLine(),
+				EndLine:   f.GetStop().GetLine(),
 			},
 			Comments: Comments{
 				Above: l.aboveComment(f.GetStart()),
@@ -486,8 +486,8 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 				a := Annotation{
 					Key: aCtx.IDENTIFIER().GetText(),
 					Position: Position{
-						Start: aCtx.GetStart().GetLine(),
-						Stop:  aCtx.GetStop().GetLine(),
+						StartLine: aCtx.GetStart().GetLine(),
+						EndLine:   aCtx.GetStop().GetLine(),
 					},
 				}
 				if aCtx.Const_value() != nil {
@@ -520,15 +520,15 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 	t := Type{
 		Name: ctx.IDENTIFIER(0).GetText(),
 		Position: Position{
-			Start: ctx.GetStart().GetLine(),
-			Stop:  ctx.GetStop().GetLine(),
+			StartLine: ctx.GetStart().GetLine(),
+			EndLine:   ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
 			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
 	if !IsPascal(t.Name) {
-		panic(errutil.Explain(nil, "type name %s is not PascalCase in line %d", t.Name, t.Position.Start))
+		panic(errutil.Explain(nil, "type name %s is not PascalCase in line %d", t.Name, t.Position.StartLine))
 	}
 
 	// Distinguish between a full struct definition and a type alias
@@ -554,8 +554,8 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 	for _, f := range ctx.AllType_field() {
 		typeField := TypeField{
 			Position: Position{
-				Start: f.GetStart().GetLine(),
-				Stop:  f.GetStop().GetLine(),
+				StartLine: f.GetStart().GetLine(),
+				EndLine:   f.GetStop().GetLine(),
 			},
 			Comments: Comments{
 				Above: l.aboveComment(f.GetStart()),
@@ -589,7 +589,7 @@ func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type)
 		Name: ctx.IDENTIFIER(1).GetText(),
 	}
 	if !IsPascal(t.InstType.Name) {
-		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.Name, t.Position.Start))
+		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.Name, t.Position.StartLine))
 	}
 
 	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
@@ -597,7 +597,7 @@ func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type)
 		return
 	}
 
-	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.Name, t.Position.Start))
+	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.Name, t.Position.StartLine))
 }
 
 // ExitOneof_def handles "oneof" type definitions.
@@ -606,15 +606,15 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		Name:  ctx.IDENTIFIER().GetText(),
 		OneOf: true,
 		Position: Position{
-			Start: ctx.GetStart().GetLine(),
-			Stop:  ctx.GetStop().GetLine(),
+			StartLine: ctx.GetStart().GetLine(),
+			EndLine:   ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
 			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
 	if !IsPascal(o.Name) {
-		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.Start))
+		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.StartLine))
 	}
 
 	e := Enum{Name: o.Name + "Type", OneOf: true}
@@ -655,8 +655,8 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 				Name: f.IDENTIFIER().GetText(),
 			},
 			Position: Position{
-				Start: f.GetStart().GetLine(),
-				Stop:  f.GetStop().GetLine(),
+				StartLine: f.GetStart().GetLine(),
+				EndLine:   f.GetStop().GetLine(),
 			},
 			Comments: Comments{
 				Above: l.aboveComment(f.GetStart()),
@@ -685,8 +685,8 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			a := Annotation{
 				Key: aCtx.IDENTIFIER().GetText(),
 				Position: Position{
-					Start: aCtx.GetStart().GetLine(),
-					Stop:  aCtx.GetStop().GetLine(),
+					StartLine: aCtx.GetStart().GetLine(),
+					EndLine:   aCtx.GetStop().GetLine(),
 				},
 			}
 			if aCtx.Const_value() != nil {
@@ -702,11 +702,11 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: true}
 	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
 		if opt.Value == nil {
-			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		s := strings.TrimSpace(*opt.Value)
 		if s == "" {
-			panic(errutil.Explain(nil, "annotation json for field %s is empty in line %d", typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation json for field %s is empty in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
 		for i, v := range strings.Split(s, ",") {
@@ -730,11 +730,11 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.FormTag = FormTag{Name: typeField.JSONTag.Name}
 	if opt, ok := GetAnnotation(typeField.Annotations, "form"); ok {
 		if opt.Value == nil {
-			panic(errutil.Explain(nil, "annotation form for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation form for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		s := strings.TrimSpace(*opt.Value)
 		if s == "" {
-			panic(errutil.Explain(nil, "annotation form for field %s is empty in line %d", typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation form for field %s is empty in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
 		for i, v := range strings.Split(s, ",") {
@@ -752,15 +752,15 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	if opt, ok := GetAnnotation(typeField.Annotations, "path", "query"); ok {
 		if opt.Key == "path" {
 			if s := typeField.Type.Text(); s != "string" && s != "int" {
-				panic(errutil.Explain(nil, "annotation path for field %s is not string or int in line %d", typeField.Name, typeField.Position.Start))
+				panic(errutil.Explain(nil, "annotation path for field %s is not string or int in line %d", typeField.Name, typeField.Position.StartLine))
 			}
 		}
 		if opt.Value == nil {
-			panic(errutil.Explain(nil, "annotation %s for field %s is missing value in line %d", opt.Key, typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation %s for field %s is missing value in line %d", opt.Key, typeField.Name, typeField.Position.StartLine))
 		}
 		s := strings.TrimSpace(*opt.Value)
 		if s == "" {
-			panic(errutil.Explain(nil, "annotation %s for field %s is empty in line %d", opt.Key, typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation %s for field %s is empty in line %d", opt.Key, typeField.Name, typeField.Position.StartLine))
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
 		typeField.Binding = &Binding{From: opt.Key, Name: s}
@@ -768,18 +768,18 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 
 	if opt, ok := GetAnnotation(typeField.Annotations, "validate"); ok {
 		if opt.Value == nil {
-			panic(errutil.Explain(nil, "annotation validate for field %s is missing value in line %d", typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation validate for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		s := strings.TrimSpace(*opt.Value)
 		if s == "" {
-			panic(errutil.Explain(nil, "annotation validate for field %s is empty in line %d", typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, "annotation validate for field %s is empty in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		s, err := strconv.Unquote(s) // Remove quotes
 		if err != nil {
-			panic(errutil.Explain(nil, `annotation validate for field %s value is not properly quoted in line %d`, typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, `annotation validate for field %s value is not properly quoted in line %d`, typeField.Name, typeField.Position.StartLine))
 		}
 		if s == "" {
-			panic(errutil.Explain(nil, `annotation validate for field %s value is empty in line %d`, typeField.Name, typeField.Position.Start))
+			panic(errutil.Explain(nil, `annotation validate for field %s value is empty in line %d`, typeField.Name, typeField.Position.StartLine))
 		}
 		expr, err := validate.Parse(s)
 		if err != nil {
@@ -885,15 +885,15 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		SSE:  sse,
 		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
-			Start: ctx.GetStart().GetLine(),
-			Stop:  ctx.GetStop().GetLine(),
+			StartLine: ctx.GetStart().GetLine(),
+			EndLine:   ctx.GetStop().GetLine(),
 		},
 		Comments: Comments{
 			Above: l.aboveComment(ctx.GetStart()),
 		},
 	}
 	if !IsPascal(r.Name) {
-		panic(errutil.Explain(nil, "RPC name %s is not PascalCase in line %d", r.Name, r.Position.Start))
+		panic(errutil.Explain(nil, "RPC name %s is not PascalCase in line %d", r.Name, r.Position.StartLine))
 	}
 
 	// Request
@@ -908,8 +908,8 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 		a := Annotation{
 			Key: aCtx.IDENTIFIER().GetText(),
 			Position: Position{
-				Start: aCtx.GetStart().GetLine(),
-				Stop:  aCtx.GetStop().GetLine(),
+				StartLine: aCtx.GetStart().GetLine(),
+				EndLine:   aCtx.GetStop().GetLine(),
 			},
 			Comments: Comments{
 				Above: l.aboveComment(aCtx.GetStart()),
@@ -1157,8 +1157,8 @@ func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 			Text:   []string{line},
 			Single: true,
 			Position: Position{
-				Start: c.GetLine(),
-				Stop:  c.GetLine(),
+				StartLine: c.GetLine(),
+				EndLine:   c.GetLine(),
 			},
 		})
 	}
@@ -1174,15 +1174,15 @@ func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 			Text:   lines,
 			Single: false,
 			Position: Position{
-				Start: c.GetLine(),
-				Stop:  c.GetLine() + len(lines) - 1,
+				StartLine: c.GetLine(),
+				EndLine:   c.GetLine() + len(lines) - 1,
 			},
 		})
 	}
 
 	// Sort comments by starting line in descending order
 	sort.Slice(all, func(i, j int) bool {
-		return all[i].Position.Start >= all[j].Position.Start
+		return all[i].Position.StartLine >= all[j].Position.StartLine
 	})
 
 	// Select only the contiguous block directly above the token
@@ -1190,11 +1190,11 @@ func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 	lastLine := token.GetLine()
 	for ; i < len(all); i++ {
 		c := all[i]
-		if c.Position.Stop != lastLine-1 {
+		if c.Position.EndLine != lastLine-1 {
 			break
 		}
 		ret = append([]Comment{c}, ret...)
-		lastLine = c.Position.Start
+		lastLine = c.Position.StartLine
 	}
 
 	// Remaining comments are stored as detached comments in the Document
@@ -1220,8 +1220,8 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 			Text:   []string{line},
 			Single: true,
 			Position: Position{
-				Start: c.GetLine(),
-				Stop:  c.GetLine(),
+				StartLine: c.GetLine(),
+				EndLine:   c.GetLine(),
 			},
 		}
 	}
@@ -1238,8 +1238,8 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 			Text:   lines,
 			Single: false,
 			Position: Position{
-				Start: c.GetLine(),
-				Stop:  c.GetLine() + len(lines) - 1,
+				StartLine: c.GetLine(),
+				EndLine:   c.GetLine() + len(lines) - 1,
 			},
 		}
 	}

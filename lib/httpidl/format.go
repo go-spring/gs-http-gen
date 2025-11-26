@@ -80,7 +80,7 @@ func Dump(doc Document) string {
 		}
 		items = append(items, docItem{
 			kind: kind,
-			pos:  c.Position.Start,
+			pos:  c.Position.StartLine,
 			buf:  strings.Join(c.Text, "\n"),
 		})
 	}
@@ -89,7 +89,7 @@ func Dump(doc Document) string {
 	for _, c := range doc.Consts {
 		items = append(items, docItem{
 			kind: docItemKindConst,
-			pos:  c.Position.Start,
+			pos:  c.Position.StartLine,
 			buf:  dumpConst(c),
 		})
 	}
@@ -101,7 +101,7 @@ func Dump(doc Document) string {
 		}
 		items = append(items, docItem{
 			kind: docItemKindEnum,
-			pos:  e.Position.Start,
+			pos:  e.Position.StartLine,
 			buf:  dumpEnum(e),
 		})
 	}
@@ -110,7 +110,7 @@ func Dump(doc Document) string {
 	for _, t := range doc.Types {
 		items = append(items, docItem{
 			kind: docItemKindType,
-			pos:  t.Position.Start,
+			pos:  t.Position.StartLine,
 			buf:  dumpType(t),
 		})
 	}
@@ -119,7 +119,7 @@ func Dump(doc Document) string {
 	for _, r := range doc.RPCs {
 		items = append(items, docItem{
 			kind: docItemKindRPC,
-			pos:  r.Position.Start,
+			pos:  r.Position.StartLine,
 			buf:  dumpRPC(r),
 		})
 	}

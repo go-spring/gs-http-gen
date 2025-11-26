@@ -33,8 +33,8 @@ type MetaInfo struct {
 // Position represents the start and stop line numbers of a parsed element.
 // This allows tracing back to the original source code location.
 type Position struct {
-	Start int
-	Stop  int
+	StartLine int
+	EndLine   int
 }
 
 // Comment represents a single comment block or line.
