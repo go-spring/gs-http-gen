@@ -154,6 +154,41 @@ type Type struct {
 	OnForm    bool // True if representing form data
 }
 
+func (t *Type) FieldCount() int {
+	return len(t.Fields)
+}
+
+func (t *Type) BodyCount() bool {
+	for _, f := range t.Fields {
+		if f.Binding == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// BindingCount returns the number of fields in the struct that have binding info
+func (t *Type) BindingCount() int {
+	var count int
+	for _, f := range t.Fields {
+		if f.Binding != nil {
+			count++
+		}
+	}
+	return count
+}
+
+// QueryCount returns the number of fields in the struct that have query binding info
+func (t *Type) QueryCount() int {
+	var count int
+	for _, f := range t.Fields {
+		if f.Binding != nil && f.Binding.From == "query" {
+			count++
+		}
+	}
+	return count
+}
+
 // TypeField represents a field inside a user-defined type.
 type TypeField struct {
 	Name        string         // Name of the field

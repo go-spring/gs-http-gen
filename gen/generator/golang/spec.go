@@ -58,13 +58,7 @@ type Enum struct {
 // Type represents a Go struct
 type Type struct {
 	httpidl.Type
-	Name   string
 	Fields []TypeField
-
-	Request   bool
-	ReqBody   bool
-	OnRequest bool
-	OnForm    bool
 }
 
 // TypeField represents a field in a Go struct
@@ -80,42 +74,6 @@ type TypeField struct {
 // IsPointer returns true if the field is a pointer
 func (x *TypeField) IsPointer() bool {
 	return x.TypeKind[0] == TypeKindPointer
-}
-
-// FieldCount returns the number of fields in the struct
-func (t *Type) FieldCount() int {
-	return len(t.Fields)
-}
-
-func (t *Type) BodyCount() bool {
-	for _, f := range t.Fields {
-		if f.Binding == nil {
-			return true
-		}
-	}
-	return false
-}
-
-// BindingCount returns the number of fields in the struct that have binding info
-func (t *Type) BindingCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Binding != nil {
-			count++
-		}
-	}
-	return count
-}
-
-// QueryCount returns the number of fields in the struct that have query binding info
-func (t *Type) QueryCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Binding != nil && f.Binding.From == "query" {
-			count++
-		}
-	}
-	return count
 }
 
 // RPC represents a single remote procedure call with HTTP metadata.
@@ -283,13 +241,7 @@ func convertTypes(spec GoSpec, doc httpidl.Document) ([]Type, error) {
 
 // convertType converts an IDL struct type to a Go struct type
 func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
-	r := Type{
-		Type:      t,
-		Name:      t.Name,
-		Request:   t.Request,
-		OnRequest: t.OnRequest,
-		OnForm:    t.OnForm,
-	}
+	r := Type{Type: t}
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)
 
