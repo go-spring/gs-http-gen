@@ -481,22 +481,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		}
 
 		// Annotations
-		if f.Field_annotations() != nil {
-			for _, aCtx := range f.Field_annotations().AllAnnotation() {
-				a := Annotation{
-					Key: aCtx.IDENTIFIER().GetText(),
-					Position: Position{
-						StartLine: aCtx.GetStart().GetLine(),
-						EndLine:   aCtx.GetStop().GetLine(),
-					},
-				}
-				if aCtx.Const_value() != nil {
-					s := aCtx.Const_value().GetText()
-					a.Value = &s
-				}
-				enumField.Annotations = append(enumField.Annotations, a)
-			}
-		}
+		enumField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
 		// Error message
 		if errmsg, ok := GetAnnotation(enumField.Annotations, "errmsg"); ok {
@@ -588,24 +573,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Type = l.parseValueType(f.Value_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
 	typeField.Required = f.KW_REQUIRED() != nil
-
-	// Annotations
-	if f.Field_annotations() != nil {
-		for _, aCtx := range f.Field_annotations().AllAnnotation() {
-			a := Annotation{
-				Key: aCtx.IDENTIFIER().GetText(),
-				Position: Position{
-					StartLine: aCtx.GetStart().GetLine(),
-					EndLine:   aCtx.GetStop().GetLine(),
-				},
-			}
-			if aCtx.Const_value() != nil {
-				s := aCtx.Const_value().GetText()
-				a.Value = &s
-			}
-			typeField.Annotations = append(typeField.Annotations, a)
-		}
-	}
+	typeField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
 	_, typeField.EnumAsString = GetAnnotation(typeField.Annotations, "enum_as_string")
 
@@ -698,6 +666,29 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		typeField.ValidateExpr = expr
 		collectValidateFuncs(typeField.Type.Text(), typeField.ValidateExpr, l.Funcs)
 	}
+}
+
+// parseFieldAnnotations parses field annotations.
+func (l *ParseTreeListener) parseFieldAnnotations(ctx IField_annotationsContext) []Annotation {
+	if ctx == nil {
+		return nil
+	}
+	var ret []Annotation
+	for _, aCtx := range ctx.AllAnnotation() {
+		a := Annotation{
+			Key: aCtx.IDENTIFIER().GetText(),
+			Position: Position{
+				StartLine: aCtx.GetStart().GetLine(),
+				EndLine:   aCtx.GetStop().GetLine(),
+			},
+		}
+		if aCtx.Const_value() != nil {
+			s := aCtx.Const_value().GetText()
+			a.Value = &s
+		}
+		ret = append(ret, a)
+	}
+	return ret
 }
 
 // parseInstantiatedType handles instantiated types, including generic types.
