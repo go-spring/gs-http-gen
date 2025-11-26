@@ -24,8 +24,8 @@ import (
 
 const indent = "    "
 
-// docItemKind defines the type of items that can appear in the document.
-// This is used to help with ordering and spacing when reconstructing the output.
+// docItemKind represents the category of a top-level document element.
+// It is used to determine rendering order and spacing during formatting.
 type docItemKind int
 
 const (
@@ -44,7 +44,7 @@ const (
 	// Type declaration (struct-like or oneof)
 	docItemKindType
 
-	// RPC (remote procedure call) declaration
+	// RPC declaration (rpc or sse)
 	docItemKindRPC
 )
 
@@ -52,7 +52,7 @@ const (
 // with its source position and pre-rendered buffer content.
 type docItem struct {
 	kind docItemKind // Kind of the document item
-	pos  int         // Position in the original source
+	pos  int         // Starting line in the original source
 	buf  string      // Rendered text of the document item
 }
 
@@ -62,7 +62,7 @@ type docItem struct {
 func Format(doc Document) string {
 	var items []docItem
 
-	// Collect top-level standalone comments
+	// Collect standalone comments
 	for _, c := range doc.Comments {
 		kind := docItemKindMLComment
 		if c.Single {
@@ -75,7 +75,7 @@ func Format(doc Document) string {
 		})
 	}
 
-	// Collect constants
+	// Collect constant declarations
 	for _, c := range doc.Consts {
 		items = append(items, docItem{
 			kind: docItemKindConst,
@@ -84,7 +84,7 @@ func Format(doc Document) string {
 		})
 	}
 
-	// Collect enums
+	// Collect enum declarations
 	for _, e := range doc.Enums {
 		if e.OneOf {
 			continue
@@ -96,7 +96,7 @@ func Format(doc Document) string {
 		})
 	}
 
-	// Collect types
+	// Collect type declarations
 	for _, t := range doc.Types {
 		items = append(items, docItem{
 			kind: docItemKindType,
@@ -105,7 +105,7 @@ func Format(doc Document) string {
 		})
 	}
 
-	// Collect RPCs
+	// Collect RPC declarations
 	for _, r := range doc.RPCs {
 		items = append(items, docItem{
 			kind: docItemKindRPC,
@@ -114,12 +114,12 @@ func Format(doc Document) string {
 		})
 	}
 
-	// Sort all collected items by their original source position
+	// Sort items by their original starting line
 	sort.Slice(items, func(i, j int) bool {
 		return items[i].pos < items[j].pos
 	})
 
-	// Render items with proper spacing depending on their type
+	// Render items with proper spacing depending on their kind
 	var sb strings.Builder
 	lastKind := docItemKindSLComment
 	for i, item := range items {
@@ -127,6 +127,8 @@ func Format(doc Document) string {
 		case docItemKindEnum, docItemKindType, docItemKindRPC:
 			sb.WriteString("\n")
 		default:
+			// Insert a blank line when transitioning between different item kinds,
+			// or before a multi-line comment.
 			if i > 0 && (lastKind != item.kind || item.kind == docItemKindMLComment) {
 				sb.WriteString("\n")
 			}
@@ -138,19 +140,20 @@ func Format(doc Document) string {
 	return sb.String()
 }
 
-// formatAboveComments writes comments that appear above a declaration or field.
-// The prefix is typically indentation (e.g., indent for struct fields).
+// formatAboveComments renders “above” comments associated with a declaration.
+// Each line is prefixed with the given indentation prefix.
 func formatAboveComments(comments []Comment, sb *strings.Builder, prefix string) {
 	for _, c := range comments {
-		// Single-line comment
+
 		if c.Single {
+			// Single-line comment (`// ...`)
 			sb.WriteString(prefix)
 			sb.WriteString(c.Text[0])
 			sb.WriteString("\n")
 			continue
 		}
 
-		// Multi-line comment
+		// Multi-line comment (`/* ... */`)
 		for _, s := range c.Text {
 			sb.WriteString(prefix)
 			sb.WriteString(s)
@@ -159,21 +162,21 @@ func formatAboveComments(comments []Comment, sb *strings.Builder, prefix string)
 	}
 }
 
-// formatRightComment writes a comment that appears on the same line (or to the right)
-// of a declaration. Multi-line comments continue on subsequent lines with the given prefix.
+// formatRightComment renders a comment placed at the end of a line.
+// For multi-line comments, subsequent lines are rendered with indentation.
 func formatRightComment(c *Comment, sb *strings.Builder, prefix string) {
 	if c == nil {
 		return
 	}
 
-	// Inline single-line comment
 	if c.Single {
+		// Inline single-line comment
 		sb.WriteString(" ")
 		sb.WriteString(c.Text[0])
 		return
 	}
 
-	// Multi-line right-side comment
+	// Multi-line inline comment
 	for i, s := range c.Text {
 		if i == 0 {
 			sb.WriteString(" ")
@@ -185,8 +188,7 @@ func formatRightComment(c *Comment, sb *strings.Builder, prefix string) {
 	}
 }
 
-// formatConst formats a constant declaration, including its leading (above) comments
-// and any inline (right-side) comment.
+// formatConst renders a constant declaration with its associated comments.
 func formatConst(c Const) string {
 	var sb strings.Builder
 	formatAboveComments(c.Comments.Above, &sb, "")
@@ -202,8 +204,7 @@ func formatConst(c Const) string {
 	return sb.String()
 }
 
-// formatEnum formats an enum declaration and its fields,
-// preserving top-level and per-field comments.
+// formatEnum renders an enum declaration and all of its fields.
 func formatEnum(e Enum) string {
 	var sb strings.Builder
 	formatAboveComments(e.Comments.Above, &sb, "")
@@ -229,8 +230,8 @@ func formatEnum(e Enum) string {
 	return sb.String()
 }
 
-// formatType formats a type (or oneof) declaration, including its generic
-// parameters, fields, comments, and potential redefinition.
+// formatType renders a type or oneof declaration, including its
+// generic parameters, fields, and comments.
 func formatType(t Type) string {
 	var sb strings.Builder
 	formatAboveComments(t.Comments.Above, &sb, "")
@@ -244,10 +245,11 @@ func formatType(t Type) string {
 	sb.WriteString(t.Name)
 
 	if t.InstType != nil {
+		// Instantiated generic type
 		sb.WriteString(" ")
 		sb.WriteString(t.InstType.Text())
 	} else {
-		// If the type has generic parameter(s)
+		// Generic type definition
 		if t.GenericParam != nil {
 			sb.WriteString("<")
 			sb.WriteString(*t.GenericParam)
@@ -267,8 +269,8 @@ func formatType(t Type) string {
 	return sb.String()
 }
 
-// formatTypeField formats a single field in a type declaration,
-// including its type, name, annotations, and comments.
+// formatTypeField renders a single field of a type, including annotations,
+// comments, and required/embedded modifiers.
 func formatTypeField(t Type, f TypeField, sb *strings.Builder) {
 	formatAboveComments(f.Comments.Above, sb, indent)
 
@@ -278,6 +280,7 @@ func formatTypeField(t Type, f TypeField, sb *strings.Builder) {
 	}
 	sb.WriteString(f.Type.Text())
 
+	// Embedded fields have no explicit field name
 	if _, ok := f.Type.(EmbedType); !ok && !t.OneOf {
 		sb.WriteString(" ")
 		sb.WriteString(f.Name)
@@ -306,8 +309,8 @@ func formatFieldAnnotations(arr []Annotation, sb *strings.Builder) {
 	}
 }
 
-// formatRPC formats an RPC declaration including its request/response types,
-// annotations, and associated comments.
+// formatRPC renders an RPC block, including request/response types
+// and all associated annotations and comments.
 func formatRPC(r RPC) string {
 	var sb strings.Builder
 	formatAboveComments(r.Comments.Above, &sb, "")
@@ -325,7 +328,7 @@ func formatRPC(r RPC) string {
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
 
-	// todo group annotations
+	// TODO: group annotations
 	for _, a := range r.Annotations {
 		sb.WriteString("\n")
 		formatAboveComments(a.Comments.Above, &sb, indent)
