@@ -221,9 +221,7 @@ func formatEnum(e Enum) string {
 		sb.WriteString(" = ")
 		sb.WriteString(strconv.FormatInt(f.Value, 10))
 
-		// Annotations
 		formatFieldAnnotations(f.Annotations, &sb)
-
 		formatRightComment(f.Comments.Right, &sb, indent)
 	}
 
@@ -283,11 +281,9 @@ func formatTypeField(t Type, f TypeField, sb *strings.Builder) {
 	if _, ok := f.Type.(EmbedType); !ok && !t.OneOf {
 		sb.WriteString(" ")
 		sb.WriteString(f.Name)
-
-		// Annotations
-		formatFieldAnnotations(f.Annotations, sb)
 	}
 
+	formatFieldAnnotations(f.Annotations, sb)
 	formatRightComment(f.Comments.Right, sb, indent)
 }
 
@@ -316,7 +312,12 @@ func formatRPC(r RPC) string {
 	var sb strings.Builder
 	formatAboveComments(r.Comments.Above, &sb, "")
 
-	sb.WriteString("rpc ")
+	if r.SSE {
+		sb.WriteString("sse ")
+	} else {
+		sb.WriteString("rpc ")
+	}
+
 	sb.WriteString(r.Name)
 	sb.WriteString("(")
 	sb.WriteString(r.Request)
@@ -324,6 +325,7 @@ func formatRPC(r RPC) string {
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
 
+	// todo group annotations
 	for _, a := range r.Annotations {
 		sb.WriteString("\n")
 		formatAboveComments(a.Comments.Above, &sb, indent)
