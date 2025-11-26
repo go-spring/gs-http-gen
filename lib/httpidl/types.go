@@ -154,13 +154,14 @@ type Type struct {
 	OnForm    bool // True if representing form data
 }
 
-// FieldCount returns the number of fields in the struct.
+// FieldCount returns the total number of fields after all processing.
 func (t *Type) FieldCount() int {
 	return len(t.Fields)
 }
 
-// BodyCount returns true if the struct contains fields that are
-// not bound to a specific HTTP input.
+// BodyCount reports whether the type contains any fields that are not
+// bound to a specific HTTP input source (e.g., not from path or query).
+// Such fields are typically treated as request body fields.
 func (t *Type) BodyCount() bool {
 	for _, f := range t.Fields {
 		if f.Binding == nil {
@@ -170,8 +171,8 @@ func (t *Type) BodyCount() bool {
 	return false
 }
 
-// BindingCount returns the number of fields in the struct that
-// have path/query binding info.
+// BindingCount returns the number of fields that have explicit HTTP
+// binding information, such as path or query bindings.
 func (t *Type) BindingCount() int {
 	var count int
 	for _, f := range t.Fields {
@@ -182,8 +183,8 @@ func (t *Type) BindingCount() int {
 	return count
 }
 
-// QueryCount returns the number of fields in the struct that
-// have query binding info.
+// QueryCount returns the number of fields that are explicitly bound
+// to HTTP query parameters (i.e., Binding.From == "query").
 func (t *Type) QueryCount() int {
 	var count int
 	for _, f := range t.Fields {
