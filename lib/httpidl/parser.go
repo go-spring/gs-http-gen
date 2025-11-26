@@ -517,10 +517,10 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 	}
 
 	// Distinguish between a full struct definition and a type alias
-	if ctx.LEFT_BRACE() != nil {
-		l.parseCompleteType(ctx, &t)
-	} else {
+	if ctx.LEFT_BRACE() == nil {
 		l.parseInstantiatedType(ctx, &t)
+	} else {
+		l.parseCompleteType(ctx, &t)
 	}
 
 	l.Document.TypeTypes[t.Name] = len(l.Document.Types)
@@ -547,6 +547,7 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 		typ := UserType{
 			Name: u.IDENTIFIER().GetText(),
 		}
+		// Track user-defined types
 		if t == nil || t.GenericParam == nil || typ.Name != *t.GenericParam {
 			l.Document.UserTypes[typ.Name] = struct{}{}
 		}
@@ -558,15 +559,10 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 		if c.Map_type() != nil {
 			kt := c.Map_type().Key_type().GetText()
 			vt := l.parseValueType(c.Map_type().Value_type(), t)
-			return MapType{
-				Key:   kt,
-				Value: vt,
-			}
+			return MapType{Key: kt, Value: vt}
 		} else if c.List_type() != nil {
 			vt := l.parseValueType(c.List_type().Value_type(), t)
-			return ListType{
-				Item: vt,
-			}
+			return ListType{Item: vt}
 		}
 	}
 
@@ -583,11 +579,6 @@ func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type)
 	}
 
 	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
-	if t.InstType.GenericType != nil {
-		return
-	}
-
-	panic(errutil.Explain(nil, "instantiated type %s is not a valid generic type in line %d", t.InstType.BaseName, t.Position.StartLine))
 }
 
 // parseCompleteType handles a "struct-like" type with fields and optional generic parameter.
@@ -612,19 +603,19 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 		}
 
 		// Distinguish between embedded fields and normal fields
-		if etf := f.Embed_type_field(); etf != nil {
+		if f.Embed_type_field() != nil {
 			t.Embedded = true
-			u := etf.User_type()
 			embedType := EmbedType{
-				Name: u.IDENTIFIER().GetText(),
+				Name: f.Embed_type_field().User_type().IDENTIFIER().GetText(),
 			}
+			// Track user-defined types
 			if t.GenericParam == nil || embedType.Name != *t.GenericParam {
 				l.Document.UserTypes[embedType.Name] = struct{}{}
 			}
 			typeField.Type = embedType
 
-		} else if ctf := f.Common_type_field(); ctf != nil {
-			l.parseCommonTypeField(ctf, &typeField, t)
+		} else if f.Common_type_field() != nil {
+			l.parseCommonTypeField(f.Common_type_field(), &typeField, t)
 		}
 
 		t.RawFields = append(t.RawFields, typeField)
