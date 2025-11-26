@@ -37,7 +37,7 @@ func TestParser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := Dump(doc)
+	s := Format(doc)
 	if s != string(b) {
 		t.Fatalf("expected:\n%s\nbut got:\n%s", string(b), s)
 	}

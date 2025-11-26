@@ -909,7 +909,7 @@
       "Name": "UserResp",
       "OneOf": false,
       "InstType": {
-        "Name": "Response",
+        "BaseName": "Response",
         "GenericType": {
           "Item": {
             "Name": "User"

@@ -56,20 +56,10 @@ type docItem struct {
 	buf  string      // Rendered text of the document item
 }
 
-// Format parses the input source string into a Document AST
-// and returns its normalized pretty-printed representation.
-func Format(data []byte) (string, error) {
-	doc, _, err := Parse(data)
-	if err != nil {
-		return "", err
-	}
-	return Dump(doc), nil
-}
-
-// Dump converts a parsed Document AST back into a formatted string.
+// Format converts a parsed Document AST back into a formatted string.
 // It preserves the original order of items (using their source positions)
 // and ensures consistent blank lines and comment placement.
-func Dump(doc Document) string {
+func Format(doc Document) string {
 	var items []docItem
 
 	// Collect top-level standalone comments
@@ -90,7 +80,7 @@ func Dump(doc Document) string {
 		items = append(items, docItem{
 			kind: docItemKindConst,
 			pos:  c.Position.StartLine,
-			buf:  dumpConst(c),
+			buf:  formatConst(c),
 		})
 	}
 
@@ -102,7 +92,7 @@ func Dump(doc Document) string {
 		items = append(items, docItem{
 			kind: docItemKindEnum,
 			pos:  e.Position.StartLine,
-			buf:  dumpEnum(e),
+			buf:  formatEnum(e),
 		})
 	}
 
@@ -111,7 +101,7 @@ func Dump(doc Document) string {
 		items = append(items, docItem{
 			kind: docItemKindType,
 			pos:  t.Position.StartLine,
-			buf:  dumpType(t),
+			buf:  formatType(t),
 		})
 	}
 
@@ -120,7 +110,7 @@ func Dump(doc Document) string {
 		items = append(items, docItem{
 			kind: docItemKindRPC,
 			pos:  r.Position.StartLine,
-			buf:  dumpRPC(r),
+			buf:  formatRPC(r),
 		})
 	}
 
@@ -148,9 +138,9 @@ func Dump(doc Document) string {
 	return sb.String()
 }
 
-// dumpAboveComments writes comments that appear above a declaration or field.
+// formatAboveComments writes comments that appear above a declaration or field.
 // The prefix is typically indentation (e.g., indent for struct fields).
-func dumpAboveComments(comments []Comment, sb *strings.Builder, prefix string) {
+func formatAboveComments(comments []Comment, sb *strings.Builder, prefix string) {
 	for _, c := range comments {
 		// Single-line comment
 		if c.Single {
@@ -169,9 +159,9 @@ func dumpAboveComments(comments []Comment, sb *strings.Builder, prefix string) {
 	}
 }
 
-// dumpRightComment writes a comment that appears on the same line (or to the right)
+// formatRightComment writes a comment that appears on the same line (or to the right)
 // of a declaration. Multi-line comments continue on subsequent lines with the given prefix.
-func dumpRightComment(c *Comment, sb *strings.Builder, prefix string) {
+func formatRightComment(c *Comment, sb *strings.Builder, prefix string) {
 	if c == nil {
 		return
 	}
@@ -195,11 +185,11 @@ func dumpRightComment(c *Comment, sb *strings.Builder, prefix string) {
 	}
 }
 
-// dumpConst formats a constant declaration, including its leading (above) comments
+// formatConst formats a constant declaration, including its leading (above) comments
 // and any inline (right-side) comment.
-func dumpConst(c Const) string {
+func formatConst(c Const) string {
 	var sb strings.Builder
-	dumpAboveComments(c.Comments.Above, &sb, "")
+	formatAboveComments(c.Comments.Above, &sb, "")
 
 	sb.WriteString("const ")
 	sb.WriteString(c.Type.Name)
@@ -208,15 +198,15 @@ func dumpConst(c Const) string {
 	sb.WriteString(" = ")
 	sb.WriteString(c.Value)
 
-	dumpRightComment(c.Comments.Right, &sb, "")
+	formatRightComment(c.Comments.Right, &sb, "")
 	return sb.String()
 }
 
-// dumpEnum formats an enum declaration and its fields,
+// formatEnum formats an enum declaration and its fields,
 // preserving top-level and per-field comments.
-func dumpEnum(e Enum) string {
+func formatEnum(e Enum) string {
 	var sb strings.Builder
-	dumpAboveComments(e.Comments.Above, &sb, "")
+	formatAboveComments(e.Comments.Above, &sb, "")
 
 	sb.WriteString("enum ")
 	sb.WriteString(e.Name)
@@ -224,7 +214,7 @@ func dumpEnum(e Enum) string {
 
 	for _, f := range e.Fields {
 		sb.WriteString("\n")
-		dumpAboveComments(f.Comments.Above, &sb, indent)
+		formatAboveComments(f.Comments.Above, &sb, indent)
 
 		sb.WriteString(indent)
 		sb.WriteString(f.Name)
@@ -232,34 +222,20 @@ func dumpEnum(e Enum) string {
 		sb.WriteString(strconv.FormatInt(f.Value, 10))
 
 		// Annotations
-		if len(f.Annotations) > 0 {
-			sb.WriteString(" (")
-			for i, a := range f.Annotations {
-				if i > 0 {
-					sb.WriteString(",")
-				}
-				sb.WriteString(" ")
-				sb.WriteString(a.Key)
-				if a.Value != nil {
-					sb.WriteString("=")
-					sb.WriteString(*a.Value)
-				}
-			}
-			sb.WriteString(" )")
-		}
+		formatFieldAnnotations(f.Annotations, &sb)
 
-		dumpRightComment(f.Comments.Right, &sb, indent)
+		formatRightComment(f.Comments.Right, &sb, indent)
 	}
 
 	sb.WriteString("\n}")
 	return sb.String()
 }
 
-// dumpType formats a type (or oneof) declaration, including its generic
+// formatType formats a type (or oneof) declaration, including its generic
 // parameters, fields, comments, and potential redefinition.
-func dumpType(t Type) string {
+func formatType(t Type) string {
 	var sb strings.Builder
-	dumpAboveComments(t.Comments.Above, &sb, "")
+	formatAboveComments(t.Comments.Above, &sb, "")
 
 	if t.OneOf {
 		sb.WriteString("oneof ")
@@ -286,17 +262,17 @@ func dumpType(t Type) string {
 				continue
 			}
 			sb.WriteString("\n")
-			dumpTypeField(t, f, &sb)
+			formatTypeField(t, f, &sb)
 		}
 		sb.WriteString("\n}")
 	}
 	return sb.String()
 }
 
-// dumpTypeField formats a single field in a type declaration,
+// formatTypeField formats a single field in a type declaration,
 // including its type, name, annotations, and comments.
-func dumpTypeField(t Type, f TypeField, sb *strings.Builder) {
-	dumpAboveComments(f.Comments.Above, sb, indent)
+func formatTypeField(t Type, f TypeField, sb *strings.Builder) {
+	formatAboveComments(f.Comments.Above, sb, indent)
 
 	sb.WriteString(indent)
 	if f.Required {
@@ -309,31 +285,36 @@ func dumpTypeField(t Type, f TypeField, sb *strings.Builder) {
 		sb.WriteString(f.Name)
 
 		// Annotations
-		if len(f.Annotations) > 0 {
-			sb.WriteString(" (")
-			for i, a := range f.Annotations {
-				if i > 0 {
-					sb.WriteString(",")
-				}
-				sb.WriteString(" ")
-				sb.WriteString(a.Key)
-				if a.Value != nil {
-					sb.WriteString("=")
-					sb.WriteString(*a.Value)
-				}
-			}
-			sb.WriteString(" )")
-		}
+		formatFieldAnnotations(f.Annotations, sb)
 	}
 
-	dumpRightComment(f.Comments.Right, sb, indent)
+	formatRightComment(f.Comments.Right, sb, indent)
 }
 
-// dumpRPC formats an RPC declaration including its request/response types,
+// formatFieldAnnotations formats a field's annotations.
+func formatFieldAnnotations(arr []Annotation, sb *strings.Builder) {
+	if len(arr) > 0 {
+		sb.WriteString(" (")
+		for i, a := range arr {
+			if i > 0 {
+				sb.WriteString(",")
+			}
+			sb.WriteString(" ")
+			sb.WriteString(a.Key)
+			if a.Value != nil {
+				sb.WriteString("=")
+				sb.WriteString(*a.Value)
+			}
+		}
+		sb.WriteString(" )")
+	}
+}
+
+// formatRPC formats an RPC declaration including its request/response types,
 // annotations, and associated comments.
-func dumpRPC(r RPC) string {
+func formatRPC(r RPC) string {
 	var sb strings.Builder
-	dumpAboveComments(r.Comments.Above, &sb, "")
+	formatAboveComments(r.Comments.Above, &sb, "")
 
 	sb.WriteString("rpc ")
 	sb.WriteString(r.Name)
@@ -345,7 +326,7 @@ func dumpRPC(r RPC) string {
 
 	for _, a := range r.Annotations {
 		sb.WriteString("\n")
-		dumpAboveComments(a.Comments.Above, &sb, indent)
+		formatAboveComments(a.Comments.Above, &sb, indent)
 
 		sb.WriteString(indent)
 		sb.WriteString(a.Key)
@@ -354,7 +335,7 @@ func dumpRPC(r RPC) string {
 			sb.WriteString(*a.Value)
 		}
 
-		dumpRightComment(a.Comments.Right, &sb, indent)
+		formatRightComment(a.Comments.Right, &sb, indent)
 	}
 
 	sb.WriteString("\n}")
