@@ -221,7 +221,7 @@ func ParseDir(dir string) (Project, error) {
 				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
 			}
 			for _, f := range srcType.Fields {
-				if f.Binding == nil || f.Binding.From != "path" {
+				if f.Binding == nil || f.Binding.Source != "path" {
 					continue
 				}
 				if _, ok = params[f.Binding.Name]; !ok {
@@ -763,7 +763,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			panic(errutil.Explain(nil, "annotation %s for field %s is empty in line %d", opt.Key, typeField.Name, typeField.Position.StartLine))
 		}
 		s = strings.Trim(s, "\"") // Remove quotes
-		typeField.Binding = &Binding{From: opt.Key, Name: s}
+		typeField.Binding = &Binding{Source: opt.Key, Name: s}
 	}
 
 	if opt, ok := GetAnnotation(typeField.Annotations, "validate"); ok {

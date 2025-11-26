@@ -454,7 +454,7 @@ func genFieldTag(f TypeField) string {
 		s := fmt.Sprintf(`form:"%s"`, f.FormTag.Name)
 		tags = append(tags, s)
 	} else {
-		s := fmt.Sprintf(`%s:"%s"`, f.Binding.From, f.Binding.Name)
+		s := fmt.Sprintf(`%s:"%s"`, f.Binding.Source, f.Binding.Name)
 		tags = append(tags, s)
 	}
 

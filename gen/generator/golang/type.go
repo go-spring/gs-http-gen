@@ -372,8 +372,8 @@ var _ = strconv.FormatInt
 		{{- if eq $e.Name "ErrCode"}}
 			{{$e.Name}}_message = map[{{$e.Name}}]string{
 				{{- range $f := $e.Fields}}
-					{{- if $f.ErrMsg}}
-						{{$f.Value}} : "{{$f.ErrMsg}}",
+					{{- if $f.ErrorMessage}}
+						{{$f.Value}} : "{{$f.ErrorMessage}}",
 					{{- else}}
 						{{$f.Value}} : "{{$f.Name}}",
 					{{- end}}
@@ -441,7 +441,7 @@ var _ = strconv.FormatInt
 				m := make(url.Values)
 				{{- range $f := $s.Fields}}
 					{{- if $f.Binding}}
-						{{- if eq $f.Binding.From "query"}}
+						{{- if eq $f.Binding.Source "query"}}
 							{{$fieldName := printf "x.%s" $f.Name}}
 							{{- encodeFormValue $fieldName $f.TypeKind $f.Binding.Name}}
 						{{- end}}
@@ -464,7 +464,7 @@ var _ = strconv.FormatInt
 					return nil
 				}
 				{{- range $f := $s.Fields}}
-					{{- if and $f.Binding (eq $f.Binding.From "query")}}
+					{{- if and $f.Binding (eq $f.Binding.Source "query")}}
 						{{$fieldName := printf "x.%s" $f.Name}}
 						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.Binding.Name}}
 					{{- end}}

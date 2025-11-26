@@ -131,8 +131,8 @@ type FormTag struct {
 // Binding represents a binding between a struct field and an HTTP input
 // (e.g., from a query string or from a path segment).
 type Binding struct {
-	From string // "path" or "query"
-	Name string // Field name from the source
+	Source string // "path" or "query"
+	Name   string // Field name from the source
 }
 
 // Type represents a user-defined type. It may function like a struct,
@@ -188,7 +188,7 @@ func (t *Type) BindingCount() int {
 func (t *Type) QueryCount() int {
 	var count int
 	for _, f := range t.Fields {
-		if f.Binding != nil && f.Binding.From == "query" {
+		if f.Binding != nil && f.Binding.Source == "query" {
 			count++
 		}
 	}
