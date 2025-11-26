@@ -142,7 +142,7 @@ type Type struct {
 	OneOf        bool        // True if representing a oneof type
 	InstType     *InstType   // Represents a generic instantiation
 	GenericParam *string     // Optional generic type parameter
-	IDLFields    []TypeField // Fields defined at the IDL level
+	RawFields    []TypeField // Original, unmodified fields
 	Fields       []TypeField // Actual fields after processing
 	Position     Position    // Location in the source file
 	Comments     Comments    // Associated comments

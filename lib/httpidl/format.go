@@ -281,7 +281,7 @@ func dumpType(t Type) string {
 		}
 
 		sb.WriteString(" {")
-		for i, f := range t.IDLFields {
+		for i, f := range t.RawFields {
 			if i == 0 && t.OneOf {
 				continue
 			}

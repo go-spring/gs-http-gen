@@ -246,7 +246,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "IDLFields": [
+      "RawFields": [
         {
           "Name": "userId",
           "Type": {
@@ -306,7 +306,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "IDLFields": [
+      "RawFields": [
         {
           "Name": "name",
           "Type": {
@@ -564,7 +564,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "IDLFields": [
+      "RawFields": [
         {
           "Name": "street",
           "Type": {
@@ -667,7 +667,7 @@
       "OneOf": true,
       "InstType": null,
       "GenericParam": null,
-      "IDLFields": [
+      "RawFields": [
         {
           "Name": "FieldType",
           "Type": {
@@ -783,7 +783,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": "T",
-      "IDLFields": [
+      "RawFields": [
         {
           "Name": "errno",
           "Type": {
@@ -917,7 +917,7 @@
         }
       },
       "GenericParam": null,
-      "IDLFields": null,
+      "RawFields": null,
       "Fields": null,
       "Position": {
         "Start": 75,
