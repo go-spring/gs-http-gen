@@ -486,9 +486,9 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		// Error message
 		if errmsg, ok := GetAnnotation(enumField.Annotations, "errmsg"); ok {
 			if errmsg.Value == nil {
-				panic(errutil.Explain(nil, `annotation "errmsg" value is nil in enum %s field %s`, e.Name, fieldName))
+				panic(errutil.Explain(nil, `annotation "errmsg" value is nil in field %s of enum %s`, fieldName, e.Name))
 			}
-			s := strings.Trim(*errmsg.Value, `"`)
+			s := strings.TrimSpace(strings.Trim(*errmsg.Value, `"`))
 			enumField.ErrorMessage = &s
 		}
 
@@ -516,11 +516,10 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 		panic(errutil.Explain(nil, "type name %s is not PascalCase in line %d", t.Name, t.Position.StartLine))
 	}
 
-	// Distinguish between a full struct definition and a type alias
-	if ctx.LEFT_BRACE() == nil {
-		l.parseInstantiatedType(ctx, &t)
-	} else {
+	if ctx.LEFT_BRACE() != nil {
 		l.parseCompleteType(ctx, &t)
+	} else {
+		l.parseInstantiatedType(ctx, &t)
 	}
 
 	l.Document.TypeTypes[t.Name] = len(l.Document.Types)
@@ -536,22 +535,22 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 	}
 
 	// Built-in primitive type
-	if b := ctx.Base_type(); b != nil {
+	if ctx.Base_type() != nil {
 		return BaseType{
-			Name: b.GetText(),
+			Name: ctx.Base_type().GetText(),
 		}
 	}
 
 	// Reference to a user-defined type
-	if u := ctx.User_type(); u != nil {
-		typ := UserType{
-			Name: u.IDENTIFIER().GetText(),
+	if ctx.User_type() != nil {
+		ut := UserType{
+			Name: ctx.User_type().IDENTIFIER().GetText(),
 		}
 		// Track user-defined types
-		if t == nil || t.GenericParam == nil || typ.Name != *t.GenericParam {
-			l.Document.UserTypes[typ.Name] = struct{}{}
+		if t == nil || t.GenericParam == nil || ut.Name != *t.GenericParam {
+			l.Document.UserTypes[ut.Name] = struct{}{}
 		}
-		return typ
+		return ut
 	}
 
 	// Container types (map / list)
@@ -560,7 +559,8 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 			kt := c.Map_type().Key_type().GetText()
 			vt := l.parseValueType(c.Map_type().Value_type(), t)
 			return MapType{Key: kt, Value: vt}
-		} else if c.List_type() != nil {
+		}
+		if c.List_type() != nil {
 			vt := l.parseValueType(c.List_type().Value_type(), t)
 			return ListType{Item: vt}
 		}
@@ -575,7 +575,7 @@ func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type)
 		BaseName: ctx.IDENTIFIER(1).GetText(),
 	}
 	if !IsPascal(t.InstType.BaseName) {
-		panic(errutil.Explain(nil, "instantiated type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
+		panic(errutil.Explain(nil, "type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
 	}
 
 	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
@@ -640,7 +640,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		if s == "" {
 			panic(errutil.Explain(nil, "annotation json for field %s is empty in line %d", typeField.Name, typeField.Position.StartLine))
 		}
-		s = strings.Trim(s, "\"") // Remove quotes
+		s = strings.TrimSpace(strings.Trim(s, "\"")) // Remove quotes
 		for i, v := range strings.Split(s, ",") {
 			v = strings.TrimSpace(v)
 			if i == 0 {
@@ -668,7 +668,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		if s == "" {
 			panic(errutil.Explain(nil, "annotation form for field %s is empty in line %d", typeField.Name, typeField.Position.StartLine))
 		}
-		s = strings.Trim(s, "\"") // Remove quotes
+		s = strings.TrimSpace(strings.Trim(s, "\"")) // Remove quotes
 		for i, v := range strings.Split(s, ",") {
 			v = strings.TrimSpace(v)
 			if i == 0 {
@@ -694,7 +694,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		if s == "" {
 			panic(errutil.Explain(nil, "annotation %s for field %s is empty in line %d", opt.Key, typeField.Name, typeField.Position.StartLine))
 		}
-		s = strings.Trim(s, "\"") // Remove quotes
+		s = strings.TrimSpace(strings.Trim(s, "\"")) // Remove quotes
 		typeField.Binding = &Binding{Source: opt.Key, Field: s}
 	}
 
@@ -710,15 +710,14 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		if err != nil {
 			panic(errutil.Explain(nil, `annotation validate for field %s value is not properly quoted in line %d`, typeField.Name, typeField.Position.StartLine))
 		}
-		if s == "" {
+		if s = strings.TrimSpace(s); s == "" {
 			panic(errutil.Explain(nil, `annotation validate for field %s value is empty in line %d`, typeField.Name, typeField.Position.StartLine))
 		}
-		expr, err := validate.Parse(s)
+		typeField.ValidateExpr, err = validate.Parse(s)
 		if err != nil {
-			panic(errutil.Explain(nil, `failed to parse validate expression %s: %w`, *opt.Value, err))
+			panic(errutil.Explain(err, `failed to parse validate expression %s`, *opt.Value))
 		}
-		typeField.ValidateExpr = expr
-		collectValidateFuncs(typeField.Type.Text(), typeField.ValidateExpr, l.Funcs)
+		l.collectValidateFuncs(typeField.Type.Text(), typeField.ValidateExpr)
 	}
 }
 
@@ -745,6 +744,41 @@ func (l *ParseTreeListener) parseFieldAnnotations(ctx IField_annotationsContext)
 	return ret
 }
 
+// collectValidateFuncs collects validate functions from the given expression.
+func (l *ParseTreeListener) collectValidateFuncs(fieldType string, expr validate.Expr) {
+	switch x := expr.(type) {
+	case validate.PrimaryExpr:
+		if x.Inner != nil {
+			l.collectValidateFuncs(fieldType, x.Inner)
+		} else if x.Call != nil {
+			l.collectValidateFuncs(fieldType, x.Call)
+		}
+	case *validate.InnerExpr:
+		l.collectValidateFuncs(fieldType, x.Expr)
+	case validate.UnaryExpr:
+		l.collectValidateFuncs(fieldType, x.Expr)
+	case validate.BinaryExpr:
+		l.collectValidateFuncs(fieldType, x.Left)
+		l.collectValidateFuncs(fieldType, x.Right)
+	case *validate.FuncCall:
+		if _, ok := BuiltinFuncs[x.Name]; !ok {
+			if v, ok := l.Funcs[x.Name]; !ok {
+				l.Funcs[x.Name] = ValidateFunc{
+					Name: x.Name,
+					Type: fieldType,
+				}
+			} else if v.Type != fieldType {
+				panic(errutil.Explain(nil, "validate function %s is used with different types", x.Name))
+			}
+		}
+		for _, arg := range x.Args {
+			l.collectValidateFuncs(fieldType, arg)
+		}
+	default:
+		panic(errutil.Explain(nil, "unexpected validate expression type %T", x))
+	}
+}
+
 // ExitOneof_def handles "oneof" type definitions.
 func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 	o := Type{
@@ -764,19 +798,19 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 
 	e := Enum{Name: o.Name + "Type", OneOf: true}
 	o.RawFields = append(o.RawFields, TypeField{
-		Type:     UserType{Name: e.Name},
-		Name:     "FieldType",
-		Required: true,
+		Name: "FieldType",
+		Type: UserType{Name: e.Name},
+		Annotations: []Annotation{
+			{Key: "enum_as_string"},
+		},
 		JSONTag: JSONTag{
 			Name: "FieldType",
 		},
 		FormTag: FormTag{
 			Name: "FieldType",
 		},
+		Required:     true,
 		EnumAsString: true,
-		Annotations: []Annotation{
-			{Key: "enum_as_string"},
-		},
 	})
 
 	for i, f := range ctx.AllUser_type() {
@@ -788,15 +822,8 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		})
 
 		typeField := TypeField{
-			Type: UserType{
-				Name: f.IDENTIFIER().GetText(),
-			},
 			Name: f.IDENTIFIER().GetText(),
-			JSONTag: JSONTag{
-				Name:      f.IDENTIFIER().GetText(),
-				OmitEmpty: true,
-			},
-			FormTag: FormTag{
+			Type: UserType{
 				Name: f.IDENTIFIER().GetText(),
 			},
 			Position: Position{
@@ -807,7 +834,15 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
+			JSONTag: JSONTag{
+				Name:      f.IDENTIFIER().GetText(),
+				OmitEmpty: true,
+			},
+			FormTag: FormTag{
+				Name: f.IDENTIFIER().GetText(),
+			},
 		}
+
 		o.RawFields = append(o.RawFields, typeField)
 	}
 
@@ -816,41 +851,6 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 
 	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, o)
-}
-
-// collectValidateFuncs collects validate functions from the given expression.
-func collectValidateFuncs(fieldType string, expr validate.Expr, funcs map[string]ValidateFunc) {
-	switch x := expr.(type) {
-	case validate.PrimaryExpr:
-		if x.Inner != nil {
-			collectValidateFuncs(fieldType, x.Inner, funcs)
-		} else if x.Call != nil {
-			collectValidateFuncs(fieldType, x.Call, funcs)
-		}
-	case *validate.InnerExpr:
-		collectValidateFuncs(fieldType, x.Expr, funcs)
-	case validate.UnaryExpr:
-		collectValidateFuncs(fieldType, x.Expr, funcs)
-	case validate.BinaryExpr:
-		collectValidateFuncs(fieldType, x.Left, funcs)
-		collectValidateFuncs(fieldType, x.Right, funcs)
-	case *validate.FuncCall:
-		if _, ok := BuiltinFuncs[x.Name]; !ok {
-			if v, ok := funcs[x.Name]; !ok {
-				funcs[x.Name] = ValidateFunc{
-					Name: x.Name,
-					Type: fieldType,
-				}
-			} else if v.Type != fieldType {
-				panic(errutil.Explain(nil, "validate function %s is used with different types", x.Name))
-			}
-		}
-		for _, arg := range x.Args {
-			collectValidateFuncs(fieldType, arg, funcs)
-		}
-	default:
-		panic(errutil.Explain(nil, "unexpected validate expression type %T", x))
-	}
 }
 
 // ExitRpc_def handles RPC definitions, including request/response
