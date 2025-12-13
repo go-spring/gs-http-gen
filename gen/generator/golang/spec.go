@@ -58,13 +58,7 @@ type Enum struct {
 // Type represents a Go struct
 type Type struct {
 	httpidl.Type
-	Name   string
 	Fields []TypeField
-
-	Request   bool
-	ReqBody   bool
-	OnRequest bool
-	OnForm    bool
 }
 
 // TypeField represents a field in a Go struct
@@ -82,45 +76,10 @@ func (x *TypeField) IsPointer() bool {
 	return x.TypeKind[0] == TypeKindPointer
 }
 
-// FieldCount returns the number of fields in the struct
-func (t *Type) FieldCount() int {
-	return len(t.Fields)
-}
-
-// BindingCount returns the number of fields in the struct that have binding info
-func (t *Type) BindingCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Binding != nil {
-			count++
-		}
-	}
-	return count
-}
-
-// QueryCount returns the number of fields in the struct that have query binding info
-func (t *Type) QueryCount() int {
-	var count int
-	for _, f := range t.Fields {
-		if f.Binding != nil && f.Binding.From == "query" {
-			count++
-		}
-	}
-	return count
-}
-
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
 	httpidl.RPC
-
-	FormatPath   string            // Formatted HTTP path
-	PathParams   map[string]string // HTTP path parameters
-	PathSegments []pathidl.Segment // HTTP path segments
-}
-
-// SSE represents a single server-sent event with HTTP metadata.
-type SSE struct {
-	httpidl.SSE
+	Response string // Response type
 
 	FormatPath   string            // Formatted HTTP path
 	PathParams   map[string]string // HTTP path parameters
@@ -128,16 +87,13 @@ type SSE struct {
 }
 
 type GoSpec struct {
-	Meta  *httpidl.MetaInfo
-	Files map[string]httpidl.Document
-	Funcs map[string]httpidl.ValidateFunc
-
+	Meta   *httpidl.MetaInfo
+	Files  map[string]httpidl.Document
+	Funcs  map[string]httpidl.ValidateFunc
 	Consts map[string][]Const
 	Enums  map[string][]Enum
 	Types  map[string][]Type
-
-	RPCs []RPC
-	SSEs []SSE
+	RPCs   []RPC
 }
 
 // Convert converts an IDL project to Go code.
@@ -159,8 +115,39 @@ func Convert(dir string) (GoSpec, error) {
 	// Collect all RPC definitions
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
+			var response string
+			if a, ok := httpidl.GetAnnotation(r.Annotations, "resp.go.type"); ok {
+				if a.Value == nil {
+					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must have a value`)
+				}
+				s := strings.Trim(strings.TrimSpace(*a.Value), "\"")
+				if s == "" {
+					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must not be empty`)
+				}
+				response = s
+			} else {
+				switch typ := r.Response.(type) {
+				case httpidl.BytesType:
+					response = "[]byte"
+				case httpidl.BaseType:
+					if response, err = goBaseType(typ.Name); err != nil {
+						return GoSpec{}, err
+					}
+				case httpidl.UserType:
+					if _, ok = httpidl.GetEnum(spec.Files, typ.Name); ok {
+						response = typ.Name
+					} else {
+						response = "*" + typ.Name
+					}
+				default:
+					if response, err = goTypeDef(spec, typ); err != nil {
+						return GoSpec{}, err
+					}
+				}
+			}
 			rpc := RPC{
 				RPC:          r,
+				Response:     response,
 				FormatPath:   r.Path, // 假设是普通路径
 				PathParams:   r.PathParams,
 				PathSegments: r.PathSegments,
@@ -170,22 +157,6 @@ func Convert(dir string) (GoSpec, error) {
 	}
 	sort.Slice(spec.RPCs, func(i, j int) bool {
 		return spec.RPCs[i].Name < spec.RPCs[j].Name
-	})
-
-	// Collect all SSE definitions
-	for _, doc := range project.Files {
-		for _, r := range doc.SSEs {
-			sse := SSE{
-				SSE:          r,
-				FormatPath:   r.Path, // 假设是普通路径
-				PathParams:   r.PathParams,
-				PathSegments: r.PathSegments,
-			}
-			spec.SSEs = append(spec.SSEs, sse)
-		}
-	}
-	sort.Slice(spec.SSEs, func(i, j int) bool {
-		return spec.SSEs[i].Name < spec.SSEs[j].Name
 	})
 
 	for fileName, doc := range project.Files {
@@ -201,7 +172,6 @@ func Convert(dir string) (GoSpec, error) {
 		if err != nil {
 			return GoSpec{}, errutil.Explain(nil, "convert types error: %w", err)
 		}
-		types = splitRequestTypes(types)
 		spec.Consts[fileName] = consts
 		spec.Enums[fileName] = enums
 		spec.Types[fileName] = types
@@ -224,65 +194,7 @@ func Convert(dir string) (GoSpec, error) {
 		spec.RPCs[i] = rpc
 	}
 
-	// SSEs
-	for i, sse := range spec.SSEs {
-		for k, s := range sse.PathParams {
-			sse.PathParams[k] = httpidl.ToPascal(s)
-		}
-		var formatPath strings.Builder
-		for _, seg := range sse.PathSegments {
-			formatPath.WriteString("/")
-			if seg.Type == pathidl.Static {
-				formatPath.WriteString(seg.Value)
-				continue
-			}
-			formatPath.WriteString("%v")
-		}
-		sse.FormatPath = formatPath.String()
-		spec.SSEs[i] = sse
-	}
-
 	return spec, nil
-}
-
-// splitRequestTypes splits request types into whole types and body types.
-func splitRequestTypes(types []Type) []Type {
-	var result []Type
-	for _, t := range types {
-		if t.Request {
-			req, body := splitRequestType(t)
-			result = append(result, req, body)
-		} else {
-			result = append(result, t)
-		}
-	}
-	return result
-}
-
-// splitRequestType splits a type into a whole type and a body type.
-func splitRequestType(t Type) (req Type, body Type) {
-	req = Type{
-		Type:      t.Type,
-		Name:      t.Name,
-		Request:   true,
-		OnRequest: true,
-	}
-
-	body = Type{
-		Name:      t.Name + "Body",
-		ReqBody:   true,
-		OnRequest: true,
-		OnForm:    t.OnForm,
-	}
-
-	for _, field := range t.Fields {
-		if field.Binding != nil {
-			req.Fields = append(req.Fields, field)
-		} else {
-			body.Fields = append(body.Fields, field)
-		}
-	}
-	return
 }
 
 // convertConsts converts IDL constants to Go constants
@@ -329,13 +241,7 @@ func convertTypes(spec GoSpec, doc httpidl.Document) ([]Type, error) {
 
 // convertType converts an IDL struct type to a Go struct type
 func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
-	r := Type{
-		Type:      t,
-		Name:      t.Name,
-		Request:   t.Request,
-		OnRequest: t.OnRequest,
-		OnForm:    t.OnForm,
-	}
+	r := Type{Type: t}
 	for _, f := range t.Fields {
 		fieldName := httpidl.ToPascal(f.Name)
 
@@ -397,9 +303,7 @@ func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
 	}
 
 	switch typ := f.Type.(type) {
-	case httpidl.AnyType:
-		return "", errutil.Explain(nil, `any type must have annotation "go.type"`)
-	case httpidl.BinaryType:
+	case httpidl.BytesType:
 		return "[]byte", nil
 	case httpidl.BaseType:
 		s, err := goBaseType(typ.Name)
@@ -550,7 +454,7 @@ func genFieldTag(f TypeField) string {
 		s := fmt.Sprintf(`form:"%s"`, f.FormTag.Name)
 		tags = append(tags, s)
 	} else {
-		s := fmt.Sprintf(`%s:"%s"`, f.Binding.From, f.Binding.Name)
+		s := fmt.Sprintf(`%s:"%s"`, f.Binding.Source, f.Binding.Field)
 		tags = append(tags, s)
 	}
 

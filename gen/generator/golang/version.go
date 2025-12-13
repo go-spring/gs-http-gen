@@ -44,6 +44,6 @@ func (g *Generator) genVersion(config *generator.Config, spec GoSpec) error {
 	if err != nil {
 		return errutil.Explain(nil, "generate tool version file error: %w", err)
 	}
-	fileName := filepath.Join(config.OutputDir, "tool_version.go")
+	fileName := filepath.Join(config.OutputDir, "version.go")
 	return formatFile(fileName, buf.Bytes())
 }

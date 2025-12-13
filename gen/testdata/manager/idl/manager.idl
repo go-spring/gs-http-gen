@@ -19,7 +19,7 @@ const float  SALARY_MAX = 1000000.0
 // Standard error codes
 enum ErrCode {
     ERR_OK = 0
-    PARAM_ERROR = 1003
+    PARAM_ERROR = 1003 ( errmsg="param error" )
     NOT_FOUND = 4004
     PERMISSION_DENIED = 4003
     INTERNAL_ERROR = 5000
@@ -203,6 +203,9 @@ rpc UpdateManager(UpdateManagerReq) UpdateManagerResp {
     connTimeout=100
     readTimeout=100
     writeTimeout=100
+
+    // response type
+    resp.go.type="map[string]any"
 }
 
 // Delete a manager

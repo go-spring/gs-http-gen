@@ -17,129 +17,16 @@
 package httputil
 
 import (
-	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"maps"
 	"net/http"
-	"strings"
-	"sync/atomic"
-	"time"
 )
 
 // Ptr returns a pointer to the given value.
 func Ptr[T any](v T) *T {
 	return &v
-}
-
-////////////////////////////////// stream /////////////////////////////////////
-
-// Message represents a single message unit read from the stream.
-type Message struct {
-	Data string
-	Err  error
-}
-
-type IStream interface {
-	Send(msg Message) bool
-}
-
-// SSEEvent represents an SSE event.
-type SSEEvent struct {
-	ID    string
-	Data  string
-	Event string
-	Retry int
-}
-
-// Stream manages streaming data asynchronously from an HTTP response.
-// It supports safe concurrent use and can be closed idempotently.
-type Stream struct {
-	msgs   chan Message
-	curr   Message
-	closed atomic.Bool
-	done   chan struct{}
-}
-
-// NewStream creates and initializes a new Stream instance.
-func NewStream() *Stream {
-	return &Stream{
-		msgs: make(chan Message),
-		done: make(chan struct{}),
-	}
-}
-
-// Event unmarshals the current data item into an SSEEvent.
-func (s *Stream) Event() (SSEEvent, error) {
-	var e SSEEvent
-	return e, nil
-}
-
-// Error returns the last error encountered by the stream.
-func (s *Stream) Error() error {
-	return s.curr.Err
-}
-
-// Next waits for the next data item from the stream,
-// honoring the provided context and optional timeout.
-// Returns true if a new data item is successfully received,
-// or false if the stream is closed, the context is done, or an error occurs.
-func (s *Stream) Next(ctx context.Context, timeout time.Duration) bool {
-	if s.closed.Load() {
-		return false
-	}
-
-	if timeout > 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, timeout)
-		defer cancel()
-	}
-
-	var ok bool
-	select {
-	case <-ctx.Done():
-		s.curr.Data = ""
-		s.curr.Err = ctx.Err()
-		return false
-	case s.curr, ok = <-s.msgs:
-		if !ok {
-			return false
-		}
-		if s.curr.Err != nil {
-			// Treat io.EOF as normal stream termination
-			if s.curr.Err == io.EOF {
-				s.curr.Err = nil
-				return false
-			}
-			return false
-		}
-		return true
-	}
-}
-
-// Send pushes a Message into the internal channel.
-// Returns false if the stream is closed or already done.
-func (s *Stream) Send(msg Message) bool {
-	if s.closed.Load() {
-		return false
-	}
-	select {
-	case <-s.done:
-		return false
-	case s.msgs <- msg:
-		return true
-	}
-}
-
-// Close closes the Stream safely (idempotent).
-// It ensures that the internal channels are closed only once.
-func (s *Stream) Close() {
-	if s.closed.CompareAndSwap(false, true) {
-		close(s.done)
-		close(s.msgs)
-	}
 }
 
 ///////////////////////////////// interface ///////////////////////////////////
@@ -158,7 +45,6 @@ type RequestMeta struct {
 // HTTP execution logic (for example, to add retry, logging, or tracing).
 type HTTPClient interface {
 	JSON(req *http.Request, meta RequestMeta) (*http.Response, []byte, error)
-	Stream(req *http.Request, meta RequestMeta, stream IStream) (*http.Response, error)
 }
 
 // DefaultClient is the default HTTPClient implementation.
@@ -206,35 +92,6 @@ func (c *SimpleHTTPClient) JSON(r *http.Request, meta RequestMeta) (*http.Respon
 	// Reset the response body to allow it to be read again later.
 	resp.Body = io.NopCloser(bytes.NewBuffer(b))
 	return resp, b, nil
-}
-
-// Stream executes an HTTP request and continuously reads lines from the response body.
-// Each line is sent into the returned Stream channel asynchronously.
-func (c *SimpleHTTPClient) Stream(r *http.Request, meta RequestMeta, stream IStream) (*http.Response, error) {
-	resp, err := c.do(r, meta)
-	if err != nil {
-		return nil, err
-	}
-
-	go func() {
-		defer resp.Body.Close()
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			text := strings.TrimSpace(scanner.Text())
-			if text == "" {
-				continue
-			}
-			if !stream.Send(Message{Data: text}) {
-				return
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			stream.Send(Message{Err: err})
-		} else {
-			stream.Send(Message{Err: io.EOF})
-		}
-	}()
-	return resp, nil
 }
 
 ////////////////////////////////// response ///////////////////////////////////
@@ -297,25 +154,14 @@ func buildMeta(opts []RequestOption) RequestMeta {
 
 // JSONResponse executes the given HTTP request using the provided HTTPClient,
 // reads the response body, and unmarshals it into a value of type RespType.
-func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, *RespType, error) {
+func JSONResponse[RespType any](r *http.Request, opts ...RequestOption) (*http.Response, RespType, error) {
+	var ret RespType
 	resp, b, err := DefaultClient.JSON(r, buildMeta(opts))
 	if err != nil {
-		return nil, nil, err
+		return nil, ret, err
 	}
-	var ret RespType
 	if err = json.Unmarshal(b, &ret); err != nil {
-		return nil, nil, err
+		return nil, ret, err
 	}
-	return resp, &ret, nil
-}
-
-// StreamResponse executes the given HTTP request using the provided HTTPClient,
-// and returns a Stream instance for streaming the response body.
-func StreamResponse(r *http.Request, opts ...RequestOption) (*http.Response, *Stream, error) {
-	s := NewStream()
-	resp, err := DefaultClient.Stream(r, buildMeta(opts), s)
-	if err != nil {
-		return nil, nil, err
-	}
-	return resp, s, nil
+	return resp, ret, nil
 }

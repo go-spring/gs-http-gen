@@ -74,17 +74,11 @@ func (s *BaseTParserListener) EnterCommon_type_field(ctx *Common_type_fieldConte
 // ExitCommon_type_field is called when production common_type_field is exited.
 func (s *BaseTParserListener) ExitCommon_type_field(ctx *Common_type_fieldContext) {}
 
-// EnterCommon_field_type is called when production common_field_type is entered.
-func (s *BaseTParserListener) EnterCommon_field_type(ctx *Common_field_typeContext) {}
+// EnterField_annotations is called when production field_annotations is entered.
+func (s *BaseTParserListener) EnterField_annotations(ctx *Field_annotationsContext) {}
 
-// ExitCommon_field_type is called when production common_field_type is exited.
-func (s *BaseTParserListener) ExitCommon_field_type(ctx *Common_field_typeContext) {}
-
-// EnterType_annotations is called when production type_annotations is entered.
-func (s *BaseTParserListener) EnterType_annotations(ctx *Type_annotationsContext) {}
-
-// ExitType_annotations is called when production type_annotations is exited.
-func (s *BaseTParserListener) ExitType_annotations(ctx *Type_annotationsContext) {}
+// ExitField_annotations is called when production field_annotations is exited.
+func (s *BaseTParserListener) ExitField_annotations(ctx *Field_annotationsContext) {}
 
 // EnterOneof_def is called when production oneof_def is entered.
 func (s *BaseTParserListener) EnterOneof_def(ctx *Oneof_defContext) {}
@@ -115,30 +109,6 @@ func (s *BaseTParserListener) EnterRpc_annotations(ctx *Rpc_annotationsContext) 
 
 // ExitRpc_annotations is called when production rpc_annotations is exited.
 func (s *BaseTParserListener) ExitRpc_annotations(ctx *Rpc_annotationsContext) {}
-
-// EnterSse_def is called when production sse_def is entered.
-func (s *BaseTParserListener) EnterSse_def(ctx *Sse_defContext) {}
-
-// ExitSse_def is called when production sse_def is exited.
-func (s *BaseTParserListener) ExitSse_def(ctx *Sse_defContext) {}
-
-// EnterSse_req is called when production sse_req is entered.
-func (s *BaseTParserListener) EnterSse_req(ctx *Sse_reqContext) {}
-
-// ExitSse_req is called when production sse_req is exited.
-func (s *BaseTParserListener) ExitSse_req(ctx *Sse_reqContext) {}
-
-// EnterSse_resp is called when production sse_resp is entered.
-func (s *BaseTParserListener) EnterSse_resp(ctx *Sse_respContext) {}
-
-// ExitSse_resp is called when production sse_resp is exited.
-func (s *BaseTParserListener) ExitSse_resp(ctx *Sse_respContext) {}
-
-// EnterSse_annotations is called when production sse_annotations is entered.
-func (s *BaseTParserListener) EnterSse_annotations(ctx *Sse_annotationsContext) {}
-
-// ExitSse_annotations is called when production sse_annotations is exited.
-func (s *BaseTParserListener) ExitSse_annotations(ctx *Sse_annotationsContext) {}
 
 // EnterAnnotation is called when production annotation is entered.
 func (s *BaseTParserListener) EnterAnnotation(ctx *AnnotationContext) {}

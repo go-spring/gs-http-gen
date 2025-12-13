@@ -8,8 +8,8 @@
       ],
       "Single": false,
       "Position": {
-        "Start": 1,
-        "Stop": 3
+        "StartLine": 1,
+        "EndLine": 3
       }
     },
     {
@@ -18,8 +18,8 @@
       ],
       "Single": true,
       "Position": {
-        "Start": 4,
-        "Stop": 4
+        "StartLine": 4,
+        "EndLine": 4
       }
     },
     {
@@ -28,8 +28,8 @@
       ],
       "Single": true,
       "Position": {
-        "Start": 5,
-        "Stop": 5
+        "StartLine": 5,
+        "EndLine": 5
       }
     },
     {
@@ -38,8 +38,8 @@
       ],
       "Single": true,
       "Position": {
-        "Start": 6,
-        "Stop": 6
+        "StartLine": 6,
+        "EndLine": 6
       }
     }
   ],
@@ -51,8 +51,8 @@
       "Name": "MAX_COUNT",
       "Value": "100",
       "Position": {
-        "Start": 9,
-        "Stop": 9
+        "StartLine": 9,
+        "EndLine": 9
       },
       "Comments": {
         "Above": [
@@ -62,8 +62,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 8,
-              "Stop": 8
+              "StartLine": 8,
+              "EndLine": 8
             }
           }
         ],
@@ -73,8 +73,8 @@
           ],
           "Single": true,
           "Position": {
-            "Start": 9,
-            "Stop": 9
+            "StartLine": 9,
+            "EndLine": 9
           }
         }
       }
@@ -86,8 +86,8 @@
       "Name": "ENABLE_FEATURE",
       "Value": "true",
       "Position": {
-        "Start": 10,
-        "Stop": 10
+        "StartLine": 10,
+        "EndLine": 10
       },
       "Comments": {
         "Above": null,
@@ -97,8 +97,8 @@
           ],
           "Single": false,
           "Position": {
-            "Start": 10,
-            "Stop": 10
+            "StartLine": 10,
+            "EndLine": 10
           }
         }
       }
@@ -110,8 +110,8 @@
       "Name": "DEFAULT_NAME",
       "Value": "\"guest\"",
       "Position": {
-        "Start": 11,
-        "Stop": 11
+        "StartLine": 11,
+        "EndLine": 11
       },
       "Comments": {
         "Above": null,
@@ -123,8 +123,8 @@
           ],
           "Single": false,
           "Position": {
-            "Start": 11,
-            "Stop": 13
+            "StartLine": 11,
+            "EndLine": 13
           }
         }
       }
@@ -138,9 +138,11 @@
         {
           "Name": "ErrOk",
           "Value": 0,
+          "ErrorMessage": null,
+          "Annotations": null,
           "Position": {
-            "Start": 17,
-            "Stop": 17
+            "StartLine": 17,
+            "EndLine": 17
           },
           "Comments": {
             "Above": null,
@@ -150,9 +152,24 @@
         {
           "Name": "PARAM_ERROR",
           "Value": 1003,
+          "ErrorMessage": "param error",
+          "Annotations": [
+            {
+              "Key": "errmsg",
+              "Value": "\"param error\"",
+              "Position": {
+                "StartLine": 18,
+                "EndLine": 18
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
-            "Start": 18,
-            "Stop": 18
+            "StartLine": 18,
+            "EndLine": 18
           },
           "Comments": {
             "Above": null,
@@ -161,8 +178,8 @@
         }
       ],
       "Position": {
-        "Start": 16,
-        "Stop": 19
+        "StartLine": 16,
+        "EndLine": 19
       },
       "Comments": {
         "Above": [
@@ -172,8 +189,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 15,
-              "Stop": 15
+              "StartLine": 15,
+              "EndLine": 15
             }
           }
         ],
@@ -187,9 +204,11 @@
         {
           "Name": "User",
           "Value": 0,
+          "ErrorMessage": null,
+          "Annotations": null,
           "Position": {
-            "Start": 0,
-            "Stop": 0
+            "StartLine": 0,
+            "EndLine": 0
           },
           "Comments": {
             "Above": null,
@@ -199,9 +218,11 @@
         {
           "Name": "Address",
           "Value": 1,
+          "ErrorMessage": null,
+          "Annotations": null,
           "Position": {
-            "Start": 0,
-            "Stop": 0
+            "StartLine": 0,
+            "EndLine": 0
           },
           "Comments": {
             "Above": null,
@@ -210,8 +231,8 @@
         }
       ],
       "Position": {
-        "Start": 0,
-        "Stop": 0
+        "StartLine": 0,
+        "EndLine": 0
       },
       "Comments": {
         "Above": null,
@@ -225,7 +246,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "RawFields": [
         {
           "Name": "userId",
           "Type": {
@@ -233,8 +254,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 23,
-            "Stop": 23
+            "StartLine": 23,
+            "EndLine": 23
           },
           "Comments": {
             "Above": null,
@@ -254,9 +275,10 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
-        "Start": 22,
-        "Stop": 24
+        "StartLine": 22,
+        "EndLine": 24
       },
       "Comments": {
         "Above": [
@@ -266,8 +288,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 21,
-              "Stop": 21
+              "StartLine": 21,
+              "EndLine": 21
             }
           }
         ],
@@ -284,17 +306,19 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "RawFields": [
         {
           "Name": "name",
-          "Type": "any",
+          "Type": {
+            "Name": "string"
+          },
           "Annotations": [
             {
               "Key": "go.type",
               "Value": "\"*string\"",
               "Position": {
-                "Start": 32,
-                "Stop": 32
+                "StartLine": 32,
+                "EndLine": 32
               },
               "Comments": {
                 "Above": null,
@@ -305,8 +329,8 @@
               "Key": "a",
               "Value": "\"123\"",
               "Position": {
-                "Start": 32,
-                "Stop": 32
+                "StartLine": 32,
+                "EndLine": 32
               },
               "Comments": {
                 "Above": null,
@@ -315,8 +339,8 @@
             }
           ],
           "Position": {
-            "Start": 32,
-            "Stop": 32
+            "StartLine": 32,
+            "EndLine": 32
           },
           "Comments": {
             "Above": null,
@@ -345,8 +369,8 @@
               "Key": "validate",
               "Value": "\"$\u003c18\"",
               "Position": {
-                "Start": 33,
-                "Stop": 33
+                "StartLine": 33,
+                "EndLine": 33
               },
               "Comments": {
                 "Above": null,
@@ -355,8 +379,8 @@
             }
           ],
           "Position": {
-            "Start": 33,
-            "Stop": 33
+            "StartLine": 33,
+            "EndLine": 33
           },
           "Comments": {
             "Above": null,
@@ -389,11 +413,11 @@
         },
         {
           "Name": "avatar",
-          "Type": "binary",
+          "Type": "bytes",
           "Annotations": null,
           "Position": {
-            "Start": 34,
-            "Stop": 34
+            "StartLine": 34,
+            "EndLine": 34
           },
           "Comments": {
             "Above": null,
@@ -419,8 +443,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 36,
-            "Stop": 36
+            "StartLine": 36,
+            "EndLine": 36
           },
           "Comments": {
             "Above": [
@@ -430,8 +454,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "Start": 35,
-                  "Stop": 35
+                  "StartLine": 35,
+                  "EndLine": 35
                 }
               }
             ],
@@ -441,8 +465,8 @@
               ],
               "Single": false,
               "Position": {
-                "Start": 36,
-                "Stop": 36
+                "StartLine": 36,
+                "EndLine": 36
               }
             }
           },
@@ -466,8 +490,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 37,
-            "Stop": 37
+            "StartLine": 37,
+            "EndLine": 37
           },
           "Comments": {
             "Above": null,
@@ -487,9 +511,10 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
-        "Start": 31,
-        "Stop": 38
+        "StartLine": 31,
+        "EndLine": 38
       },
       "Comments": {
         "Above": [
@@ -499,8 +524,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 26,
-              "Stop": 26
+              "StartLine": 26,
+              "EndLine": 26
             }
           },
           {
@@ -511,8 +536,8 @@
             ],
             "Single": false,
             "Position": {
-              "Start": 27,
-              "Stop": 29
+              "StartLine": 27,
+              "EndLine": 29
             }
           },
           {
@@ -521,8 +546,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 30,
-              "Stop": 30
+              "StartLine": 30,
+              "EndLine": 30
             }
           }
         ],
@@ -539,7 +564,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "RawFields": [
         {
           "Name": "street",
           "Type": {
@@ -547,8 +572,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 41,
-            "Stop": 41
+            "StartLine": 41,
+            "EndLine": 41
           },
           "Comments": {
             "Above": null,
@@ -574,8 +599,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 42,
-            "Stop": 42
+            "StartLine": 42,
+            "EndLine": 42
           },
           "Comments": {
             "Above": null,
@@ -601,8 +626,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 43,
-            "Stop": 43
+            "StartLine": 43,
+            "EndLine": 43
           },
           "Comments": {
             "Above": null,
@@ -622,9 +647,10 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
-        "Start": 40,
-        "Stop": 44
+        "StartLine": 40,
+        "EndLine": 44
       },
       "Comments": {
         "Above": null,
@@ -641,7 +667,7 @@
       "OneOf": true,
       "InstType": null,
       "GenericParam": null,
-      "Fields": [
+      "RawFields": [
         {
           "Name": "FieldType",
           "Type": {
@@ -652,8 +678,8 @@
               "Key": "enum_as_string",
               "Value": null,
               "Position": {
-                "Start": 0,
-                "Stop": 0
+                "StartLine": 0,
+                "EndLine": 0
               },
               "Comments": {
                 "Above": null,
@@ -662,8 +688,8 @@
             }
           ],
           "Position": {
-            "Start": 0,
-            "Stop": 0
+            "StartLine": 0,
+            "EndLine": 0
           },
           "Comments": {
             "Above": null,
@@ -689,8 +715,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 47,
-            "Stop": 47
+            "StartLine": 47,
+            "EndLine": 47
           },
           "Comments": {
             "Above": null,
@@ -716,8 +742,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 48,
-            "Stop": 48
+            "StartLine": 48,
+            "EndLine": 48
           },
           "Comments": {
             "Above": null,
@@ -737,9 +763,10 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
-        "Start": 46,
-        "Stop": 49
+        "StartLine": 46,
+        "EndLine": 49
       },
       "Comments": {
         "Above": null,
@@ -756,7 +783,7 @@
       "OneOf": false,
       "InstType": null,
       "GenericParam": "T",
-      "Fields": [
+      "RawFields": [
         {
           "Name": "errno",
           "Type": {
@@ -767,8 +794,8 @@
               "Key": "enum_as_string",
               "Value": null,
               "Position": {
-                "Start": 53,
-                "Stop": 53
+                "StartLine": 53,
+                "EndLine": 53
               },
               "Comments": {
                 "Above": null,
@@ -777,8 +804,8 @@
             }
           ],
           "Position": {
-            "Start": 53,
-            "Stop": 53
+            "StartLine": 53,
+            "EndLine": 53
           },
           "Comments": {
             "Above": null,
@@ -804,8 +831,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 54,
-            "Stop": 54
+            "StartLine": 54,
+            "EndLine": 54
           },
           "Comments": {
             "Above": null,
@@ -831,8 +858,8 @@
           },
           "Annotations": null,
           "Position": {
-            "Start": 55,
-            "Stop": 55
+            "StartLine": 55,
+            "EndLine": 55
           },
           "Comments": {
             "Above": null,
@@ -852,9 +879,10 @@
           "EnumAsString": false
         }
       ],
+      "Fields": null,
       "Position": {
-        "Start": 52,
-        "Stop": 56
+        "StartLine": 52,
+        "EndLine": 56
       },
       "Comments": {
         "Above": [
@@ -864,8 +892,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 51,
-              "Stop": 51
+              "StartLine": 51,
+              "EndLine": 51
             }
           }
         ],
@@ -881,7 +909,7 @@
       "Name": "UserResp",
       "OneOf": false,
       "InstType": {
-        "Name": "Response",
+        "BaseName": "Response",
         "GenericType": {
           "Item": {
             "Name": "User"
@@ -889,10 +917,11 @@
         }
       },
       "GenericParam": null,
+      "RawFields": null,
       "Fields": null,
       "Position": {
-        "Start": 75,
-        "Stop": 75
+        "StartLine": 75,
+        "EndLine": 75
       },
       "Comments": {
         "Above": [
@@ -902,8 +931,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 74,
-              "Stop": 74
+              "StartLine": 74,
+              "EndLine": 74
             }
           }
         ],
@@ -918,16 +947,19 @@
   ],
   "RPCs": [
     {
+      "SSE": false,
       "Name": "GetUser",
       "Request": "UserReq",
-      "Response": "UserResp",
+      "Response": {
+        "Name": "UserResp"
+      },
       "Annotations": [
         {
           "Key": "path",
           "Value": "\"/user\"",
           "Position": {
-            "Start": 61,
-            "Stop": 61
+            "StartLine": 61,
+            "EndLine": 61
           },
           "Comments": {
             "Above": [
@@ -937,8 +969,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "Start": 60,
-                  "Stop": 60
+                  "StartLine": 60,
+                  "EndLine": 60
                 }
               }
             ],
@@ -949,8 +981,8 @@
           "Key": "method",
           "Value": "\"GET\"",
           "Position": {
-            "Start": 62,
-            "Stop": 62
+            "StartLine": 62,
+            "EndLine": 62
           },
           "Comments": {
             "Above": null,
@@ -961,8 +993,8 @@
           "Key": "contentType",
           "Value": "\"form\"",
           "Position": {
-            "Start": 63,
-            "Stop": 63
+            "StartLine": 63,
+            "EndLine": 63
           },
           "Comments": {
             "Above": null,
@@ -973,8 +1005,8 @@
           "Key": "connTimeout",
           "Value": "100",
           "Position": {
-            "Start": 66,
-            "Stop": 66
+            "StartLine": 66,
+            "EndLine": 66
           },
           "Comments": {
             "Above": [
@@ -984,8 +1016,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "Start": 65,
-                  "Stop": 65
+                  "StartLine": 65,
+                  "EndLine": 65
                 }
               }
             ],
@@ -996,8 +1028,8 @@
           "Key": "readTimeout",
           "Value": "100",
           "Position": {
-            "Start": 67,
-            "Stop": 67
+            "StartLine": 67,
+            "EndLine": 67
           },
           "Comments": {
             "Above": null,
@@ -1008,8 +1040,8 @@
           "Key": "writeTimeout",
           "Value": "100",
           "Position": {
-            "Start": 68,
-            "Stop": 68
+            "StartLine": 68,
+            "EndLine": 68
           },
           "Comments": {
             "Above": null,
@@ -1017,22 +1049,22 @@
           }
         },
         {
-          "Key": "go.type",
+          "Key": "resp.go.type",
           "Value": "\"*string\"",
           "Position": {
-            "Start": 71,
-            "Stop": 71
+            "StartLine": 71,
+            "EndLine": 71
           },
           "Comments": {
             "Above": [
               {
                 "Text": [
-                  "// others"
+                  "// response type"
                 ],
                 "Single": true,
                 "Position": {
-                  "Start": 70,
-                  "Stop": 70
+                  "StartLine": 70,
+                  "EndLine": 70
                 }
               }
             ],
@@ -1041,8 +1073,8 @@
         }
       ],
       "Position": {
-        "Start": 59,
-        "Stop": 72
+        "StartLine": 59,
+        "EndLine": 72
       },
       "Comments": {
         "Above": [
@@ -1052,8 +1084,8 @@
             ],
             "Single": true,
             "Position": {
-              "Start": 58,
-              "Stop": 58
+              "StartLine": 58,
+              "EndLine": 58
             }
           }
         ],
@@ -1069,7 +1101,6 @@
       "PathParams": null
     }
   ],
-  "SSEs": null,
   "EnumTypes": {
     "ErrCode": 0,
     "PayloadType": 1

@@ -55,49 +55,50 @@ type Client struct {
 }
 
 {{- range $r := .RPCs}}
-	{{- if $r.Comments.Exists }}
-		{{formatComments $r.Comments}}
-	{{- end}}
-	{{- $respType := $r.Response }}
-func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, *{{$respType}}, error) {
-	if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
-		return gsmock.Unbox3[*http.Response, *{{$respType}}, error](ret)
-	}
-
-	path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $unused, $p := $r.PathParams}} req.{{$p}}, {{- end}})
-	if s, err := req.QueryForm(); err != nil {
-		return nil, nil, err
-	} else if s != "" {
-		path += "?" + s
-	}
-
-	{{if eq $r.ContentType "application/json"}}
-		buf := bytes.NewBuffer(nil)
-		if err := json.NewEncoder(buf).Encode(req.{{$r.Request}}Body); err != nil {
-			return nil, nil, err
+	{{- if not $r.SSE}}
+		{{- if $r.Comments.Exists }}
+			{{formatComments $r.Comments}}
+		{{- end}}
+	func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, {{$r.Response}}, error) {
+		if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
+			return gsmock.Unbox3[*http.Response, {{$r.Response}}, error](ret)
 		}
-	{{- else}}
-		var buf *bytes.Buffer
-		if s, err := req.{{$r.Request}}Body.EncodeForm(); err != nil {
+	
+		path := fmt.Sprintf("{{$r.FormatPath}}", {{- range $unused, $p := $r.PathParams}} req.{{$p}}, {{- end}})
+		if s, err := req.QueryForm(); err != nil {
 			return nil, nil, err
 		} else if s != "" {
-			buf = bytes.NewBufferString(s)
+			path += "?" + s
 		}
-	{{- end}}
-
-	r, err := http.NewRequestWithContext(ctx, "{{$r.Method}}", path, buf)
-	if err != nil {
-		return nil, nil, err
+	
+		{{if eq $r.ContentType "application/json"}}
+			buf := bytes.NewBuffer(nil)
+			if err := json.NewEncoder(buf).Encode(req.{{$r.Request}}Body); err != nil {
+				return nil, nil, err
+			}
+		{{- else}}
+			var buf *bytes.Buffer
+			if s, err := req.{{$r.Request}}Body.EncodeForm(); err != nil {
+				return nil, nil, err
+			} else if s != "" {
+				buf = bytes.NewBufferString(s)
+			}
+		{{- end}}
+	
+		r, err := http.NewRequestWithContext(ctx, "{{$r.Method}}", path, buf)
+		if err != nil {
+			return nil, nil, err
+		}
+	
+		r.Header.Set("Content-Type", "{{$r.ContentType}}")
+	
+		opts = append(opts, httputil.WithTarget(c.Target))
+		opts = append(opts, httputil.WithPath("{{$r.Path}}"))
+		opts = append(opts, httputil.WithSchema("http"))
+	
+		return httputil.JSONResponse[{{$r.Response}}](r, opts...)
 	}
-
-	r.Header.Set("Content-Type", "{{$r.ContentType}}")
-
-	opts = append(opts, httputil.WithTarget(c.Target))
-	opts = append(opts, httputil.WithPath("{{$r.Path}}"))
-	opts = append(opts, httputil.WithSchema("http"))
-
-	return httputil.JSONResponse[{{$r.Response}}](r, opts...)
-}
+	{{- end}}
 {{end}}
 `))
 
@@ -107,7 +108,6 @@ func (g *Generator) genClient(config *generator.Config, spec GoSpec) error {
 	err := clientTmpl.Execute(buf, map[string]any{
 		"Package": config.GoPackage,
 		"RPCs":    spec.RPCs,
-		"SSEs":    spec.SSEs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)

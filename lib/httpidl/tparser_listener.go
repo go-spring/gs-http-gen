@@ -34,11 +34,8 @@ type TParserListener interface {
 	// EnterCommon_type_field is called when entering the common_type_field production.
 	EnterCommon_type_field(c *Common_type_fieldContext)
 
-	// EnterCommon_field_type is called when entering the common_field_type production.
-	EnterCommon_field_type(c *Common_field_typeContext)
-
-	// EnterType_annotations is called when entering the type_annotations production.
-	EnterType_annotations(c *Type_annotationsContext)
+	// EnterField_annotations is called when entering the field_annotations production.
+	EnterField_annotations(c *Field_annotationsContext)
 
 	// EnterOneof_def is called when entering the oneof_def production.
 	EnterOneof_def(c *Oneof_defContext)
@@ -54,18 +51,6 @@ type TParserListener interface {
 
 	// EnterRpc_annotations is called when entering the rpc_annotations production.
 	EnterRpc_annotations(c *Rpc_annotationsContext)
-
-	// EnterSse_def is called when entering the sse_def production.
-	EnterSse_def(c *Sse_defContext)
-
-	// EnterSse_req is called when entering the sse_req production.
-	EnterSse_req(c *Sse_reqContext)
-
-	// EnterSse_resp is called when entering the sse_resp production.
-	EnterSse_resp(c *Sse_respContext)
-
-	// EnterSse_annotations is called when entering the sse_annotations production.
-	EnterSse_annotations(c *Sse_annotationsContext)
 
 	// EnterAnnotation is called when entering the annotation production.
 	EnterAnnotation(c *AnnotationContext)
@@ -124,11 +109,8 @@ type TParserListener interface {
 	// ExitCommon_type_field is called when exiting the common_type_field production.
 	ExitCommon_type_field(c *Common_type_fieldContext)
 
-	// ExitCommon_field_type is called when exiting the common_field_type production.
-	ExitCommon_field_type(c *Common_field_typeContext)
-
-	// ExitType_annotations is called when exiting the type_annotations production.
-	ExitType_annotations(c *Type_annotationsContext)
+	// ExitField_annotations is called when exiting the field_annotations production.
+	ExitField_annotations(c *Field_annotationsContext)
 
 	// ExitOneof_def is called when exiting the oneof_def production.
 	ExitOneof_def(c *Oneof_defContext)
@@ -144,18 +126,6 @@ type TParserListener interface {
 
 	// ExitRpc_annotations is called when exiting the rpc_annotations production.
 	ExitRpc_annotations(c *Rpc_annotationsContext)
-
-	// ExitSse_def is called when exiting the sse_def production.
-	ExitSse_def(c *Sse_defContext)
-
-	// ExitSse_req is called when exiting the sse_req production.
-	ExitSse_req(c *Sse_reqContext)
-
-	// ExitSse_resp is called when exiting the sse_resp production.
-	ExitSse_resp(c *Sse_respContext)
-
-	// ExitSse_annotations is called when exiting the sse_annotations production.
-	ExitSse_annotations(c *Sse_annotationsContext)
 
 	// ExitAnnotation is called when exiting the annotation production.
 	ExitAnnotation(c *AnnotationContext)

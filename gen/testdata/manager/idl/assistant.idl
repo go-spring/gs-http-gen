@@ -12,7 +12,7 @@ type AssistantResp {
     string id
     string data
     Payload payload
-    binary image
+    bytes image
 }
 
 oneof Payload {
@@ -31,6 +31,19 @@ sse Assistant(AssistantReq) AssistantResp {
     path="/assistant"
     contentType="form"
     summary="assistant"
+
+    // timeouts
+    connTimeout=100
+    readTimeout=100
+    writeTimeout=100
+}
+
+// AssistantV2 ...
+sse AssistantV2(AssistantReq) string {
+    method="GET"
+    path="/assistantV2"
+    contentType="form"
+    summary="assistantV2"
 
     // timeouts
     connTimeout=100

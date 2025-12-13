@@ -50,37 +50,41 @@ type {{.Service}}Server interface {
 		{{- if $r.Comments.Exists }}
 			{{formatComments $r.Comments}}
 		{{- end}}
-        {{$r.Name}}(context.Context, *{{$r.Request}}) *{{$r.Response}}
-    {{- end}}
-	{{- range $r := .SSEs}}
-		{{- if $r.Comments.Exists }}
-			{{formatComments $r.Comments}}
+		{{- if $r.SSE}}
+			{{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[{{$r.Response}}])
+		{{- else}}
+			{{$r.Name}}(context.Context, *{{$r.Request}}) {{$r.Response}}
 		{{- end}}
-        {{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[*AssistantResp])
     {{- end}}
 }
 
-// Router defines the interface that router must implement.
-type Router interface {
-	HandleFunc(method string, pattern string, handler http.HandlerFunc)
+type Router struct {
+	Method  string
+	Pattern string
+	Handler http.HandlerFunc
 }
 
-// SetupRouter sets up the router with the given server.
-func SetupRouter(r Router, server ManagerServer) {
-    {{range $r := .RPCs}}
-		r.HandleFunc("{{$r.Method}}", "{{$r.Path}}",
-			func(w http.ResponseWriter, r *http.Request) {
-				req := &{{$r.Request}}{}
-				HandleJSON(w, r, req, server.{{$r.Name}})
-			})
-    {{end}}
-	{{range $r := .SSEs}}
-		r.HandleFunc("{{$r.Method}}", "{{$r.Path}}", 
-			func(w http.ResponseWriter, r *http.Request) {
-				req := &{{$r.Request}}{}
-				HandleStream(w, r, req, server.{{$r.Name}})
-			})
-    {{end}}
+// Routers returns a list of HTTP routers for the service.
+func Routers(server {{.Service}}Server) []Router {
+	return []Router{
+		{{- range $r := .RPCs}}
+			{
+				Method:  "{{$r.Method}}",
+				Pattern: "{{$r.Path}}",
+				{{- if $r.SSE}}
+					Handler: func(w http.ResponseWriter, r *http.Request) {
+						req := &{{$r.Request}}{}
+						HandleStream(w, r, req, server.{{$r.Name}})
+					},
+				{{- else}}
+					Handler: func(w http.ResponseWriter, r *http.Request) {
+							req := &{{$r.Request}}{}
+							HandleJSON(w, r, req, server.{{$r.Name}})
+					},
+				{{- end}}
+			},
+	    {{- end}}
+	}
 }
 `))
 
@@ -113,7 +117,6 @@ func (g *Generator) genServer(config *generator.Config, spec GoSpec) error {
 		"Package": config.GoPackage,
 		"Service": spec.Meta.Name,
 		"RPCs":    spec.RPCs,
-		"SSEs":    spec.SSEs,
 	})
 	if err != nil {
 		return errutil.Explain(nil, "execute template error: %w", err)

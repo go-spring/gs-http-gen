@@ -107,7 +107,7 @@ func (m *MyManagerServer) CreateManager(ctx context.Context, req *proto.CreateMa
 	return nil
 }
 
-func (m *MyManagerServer) UpdateManager(ctx context.Context, req *proto.UpdateManagerReq) *proto.UpdateManagerResp {
+func (m *MyManagerServer) UpdateManager(ctx context.Context, req *proto.UpdateManagerReq) map[string]any {
 	return nil
 }
 
@@ -121,7 +121,7 @@ func (m *MyManagerServer) ListManagersByPage(ctx context.Context, req *proto.Lis
 
 func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[*proto.AssistantResp]) {
 	for i := 0; i < 5; i++ {
-		event := proto.NewSSEEvent[*proto.AssistantResp]().ID("1").Event("message").Data(
+		event := proto.NewSSEEvent[*proto.AssistantResp]().ID(strconv.Itoa(i)).Event("message").Data(
 			&proto.AssistantResp{
 				Id: httputil.Ptr(strconv.Itoa(i)),
 				Payload: httputil.Ptr(proto.Payload{
@@ -135,9 +135,18 @@ func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq
 	}
 }
 
+func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[string]) {
+	for i := 0; i < 5; i++ {
+		resp <- proto.NewSSEEvent[string]().ID(strconv.Itoa(i)).Data("123456")
+		time.Sleep(time.Second)
+	}
+}
+
 func TestManager(t *testing.T) {
 	svr := NewGinServer(":9191")
-	proto.SetupRouter(svr, &MyManagerServer{})
+	for _, r := range proto.Routers(&MyManagerServer{}) {
+		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
@@ -158,13 +167,38 @@ func TestManager(t *testing.T) {
 
 func TestStream(t *testing.T) {
 	svr := NewHttpServer(":9191")
-	proto.SetupRouter(svr, &MyManagerServer{})
+	for _, r := range proto.Routers(&MyManagerServer{}) {
+		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
 	}()
 	time.Sleep(time.Millisecond * 300)
 
 	resp, err := http.Get("http://localhost:9191/assistant")
+	if err != nil {
+		panic(err)
+	}
+	b, err := io.ReadAll(io.LimitReader(resp.Body, 1025))
+	if err != nil {
+		panic(err)
+	}
+	resp.Body.Close()
+	fmt.Print(string(b))
+	svr.Shutdown(t.Context())
+}
+
+func TestStreamV2(t *testing.T) {
+	svr := NewHttpServer(":9191")
+	for _, r := range proto.Routers(&MyManagerServer{}) {
+		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+	}
+	go func() {
+		fmt.Println(svr.ListenAndServe())
+	}()
+	time.Sleep(time.Millisecond * 300)
+
+	resp, err := http.Get("http://localhost:9191/assistantV2")
 	if err != nil {
 		panic(err)
 	}
