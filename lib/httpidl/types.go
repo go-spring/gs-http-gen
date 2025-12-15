@@ -203,11 +203,12 @@ type TypeField struct {
 	Position    Position       // Location in the source file
 	Comments    Comments       // Associated comments
 
+	Deprecated     bool          // True if marked as deprecated
+	Required       bool          // Whether the field is required
 	CompatAbsent   *string       // Compatibility with absent fields
 	JSONTag        JSONTag       // JSON serialization tag info
 	FormTag        FormTag       // Form tag info
 	Binding        *Binding      // Path/query parameter binding
-	Required       bool          // Whether the field is required
 	ValidateExpr   validate.Expr // Validation expression
 	ValidateNested bool          // Whether nested validation applies
 	EnumAsString   bool          // Whether enum should be marshaled as a string

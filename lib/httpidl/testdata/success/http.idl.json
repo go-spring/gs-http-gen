@@ -261,6 +261,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "userId",
@@ -270,7 +272,6 @@
             "Name": "userId"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -347,6 +348,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "name",
@@ -356,7 +359,6 @@
             "Name": "name"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -388,6 +390,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "age",
@@ -397,7 +401,6 @@
             "Name": "age"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": {
             "Left": {
               "Value": "$",
@@ -417,7 +420,20 @@
         {
           "Name": "avatar",
           "Type": "bytes",
-          "Annotations": null,
+          "Annotations": [
+            {
+              "Key": "deprecated",
+              "Value": null,
+              "Position": {
+                "StartLine": 34,
+                "EndLine": 34
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "StartLine": 34,
             "EndLine": 34
@@ -426,6 +442,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": true,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "avatar",
@@ -435,7 +453,6 @@
             "Name": "avatar"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -474,6 +491,8 @@
               }
             }
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "",
@@ -483,7 +502,6 @@
             "Name": ""
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -502,6 +520,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "payload",
@@ -511,7 +531,6 @@
             "Name": "payload"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -585,6 +604,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "street",
@@ -594,7 +615,6 @@
             "Name": "street"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -626,6 +646,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": true,
           "CompatAbsent": "",
           "JSONTag": {
             "Name": "city",
@@ -635,7 +657,6 @@
             "Name": "city"
           },
           "Binding": null,
-          "Required": true,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -654,6 +675,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "country",
@@ -663,7 +686,6 @@
             "Name": "country"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -717,6 +739,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": true,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "FieldType",
@@ -726,7 +750,6 @@
             "Name": "FieldType"
           },
           "Binding": null,
-          "Required": true,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": true
@@ -745,6 +768,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "User",
@@ -754,7 +779,6 @@
             "Name": "User"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -773,6 +797,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "Address",
@@ -782,7 +808,6 @@
             "Name": "Address"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -836,6 +861,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "errno",
@@ -845,7 +872,6 @@
             "Name": "errno"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": true
@@ -864,6 +890,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "errmsg",
@@ -873,7 +901,6 @@
             "Name": "errmsg"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false
@@ -892,6 +919,8 @@
             "Above": null,
             "Right": null
           },
+          "Deprecated": false,
+          "Required": false,
           "CompatAbsent": null,
           "JSONTag": {
             "Name": "data",
@@ -901,7 +930,6 @@
             "Name": "data"
           },
           "Binding": null,
-          "Required": false,
           "ValidateExpr": null,
           "ValidateNested": false,
           "EnumAsString": false

@@ -629,6 +629,10 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Required = f.KW_REQUIRED() != nil
 	typeField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
+	if _, ok := GetAnnotation(typeField.Annotations, "deprecated"); ok {
+		typeField.Deprecated = true
+	}
+
 	if opt, ok := GetAnnotation(typeField.Annotations, "compat_absent"); ok {
 		if !typeField.Required {
 			panic(errutil.Explain(nil, "field %s is required but has compat_absent annotation in line %d", typeField.Name, typeField.Position.StartLine))
