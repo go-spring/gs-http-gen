@@ -205,7 +205,8 @@ type TypeField struct {
 
 	Deprecated     bool          // True if marked as deprecated
 	Required       bool          // Whether the field is required
-	CompatAbsent   *string       // Compatibility with absent fields
+	CompatDefault  *string       // Default value for compatibility
+	ZeroIfNull     bool          // True if null value should be zero
 	JSONTag        JSONTag       // JSON serialization tag info
 	FormTag        FormTag       // Form tag info
 	Binding        *Binding      // Path/query parameter binding
