@@ -629,6 +629,21 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Required = f.KW_REQUIRED() != nil
 	typeField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
+	if opt, ok := GetAnnotation(typeField.Annotations, "compat_absent"); ok {
+		if !typeField.Required {
+			panic(errutil.Explain(nil, "field %s is required but has compat_absent annotation in line %d", typeField.Name, typeField.Position.StartLine))
+		}
+		if opt.Value == nil {
+			panic(errutil.Explain(nil, "annotation compat_absent for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
+		}
+		s := strings.TrimSpace(*opt.Value)
+		if s == "" {
+			panic(errutil.Explain(nil, "annotation compat_absent for field %s is empty in line %d", typeField.Name, typeField.Position.StartLine))
+		}
+		s = strings.TrimSpace(strings.Trim(s, "\"")) // Remove quotes
+		typeField.CompatAbsent = &s
+	}
+
 	_, typeField.EnumAsString = GetAnnotation(typeField.Annotations, "enum_as_string")
 
 	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: true}

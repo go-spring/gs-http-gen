@@ -203,6 +203,7 @@ type TypeField struct {
 	Position    Position       // Location in the source file
 	Comments    Comments       // Associated comments
 
+	CompatAbsent   *string       // Compatibility with absent fields
 	JSONTag        JSONTag       // JSON serialization tag info
 	FormTag        FormTag       // Form tag info
 	Binding        *Binding      // Path/query parameter binding

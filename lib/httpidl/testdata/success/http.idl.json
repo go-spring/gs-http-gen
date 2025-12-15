@@ -261,6 +261,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "userId",
             "OmitEmpty": true
@@ -346,6 +347,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "name",
             "OmitEmpty": true
@@ -386,6 +388,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "age",
             "OmitEmpty": true
@@ -423,6 +426,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "avatar",
             "OmitEmpty": true
@@ -470,6 +474,7 @@
               }
             }
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "",
             "OmitEmpty": false
@@ -497,6 +502,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "payload",
             "OmitEmpty": true
@@ -579,6 +585,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "street",
             "OmitEmpty": true
@@ -597,7 +604,20 @@
           "Type": {
             "Name": "string"
           },
-          "Annotations": null,
+          "Annotations": [
+            {
+              "Key": "compat_absent",
+              "Value": "\"\"",
+              "Position": {
+                "StartLine": 42,
+                "EndLine": 42
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
           "Position": {
             "StartLine": 42,
             "EndLine": 42
@@ -606,6 +626,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": "",
           "JSONTag": {
             "Name": "city",
             "OmitEmpty": true
@@ -633,6 +654,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "country",
             "OmitEmpty": true
@@ -695,6 +717,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "FieldType",
             "OmitEmpty": false
@@ -722,6 +745,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "User",
             "OmitEmpty": true
@@ -749,6 +773,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "Address",
             "OmitEmpty": true
@@ -811,6 +836,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "errno",
             "OmitEmpty": true
@@ -838,6 +864,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "errmsg",
             "OmitEmpty": true
@@ -865,6 +892,7 @@
             "Above": null,
             "Right": null
           },
+          "CompatAbsent": null,
           "JSONTag": {
             "Name": "data",
             "OmitEmpty": true
