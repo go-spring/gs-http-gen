@@ -285,6 +285,53 @@ func DecodeArrayEnd(d *jsontext.Decoder) error {
 	return nil
 }
 
+// DecodeBools ...
+func DecodeBools(d *jsontext.Decoder) ([]bool, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []bool
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeBool(d)
+		if err != nil {
+			if errors.Is(err, ErrNull) {
+				return nil, errutil.Explain(nil, "null value is not allowed")
+			}
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// DecodeBoolPtrs ...
+func DecodeBoolPtrs(d *jsontext.Decoder) ([]*bool, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []*bool
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeBoolPtr(d)
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // DecodeInts ...
 func DecodeInts[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]T, error) {
 	if err := DecodeArrayBegin(d); err != nil {
@@ -440,6 +487,28 @@ func DecodeStrings(d *jsontext.Decoder) ([]string, error) {
 			if errors.Is(err, ErrNull) {
 				return nil, errutil.Explain(nil, "null value is not allowed")
 			}
+			return nil, err
+		}
+		v = append(v, s)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// DecodeStringPtrs ...
+func DecodeStringPtrs(d *jsontext.Decoder) ([]*string, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []*string
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		s, err := DecodeStringPtr(d)
+		if err != nil {
 			return nil, err
 		}
 		v = append(v, s)

@@ -1,6 +1,7 @@
 package jsonutil
 
 import (
+	"encoding/json"
 	"encoding/json/jsontext"
 	"strings"
 	"testing"
@@ -21,10 +22,16 @@ func TestJSON(t *testing.T) {
 		if err := base.DecodeJSON(d); err != nil {
 			t.Fatal(err)
 		}
+		buf, err := json.Marshal(base)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s", buf)
 	}
 	{
 		s := `{
-			"IntList": [3]
+			"IntList": [3],
+			"StringList": ["","null"]
 		}`
 		l := &List{}
 		r := strings.NewReader(s)
@@ -32,6 +39,11 @@ func TestJSON(t *testing.T) {
 		if err := l.DecodeJSON(d); err != nil {
 			t.Fatal(err)
 		}
+		buf, err := json.Marshal(l)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s", buf)
 	}
 }
 
@@ -149,6 +161,11 @@ type List struct {
 }
 
 func (l *List) DecodeJSON(d *jsontext.Decoder) error {
+	const (
+		hashIntList    = 0x9273f90a7d88b56a // HashKey("IntList")
+		hashStringList = 0xc37ebdf18413dc00 // HashKey("StringList")
+		hashBytesList  = 0x48c8b441d1a49dac // HashKey("BytesList")
+	)
 
 	if err := DecodeObjectBegin(d); err != nil {
 		return err
@@ -163,7 +180,24 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 			return err
 		}
 		switch HashKey(key) {
-
+		case hashIntList:
+			//if key != "IntList" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if l.IntList, err = DecodeInts[int](d); err != nil {
+				return err
+			}
+		case hashStringList:
+			//if key != "StringList" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if l.StringList, err = DecodeStrings(d); err != nil {
+				return err
+			}
+		case hashBytesList:
+			//if key != "BytesList" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
 		default:
 			if err = d.SkipValue(); err != nil {
 				return err
