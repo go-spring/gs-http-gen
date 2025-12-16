@@ -309,3 +309,72 @@ func DecodeInts[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]T,
 	}
 	return v, nil
 }
+
+// DecodeIntPtrs ...
+func DecodeIntPtrs[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]*T, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []*T
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeIntPtr[T](d)
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// DecodeUints ...
+func DecodeUints[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) ([]T, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []T
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeUint[T](d)
+		if err != nil {
+			if errors.Is(err, ErrNull) {
+				return nil, errutil.Explain(nil, "null value is not allowed")
+			}
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
+// DecodeUintPtrs ...
+func DecodeUintPtrs[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) ([]*T, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []*T
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeUintPtr[T](d)
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
