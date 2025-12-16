@@ -31,7 +31,8 @@ func TestJSON(t *testing.T) {
 	{
 		s := `{
 			"IntList": [3],
-			"StringList": ["","null"]
+			"StringList": ["","null"],
+			"IntPtrList": [3,null]
 		}`
 		l := &List{}
 		r := strings.NewReader(s)
@@ -157,14 +158,14 @@ func (b *Base) DecodeJSON(d *jsontext.Decoder) error {
 type List struct {
 	IntList    []int
 	StringList []string
-	BytesList  [][]byte
+	IntPtrList []*int
 }
 
 func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 	const (
 		hashIntList    = 0x9273f90a7d88b56a // HashKey("IntList")
 		hashStringList = 0xc37ebdf18413dc00 // HashKey("StringList")
-		hashBytesList  = 0x48c8b441d1a49dac // HashKey("BytesList")
+		hashIntPtrList = 0x80c120a941785e80 // HashKey("IntPtrList")
 	)
 
 	if err := DecodeObjectBegin(d); err != nil {
@@ -194,10 +195,13 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 			if l.StringList, err = DecodeStrings(d); err != nil {
 				return err
 			}
-		case hashBytesList:
-			//if key != "BytesList" {
+		case hashIntPtrList:
+			//if key != "IntPtrList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
+			if l.IntPtrList, err = DecodeIntPtrs[int](d); err != nil {
+				return err
+			}
 		default:
 			if err = d.SkipValue(); err != nil {
 				return err
