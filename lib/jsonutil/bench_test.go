@@ -65,4 +65,22 @@ func BenchmarkDecodeJSON(b *testing.B) {
 			}
 		}
 	})
+
+	b.Run("DecodeFloatPtrs", func(b *testing.B) {
+		for b.Loop() {
+			r.Reset(strNumbers)
+			if _, err := DecodeFloatPtrs[float32](d); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("DecodeFloatPtrsV2", func(b *testing.B) {
+		for b.Loop() {
+			r.Reset(strNumbers)
+			if _, err := DecodeFloatPtrsV2[float32](d); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
 }
