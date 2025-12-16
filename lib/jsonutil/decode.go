@@ -598,24 +598,25 @@ func DecodeBoolPtrsV2(d *jsontext.Decoder) ([]*bool, error) {
 
 // DecodeBoolPtrs ...
 func DecodeBoolPtrs(d *jsontext.Decoder) ([]*bool, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
-	var v []*bool
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
-		i, err := DecodeBoolPtr(d)
-		if err != nil {
-			return nil, err
-		}
-		v = append(v, i)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+	return DecodeBoolPtrsV2(d)
+	//if err := DecodeArrayBegin(d); err != nil {
+	//	return nil, err
+	//}
+	//var v []*bool
+	//for {
+	//	if d.PeekKind() == ']' {
+	//		break
+	//	}
+	//	i, err := DecodeBoolPtr(d)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	v = append(v, i)
+	//}
+	//if err := DecodeArrayEnd(d); err != nil {
+	//	return nil, err
+	//}
+	//return v, nil
 }
 
 // DecodeIntPtrsV2 ...
@@ -632,24 +633,25 @@ func DecodeIntPtrsV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) 
 
 // DecodeIntPtrs ...
 func DecodeIntPtrs[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]*T, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
-	var v []*T
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
-		i, err := DecodeIntPtr[T](d)
-		if err != nil {
-			return nil, err
-		}
-		v = append(v, i)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+	return DecodeIntPtrsV2[T](d)
+	//if err := DecodeArrayBegin(d); err != nil {
+	//	return nil, err
+	//}
+	//var v []*T
+	//for {
+	//	if d.PeekKind() == ']' {
+	//		break
+	//	}
+	//	i, err := DecodeIntPtr[T](d)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	v = append(v, i)
+	//}
+	//if err := DecodeArrayEnd(d); err != nil {
+	//	return nil, err
+	//}
+	//return v, nil
 }
 
 // DecodeUintPtrsV2 ...
@@ -666,24 +668,25 @@ func DecodeUintPtrsV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Dec
 
 // DecodeUintPtrs ...
 func DecodeUintPtrs[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) ([]*T, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
-	var v []*T
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
-		i, err := DecodeUintPtr[T](d)
-		if err != nil {
-			return nil, err
-		}
-		v = append(v, i)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+	return DecodeUintPtrsV2[T](d)
+	//if err := DecodeArrayBegin(d); err != nil {
+	//	return nil, err
+	//}
+	//var v []*T
+	//for {
+	//	if d.PeekKind() == ']' {
+	//		break
+	//	}
+	//	i, err := DecodeUintPtr[T](d)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	v = append(v, i)
+	//}
+	//if err := DecodeArrayEnd(d); err != nil {
+	//	return nil, err
+	//}
+	//return v, nil
 }
 
 func DecodeFloatPtrsV2[T float32 | float64](d *jsontext.Decoder) ([]*T, error) {
@@ -699,24 +702,25 @@ func DecodeFloatPtrsV2[T float32 | float64](d *jsontext.Decoder) ([]*T, error) {
 
 // DecodeFloatPtrs ...
 func DecodeFloatPtrs[T float32 | float64](d *jsontext.Decoder) ([]*T, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
-	var v []*T
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
-		i, err := DecodeFloatPtr[T](d)
-		if err != nil {
-			return nil, err
-		}
-		v = append(v, i)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+	return DecodeFloatPtrsV2[T](d)
+	//if err := DecodeArrayBegin(d); err != nil {
+	//	return nil, err
+	//}
+	//var v []*T
+	//for {
+	//	if d.PeekKind() == ']' {
+	//		break
+	//	}
+	//	i, err := DecodeFloatPtr[T](d)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	v = append(v, i)
+	//}
+	//if err := DecodeArrayEnd(d); err != nil {
+	//	return nil, err
+	//}
+	//return v, nil
 }
 
 // DecodeStringPtrsV2 ...
@@ -728,22 +732,23 @@ func DecodeStringPtrsV2(d *jsontext.Decoder) ([]*string, error) {
 
 // DecodeStringPtrs ...
 func DecodeStringPtrs(d *jsontext.Decoder) ([]*string, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
-	var v []*string
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
-		s, err := DecodeStringPtr(d)
-		if err != nil {
-			return nil, err
-		}
-		v = append(v, s)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+	return DecodeStringPtrsV2(d)
+	//if err := DecodeArrayBegin(d); err != nil {
+	//	return nil, err
+	//}
+	//var v []*string
+	//for {
+	//	if d.PeekKind() == ']' {
+	//		break
+	//	}
+	//	s, err := DecodeStringPtr(d)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	v = append(v, s)
+	//}
+	//if err := DecodeArrayEnd(d); err != nil {
+	//	return nil, err
+	//}
+	//return v, nil
 }
