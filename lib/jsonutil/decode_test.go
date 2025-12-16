@@ -9,16 +9,29 @@ import (
 )
 
 func TestJSON(t *testing.T) {
-	s := `{
-		"Int": 3,
-		"IntPtr": 3,
-		"Unknown": "abc"
-	}`
-	base := &Base{}
-	r := strings.NewReader(s)
-	d := jsontext.NewDecoder(r)
-	if err := base.DecodeJSON(d); err != nil {
-		t.Fatal(err)
+	{
+		s := `{
+			"Int": 3,
+			"IntPtr": 3,
+			"Unknown": "abc"
+		}`
+		base := &Base{}
+		r := strings.NewReader(s)
+		d := jsontext.NewDecoder(r)
+		if err := base.DecodeJSON(d); err != nil {
+			t.Fatal(err)
+		}
+	}
+	{
+		s := `{
+			"IntList": [3]
+		}`
+		l := &List{}
+		r := strings.NewReader(s)
+		d := jsontext.NewDecoder(r)
+		if err := l.DecodeJSON(d); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
@@ -133,6 +146,36 @@ type List struct {
 	IntList    []int
 	StringList []string
 	BytesList  [][]byte
+}
+
+func (l *List) DecodeJSON(d *jsontext.Decoder) error {
+
+	if err := DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch HashKey(key) {
+
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type Map struct {
