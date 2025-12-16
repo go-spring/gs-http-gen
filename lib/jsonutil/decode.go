@@ -284,3 +284,28 @@ func DecodeArrayEnd(d *jsontext.Decoder) error {
 	}
 	return nil
 }
+
+// DecodeInts ...
+func DecodeInts[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]T, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []T
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeInt[T](d)
+		if err != nil {
+			if errors.Is(err, ErrNull) {
+				return nil, errutil.Explain(nil, "null value is not allowed")
+			}
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
