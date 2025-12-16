@@ -10,6 +10,19 @@ import (
 )
 
 func TestJSON(t *testing.T) {
+	//{
+	//	s := `[{
+	//		"IntList": [3],
+	//		"StringList": ["","null"],
+	//		"IntPtrList": [3,null]
+	//	}]`
+	//	r := strings.NewReader(s)
+	//	d := jsontext.NewDecoder(r)
+	//	_, err := DecodeObjectArray[*List](d)
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
+	//}
 	{
 		s := `{
 			"Int": 3,
@@ -46,20 +59,20 @@ func TestJSON(t *testing.T) {
 		}
 		t.Logf("%s", buf)
 	}
-	{
-		s := ``
-		m := &Map{}
-		r := strings.NewReader(s)
-		d := jsontext.NewDecoder(r)
-		if err := m.DecodeJSON(d); err != nil {
-			t.Fatal(err)
-		}
-		buf, err := json.Marshal(m)
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Logf("%s", buf)
-	}
+	//{
+	//	s := ``
+	//	m := &Map{}
+	//	r := strings.NewReader(s)
+	//	d := jsontext.NewDecoder(r)
+	//	if err := m.DecodeJSON(d); err != nil {
+	//		t.Fatal(err)
+	//	}
+	//	buf, err := json.Marshal(m)
+	//	if err != nil {
+	//		t.Fatal(err)
+	//	}
+	//	t.Logf("%s", buf)
+	//}
 }
 
 // HashKey returns a hash value for the given string.

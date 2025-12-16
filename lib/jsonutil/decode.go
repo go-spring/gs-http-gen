@@ -11,17 +11,17 @@ import (
 
 var ErrNull = errors.New("null")
 
-type Number interface {
-	int | int8 | int16 | int32 | int64 |
-	uint | uint8 | uint16 | uint32 | uint64 |
-	float32 | float64
-}
+//type Number interface {
+//	int | int8 | int16 | int32 | int64 |
+//		uint | uint8 | uint16 | uint32 | uint64 |
+//		float32 | float64
+//}
 
-type BaseType interface {
-	int | int8 | int16 | int32 | int64 |
-	uint | uint8 | uint16 | uint32 | uint64 |
-	float32 | float64 | bool | string
-}
+//type BaseType interface {
+//	int | int8 | int16 | int32 | int64 |
+//		uint | uint8 | uint16 | uint32 | uint64 |
+//		float32 | float64 | bool | string
+//}
 
 // Object ...
 type Object interface {
@@ -113,7 +113,8 @@ func DecodeBool(d *jsontext.Decoder) (bool, error) {
 	}
 }
 
-func DecodeNumber[T Number](d *jsontext.Decoder, parseFn func(string) (T, error)) (T, error) {
+// DecodeNumber ...
+func DecodeNumber[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (T, error) {
 	var v T
 	value, err := d.ReadValue()
 	if err != nil {
@@ -302,7 +303,7 @@ func DecodeBytes(d *jsontext.Decoder) ([]byte, error) {
 }
 
 // DecodePtr ...
-func DecodePtr[T BaseType](d *jsontext.Decoder, parseFn func(string) (*T, error)) (*T, error) {
+func DecodePtr[T any](d *jsontext.Decoder, parseFn func(string) (*T, error)) (*T, error) {
 	var v *T
 	value, err := d.ReadValue()
 	if err != nil {
@@ -434,7 +435,7 @@ func DecodeStringPtr(d *jsontext.Decoder) (*string, error) {
 }
 
 // DecodeArray ...
-func DecodeArray[T BaseType](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
+func DecodeArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
 	if err := DecodeArrayBegin(d); err != nil {
 		return nil, err
 	}
@@ -637,7 +638,7 @@ func DecodeStrings(d *jsontext.Decoder) ([]string, error) {
 }
 
 // DecodePtrArray ...
-func DecodePtrArray[T BaseType](d *jsontext.Decoder, parseFn func(string) (*T, error)) ([]*T, error) {
+func DecodePtrArray[T any](d *jsontext.Decoder, parseFn func(string) (*T, error)) ([]*T, error) {
 	if err := DecodeArrayBegin(d); err != nil {
 		return nil, err
 	}
@@ -829,3 +830,25 @@ func DecodeStringPtrs(d *jsontext.Decoder) ([]*string, error) {
 	//}
 	//return v, nil
 }
+
+//// DecodeObjectArray ...
+//func DecodeObjectArray[T Object](d *jsontext.Decoder) ([]*T, error) {
+//	if err := DecodeArrayBegin(d); err != nil {
+//		return nil, err
+//	}
+//	var v []*T
+//	for {
+//		if d.PeekKind() == ']' {
+//			break
+//		}
+//		var i T
+//		if err := i.DecodeJSON(d); err != nil {
+//			return nil, err
+//		}
+//		v = append(v, &i)
+//	}
+//	if err := DecodeArrayEnd(d); err != nil {
+//		return nil, err
+//	}
+//	return v, nil
+//}
