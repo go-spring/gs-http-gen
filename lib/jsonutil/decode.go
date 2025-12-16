@@ -17,15 +17,15 @@ type Number interface {
 	float32 | float64
 }
 
-// Object ...
-type Object interface {
-	DecodeJSON(d *jsontext.Decoder) error
-}
-
-type ArrayElem interface {
+type BaseType interface {
 	int | int8 | int16 | int32 | int64 |
 	uint | uint8 | uint16 | uint32 | uint64 |
 	float32 | float64 | bool | string
+}
+
+// Object ...
+type Object interface {
+	DecodeJSON(d *jsontext.Decoder) error
 }
 
 // DecodeKey ...
@@ -302,7 +302,7 @@ func DecodeBytes(d *jsontext.Decoder) ([]byte, error) {
 }
 
 // DecodePtr ...
-func DecodePtr[T ArrayElem](d *jsontext.Decoder, parseFn func(string) (*T, error)) (*T, error) {
+func DecodePtr[T BaseType](d *jsontext.Decoder, parseFn func(string) (*T, error)) (*T, error) {
 	var v *T
 	value, err := d.ReadValue()
 	if err != nil {
@@ -434,7 +434,7 @@ func DecodeStringPtr(d *jsontext.Decoder) (*string, error) {
 }
 
 // DecodeArray ...
-func DecodeArray[T ArrayElem](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
+func DecodeArray[T BaseType](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
 	if err := DecodeArrayBegin(d); err != nil {
 		return nil, err
 	}
@@ -637,7 +637,7 @@ func DecodeStrings(d *jsontext.Decoder) ([]string, error) {
 }
 
 // DecodePtrArray ...
-func DecodePtrArray[T ArrayElem](d *jsontext.Decoder, parseFn func(string) (*T, error)) ([]*T, error) {
+func DecodePtrArray[T BaseType](d *jsontext.Decoder, parseFn func(string) (*T, error)) ([]*T, error) {
 	if err := DecodeArrayBegin(d); err != nil {
 		return nil, err
 	}
