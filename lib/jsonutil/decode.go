@@ -78,33 +78,34 @@ func DecodeIntV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, 
 
 // DecodeInt ...
 func DecodeInt[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, error) {
-	value, err := d.ReadValue()
-	if err != nil {
-		return 0, err
-	}
-	switch value.Kind() {
-	case '0':
-		i, err := strconv.ParseInt(value.String(), 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(i), nil
-	case 'n':
-		return 0, ErrNull
-	case '"':
-		var s string
-		s, err = strconv.Unquote(value.String())
-		if err != nil {
-			return 0, err
-		}
-		i, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(i), nil
-	default:
-		return 0, errutil.Explain(err, "invalid JSON: expected integer")
-	}
+	return DecodeIntV2[T](d)
+	//value, err := d.ReadValue()
+	//if err != nil {
+	//	return 0, err
+	//}
+	//switch value.Kind() {
+	//case '0':
+	//	i, err := strconv.ParseInt(value.String(), 10, 64)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return T(i), nil
+	//case 'n':
+	//	return 0, ErrNull
+	//case '"':
+	//	var s string
+	//	s, err = strconv.Unquote(value.String())
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	i, err := strconv.ParseInt(s, 10, 64)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return T(i), nil
+	//default:
+	//	return 0, errutil.Explain(err, "invalid JSON: expected integer")
+	//}
 }
 
 // DecodeUintV2 ...
@@ -120,33 +121,34 @@ func DecodeUintV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder
 
 // DecodeUint ...
 func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (T, error) {
-	value, err := d.ReadValue()
-	if err != nil {
-		return 0, err
-	}
-	switch value.Kind() {
-	case '0':
-		u, err := strconv.ParseUint(value.String(), 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(u), nil
-	case 'n':
-		return 0, ErrNull
-	case '"':
-		var s string
-		s, err = strconv.Unquote(value.String())
-		if err != nil {
-			return 0, err
-		}
-		u, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(u), nil
-	default:
-		return 0, errutil.Explain(err, "invalid JSON: expected integer")
-	}
+	return DecodeUintV2[T](d)
+	//value, err := d.ReadValue()
+	//if err != nil {
+	//	return 0, err
+	//}
+	//switch value.Kind() {
+	//case '0':
+	//	u, err := strconv.ParseUint(value.String(), 10, 64)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return T(u), nil
+	//case 'n':
+	//	return 0, ErrNull
+	//case '"':
+	//	var s string
+	//	s, err = strconv.Unquote(value.String())
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	u, err := strconv.ParseUint(s, 10, 64)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return T(u), nil
+	//default:
+	//	return 0, errutil.Explain(err, "invalid JSON: expected integer")
+	//}
 }
 
 // DecodeFloatV2 ...
@@ -162,33 +164,34 @@ func DecodeFloatV2[T float32 | float64](d *jsontext.Decoder) (T, error) {
 
 // DecodeFloat ...
 func DecodeFloat[T float32 | float64](d *jsontext.Decoder) (T, error) {
-	value, err := d.ReadValue()
-	if err != nil {
-		return 0, err
-	}
-	switch value.Kind() {
-	case '0':
-		f, err := strconv.ParseFloat(value.String(), 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(f), nil
-	case 'n':
-		return 0, ErrNull
-	case '"':
-		var s string
-		s, err = strconv.Unquote(value.String())
-		if err != nil {
-			return 0, err
-		}
-		f, err := strconv.ParseFloat(s, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(f), nil
-	default:
-		return 0, errutil.Explain(err, "invalid JSON: expected float")
-	}
+	return DecodeFloatV2[T](d)
+	//value, err := d.ReadValue()
+	//if err != nil {
+	//	return 0, err
+	//}
+	//switch value.Kind() {
+	//case '0':
+	//	f, err := strconv.ParseFloat(value.String(), 64)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return T(f), nil
+	//case 'n':
+	//	return 0, ErrNull
+	//case '"':
+	//	var s string
+	//	s, err = strconv.Unquote(value.String())
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	f, err := strconv.ParseFloat(s, 64)
+	//	if err != nil {
+	//		return 0, err
+	//	}
+	//	return T(f), nil
+	//default:
+	//	return 0, errutil.Explain(err, "invalid JSON: expected float")
+	//}
 }
 
 // DecodeString decodes a string value from the given JSON decoder.
