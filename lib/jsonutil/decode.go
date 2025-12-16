@@ -36,6 +36,46 @@ func DecodeBool(d *jsontext.Decoder) (bool, error) {
 	}
 }
 
+type Number interface {
+	int | int8 | int16 | int32 | int64 |
+	uint | uint8 | uint16 | uint32 | uint64 |
+	float32 | float64
+}
+
+func DecodeNumber[T Number](d *jsontext.Decoder, parseFn func(string) (T, error)) (T, error) {
+	var v T
+	value, err := d.ReadValue()
+	if err != nil {
+		return v, err
+	}
+	switch value.Kind() {
+	case '0':
+		return parseFn(value.String())
+	case 'n':
+		return v, ErrNull
+	case '"':
+		var s string
+		s, err = strconv.Unquote(value.String())
+		if err != nil {
+			return v, err
+		}
+		return parseFn(s)
+	default:
+		return v, errutil.Explain(err, "invalid JSON: expected integer")
+	}
+}
+
+// DecodeIntV2 ...
+func DecodeIntV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, error) {
+	return DecodeNumber(d, func(s string) (T, error) {
+		v, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return T(v), nil
+	})
+}
+
 // DecodeInt ...
 func DecodeInt[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, error) {
 	value, err := d.ReadValue()
@@ -67,6 +107,17 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, er
 	}
 }
 
+// DecodeUintV2 ...
+func DecodeUintV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (T, error) {
+	return DecodeNumber(d, func(s string) (T, error) {
+		u, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return T(u), nil
+	})
+}
+
 // DecodeUint ...
 func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (T, error) {
 	value, err := d.ReadValue()
@@ -96,6 +147,17 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) 
 	default:
 		return 0, errutil.Explain(err, "invalid JSON: expected integer")
 	}
+}
+
+// DecodeFloatV2 ...
+func DecodeFloatV2[T float32 | float64](d *jsontext.Decoder) (T, error) {
+	return DecodeNumber(d, func(s string) (T, error) {
+		f, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return 0, err
+		}
+		return T(f), nil
+	})
 }
 
 // DecodeFloat ...
