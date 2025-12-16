@@ -46,6 +46,20 @@ func TestJSON(t *testing.T) {
 		}
 		t.Logf("%s", buf)
 	}
+	{
+		s := ``
+		m := &Map{}
+		r := strings.NewReader(s)
+		d := jsontext.NewDecoder(r)
+		if err := m.DecodeJSON(d); err != nil {
+			t.Fatal(err)
+		}
+		buf, err := json.Marshal(m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s", buf)
+	}
 }
 
 // HashKey returns a hash value for the given string.
@@ -223,4 +237,42 @@ type Map struct {
 	ListMap    map[string]List
 	ListPtrMap map[string]*List
 	MapPtrMap  map[string]*Map
+}
+
+func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
+	var (
+		hashIntMap     = 0x5e0dbd82b25dea58 // HashKey("IntMap")
+		hashStringMap  = 0x585c3963701ee36e // HashKey("StringMap")
+		hashBytesMap   = 0x80f17e10a4ab902a // HashKey("BytesMap")
+		hashListMap    = 0x6e7581ed76cd159d // HashKey("ListMap")
+		hashListPtrMap = 0xce90ca0525cb5971 // HashKey("ListPtrMap")
+		hashMapPtrMap  = 0x89705745fd487b41 // HashKey("MapPtrMap")
+	)
+
+	if err := DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch HashKey(key) {
+
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	return nil
 }
