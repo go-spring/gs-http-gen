@@ -231,16 +231,14 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 }
 
 type Map struct {
-	IntMap     map[string]int
-	StringMap  map[string]string
-	BytesMap   map[string][]byte
-	ListMap    map[string]List
-	ListPtrMap map[string]*List
-	MapPtrMap  map[string]*Map
+	StrIntMap     map[string]int
+	StrStrPtrMap  map[string]*string
+	StrListPtrMap map[string]*List
+	IntIntMap     map[int64]int
 }
 
 func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
-	var (
+	const (
 		hashIntMap     = 0x5e0dbd82b25dea58 // HashKey("IntMap")
 		hashStringMap  = 0x585c3963701ee36e // HashKey("StringMap")
 		hashBytesMap   = 0x80f17e10a4ab902a // HashKey("BytesMap")
@@ -262,7 +260,10 @@ func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
 			return err
 		}
 		switch HashKey(key) {
-
+		case hashIntMap:
+			//if key != "IntMap" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
 		default:
 			if err = d.SkipValue(); err != nil {
 				return err
