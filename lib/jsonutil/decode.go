@@ -36,18 +36,6 @@ func DecodeBool(d *jsontext.Decoder) (bool, error) {
 	}
 }
 
-// DecodeBoolPtr ...
-func DecodeBoolPtr(d *jsontext.Decoder) (*bool, error) {
-	b, err := DecodeBool(d)
-	if err != nil {
-		if errors.Is(err, ErrNull) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &b, nil
-}
-
 // DecodeInt ...
 func DecodeInt[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, error) {
 	value, err := d.ReadValue()
@@ -77,18 +65,6 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, er
 	default:
 		return 0, errutil.Explain(err, "invalid JSON: expected integer")
 	}
-}
-
-// DecodeIntPtr ...
-func DecodeIntPtr[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (*T, error) {
-	i, err := DecodeInt[T](d)
-	if err != nil {
-		if errors.Is(err, ErrNull) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &i, nil
 }
 
 // DecodeUint ...
@@ -122,18 +98,6 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) 
 	}
 }
 
-// DecodeUintPtr ...
-func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (*T, error) {
-	u, err := DecodeUint[T](d)
-	if err != nil {
-		if errors.Is(err, ErrNull) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &u, nil
-}
-
 // DecodeFloat ...
 func DecodeFloat[T float32 | float64](d *jsontext.Decoder) (T, error) {
 	value, err := d.ReadValue()
@@ -165,18 +129,6 @@ func DecodeFloat[T float32 | float64](d *jsontext.Decoder) (T, error) {
 	}
 }
 
-// DecodeFloatPtr ...
-func DecodeFloatPtr[T float32 | float64](d *jsontext.Decoder) (*T, error) {
-	f, err := DecodeFloat[T](d)
-	if err != nil {
-		if errors.Is(err, ErrNull) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &f, nil
-}
-
 // DecodeString decodes a string value from the given JSON decoder.
 func DecodeString(d *jsontext.Decoder) (string, error) {
 	value, err := d.ReadValue()
@@ -191,18 +143,6 @@ func DecodeString(d *jsontext.Decoder) (string, error) {
 	default:
 		return "", errutil.Explain(err, "invalid JSON: expected string")
 	}
-}
-
-// DecodeStringPtr ...
-func DecodeStringPtr(d *jsontext.Decoder) (*string, error) {
-	s, err := DecodeString(d)
-	if err != nil {
-		if errors.Is(err, ErrNull) {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &s, nil
 }
 
 // DecodeBytes decodes a byte array value from the given JSON decoder.
@@ -223,6 +163,66 @@ func DecodeBytes(d *jsontext.Decoder) ([]byte, error) {
 	default:
 		return nil, errutil.Explain(err, "invalid JSON: expected []byte")
 	}
+}
+
+// DecodeBoolPtr ...
+func DecodeBoolPtr(d *jsontext.Decoder) (*bool, error) {
+	b, err := DecodeBool(d)
+	if err != nil {
+		if errors.Is(err, ErrNull) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &b, nil
+}
+
+// DecodeIntPtr ...
+func DecodeIntPtr[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (*T, error) {
+	i, err := DecodeInt[T](d)
+	if err != nil {
+		if errors.Is(err, ErrNull) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &i, nil
+}
+
+// DecodeUintPtr ...
+func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (*T, error) {
+	u, err := DecodeUint[T](d)
+	if err != nil {
+		if errors.Is(err, ErrNull) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &u, nil
+}
+
+// DecodeFloatPtr ...
+func DecodeFloatPtr[T float32 | float64](d *jsontext.Decoder) (*T, error) {
+	f, err := DecodeFloat[T](d)
+	if err != nil {
+		if errors.Is(err, ErrNull) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &f, nil
+}
+
+// DecodeStringPtr ...
+func DecodeStringPtr(d *jsontext.Decoder) (*string, error) {
+	s, err := DecodeString(d)
+	if err != nil {
+		if errors.Is(err, ErrNull) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &s, nil
 }
 
 // DecodeKey ...
