@@ -10,19 +10,24 @@ import (
 )
 
 func TestJSON(t *testing.T) {
-	//{
-	//	s := `[{
-	//		"IntList": [3],
-	//		"StringList": ["","null"],
-	//		"IntPtrList": [3,null]
-	//	}]`
-	//	r := strings.NewReader(s)
-	//	d := jsontext.NewDecoder(r)
-	//	_, err := DecodeObjectArray[*List](d)
-	//	if err != nil {
-	//		t.Fatal(err)
-	//	}
-	//}
+	{
+		s := `[{
+			"IntList": [3],
+			"StringList": ["","null"],
+			"IntPtrList": [3,null]
+		}]`
+		r := strings.NewReader(s)
+		d := jsontext.NewDecoder(r)
+		l, err := DecodeObjects(d, NewList)
+		if err != nil {
+			t.Fatal(err)
+		}
+		buf, err := json.Marshal(l)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s", buf)
+	}
 	{
 		s := `{
 			"Int": 3,
@@ -186,6 +191,10 @@ type List struct {
 	IntList    []int
 	StringList []string
 	IntPtrList []*int
+}
+
+func NewList() *List {
+	return &List{}
 }
 
 func (l *List) DecodeJSON(d *jsontext.Decoder) error {
