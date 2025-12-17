@@ -261,16 +261,18 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 }
 
 type Map struct {
-	IntIntMap     map[int64]int
-	StrStrPtrMap  map[string]*string
-	StrListPtrMap map[string]*List
+	IntIntMap       map[int64]int
+	StrStrPtrMap    map[string]*string
+	StrListPtrMap   map[string]*List
+	IntMapStrIntMap map[int]map[string]int
 }
 
 func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
 	const (
-		hashIntIntMap     = 0xc3172d7c329b5eef // HashKey("IntIntMap")
-		hashStrStrPtrMap  = 0xc3447c678a33494b // HashKey("StrStrPtrMap")
-		hashStrListPtrMap = 0xcdf8c071ff4079ec // HashKey("StrListPtrMap")
+		hashIntIntMap       = 0xc3172d7c329b5eef // HashKey("IntIntMap")
+		hashStrStrPtrMap    = 0xc3447c678a33494b // HashKey("StrStrPtrMap")
+		hashStrListPtrMap   = 0xcdf8c071ff4079ec // HashKey("StrListPtrMap")
+		hashIntMapStrIntMap = 0x8fb20e202820cc8e // HashKey("IntMapStrIntMap")
 	)
 
 	if err := DecodeObjectBegin(d); err != nil {
@@ -290,21 +292,28 @@ func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
 			//if key != "IntIntMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.IntIntMap, err = DecodeMap(d, DecodeInt64, DecodeInt); err != nil {
+			if m.IntIntMap, err = DecodeMap(DecodeInt64, DecodeInt)(d); err != nil {
 				return err
 			}
 		case hashStrStrPtrMap:
 			//if key != "StrStrPtrMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.StrStrPtrMap, err = DecodeMap(d, DecodeString, DecodeStringPtr); err != nil {
+			if m.StrStrPtrMap, err = DecodeMap(DecodeString, DecodeStringPtr)(d); err != nil {
 				return err
 			}
 		case hashStrListPtrMap:
 			//if key != "StrListPtrMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.StrListPtrMap, err = DecodeMap(d, DecodeString, DecodeObject(NewList)); err != nil {
+			if m.StrListPtrMap, err = DecodeMap(DecodeString, DecodeObject(NewList))(d); err != nil {
+				return err
+			}
+		case hashIntMapStrIntMap:
+			//if key != "IntMapStrIntMap" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if m.IntMapStrIntMap, err = DecodeMap(DecodeInt, DecodeMap(DecodeString, DecodeInt))(d); err != nil {
 				return err
 			}
 		default:

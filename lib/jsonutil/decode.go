@@ -296,36 +296,39 @@ var DecodeStringPtrs = DecodeArray(DecodeValuePtr(ParseString))
 ////////////////////////////////// map ////////////////////////////////////////
 
 // DecodeMap ...
-func DecodeMap[K comparable, V any](d *jsontext.Decoder,
+func DecodeMap[K comparable, V any](
 	parseKeyFn func(d *jsontext.Decoder) (K, error),
-	parseValueFn func(d *jsontext.Decoder) (V, error)) (map[K]V, error) {
-	switch d.PeekKind() {
-	case 'n':
-		return nil, nil
-	case '{':
-		m := make(map[K]V)
-		if err := DecodeObjectBegin(d); err != nil {
-			return nil, err
-		}
-		for {
-			if d.PeekKind() == '}' {
-				break
-			}
-			key, err := parseKeyFn(d)
-			if err != nil {
+	parseValueFn func(d *jsontext.Decoder) (V, error),
+) func(d *jsontext.Decoder) (map[K]V, error) {
+	return func(d *jsontext.Decoder) (map[K]V, error) {
+		switch d.PeekKind() {
+		case 'n':
+			return nil, nil
+		case '{':
+			m := make(map[K]V)
+			if err := DecodeObjectBegin(d); err != nil {
 				return nil, err
 			}
-			val, err := parseValueFn(d)
-			if err != nil {
+			for {
+				if d.PeekKind() == '}' {
+					break
+				}
+				key, err := parseKeyFn(d)
+				if err != nil {
+					return nil, err
+				}
+				val, err := parseValueFn(d)
+				if err != nil {
+					return nil, err
+				}
+				m[key] = val
+			}
+			if err := DecodeObjectEnd(d); err != nil {
 				return nil, err
 			}
-			m[key] = val
+			return m, nil
+		default:
+			return nil, errutil.Explain(nil, "invalid JSON: expected object or map")
 		}
-		if err := DecodeObjectEnd(d); err != nil {
-			return nil, err
-		}
-		return m, nil
-	default:
-		return nil, errutil.Explain(nil, "invalid JSON: expected object or map")
 	}
 }
