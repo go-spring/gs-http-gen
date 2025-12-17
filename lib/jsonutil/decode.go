@@ -469,69 +469,79 @@ func DecodeStringPtr(d *jsontext.Decoder) (*string, error) {
 	//return &s, nil
 }
 
+// DecodeArray ...
+func DecodeArray(d *jsontext.Decoder, f func() error) error {
+	switch d.PeekKind() {
+	case 'n':
+		return nil
+	case '[':
+		if err := DecodeArrayBegin(d); err != nil {
+			return err
+		}
+		for {
+			if d.PeekKind() == ']' {
+				break
+			}
+			if err := f(); err != nil {
+				return err
+			}
+		}
+		if err := DecodeArrayEnd(d); err != nil {
+			return err
+		}
+		return nil
+	default:
+		return errutil.Explain(nil, "invalid JSON: expected array")
+	}
+}
+
 // DecodeObjects ...
 func DecodeObjects[T Object](d *jsontext.Decoder, f func() T) ([]T, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
 	var v []T
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
+	err := DecodeArray(d, func() error {
 		i, err := DecodeObject(d, f)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		v = append(v, i)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+		return nil
+	})
+	return v, err
 }
 
 // DecodeValues ...
 func DecodeValues[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
 	var v []T
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
+	err := DecodeArray(d, func() error {
 		value, err := d.ReadValue()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		var i T
 		switch value.Kind() {
 		case 'n':
-			return nil, errutil.Explain(nil, "null value is not allowed")
+			return errutil.Explain(nil, "null value is not allowed")
 		case 'f', 't', '0':
 			i, err = parseFn(value.String())
 			if err != nil {
-				return nil, err
+				return err
 			}
 		case '"':
 			s, err := strconv.Unquote(value.String())
 			if err != nil {
-				return nil, err
+				return err
 			}
 			i, err = parseFn(s)
 			if err != nil {
-				return nil, err
+				return err
 			}
 		default:
-			return nil, errutil.Explain(err, "invalid JSON: expected value")
+			return errutil.Explain(err, "invalid JSON: expected value")
 		}
 		v = append(v, i)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+		return nil
+	})
+	return v, err
 }
 
 // DecodeBoolsV2 ...
@@ -690,17 +700,11 @@ func DecodeStrings(d *jsontext.Decoder) ([]string, error) {
 
 // DecodeValuePtrs ...
 func DecodeValuePtrs[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]*T, error) {
-	if err := DecodeArrayBegin(d); err != nil {
-		return nil, err
-	}
 	var v []*T
-	for {
-		if d.PeekKind() == ']' {
-			break
-		}
+	err := DecodeArray(d, func() error {
 		value, err := d.ReadValue()
 		if err != nil {
-			return nil, err
+			return err
 		}
 		var p *T
 		switch value.Kind() {
@@ -708,28 +712,26 @@ func DecodeValuePtrs[T any](d *jsontext.Decoder, parseFn func(string) (T, error)
 		case 't', 'f', '0':
 			i, err := parseFn(value.String())
 			if err != nil {
-				return nil, err
+				return err
 			}
 			p = &i
 		case '"':
 			s, err := strconv.Unquote(value.String())
 			if err != nil {
-				return nil, err
+				return err
 			}
 			i, err := parseFn(s)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			p = &i
 		default:
-			return nil, errutil.Explain(err, "invalid JSON: expected value")
+			return errutil.Explain(err, "invalid JSON: expected value")
 		}
 		v = append(v, p)
-	}
-	if err := DecodeArrayEnd(d); err != nil {
-		return nil, err
-	}
-	return v, nil
+		return nil
+	})
+	return v, err
 }
 
 // DecodeBoolPtrsV2 ...

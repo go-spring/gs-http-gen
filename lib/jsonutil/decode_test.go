@@ -64,20 +64,20 @@ func TestJSON(t *testing.T) {
 		}
 		t.Logf("%s", buf)
 	}
-	//{
-	//	s := ``
-	//	m := &Map{}
-	//	r := strings.NewReader(s)
-	//	d := jsontext.NewDecoder(r)
-	//	if err := m.DecodeJSON(d); err != nil {
-	//		t.Fatal(err)
-	//	}
-	//	buf, err := json.Marshal(m)
-	//	if err != nil {
-	//		t.Fatal(err)
-	//	}
-	//	t.Logf("%s", buf)
-	//}
+	{
+		s := `{}`
+		m := &Map{}
+		r := strings.NewReader(s)
+		d := jsontext.NewDecoder(r)
+		if err := m.DecodeJSON(d); err != nil {
+			t.Fatal(err)
+		}
+		buf, err := json.Marshal(m)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("%s", buf)
+	}
 }
 
 // HashKey returns a hash value for the given string.
@@ -282,10 +282,6 @@ func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
 			return err
 		}
 		switch HashKey(key) {
-		case hashIntMap:
-			//if key != "IntMap" {
-			//	return fmt.Errorf("unknown field name: %s", key)
-			//}
 		default:
 			if err = d.SkipValue(); err != nil {
 				return err
