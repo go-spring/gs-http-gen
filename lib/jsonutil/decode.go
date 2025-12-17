@@ -118,6 +118,23 @@ func ParseBytes(s string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(s)
 }
 
+// DecodeObject ...
+func DecodeObject[T Object](d *jsontext.Decoder, f func() T) (T, error) {
+	var zero T
+	switch d.PeekKind() {
+	case 'n':
+		return zero, nil
+	case '{':
+		v := f()
+		if err := v.DecodeJSON(d); err != nil {
+			return zero, err
+		}
+		return v, nil
+	default:
+		return zero, errutil.Explain(nil, "invalid JSON: expected object")
+	}
+}
+
 // DecodeValue ...
 func DecodeValue[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (T, error) {
 	var v T
@@ -341,7 +358,7 @@ func DecodePtr[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (*T,
 	switch value.Kind() {
 	case 'n':
 		return nil, nil
-	case 't', 'f', '0':
+	case 'f', 't', '0':
 		i, err := parseFn(value.String())
 		if err != nil {
 			return nil, err
@@ -358,7 +375,7 @@ func DecodePtr[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (*T,
 		}
 		return &i, nil
 	default:
-		return nil, errutil.Explain(err, "invalid JSON: expected integer")
+		return nil, errutil.Explain(err, "invalid JSON: expected value")
 	}
 }
 
@@ -452,6 +469,28 @@ func DecodeStringPtr(d *jsontext.Decoder) (*string, error) {
 	//return &s, nil
 }
 
+// DecodeObjects ...
+func DecodeObjects[T Object](d *jsontext.Decoder, f func() T) ([]T, error) {
+	if err := DecodeArrayBegin(d); err != nil {
+		return nil, err
+	}
+	var v []T
+	for {
+		if d.PeekKind() == ']' {
+			break
+		}
+		i, err := DecodeObject(d, f)
+		if err != nil {
+			return nil, err
+		}
+		v = append(v, i)
+	}
+	if err := DecodeArrayEnd(d); err != nil {
+		return nil, err
+	}
+	return v, nil
+}
+
 // DecodeArray ...
 func DecodeArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
 	if err := DecodeArrayBegin(d); err != nil {
@@ -470,7 +509,7 @@ func DecodeArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([
 		switch value.Kind() {
 		case 'n':
 			return nil, errutil.Explain(nil, "null value is not allowed")
-		case 't', 'f', '0':
+		case 'f', 't', '0':
 			i, err = parseFn(value.String())
 			if err != nil {
 				return nil, err
@@ -485,7 +524,7 @@ func DecodeArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([
 				return nil, err
 			}
 		default:
-			return nil, errutil.Explain(err, "invalid JSON: expected integer")
+			return nil, errutil.Explain(err, "invalid JSON: expected value")
 		}
 		v = append(v, i)
 	}
@@ -683,7 +722,7 @@ func DecodePtrArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error))
 			}
 			p = &i
 		default:
-			return nil, errutil.Explain(err, "invalid JSON: expected integer")
+			return nil, errutil.Explain(err, "invalid JSON: expected value")
 		}
 		v = append(v, p)
 	}
