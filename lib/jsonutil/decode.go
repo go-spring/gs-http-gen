@@ -181,8 +181,8 @@ func DecodeValuePtr[T any](parseFn func(string) (T, error)) func(d *jsontext.Dec
 	}
 }
 
-var DecodeBool = DecodeValue[bool]
-var DecodeBoolPtr = DecodeValuePtr[bool]
+var DecodeBool = DecodeValue(ParseBool)
+var DecodeBoolPtr = DecodeValuePtr(ParseBool)
 
 var DecodeInt = DecodeValue(ParseInt[int])
 var DecodeInt8 = DecodeValue(ParseInt[int8])
@@ -295,9 +295,10 @@ var DecodeStringPtrs = DecodeArray(DecodeValuePtr(ParseString))
 
 ////////////////////////////////// map ////////////////////////////////////////
 
+// DecodeMap ...
 func DecodeMap[K comparable, V any](d *jsontext.Decoder,
 	parseKeyFn func(d *jsontext.Decoder) (K, error),
-	parseValueFn func(d *jsontext.Decoder) (V, error)) (any, error) {
+	parseValueFn func(d *jsontext.Decoder) (V, error)) (map[K]V, error) {
 	switch d.PeekKind() {
 	case 'n':
 		return nil, nil

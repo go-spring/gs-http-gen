@@ -14,7 +14,7 @@ func TestJSON(t *testing.T) {
 		s := `[{
 			"IntList": [3],
 			"StringList": ["","null"],
-			"IntPtrList": [3,null]
+			"IntPtrList": [[3,null]]
 		}]`
 		r := strings.NewReader(s)
 		d := jsontext.NewDecoder(r)
@@ -50,7 +50,7 @@ func TestJSON(t *testing.T) {
 		s := `{
 			"IntList": [3],
 			"StringList": ["","null"],
-			"IntPtrList": [3,null]
+			"IntPtrList": [[3,null]]
 		}`
 		l := &List{}
 		r := strings.NewReader(s)
@@ -65,7 +65,15 @@ func TestJSON(t *testing.T) {
 		t.Logf("%s", buf)
 	}
 	{
-		s := `{}`
+		s := `{
+			"IntIntMap": {"3":3},
+			"StrStrPtrMap": {"3":"3"},
+			"StrListPtrMap": {"3": {
+				"IntList": [3],
+				"StringList": ["","null"],
+				"IntPtrList": [[3,null]]
+			}}
+		}`
 		m := &Map{}
 		r := strings.NewReader(s)
 		d := jsontext.NewDecoder(r)
@@ -190,7 +198,7 @@ func (b *Base) DecodeJSON(d *jsontext.Decoder) error {
 type List struct {
 	IntList    []int
 	StringList []string
-	IntPtrList []*int
+	IntPtrList [][]*int
 }
 
 func NewList() *List {
@@ -235,7 +243,7 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 			//if key != "IntPtrList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntPtrList, err = DecodeIntPtrs(d); err != nil {
+			if l.IntPtrList, err = DecodeArray(DecodeIntPtrs)(d); err != nil {
 				return err
 			}
 		default:
@@ -253,20 +261,16 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 }
 
 type Map struct {
-	StrIntMap     map[string]int
+	IntIntMap     map[int64]int
 	StrStrPtrMap  map[string]*string
 	StrListPtrMap map[string]*List
-	IntIntMap     map[int64]int
 }
 
 func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
 	const (
-		hashIntMap     = 0x5e0dbd82b25dea58 // HashKey("IntMap")
-		hashStringMap  = 0x585c3963701ee36e // HashKey("StringMap")
-		hashBytesMap   = 0x80f17e10a4ab902a // HashKey("BytesMap")
-		hashListMap    = 0x6e7581ed76cd159d // HashKey("ListMap")
-		hashListPtrMap = 0xce90ca0525cb5971 // HashKey("ListPtrMap")
-		hashMapPtrMap  = 0x89705745fd487b41 // HashKey("MapPtrMap")
+		hashIntIntMap     = 0xc3172d7c329b5eef // HashKey("IntIntMap")
+		hashStrStrPtrMap  = 0xc3447c678a33494b // HashKey("StrStrPtrMap")
+		hashStrListPtrMap = 0xcdf8c071ff4079ec // HashKey("StrListPtrMap")
 	)
 
 	if err := DecodeObjectBegin(d); err != nil {
@@ -282,6 +286,27 @@ func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
 			return err
 		}
 		switch HashKey(key) {
+		case hashIntIntMap:
+			//if key != "IntIntMap" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if m.IntIntMap, err = DecodeMap(d, DecodeInt64, DecodeInt); err != nil {
+				return err
+			}
+		case hashStrStrPtrMap:
+			//if key != "StrStrPtrMap" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if m.StrStrPtrMap, err = DecodeMap(d, DecodeString, DecodeStringPtr); err != nil {
+				return err
+			}
+		case hashStrListPtrMap:
+			//if key != "StrListPtrMap" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if m.StrListPtrMap, err = DecodeMap(d, DecodeString, DecodeObject(NewList)); err != nil {
+				return err
+			}
 		default:
 			if err = d.SkipValue(); err != nil {
 				return err
