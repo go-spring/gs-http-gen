@@ -15,7 +15,7 @@ func BenchmarkDecodeJSON(b *testing.B) {
 	b.Run("DecodeInt", func(b *testing.B) {
 		for b.Loop() {
 			r.Reset(strNumber)
-			if _, err := DecodeInt[int8](d); err != nil {
+			if _, err := DecodeInt[int8]()(d); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -24,7 +24,7 @@ func BenchmarkDecodeJSON(b *testing.B) {
 	b.Run("DecodeIntV2", func(b *testing.B) {
 		for b.Loop() {
 			r.Reset(strNumber)
-			if _, err := DecodeIntV2[int8](d); err != nil {
+			if _, err := DecodeIntV2[int8]()(d); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -33,7 +33,7 @@ func BenchmarkDecodeJSON(b *testing.B) {
 	b.Run("DecodeFloatPtr", func(b *testing.B) {
 		for b.Loop() {
 			r.Reset(strNumber)
-			if _, err := DecodeFloatPtr[float32](d); err != nil {
+			if _, err := DecodeFloatPtr[float32]()(d); err != nil {
 				b.Fatal(err)
 			}
 		}
@@ -42,7 +42,7 @@ func BenchmarkDecodeJSON(b *testing.B) {
 	b.Run("DecodeFloatPtrV2", func(b *testing.B) {
 		for b.Loop() {
 			r.Reset(strNumber)
-			if _, err := DecodeFloatPtrV2[float32](d); err != nil {
+			if _, err := DecodeFloatPtrV2[float32]()(d); err != nil {
 				b.Fatal(err)
 			}
 		}
