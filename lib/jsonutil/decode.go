@@ -76,6 +76,48 @@ func DecodeKey(d *jsontext.Decoder) (string, error) {
 	return key, nil
 }
 
+// ParseBool ...
+func ParseBool(s string) (bool, error) {
+	return strconv.ParseBool(s)
+}
+
+// ParseInt ...
+func ParseInt[T int | int8 | int16 | int32 | int64](s string) (T, error) {
+	v, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return T(v), nil
+}
+
+// ParseUint ...
+func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string) (T, error) {
+	u, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return T(u), nil
+}
+
+// ParseFloat ...
+func ParseFloat[T float32 | float64](s string) (T, error) {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return 0, err
+	}
+	return T(f), nil
+}
+
+// ParseString ...
+func ParseString(s string) (string, error) {
+	return s, nil
+}
+
+// ParseBytes ...
+func ParseBytes(s string) ([]byte, error) {
+	return base64.StdEncoding.DecodeString(s)
+}
+
 // DecodeValue ...
 func DecodeValue[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (T, error) {
 	var v T
@@ -86,7 +128,7 @@ func DecodeValue[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (T
 	switch value.Kind() {
 	case 'n':
 		return v, ErrNull
-	case 't', 'f', '0':
+	case 'f', 't', '0':
 		return parseFn(value.String())
 	case '"':
 		var s string
@@ -96,15 +138,13 @@ func DecodeValue[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (T
 		}
 		return parseFn(s)
 	default:
-		return v, errutil.Explain(err, "invalid JSON: expected integer")
+		return v, errutil.Explain(err, "invalid JSON: expected value")
 	}
 }
 
 // DecodeBoolV2 ...
 func DecodeBoolV2(d *jsontext.Decoder) (bool, error) {
-	return DecodeValue(d, func(s string) (bool, error) {
-		return strconv.ParseBool(s)
-	})
+	return DecodeValue(d, ParseBool)
 }
 
 // DecodeBool ...
@@ -135,13 +175,7 @@ func DecodeBool(d *jsontext.Decoder) (bool, error) {
 
 // DecodeIntV2 ...
 func DecodeIntV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, error) {
-	return DecodeValue(d, func(s string) (T, error) {
-		v, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodeValue(d, ParseInt[T])
 }
 
 // DecodeInt ...
@@ -178,13 +212,7 @@ func DecodeInt[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (T, er
 
 // DecodeUintV2 ...
 func DecodeUintV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (T, error) {
-	return DecodeValue(d, func(s string) (T, error) {
-		u, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(u), nil
-	})
+	return DecodeValue(d, ParseUint[T])
 }
 
 // DecodeUint ...
@@ -221,13 +249,7 @@ func DecodeUint[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) 
 
 // DecodeFloatV2 ...
 func DecodeFloatV2[T float32 | float64](d *jsontext.Decoder) (T, error) {
-	return DecodeValue(d, func(s string) (T, error) {
-		f, err := strconv.ParseFloat(s, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(f), nil
-	})
+	return DecodeValue(d, ParseFloat[T])
 }
 
 // DecodeFloat ...
@@ -264,9 +286,7 @@ func DecodeFloat[T float32 | float64](d *jsontext.Decoder) (T, error) {
 
 // DecodeStringV2 ...
 func DecodeStringV2(d *jsontext.Decoder) (string, error) {
-	return DecodeValue(d, func(s string) (string, error) {
-		return s, nil
-	})
+	return DecodeValue(d, ParseString)
 }
 
 // DecodeString decodes a string value from the given JSON decoder.
@@ -288,9 +308,7 @@ func DecodeString(d *jsontext.Decoder) (string, error) {
 
 // DecodeBytesV2 ...
 func DecodeBytesV2(d *jsontext.Decoder) ([]byte, error) {
-	return DecodeValue(d, func(s string) ([]byte, error) {
-		return base64.StdEncoding.DecodeString(s)
-	})
+	return DecodeValue(d, ParseBytes)
 }
 
 // DecodeBytes decodes a byte array value from the given JSON decoder.
@@ -346,9 +364,7 @@ func DecodePtr[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (*T,
 
 // DecodeBoolPtrV2 ...
 func DecodeBoolPtrV2(d *jsontext.Decoder) (*bool, error) {
-	return DecodePtr(d, func(s string) (bool, error) {
-		return strconv.ParseBool(s)
-	})
+	return DecodePtr(d, ParseBool)
 }
 
 // DecodeBoolPtr ...
@@ -366,13 +382,7 @@ func DecodeBoolPtr(d *jsontext.Decoder) (*bool, error) {
 
 // DecodeIntPtrV2 ...
 func DecodeIntPtrV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (*T, error) {
-	return DecodePtr(d, func(s string) (T, error) {
-		v, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodePtr(d, ParseInt[T])
 }
 
 // DecodeIntPtr ...
@@ -390,13 +400,7 @@ func DecodeIntPtr[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) (*T
 
 // DecodeUintPtrV2 ...
 func DecodeUintPtrV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) (*T, error) {
-	return DecodePtr(d, func(s string) (T, error) {
-		v, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodePtr(d, ParseUint[T])
 }
 
 // DecodeUintPtr ...
@@ -414,13 +418,7 @@ func DecodeUintPtr[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decode
 
 // DecodeFloatPtrV2 ...
 func DecodeFloatPtrV2[T float32 | float64](d *jsontext.Decoder) (*T, error) {
-	return DecodePtr(d, func(s string) (T, error) {
-		v, err := strconv.ParseFloat(s, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodePtr(d, ParseFloat[T])
 }
 
 // DecodeFloatPtr ...
@@ -438,9 +436,7 @@ func DecodeFloatPtr[T float32 | float64](d *jsontext.Decoder) (*T, error) {
 
 // DecodeStringPtrV2 ...
 func DecodeStringPtrV2(d *jsontext.Decoder) (*string, error) {
-	return DecodePtr(d, func(s string) (string, error) {
-		return s, nil
-	})
+	return DecodePtr(d, ParseString)
 }
 
 // DecodeStringPtr ...
@@ -501,7 +497,7 @@ func DecodeArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([
 
 // DecodeBoolsV2 ...
 func DecodeBoolsV2(d *jsontext.Decoder) ([]bool, error) {
-	return DecodeArray[bool](d, strconv.ParseBool)
+	return DecodeArray[bool](d, ParseBool)
 }
 
 // DecodeBools ...
@@ -532,13 +528,7 @@ func DecodeBools(d *jsontext.Decoder) ([]bool, error) {
 
 // DecodeIntsV2 ...
 func DecodeIntsV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]T, error) {
-	return DecodeArray(d, func(s string) (T, error) {
-		v, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodeArray(d, ParseInt[T])
 }
 
 // DecodeInts ...
@@ -569,13 +559,7 @@ func DecodeInts[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]T,
 
 // DecodeUintsV2 ...
 func DecodeUintsV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) ([]T, error) {
-	return DecodeArray(d, func(s string) (T, error) {
-		v, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodeArray(d, ParseUint[T])
 }
 
 // DecodeUints ...
@@ -606,13 +590,7 @@ func DecodeUints[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder)
 
 // DecodeFloatsV2 ...
 func DecodeFloatsV2[T float32 | float64](d *jsontext.Decoder) ([]T, error) {
-	return DecodeArray(d, func(s string) (T, error) {
-		v, err := strconv.ParseFloat(s, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodeArray(d, ParseFloat[T])
 }
 
 // DecodeFloats ...
@@ -642,9 +620,7 @@ func DecodeFloats[T float32 | float64](d *jsontext.Decoder) ([]T, error) {
 
 // DecodeStringsV2 ...
 func DecodeStringsV2(d *jsontext.Decoder) ([]string, error) {
-	return DecodeArray(d, func(s string) (string, error) {
-		return s, nil
-	})
+	return DecodeArray(d, ParseString)
 }
 
 // DecodeStrings ...
@@ -719,9 +695,7 @@ func DecodePtrArray[T any](d *jsontext.Decoder, parseFn func(string) (T, error))
 
 // DecodeBoolPtrsV2 ...
 func DecodeBoolPtrsV2(d *jsontext.Decoder) ([]*bool, error) {
-	return DecodePtrArray(d, func(s string) (bool, error) {
-		return strconv.ParseBool(s)
-	})
+	return DecodePtrArray(d, ParseBool)
 }
 
 // DecodeBoolPtrs ...
@@ -749,13 +723,7 @@ func DecodeBoolPtrs(d *jsontext.Decoder) ([]*bool, error) {
 
 // DecodeIntPtrsV2 ...
 func DecodeIntPtrsV2[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([]*T, error) {
-	return DecodePtrArray(d, func(s string) (T, error) {
-		v, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodePtrArray(d, ParseInt[T])
 }
 
 // DecodeIntPtrs ...
@@ -783,13 +751,7 @@ func DecodeIntPtrs[T int | int8 | int16 | int32 | int64](d *jsontext.Decoder) ([
 
 // DecodeUintPtrsV2 ...
 func DecodeUintPtrsV2[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decoder) ([]*T, error) {
-	return DecodePtrArray(d, func(s string) (T, error) {
-		v, err := strconv.ParseUint(s, 10, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodePtrArray(d, ParseUint[T])
 }
 
 // DecodeUintPtrs ...
@@ -816,13 +778,7 @@ func DecodeUintPtrs[T uint | uint8 | uint16 | uint32 | uint64](d *jsontext.Decod
 }
 
 func DecodeFloatPtrsV2[T float32 | float64](d *jsontext.Decoder) ([]*T, error) {
-	return DecodePtrArray(d, func(s string) (T, error) {
-		v, err := strconv.ParseFloat(s, 64)
-		if err != nil {
-			return 0, err
-		}
-		return T(v), nil
-	})
+	return DecodePtrArray(d, ParseFloat[T])
 }
 
 // DecodeFloatPtrs ...
@@ -850,9 +806,7 @@ func DecodeFloatPtrs[T float32 | float64](d *jsontext.Decoder) ([]*T, error) {
 
 // DecodeStringPtrsV2 ...
 func DecodeStringPtrsV2(d *jsontext.Decoder) ([]*string, error) {
-	return DecodePtrArray(d, func(s string) (string, error) {
-		return s, nil
-	})
+	return DecodePtrArray(d, ParseString)
 }
 
 // DecodeStringPtrs ...
