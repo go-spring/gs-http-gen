@@ -137,25 +137,25 @@ func DecodeObject[T Object](d *jsontext.Decoder, f func() T) (T, error) {
 
 // DecodeValue ...
 func DecodeValue[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) (T, error) {
-	var v T
+	var zero T
 	value, err := d.ReadValue()
 	if err != nil {
-		return v, err
+		return zero, err
 	}
 	switch value.Kind() {
 	case 'n':
-		return v, ErrNull
+		return zero, ErrNull
 	case 'f', 't', '0':
 		return parseFn(value.String())
 	case '"':
 		var s string
 		s, err = strconv.Unquote(value.String())
 		if err != nil {
-			return v, err
+			return zero, err
 		}
 		return parseFn(s)
 	default:
-		return v, errutil.Explain(err, "invalid JSON: expected value")
+		return zero, errutil.Explain(err, "invalid JSON: expected value")
 	}
 }
 
@@ -513,30 +513,9 @@ func DecodeObjects[T Object](d *jsontext.Decoder, f func() T) ([]T, error) {
 func DecodeValues[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]T, error) {
 	var v []T
 	err := DecodeArray(d, func() error {
-		value, err := d.ReadValue()
+		i, err := DecodeValue[T](d, parseFn)
 		if err != nil {
 			return err
-		}
-		var i T
-		switch value.Kind() {
-		case 'n':
-			return errutil.Explain(nil, "null value is not allowed")
-		case 'f', 't', '0':
-			i, err = parseFn(value.String())
-			if err != nil {
-				return err
-			}
-		case '"':
-			s, err := strconv.Unquote(value.String())
-			if err != nil {
-				return err
-			}
-			i, err = parseFn(s)
-			if err != nil {
-				return err
-			}
-		default:
-			return errutil.Explain(err, "invalid JSON: expected value")
 		}
 		v = append(v, i)
 		return nil
@@ -702,31 +681,9 @@ func DecodeStrings(d *jsontext.Decoder) ([]string, error) {
 func DecodeValuePtrs[T any](d *jsontext.Decoder, parseFn func(string) (T, error)) ([]*T, error) {
 	var v []*T
 	err := DecodeArray(d, func() error {
-		value, err := d.ReadValue()
+		p, err := DecodeValuePtr[T](d, parseFn)
 		if err != nil {
 			return err
-		}
-		var p *T
-		switch value.Kind() {
-		case 'n':
-		case 't', 'f', '0':
-			i, err := parseFn(value.String())
-			if err != nil {
-				return err
-			}
-			p = &i
-		case '"':
-			s, err := strconv.Unquote(value.String())
-			if err != nil {
-				return err
-			}
-			i, err := parseFn(s)
-			if err != nil {
-				return err
-			}
-			p = &i
-		default:
-			return errutil.Explain(err, "invalid JSON: expected value")
 		}
 		v = append(v, p)
 		return nil
