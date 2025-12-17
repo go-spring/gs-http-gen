@@ -18,7 +18,7 @@ func TestJSON(t *testing.T) {
 		}]`
 		r := strings.NewReader(s)
 		d := jsontext.NewDecoder(r)
-		l, err := DecodeObjects(d, NewList)
+		l, err := DecodeObjects(NewList)(d)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -221,21 +221,21 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 			//if key != "IntList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntList, err = DecodeInts[int](d); err != nil {
+			if l.IntList, err = DecodeInts[int]()(d); err != nil {
 				return err
 			}
 		case hashStringList:
 			//if key != "StringList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.StringList, err = DecodeStrings(d); err != nil {
+			if l.StringList, err = DecodeStrings()(d); err != nil {
 				return err
 			}
 		case hashIntPtrList:
 			//if key != "IntPtrList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntPtrList, err = DecodeIntPtrs[int](d); err != nil {
+			if l.IntPtrList, err = DecodeIntPtrs[int]()(d); err != nil {
 				return err
 			}
 		default:
