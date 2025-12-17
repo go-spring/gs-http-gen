@@ -137,7 +137,7 @@ func (b *Base) DecodeJSON(d *jsontext.Decoder) error {
 			//if key != "Int" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.Int, err = DecodeInt[int]()(d); err != nil {
+			if b.Int, err = DecodeInt(d); err != nil {
 				return err
 			}
 			foundInt = true
@@ -145,28 +145,28 @@ func (b *Base) DecodeJSON(d *jsontext.Decoder) error {
 			//if key != "IntPtr" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.IntPtr, err = DecodeIntPtr[int]()(d); err != nil {
+			if b.IntPtr, err = DecodeIntPtr(d); err != nil {
 				return err
 			}
 		case hashString:
 			//if key != "String" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.String, err = DecodeString()(d); err != nil {
+			if b.String, err = DecodeString(d); err != nil {
 				return err
 			}
 		case hashStringPtr:
 			//if key != "StringPtr" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.StringPtr, err = DecodeStringPtr()(d); err != nil {
+			if b.StringPtr, err = DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashBytes:
 			//if key != "Bytes" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.Bytes, err = DecodeBytes()(d); err != nil {
+			if b.Bytes, err = DecodeBytes(d); err != nil {
 				return err
 			}
 		default:
@@ -221,21 +221,21 @@ func (l *List) DecodeJSON(d *jsontext.Decoder) error {
 			//if key != "IntList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntList, err = DecodeInts[int]()(d); err != nil {
+			if l.IntList, err = DecodeInts(d); err != nil {
 				return err
 			}
 		case hashStringList:
 			//if key != "StringList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.StringList, err = DecodeStrings()(d); err != nil {
+			if l.StringList, err = DecodeStrings(d); err != nil {
 				return err
 			}
 		case hashIntPtrList:
 			//if key != "IntPtrList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntPtrList, err = DecodeIntPtrs[int]()(d); err != nil {
+			if l.IntPtrList, err = DecodeIntPtrs(d); err != nil {
 				return err
 			}
 		default:
