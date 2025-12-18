@@ -264,7 +264,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "userId",
             "OmitEmpty": true
@@ -352,7 +351,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "name",
             "OmitEmpty": true
@@ -395,7 +393,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "age",
             "OmitEmpty": true
@@ -448,7 +445,6 @@
           "Deprecated": true,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "avatar",
             "OmitEmpty": true
@@ -498,7 +494,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "",
             "OmitEmpty": false
@@ -528,7 +523,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "payload",
             "OmitEmpty": true
@@ -613,7 +607,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "street",
             "OmitEmpty": true
@@ -656,7 +649,6 @@
           "Deprecated": false,
           "Required": true,
           "CompatDefault": "",
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "city",
             "OmitEmpty": true
@@ -686,7 +678,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "country",
             "OmitEmpty": true
@@ -751,7 +742,6 @@
           "Deprecated": false,
           "Required": true,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "FieldType",
             "OmitEmpty": false
@@ -781,7 +771,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "User",
             "OmitEmpty": true
@@ -811,7 +800,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "Address",
             "OmitEmpty": true
@@ -876,7 +864,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "errno",
             "OmitEmpty": true
@@ -906,7 +893,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "errmsg",
             "OmitEmpty": true
@@ -936,7 +922,6 @@
           "Deprecated": false,
           "Required": false,
           "CompatDefault": null,
-          "ZeroIfNull": false,
           "JSONTag": {
             "Name": "data",
             "OmitEmpty": true

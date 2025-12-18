@@ -630,7 +630,6 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
 	_, typeField.Deprecated = GetAnnotation(typeField.Annotations, "deprecated")
-	_, typeField.ZeroIfNull = GetAnnotation(typeField.Annotations, "zero_if_null")
 	_, typeField.EnumAsString = GetAnnotation(typeField.Annotations, "enum_as_string")
 
 	if opt, ok := GetAnnotation(typeField.Annotations, "compat_default"); ok {
