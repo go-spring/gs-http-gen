@@ -292,7 +292,7 @@ func (m *Map) DecodeJSON(d Decoder) error {
 			//if key != "IntIntMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.IntIntMap, err = DecodeMap(DecodeInt64, DecodeInt)(d); err != nil {
+			if m.IntIntMap, err = DecodeMap(DecodeInt64Key, DecodeInt)(d); err != nil {
 				return err
 			}
 		case hashStrStrPtrMap:
@@ -313,7 +313,7 @@ func (m *Map) DecodeJSON(d Decoder) error {
 			//if key != "IntMapStrIntMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.IntMapStrIntMap, err = DecodeMap(DecodeInt, DecodeMap(DecodeString, DecodeInt))(d); err != nil {
+			if m.IntMapStrIntMap, err = DecodeMap(DecodeIntKey, DecodeMap(DecodeString, DecodeInt))(d); err != nil {
 				return err
 			}
 		default:

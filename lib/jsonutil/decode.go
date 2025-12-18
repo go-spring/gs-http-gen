@@ -202,6 +202,18 @@ func ParseInt[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, error)
 	return T(v), nil
 }
 
+// ParseIntKey ...
+func ParseIntKey[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, error) {
+	v, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	if OverflowInt[T](v) {
+		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
+	}
+	return T(v), nil
+}
+
 // OverflowUint ...
 func OverflowUint[T uint | uint8 | uint16 | uint32 | uint64](v uint64) bool {
 	var z T
@@ -223,6 +235,18 @@ func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (T, 
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
+	v, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	if OverflowUint[T](v) {
+		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
+	}
+	return T(v), nil
+}
+
+// ParseUintKey ...
+func ParseUintKey[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (T, error) {
 	v, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -291,6 +315,12 @@ var DecodeInt16Ptr = DecodeValuePtr(ParseInt[int16])
 var DecodeInt32Ptr = DecodeValuePtr(ParseInt[int32])
 var DecodeInt64Ptr = DecodeValuePtr(ParseInt[int64])
 
+var DecodeIntKey = DecodeValue(ParseIntKey[int])
+var DecodeInt8Key = DecodeValue(ParseIntKey[int8])
+var DecodeInt16Key = DecodeValue(ParseIntKey[int16])
+var DecodeInt32Key = DecodeValue(ParseIntKey[int32])
+var DecodeInt64Key = DecodeValue(ParseIntKey[int64])
+
 var DecodeUint = DecodeValue(ParseUint[uint])
 var DecodeUint8 = DecodeValue(ParseUint[uint8])
 var DecodeUint16 = DecodeValue(ParseUint[uint16])
@@ -302,6 +332,12 @@ var DecodeUint8Ptr = DecodeValuePtr(ParseUint[uint8])
 var DecodeUint16Ptr = DecodeValuePtr(ParseUint[uint16])
 var DecodeUint32Ptr = DecodeValuePtr(ParseUint[uint32])
 var DecodeUint64Ptr = DecodeValuePtr(ParseUint[uint64])
+
+var DecodeUintKey = DecodeValue(ParseUintKey[uint])
+var DecodeUint8Key = DecodeValue(ParseUintKey[uint8])
+var DecodeUint16Key = DecodeValue(ParseUintKey[uint16])
+var DecodeUint32Key = DecodeValue(ParseUintKey[uint32])
+var DecodeUint64Key = DecodeValue(ParseUintKey[uint64])
 
 var DecodeFloat32 = DecodeValue[float32]
 var DecodeFloat64 = DecodeValue[float64]
