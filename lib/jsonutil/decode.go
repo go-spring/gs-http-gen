@@ -166,22 +166,15 @@ func DecodeValue[T any](
 ) func(d *jsontext.Decoder) (T, error) {
 	return func(d *jsontext.Decoder) (T, error) {
 		var zero T
-		value, err := d.ReadValue()
+		token, err := d.ReadToken()
 		if err != nil {
 			return zero, err
 		}
-		switch value.Kind() {
+		switch token.Kind() {
 		case 'n':
 			return zero, ErrNull
-		case 'f', 't', '0':
-			return parseFn(value.String())
-		case '"':
-			var s string
-			s, err = strconv.Unquote(value.String())
-			if err != nil {
-				return zero, err
-			}
-			return parseFn(s)
+		case 'f', 't', '0', '"':
+			return parseFn(token.String())
 		default:
 			return zero, errutil.Explain(err, "invalid JSON: expected value")
 		}
@@ -212,6 +205,7 @@ func DecodeObject[T Object](
 		var zero T
 		switch d.PeekKind() {
 		case 'n':
+			_, _ = d.ReadToken()
 			return zero, nil
 		case '{':
 			v := f()
@@ -232,6 +226,7 @@ func DecodeArray[T any](
 	return func(d *jsontext.Decoder) ([]T, error) {
 		switch d.PeekKind() {
 		case 'n':
+			_, _ = d.ReadToken()
 			return nil, nil
 		case '[':
 			var v []T
@@ -266,6 +261,7 @@ func DecodeMap[K comparable, V any](
 	return func(d *jsontext.Decoder) (map[K]V, error) {
 		switch d.PeekKind() {
 		case 'n':
+			_, _ = d.ReadToken()
 			return nil, nil
 		case '{':
 			m := make(map[K]V)
