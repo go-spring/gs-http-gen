@@ -161,12 +161,12 @@ func DecodeKey(d Decoder) (string, error) {
 //////////////////////////////////// parse ////////////////////////////////////
 
 // ParseBool ...
-func ParseBool(s string) (bool, error) {
+func ParseBool(s string, k Kind) (bool, error) {
 	return strconv.ParseBool(s)
 }
 
 // ParseInt ...
-func ParseInt[T int | int8 | int16 | int32 | int64](s string) (T, error) {
+func ParseInt[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, error) {
 	v, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -175,7 +175,7 @@ func ParseInt[T int | int8 | int16 | int32 | int64](s string) (T, error) {
 }
 
 // ParseUint ...
-func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string) (T, error) {
+func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (T, error) {
 	u, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -184,7 +184,7 @@ func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string) (T, error) {
 }
 
 // ParseFloat ...
-func ParseFloat[T float32 | float64](s string) (T, error) {
+func ParseFloat[T float32 | float64](s string, k Kind) (T, error) {
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return 0, err
@@ -193,12 +193,12 @@ func ParseFloat[T float32 | float64](s string) (T, error) {
 }
 
 // ParseString ...
-func ParseString(s string) (string, error) {
+func ParseString(s string, k Kind) (string, error) {
 	return s, nil
 }
 
 // ParseBytes ...
-func ParseBytes(s string) ([]byte, error) {
+func ParseBytes(s string, k Kind) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(s)
 }
 
@@ -244,7 +244,7 @@ var DecodeBytes = DecodeValue(ParseBytes)
 
 // DecodeValue ...
 func DecodeValue[T any](
-	parseFn func(string) (T, error),
+	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (T, error) {
 	return func(d Decoder) (T, error) {
 		var zero T
@@ -256,7 +256,7 @@ func DecodeValue[T any](
 		case 'n':
 			return zero, ErrNull
 		case 'f', 't', '0', '"':
-			return parseFn(token)
+			return parseFn(token, tokenKind)
 		default:
 			return zero, errutil.Explain(err, "invalid JSON: expected value")
 		}
@@ -265,7 +265,7 @@ func DecodeValue[T any](
 
 // DecodeValuePtr ...
 func DecodeValuePtr[T any](
-	parseFn func(string) (T, error),
+	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (*T, error) {
 	return func(d Decoder) (*T, error) {
 		v, err := DecodeValue(parseFn)(d)
