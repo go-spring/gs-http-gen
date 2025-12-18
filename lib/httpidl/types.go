@@ -212,7 +212,7 @@ type TypeField struct {
 	Binding        *Binding      // Path/query parameter binding
 	ValidateExpr   validate.Expr // Validation expression
 	ValidateNested bool          // Whether nested validation applies
-	EnumAsString   bool          // Whether enum should be marshaled as a string
+	EnumAsString   bool          // Whether enum should be marshaled as a string // todo 检查必须是枚举类型
 }
 
 // InstType represents an instantiation of a generic type.

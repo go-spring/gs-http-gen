@@ -310,11 +310,18 @@ func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if f.Required {
+			return s, nil
+		}
 		return "*" + s, nil
 	case httpidl.UserType:
 		typeName := typ.Name
+		_, isEnumType := httpidl.GetEnum(spec.Files, typeName)
 		if f.EnumAsString {
 			typeName += "AsString"
+		}
+		if isEnumType && f.Required {
+			return typeName, nil
 		}
 		return "*" + typeName, nil
 	default:

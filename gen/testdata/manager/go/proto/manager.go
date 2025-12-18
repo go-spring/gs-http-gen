@@ -223,8 +223,8 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 
 // Pagination request and response
 type PageReq struct {
-	Page *int64 `json:"page,omitempty" query:"page" validate:"required"`
-	Size *int64 `json:"size,omitempty" query:"size" validate:"required"`
+	Page int64 `json:"page,omitempty" query:"page" validate:"required"`
+	Size int64 `json:"size,omitempty" query:"size" validate:"required"`
 }
 
 // Address & Contact info
@@ -240,20 +240,15 @@ func (x *Address) Validate() (err error) {
 }
 
 type ContactInfo struct {
-	Email   *string  `json:"email,omitempty" form:"email" validate:"required"`
+	Email   string   `json:"email,omitempty" form:"email" validate:"required"`
 	Phone   *string  `json:"phone,omitempty" form:"phone"`
 	Address *Address `json:"address,omitempty" form:"address"`
 }
 
 // Validate checks field values using generated validation expressions.
 func (x *ContactInfo) Validate() (err error) {
-	if x.Email == nil {
-		err = errutil.Stack(err, "\"ContactInfo.Email\" is required")
-	}
-	if x.Email != nil {
-		if !(Email(*x.Email)) {
-			err = errutil.Stack(err, "validate failed on \"ContactInfo.Email\"")
-		}
+	if !(Email(x.Email)) {
+		err = errutil.Stack(err, "validate failed on \"ContactInfo.Email\"")
 	}
 	return
 }
@@ -466,8 +461,8 @@ func (x *UpdateManagerReqBody) Validate() (err error) {
 // Paginated manager query
 type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
-	Page     *int64        `json:"page,omitempty" query:"page" validate:"required"`
-	Size     *int64        `json:"size,omitempty" query:"size" validate:"required"`
+	Page     int64         `json:"page,omitempty" query:"page" validate:"required"`
+	Size     int64         `json:"size,omitempty" query:"size" validate:"required"`
 	Keyword  []string      `json:"keyword,omitempty" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
@@ -477,12 +472,8 @@ type ListManagersByPageReq struct {
 // QueryForm returns the form values of the object.
 func (x *ListManagersByPageReq) QueryForm() (string, error) {
 	m := make(url.Values)
-	if x.Page != nil {
-		m.Add("page", strconv.FormatInt(int64(*x.Page), 10))
-	}
-	if x.Size != nil {
-		m.Add("size", strconv.FormatInt(int64(*x.Size), 10))
-	}
+	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
+	m.Add("size", strconv.FormatInt(int64(x.Size), 10))
 	for i := range len(x.Keyword) {
 		m.Add("keyword", x.Keyword[i])
 	}
@@ -512,7 +503,7 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) error {
 			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
 				err = errutil.Stack(err, "parse \"page\" error: %w", parseErr)
 			} else {
-				x.Page = &i
+				x.Page = i
 			}
 		} else {
 			err = errutil.Stack(err, "invalid value for \"page\"")
@@ -523,7 +514,7 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) error {
 			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
 				err = errutil.Stack(err, "parse \"size\" error: %w", parseErr)
 			} else {
-				x.Size = &i
+				x.Size = i
 			}
 		} else {
 			err = errutil.Stack(err, "invalid value for \"size\"")
@@ -585,21 +576,11 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) error {
 
 // Validate checks field values using generated validation expressions.
 func (x *ListManagersByPageReq) Validate() (err error) {
-	if x.Page == nil {
-		err = errutil.Stack(err, "\"ListManagersByPageReq.Page\" is required")
+	if !(x.Page >= 1) {
+		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Page\"")
 	}
-	if x.Page != nil {
-		if !(*x.Page >= 1) {
-			err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Page\"")
-		}
-	}
-	if x.Size == nil {
-		err = errutil.Stack(err, "\"ListManagersByPageReq.Size\" is required")
-	}
-	if x.Size != nil {
-		if !(*x.Size >= 1 && *x.Size <= MAX_PAGE_SIZE) {
-			err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Size\"")
-		}
+	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
+		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Size\"")
 	}
 	if !(len(x.Keyword) <= 5) {
 		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Keyword\"")
@@ -630,27 +611,27 @@ func (x *ListManagersByPageReqBody) Validate() (err error) {
 
 // Create / Update / Get responses
 type CreateManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode  `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg string   `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type UpdateManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode  `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg string   `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type GetManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode  `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg string   `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type DeleteManagerResp struct {
-	Errno  *ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg *string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
-	Data   *bool    `json:"data,omitempty" form:"data"`
+	Errno  ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Data   *bool   `json:"data,omitempty" form:"data"`
 }
 
 // Paginated response
@@ -662,7 +643,7 @@ type ManagersPageData struct {
 }
 
 type ListManagersByPageResp struct {
-	Errno  *ErrCode          `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg *string           `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode           `json:"errno,omitempty" form:"errno" validate:"required"`
+	Errmsg string            `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
 	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
 }

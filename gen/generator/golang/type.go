@@ -183,7 +183,53 @@ func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, for
 				err = errutil.Stack(err, "invalid value for \"%s\"")
 			}`, formName))
 	default:
-		panic("unsupported type")
+		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
+		{
+			switch typeKind[0] {
+			case TypeKindBool:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = i
+					}`, formName, fieldName))
+			case TypeKindInt:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = i
+					}`, formName, fieldName))
+			case TypeKindUint:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseUint(v[0], 10, 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = i
+					}`, formName, fieldName))
+			case TypeKindFloat:
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseFloat(v[0], 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						%s = i
+					}`, formName, fieldName))
+			case TypeKindString:
+				sb.WriteString(fmt.Sprintf(`%s = v[0]`, fieldName))
+			case TypeKindEnum, TypeKindEnumAsString:
+				valueType := strings.TrimPrefix(typeName, "*")
+				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+					} else {
+						if e := %s(i); !OneOf%s(e) {
+							err = errutil.Stack(err, "invalid value for \"%s\"")
+						} else{
+							%s = e
+						}
+					}`, formName, valueType, valueType, formName, fieldName))
+			default:
+				panic("unsupported type")
+			}
+		}
+		sb.WriteString(fmt.Sprintf(`} else {
+				err = errutil.Stack(err, "invalid value for \"%s\"")
+			}`, formName))
 	}
 
 	sb.WriteString("}")
@@ -481,11 +527,6 @@ var _ = strconv.FormatInt
 		func (x *{{$s.Name}}) Validate() (err error) {
 			{{- range $f := $s.Fields}}
 				{{- if or $f.Binding (not $s.Request) }}
-					{{- if $f.Required}}
-						if x.{{$f.Name}} == nil {
-							err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
-						}
-					{{- end}}
 					{{- if $f.ValidateExpr}}
 						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
 					{{- end}}
@@ -562,11 +603,6 @@ var _ = strconv.FormatInt
 		func (x *{{$s.Name}}Body) Validate() (err error) {
 			{{- range $f := $s.Fields}}
 				{{- if not $f.Binding}}
-					{{- if $f.Required}}
-						if x.{{$f.Name}} == nil {
-							err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
-						}
-					{{- end}}
 					{{- if $f.ValidateExpr}}
 						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
 					{{- end}}
