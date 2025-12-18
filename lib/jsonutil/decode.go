@@ -9,63 +9,145 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
+// Kind represents each possible JSON token kind with a single byte,
+// which is conveniently the first byte of that kind's grammar
+// with the restriction that numbers always be represented with '0':
+//
+//   - 'n': null
+//   - 'f': false
+//   - 't': true
+//   - '"': string
+//   - '0': number
+//   - '{': object begin
+//   - '}': object end
+//   - '[': array begin
+//   - ']': array end
+//
+// An invalid kind is usually represented using 0,
+// but may be non-zero due to invalid JSON data.
+type Kind byte
+
+const InvalidKind Kind = 0
+
+// Decoder ...
+type Decoder interface {
+	PeekKind() Kind
+	ReadToken() (string, Kind, error)
+	SkipValue() error
+}
+
+// JSONv2Decoder ...
+type JSONv2Decoder struct {
+	*jsontext.Decoder
+}
+
+// NewJSONv2Decoder ...
+func NewJSONv2Decoder(d *jsontext.Decoder) Decoder {
+	return &JSONv2Decoder{d}
+}
+
+// toKind ...
+func toKind(k jsontext.Kind) Kind {
+	switch k {
+	case 'n':
+		return 'n'
+	case 'f':
+		return 'f'
+	case 't':
+		return 't'
+	case '"':
+		return '"'
+	case '0':
+		return '0'
+	case '{':
+		return '{'
+	case '}':
+		return '}'
+	case '[':
+		return '['
+	case ']':
+		return ']'
+	default:
+		return InvalidKind
+	}
+}
+
+// PeekKind ...
+func (d *JSONv2Decoder) PeekKind() Kind {
+	return toKind(d.Decoder.PeekKind())
+}
+
+// ReadToken ...
+func (d *JSONv2Decoder) ReadToken() (string, Kind, error) {
+	token, err := d.Decoder.ReadToken()
+	if err != nil {
+		return "", 0, err
+	}
+	return token.String(), toKind(token.Kind()), nil
+}
+
+// SkipValue ...
+func (d *JSONv2Decoder) SkipValue() error {
+	return d.Decoder.SkipValue()
+}
+
 var ErrNull = errors.New("null")
 
 // Object ...
 type Object interface {
-	DecodeJSON(d *jsontext.Decoder) error
+	DecodeJSON(d Decoder) error
 }
 
 // DecodeObjectBegin ...
-func DecodeObjectBegin(d *jsontext.Decoder) error {
-	token, err := d.ReadToken()
+func DecodeObjectBegin(d Decoder) error {
+	_, tokenKind, err := d.ReadToken()
 	if err != nil {
 		return err
 	}
-	if token.Kind() != '{' {
+	if tokenKind != '{' {
 		return errutil.Explain(err, "invalid JSON: expected object")
 	}
 	return nil
 }
 
 // DecodeObjectEnd ...
-func DecodeObjectEnd(d *jsontext.Decoder) error {
-	token, err := d.ReadToken()
+func DecodeObjectEnd(d Decoder) error {
+	_, tokenKind, err := d.ReadToken()
 	if err != nil {
 		return err
 	}
-	if token.Kind() != '}' {
+	if tokenKind != '}' {
 		return errutil.Explain(err, "invalid JSON: expected end of object")
 	}
 	return nil
 }
 
 // DecodeArrayBegin ...
-func DecodeArrayBegin(d *jsontext.Decoder) error {
-	token, err := d.ReadToken()
+func DecodeArrayBegin(d Decoder) error {
+	_, tokenKind, err := d.ReadToken()
 	if err != nil {
 		return err
 	}
-	if token.Kind() != '[' {
+	if tokenKind != '[' {
 		return errutil.Explain(err, "invalid JSON: expected array")
 	}
 	return nil
 }
 
 // DecodeArrayEnd ...
-func DecodeArrayEnd(d *jsontext.Decoder) error {
-	token, err := d.ReadToken()
+func DecodeArrayEnd(d Decoder) error {
+	_, tokenKind, err := d.ReadToken()
 	if err != nil {
 		return err
 	}
-	if token.Kind() != ']' {
+	if tokenKind != ']' {
 		return errutil.Explain(err, "invalid JSON: expected end of array")
 	}
 	return nil
 }
 
 // DecodeKey ...
-func DecodeKey(d *jsontext.Decoder) (string, error) {
+func DecodeKey(d Decoder) (string, error) {
 	key, err := DecodeString(d)
 	if err != nil {
 		if errors.Is(err, ErrNull) {
@@ -163,18 +245,18 @@ var DecodeBytes = DecodeValue(ParseBytes)
 // DecodeValue ...
 func DecodeValue[T any](
 	parseFn func(string) (T, error),
-) func(d *jsontext.Decoder) (T, error) {
-	return func(d *jsontext.Decoder) (T, error) {
+) func(d Decoder) (T, error) {
+	return func(d Decoder) (T, error) {
 		var zero T
-		token, err := d.ReadToken()
+		token, tokenKind, err := d.ReadToken()
 		if err != nil {
 			return zero, err
 		}
-		switch token.Kind() {
+		switch tokenKind {
 		case 'n':
 			return zero, ErrNull
 		case 'f', 't', '0', '"':
-			return parseFn(token.String())
+			return parseFn(token)
 		default:
 			return zero, errutil.Explain(err, "invalid JSON: expected value")
 		}
@@ -184,8 +266,8 @@ func DecodeValue[T any](
 // DecodeValuePtr ...
 func DecodeValuePtr[T any](
 	parseFn func(string) (T, error),
-) func(d *jsontext.Decoder) (*T, error) {
-	return func(d *jsontext.Decoder) (*T, error) {
+) func(d Decoder) (*T, error) {
+	return func(d Decoder) (*T, error) {
 		v, err := DecodeValue(parseFn)(d)
 		if err != nil {
 			if errors.Is(err, ErrNull) {
@@ -200,12 +282,12 @@ func DecodeValuePtr[T any](
 // DecodeObject ...
 func DecodeObject[T Object](
 	f func() T,
-) func(d *jsontext.Decoder) (T, error) {
-	return func(d *jsontext.Decoder) (T, error) {
+) func(d Decoder) (T, error) {
+	return func(d Decoder) (T, error) {
 		var zero T
 		switch d.PeekKind() {
 		case 'n':
-			_, _ = d.ReadToken()
+			_, _, _ = d.ReadToken()
 			return zero, nil
 		case '{':
 			v := f()
@@ -221,12 +303,12 @@ func DecodeObject[T Object](
 
 // DecodeArray ...
 func DecodeArray[T any](
-	f func(d *jsontext.Decoder) (T, error),
-) func(d *jsontext.Decoder) ([]T, error) {
-	return func(d *jsontext.Decoder) ([]T, error) {
+	f func(d Decoder) (T, error),
+) func(d Decoder) ([]T, error) {
+	return func(d Decoder) ([]T, error) {
 		switch d.PeekKind() {
 		case 'n':
-			_, _ = d.ReadToken()
+			_, _, _ = d.ReadToken()
 			return nil, nil
 		case '[':
 			var v []T
@@ -255,13 +337,13 @@ func DecodeArray[T any](
 
 // DecodeMap ...
 func DecodeMap[K comparable, V any](
-	parseKeyFn func(d *jsontext.Decoder) (K, error),
-	parseValueFn func(d *jsontext.Decoder) (V, error),
-) func(d *jsontext.Decoder) (map[K]V, error) {
-	return func(d *jsontext.Decoder) (map[K]V, error) {
+	parseKeyFn func(d Decoder) (K, error),
+	parseValueFn func(d Decoder) (V, error),
+) func(d Decoder) (map[K]V, error) {
+	return func(d Decoder) (map[K]V, error) {
 		switch d.PeekKind() {
 		case 'n':
-			_, _ = d.ReadToken()
+			_, _, _ = d.ReadToken()
 			return nil, nil
 		case '{':
 			m := make(map[K]V)

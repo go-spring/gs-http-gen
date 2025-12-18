@@ -17,7 +17,7 @@ func TestJSON(t *testing.T) {
 			"IntPtrList": [[3,null]]
 		}]`
 		r := strings.NewReader(s)
-		d := jsontext.NewDecoder(r)
+		d := NewJSONv2Decoder(jsontext.NewDecoder(r))
 		l, err := DecodeArray(DecodeObject(NewList))(d)
 		if err != nil {
 			t.Fatal(err)
@@ -36,7 +36,7 @@ func TestJSON(t *testing.T) {
 		}`
 		base := &Base{}
 		r := strings.NewReader(s)
-		d := jsontext.NewDecoder(r)
+		d := NewJSONv2Decoder(jsontext.NewDecoder(r))
 		if err := base.DecodeJSON(d); err != nil {
 			t.Fatal(err)
 		}
@@ -54,7 +54,7 @@ func TestJSON(t *testing.T) {
 		}`
 		l := &List{}
 		r := strings.NewReader(s)
-		d := jsontext.NewDecoder(r)
+		d := NewJSONv2Decoder(jsontext.NewDecoder(r))
 		if err := l.DecodeJSON(d); err != nil {
 			t.Fatal(err)
 		}
@@ -76,7 +76,7 @@ func TestJSON(t *testing.T) {
 		}`
 		m := &Map{}
 		r := strings.NewReader(s)
-		d := jsontext.NewDecoder(r)
+		d := NewJSONv2Decoder(jsontext.NewDecoder(r))
 		if err := m.DecodeJSON(d); err != nil {
 			t.Fatal(err)
 		}
@@ -111,7 +111,7 @@ type Base struct {
 	Bytes     []byte
 }
 
-func (b *Base) DecodeJSON(d *jsontext.Decoder) error {
+func (b *Base) DecodeJSON(d Decoder) error {
 	const (
 		hashInt       = 0x41a91f19c98dd49e // HashKey("Int")
 		hashIntPtr    = 0x3305f2829a12fcb8 // HashKey("IntPtr")
@@ -205,7 +205,7 @@ func NewList() *List {
 	return &List{}
 }
 
-func (l *List) DecodeJSON(d *jsontext.Decoder) error {
+func (l *List) DecodeJSON(d Decoder) error {
 	const (
 		hashIntList    = 0x9273f90a7d88b56a // HashKey("IntList")
 		hashStringList = 0xc37ebdf18413dc00 // HashKey("StringList")
@@ -267,7 +267,7 @@ type Map struct {
 	IntMapStrIntMap map[int]map[string]int
 }
 
-func (m *Map) DecodeJSON(d *jsontext.Decoder) error {
+func (m *Map) DecodeJSON(d Decoder) error {
 	const (
 		hashIntIntMap       = 0xc3172d7c329b5eef // HashKey("IntIntMap")
 		hashStrStrPtrMap    = 0xc3447c678a33494b // HashKey("StrStrPtrMap")
