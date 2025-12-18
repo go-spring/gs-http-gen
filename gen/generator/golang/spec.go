@@ -256,6 +256,9 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
+		if f.Required && typeKind[0] == TypeKindPointer {
+			return Type{}, errutil.Explain(nil, "field %s in type %s is required but has pointer type", f.Name, r.Name)
+		}
 
 		// Add the field to the struct
 		field := TypeField{
@@ -362,36 +365,36 @@ func goTypeDef(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 
 // getTypeKind categorizes a Go type for code generation purposes.
 func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
-	typeName, optional := strings.CutPrefix(typeName, "*")
+	typeName, pointer := strings.CutPrefix(typeName, "*")
 
 	switch typeName {
 	case "[]byte":
-		if optional {
-			return nil, "", errutil.Explain(nil, "binary type can not be optional")
+		if pointer {
+			return nil, "", errutil.Explain(nil, "binary type can not be pointer")
 		}
 		return []TypeKind{TypeKindBytes}, typeName, nil
 	case "bool":
-		if optional {
+		if pointer {
 			return []TypeKind{TypeKindPointer, TypeKindBool}, typeName, nil
 		}
 		return []TypeKind{TypeKindBool}, typeName, nil
 	case "int", "int8", "int16", "int32", "int64":
-		if optional {
+		if pointer {
 			return []TypeKind{TypeKindPointer, TypeKindInt}, typeName, nil
 		}
 		return []TypeKind{TypeKindInt}, typeName, nil
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		if optional {
+		if pointer {
 			return []TypeKind{TypeKindPointer, TypeKindUint}, typeName, nil
 		}
 		return []TypeKind{TypeKindUint}, typeName, nil
 	case "float32", "float64":
-		if optional {
+		if pointer {
 			return []TypeKind{TypeKindPointer, TypeKindFloat}, typeName, nil
 		}
 		return []TypeKind{TypeKindFloat}, typeName, nil
 	case "string":
-		if optional {
+		if pointer {
 			return []TypeKind{TypeKindPointer, TypeKindString}, typeName, nil
 		}
 		return []TypeKind{TypeKindString}, typeName, nil
@@ -400,8 +403,8 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 
 	switch {
 	case strings.HasPrefix(typeName, "[]"):
-		if optional {
-			return nil, "", errutil.Explain(nil, "list type can not be optional")
+		if pointer {
+			return nil, "", errutil.Explain(nil, "list type can not be pointer")
 		}
 		itemType, _, err := getTypeKind(spec, typeName[2:])
 		if err != nil {
@@ -409,8 +412,8 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 		}
 		return append([]TypeKind{TypeKindList}, itemType...), typeName, nil
 	case strings.HasPrefix(typeName, "map["):
-		if optional {
-			return nil, "", errutil.Explain(nil, "map type can not be optional")
+		if pointer {
+			return nil, "", errutil.Explain(nil, "map type can not be pointer")
 		}
 		itemInex := strings.Index(typeName, "]")
 		itemType, _, err := getTypeKind(spec, typeName[itemInex+1:])
@@ -425,13 +428,13 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 			if asString {
 				k = TypeKindEnumAsString
 			}
-			if optional {
+			if pointer {
 				return []TypeKind{TypeKindPointer, k}, typeName, nil
 			}
 			return []TypeKind{k}, typeName, nil
 		}
 		if _, ok := httpidl.GetType(spec.Files, typeName); ok {
-			if optional {
+			if pointer {
 				return []TypeKind{TypeKindPointer, TypeKindStruct}, typeName, nil
 			}
 			return []TypeKind{TypeKindStruct}, typeName, nil

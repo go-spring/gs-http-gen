@@ -241,9 +241,9 @@ func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Ex
 	receiverType = strings.TrimSuffix(receiverType, "Body") // todo
 
 	// 对于结构体而言，只应当验证字段非空，其内部字段的验证应当由自己完成
-	fieldType, optional := strings.CutPrefix(fieldType, "*")
+	fieldType, pointer := strings.CutPrefix(fieldType, "*")
 	dollar := "x." + fieldName
-	if optional {
+	if pointer {
 		dollar = "*" + dollar
 	}
 
@@ -258,7 +258,7 @@ func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Ex
 		err = errutil.Stack(err,"validate failed on \"%s.%s\"")
 	}`, str, receiverType, fieldName)
 
-	if optional {
+	if pointer {
 		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
 	}
 	return str, nil
