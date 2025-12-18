@@ -3,6 +3,7 @@ package jsonutil
 import (
 	"encoding/base64"
 	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"errors"
 	"math"
 	"strconv"
@@ -32,8 +33,10 @@ const InvalidKind Kind = 0
 
 // Decoder ...
 type Decoder interface {
+	Unmarshal(b []byte, i any) error
 	PeekKind() Kind
-	ReadToken() (string, Kind, error)
+	ReadToken() (token string, _ Kind, _ error)
+	ReadValue() (value []byte, _ error)
 	SkipValue() error
 }
 
@@ -45,6 +48,11 @@ type JSONv2Decoder struct {
 // NewJSONv2Decoder ...
 func NewJSONv2Decoder(d *jsontext.Decoder) Decoder {
 	return &JSONv2Decoder{d}
+}
+
+// Unmarshal ...
+func (d *JSONv2Decoder) Unmarshal(b []byte, i any) error {
+	return json.Unmarshal(b, i)
 }
 
 // toKind ...
@@ -85,6 +93,11 @@ func (d *JSONv2Decoder) ReadToken() (string, Kind, error) {
 		return "", 0, err
 	}
 	return token.String(), toKind(token.Kind()), nil
+}
+
+// ReadValue ...
+func (d *JSONv2Decoder) ReadValue() ([]byte, error) {
+	return d.Decoder.ReadValue()
 }
 
 // SkipValue ...
@@ -349,6 +362,19 @@ var DecodeString = DecodeValue(ParseString)
 var DecodeStringPtr = DecodeValuePtr(ParseString)
 
 var DecodeBytes = DecodeValue(ParseBytes)
+
+// DecodeAny ...
+func DecodeAny(d Decoder) (any, error) {
+	v, err := d.ReadValue()
+	if err != nil {
+		return nil, err
+	}
+	var i any
+	if err = d.Unmarshal(v, &i); err != nil {
+		return nil, err
+	}
+	return i, nil
+}
 
 // DecodeValue ...
 func DecodeValue[T any](

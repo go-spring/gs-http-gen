@@ -72,7 +72,8 @@ func TestJSON(t *testing.T) {
 				"IntList": [3],
 				"StringList": ["","null"],
 				"IntPtrList": [[3,null]]
-			}}
+			}},
+			"StrAnyMap": {"a":[1,"null",3]}
 		}`
 		m := &Map{}
 		r := strings.NewReader(s)
@@ -265,6 +266,7 @@ type Map struct {
 	StrStrPtrMap    map[string]*string
 	StrListPtrMap   map[string]*List
 	IntMapStrIntMap map[int]map[string]int
+	StrAnyMap       map[string]any
 }
 
 func (m *Map) DecodeJSON(d Decoder) error {
@@ -273,6 +275,7 @@ func (m *Map) DecodeJSON(d Decoder) error {
 		hashStrStrPtrMap    = 0xc3447c678a33494b // HashKey("StrStrPtrMap")
 		hashStrListPtrMap   = 0xcdf8c071ff4079ec // HashKey("StrListPtrMap")
 		hashIntMapStrIntMap = 0x8fb20e202820cc8e // HashKey("IntMapStrIntMap")
+		hashStrAnyMap       = 0xeb5f2163a3092954 // HashKey("StrAnyMap")
 	)
 
 	if err := DecodeObjectBegin(d); err != nil {
@@ -314,6 +317,13 @@ func (m *Map) DecodeJSON(d Decoder) error {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
 			if m.IntMapStrIntMap, err = DecodeMap(DecodeIntKey, DecodeMap(DecodeString, DecodeInt))(d); err != nil {
+				return err
+			}
+		case hashStrAnyMap:
+			//if key != "StrAnyMap" {
+			//	return fmt.Errorf("unknown field name: %s", key)
+			//}
+			if m.StrAnyMap, err = DecodeMap(DecodeString, DecodeAny)(d); err != nil {
 				return err
 			}
 		default:
