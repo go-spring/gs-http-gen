@@ -647,7 +647,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		typeField.CompatDefault = &s
 	}
 
-	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: true}
+	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: !typeField.Required}
 	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))

@@ -223,8 +223,8 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 
 // Pagination request and response
 type PageReq struct {
-	Page int64 `json:"page,omitempty" query:"page" validate:"required"`
-	Size int64 `json:"size,omitempty" query:"size" validate:"required"`
+	Page int64 `json:"page" query:"page" validate:"required"`
+	Size int64 `json:"size" query:"size" validate:"required"`
 }
 
 // Address & Contact info
@@ -240,7 +240,7 @@ func (x *Address) Validate() (err error) {
 }
 
 type ContactInfo struct {
-	Email   string   `json:"email,omitempty" form:"email" validate:"required"`
+	Email   string   `json:"email" form:"email" validate:"required"`
 	Phone   *string  `json:"phone,omitempty" form:"phone"`
 	Address *Address `json:"address,omitempty" form:"address"`
 }
@@ -461,8 +461,8 @@ func (x *UpdateManagerReqBody) Validate() (err error) {
 // Paginated manager query
 type ListManagersByPageReq struct {
 	ListManagersByPageReqBody
-	Page     int64         `json:"page,omitempty" query:"page" validate:"required"`
-	Size     int64         `json:"size,omitempty" query:"size" validate:"required"`
+	Page     int64         `json:"page" query:"page" validate:"required"`
+	Size     int64         `json:"size" query:"size" validate:"required"`
 	Keyword  []string      `json:"keyword,omitempty" query:"keyword"`
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
@@ -611,26 +611,26 @@ func (x *ListManagersByPageReqBody) Validate() (err error) {
 
 // Create / Update / Get responses
 type CreateManagerResp struct {
-	Errno  ErrCode  `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg string   `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
+	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type UpdateManagerResp struct {
-	Errno  ErrCode  `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg string   `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
+	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type GetManagerResp struct {
-	Errno  ErrCode  `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg string   `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
+	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
 type DeleteManagerResp struct {
-	Errno  ErrCode `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg string  `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode `json:"errno" form:"errno" validate:"required"`
+	Errmsg string  `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *bool   `json:"data,omitempty" form:"data"`
 }
 
@@ -643,7 +643,7 @@ type ManagersPageData struct {
 }
 
 type ListManagersByPageResp struct {
-	Errno  ErrCode           `json:"errno,omitempty" form:"errno" validate:"required"`
-	Errmsg string            `json:"errmsg,omitempty" form:"errmsg" validate:"required"`
+	Errno  ErrCode           `json:"errno" form:"errno" validate:"required"`
+	Errmsg string            `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
 }

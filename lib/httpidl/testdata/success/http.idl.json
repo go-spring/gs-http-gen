@@ -651,7 +651,7 @@
           "CompatDefault": "",
           "JSONTag": {
             "Name": "city",
-            "OmitEmpty": true
+            "OmitEmpty": false
           },
           "FormTag": {
             "Name": "city"
