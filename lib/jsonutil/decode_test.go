@@ -89,21 +89,6 @@ func TestJSON(t *testing.T) {
 	}
 }
 
-// HashKey returns a hash value for the given string.
-// 业界推荐算法，对于短字符串，碰撞的概率很低很低.
-func HashKey(s string) uint64 {
-	const (
-		offset = 14695981039346656037
-		prime  = 1099511628211
-	)
-	h := uint64(offset)
-	for i := 0; i < len(s); i++ {
-		h ^= uint64(s[i])
-		h *= prime
-	}
-	return h
-}
-
 type Base struct {
 	Int       int
 	IntPtr    *int

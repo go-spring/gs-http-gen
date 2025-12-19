@@ -11,6 +11,21 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
+// HashKey returns a hash value for the given string.
+// 业界推荐算法，对于短字符串，碰撞的概率很低很低.
+func HashKey(s string) uint64 {
+	const (
+		offset = 14695981039346656037
+		prime  = 1099511628211
+	)
+	h := uint64(offset)
+	for i := 0; i < len(s); i++ {
+		h ^= uint64(s[i])
+		h *= prime
+	}
+	return h
+}
+
 // Kind represents each possible JSON token kind with a single byte,
 // which is conveniently the first byte of that kind's grammar
 // with the restriction that numbers always be represented with '0':
@@ -183,7 +198,7 @@ func ParseBool(s string, k Kind) (bool, error) {
 }
 
 // OverflowInt ...
-func OverflowInt[T int | int8 | int16 | int32 | int64](v int64) bool {
+func OverflowInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v int64) bool {
 	var z T
 	switch any(z).(type) {
 	case int:
@@ -201,7 +216,7 @@ func OverflowInt[T int | int8 | int16 | int32 | int64](v int64) bool {
 }
 
 // ParseInt ...
-func ParseInt[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, error) {
+func ParseInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
@@ -216,7 +231,7 @@ func ParseInt[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, error)
 }
 
 // ParseIntKey ...
-func ParseIntKey[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, error) {
+func ParseIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
 	v, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -228,7 +243,7 @@ func ParseIntKey[T int | int8 | int16 | int32 | int64](s string, k Kind) (T, err
 }
 
 // OverflowUint ...
-func OverflowUint[T uint | uint8 | uint16 | uint32 | uint64](v uint64) bool {
+func OverflowUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](v uint64) bool {
 	var z T
 	switch any(z).(type) {
 	case uint:
@@ -244,7 +259,7 @@ func OverflowUint[T uint | uint8 | uint16 | uint32 | uint64](v uint64) bool {
 }
 
 // ParseUint ...
-func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (T, error) {
+func ParseUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
@@ -259,7 +274,7 @@ func ParseUint[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (T, 
 }
 
 // ParseUintKey ...
-func ParseUintKey[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (T, error) {
+func ParseUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
 	v, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -271,7 +286,7 @@ func ParseUintKey[T uint | uint8 | uint16 | uint32 | uint64](s string, k Kind) (
 }
 
 // OverflowFloat ...
-func OverflowFloat[T float32 | float64](v float64) bool {
+func OverflowFloat[T ~float32 | ~float64](v float64) bool {
 	var z T
 	switch any(z).(type) {
 	case float32:
@@ -281,7 +296,7 @@ func OverflowFloat[T float32 | float64](v float64) bool {
 }
 
 // ParseFloat ...
-func ParseFloat[T float32 | float64](s string, k Kind) (T, error) {
+func ParseFloat[T ~float32 | ~float64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
