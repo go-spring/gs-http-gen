@@ -120,12 +120,14 @@ type TypeDefinition interface {
 // JSONTag represents metadata for a JSON field tag.
 type JSONTag struct {
 	Name      string // JSON field name
+	HashKey   string // JSON field name for hash key
 	OmitEmpty bool   // Whether the json:"...,omitempty" modifier is applied
 }
 
 // FormTag represents metadata for a form field binding.
 type FormTag struct {
-	Name string // Key used in form submissions
+	Name    string // Key used in form submissions
+	HashKey string // JSON field name for hash key
 }
 
 // Binding represents a binding between a struct field and an HTTP input

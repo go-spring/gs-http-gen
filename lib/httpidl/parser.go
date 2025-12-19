@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
+	"github.com/go-spring/gs-http-gen/lib/jsonutil"
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
 	"github.com/go-spring/gs-http-gen/lib/validate"
 	"github.com/lvan100/golib/errutil"
@@ -647,7 +649,11 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		typeField.CompatDefault = &s
 	}
 
-	typeField.JSONTag = JSONTag{Name: typeField.Name, OmitEmpty: !typeField.Required}
+	typeField.JSONTag = JSONTag{
+		Name:      typeField.Name,
+		HashKey:   fmt.Sprintf("0x%x", jsonutil.HashKey(typeField.Name)),
+		OmitEmpty: !typeField.Required,
+	}
 	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
@@ -662,6 +668,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			if i == 0 {
 				if v != "" {
 					typeField.JSONTag.Name = v
+					typeField.JSONTag.HashKey = fmt.Sprintf("0x%x", jsonutil.HashKey(v))
 				}
 				continue
 			}
@@ -675,7 +682,10 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 	}
 
-	typeField.FormTag = FormTag{Name: typeField.JSONTag.Name}
+	typeField.FormTag = FormTag{
+		Name:    typeField.JSONTag.Name,
+		HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey(typeField.JSONTag.Name)),
+	}
 	if opt, ok := GetAnnotation(typeField.Annotations, "form"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation form for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
@@ -690,6 +700,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 			if i == 0 {
 				if v != "" {
 					typeField.FormTag.Name = v
+					typeField.FormTag.HashKey = fmt.Sprintf("0x%x", jsonutil.HashKey(v))
 				}
 				continue
 			}
@@ -820,10 +831,12 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 			{Key: "enum_as_string"},
 		},
 		JSONTag: JSONTag{
-			Name: "FieldType",
+			Name:    "FieldType",
+			HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey("FieldType")),
 		},
 		FormTag: FormTag{
-			Name: "FieldType",
+			Name:    "FieldType",
+			HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey("FieldType")),
 		},
 		Required:     true,
 		EnumAsString: true,
@@ -852,10 +865,12 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 			},
 			JSONTag: JSONTag{
 				Name:      f.IDENTIFIER().GetText(),
+				HashKey:   fmt.Sprintf("0x%x", jsonutil.HashKey(f.IDENTIFIER().GetText())),
 				OmitEmpty: true,
 			},
 			FormTag: FormTag{
-				Name: f.IDENTIFIER().GetText(),
+				Name:    f.IDENTIFIER().GetText(),
+				HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey(f.IDENTIFIER().GetText())),
 			},
 		}
 

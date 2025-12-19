@@ -266,10 +266,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "userId",
+            "HashKey": "0xf7d13faa74e2475f",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "userId"
+            "Name": "userId",
+            "HashKey": "0xf7d13faa74e2475f"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -353,10 +355,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "name",
+            "HashKey": "0xc4bcadba8e631b86",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "name"
+            "Name": "name",
+            "HashKey": "0xc4bcadba8e631b86"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -395,10 +399,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "age",
+            "HashKey": "0xe715b4190539215c",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "age"
+            "Name": "age",
+            "HashKey": "0xe715b4190539215c"
           },
           "Binding": null,
           "ValidateExpr": {
@@ -447,10 +453,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "avatar",
+            "HashKey": "0xdfe2526362bc3224",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "avatar"
+            "Name": "avatar",
+            "HashKey": "0xdfe2526362bc3224"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -496,10 +504,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "",
+            "HashKey": "",
             "OmitEmpty": false
           },
           "FormTag": {
-            "Name": ""
+            "Name": "",
+            "HashKey": ""
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -525,10 +535,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "payload",
+            "HashKey": "0xcfb8a9d063b5e9e5",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "payload"
+            "Name": "payload",
+            "HashKey": "0xcfb8a9d063b5e9e5"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -609,10 +621,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "street",
+            "HashKey": "0x4f5c4dd8e884633e",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "street"
+            "Name": "street",
+            "HashKey": "0x4f5c4dd8e884633e"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -651,10 +665,12 @@
           "CompatDefault": "",
           "JSONTag": {
             "Name": "city",
+            "HashKey": "0xf9dab5910f08a8a2",
             "OmitEmpty": false
           },
           "FormTag": {
-            "Name": "city"
+            "Name": "city",
+            "HashKey": "0xf9dab5910f08a8a2"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -680,10 +696,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "country",
+            "HashKey": "0x7772757416326f71",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "country"
+            "Name": "country",
+            "HashKey": "0x7772757416326f71"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -744,10 +762,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "FieldType",
+            "HashKey": "0x924fb655ccf9c75f",
             "OmitEmpty": false
           },
           "FormTag": {
-            "Name": "FieldType"
+            "Name": "FieldType",
+            "HashKey": "0x924fb655ccf9c75f"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -773,10 +793,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "User",
+            "HashKey": "0xa48f81f001b893d2",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "User"
+            "Name": "User",
+            "HashKey": "0xa48f81f001b893d2"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -802,10 +824,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "Address",
+            "HashKey": "0xfcdd8e672c75b713",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "Address"
+            "Name": "Address",
+            "HashKey": "0xfcdd8e672c75b713"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -866,10 +890,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "errno",
+            "HashKey": "0x9f713ddd75d2f3ab",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "errno"
+            "Name": "errno",
+            "HashKey": "0x9f713ddd75d2f3ab"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -895,10 +921,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "errmsg",
+            "HashKey": "0xb91eb24f31be5e25",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "errmsg"
+            "Name": "errmsg",
+            "HashKey": "0xb91eb24f31be5e25"
           },
           "Binding": null,
           "ValidateExpr": null,
@@ -924,10 +952,12 @@
           "CompatDefault": null,
           "JSONTag": {
             "Name": "data",
+            "HashKey": "0x855b556730a34a05",
             "OmitEmpty": true
           },
           "FormTag": {
-            "Name": "data"
+            "Name": "data",
+            "HashKey": "0x855b556730a34a05"
           },
           "Binding": null,
           "ValidateExpr": null,
