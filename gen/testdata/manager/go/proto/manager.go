@@ -234,6 +234,53 @@ func (r *PageReq) DecodeJSON(d jsonutil.Decoder) error {
 		hashPage = 0x38b2a0deba58916  // HashKey("page")
 		hashSize = 0x4dea9618e618ae3c // HashKey("size")
 	)
+
+	var (
+		hasPage bool
+		hasSize bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashPage:
+			hasPage = true
+			if r.Page, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashSize:
+			hasSize = true
+			if r.Size, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasPage {
+		return errutil.Explain(nil, "missing required field \"page\"")
+	}
+	if !hasSize {
+		return errutil.Explain(nil, "missing required field \"size\"")
+	}
+
 	return nil
 }
 
@@ -251,6 +298,45 @@ func (r *Address) DecodeJSON(d jsonutil.Decoder) error {
 		hashStreet     = 0x4f5c4dd8e884633e // HashKey("street")
 		hashPostalCode = 0x95dac24ad2f17db7 // HashKey("postalCode")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashCity:
+			if r.City, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashStreet:
+			if r.Street, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashPostalCode:
+			if r.PostalCode, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -272,6 +358,52 @@ func (r *ContactInfo) DecodeJSON(d jsonutil.Decoder) error {
 		hashPhone   = 0x31fc9c6bde865d6f // HashKey("phone")
 		hashAddress = 0x1737f69e334c12b3 // HashKey("address")
 	)
+
+	var (
+		hasEmail bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashEmail:
+			hasEmail = true
+			if r.Email, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashPhone:
+			if r.Phone, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashAddress:
+			if r.Address, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasEmail {
+		return errutil.Explain(nil, "missing required field \"email\"")
+	}
+
 	return nil
 }
 
@@ -295,6 +427,41 @@ func (r *DepartmentInfo) DecodeJSON(d jsonutil.Decoder) error {
 		hashDept     = 0xa5ef04674280b406 // HashKey("dept")
 		hashDeptName = 0x63c798c819b02345 // HashKey("deptName")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashDept:
+			if r.Dept, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashDeptName:
+			if r.DeptName, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -351,6 +518,113 @@ func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
 		hashExtraV4        = 0x7eaf4637ba38b4db // HashKey("extraV4")
 		hashExtraV5        = 0x7eaf4537ba38b328 // HashKey("extraV5")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashId:
+			if r.Id, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashName:
+			if r.Name, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashAge:
+			if r.Age, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashVip:
+			if r.Vip, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashSalary:
+			if r.Salary, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRole:
+			if r.Role, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashLevel:
+			if r.Level, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashDeptInfo:
+			if r.DeptInfo, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContact:
+			if r.Contact, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContactInfos:
+			if r.ContactInfos, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContactInfoV2s:
+			if r.ContactInfoV2s, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContactInfoV3s:
+			if r.ContactInfoV3s, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContactMaps:
+			if r.ContactMaps, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContactMapV2s:
+			if r.ContactMapV2s, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContactMapV3s:
+			if r.ContactMapV3s, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashExtra:
+			if r.Extra, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashExtraV2:
+			if r.ExtraV2, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashExtraV3:
+			if r.ExtraV3, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashExtraV4:
+			if r.ExtraV4, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashExtraV5:
+			if r.ExtraV5, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -365,6 +639,37 @@ func (r *ManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 	const (
 		hashId = 0x8b72e07b55c3ac0 // HashKey("id")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashId:
+			if r.Id, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -399,6 +704,33 @@ type ManagerReqBody struct {
 // DecodeJSON ...
 func (r *ManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 	const ()
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -425,6 +757,33 @@ type CreateManagerReq struct {
 // DecodeJSON ...
 func (r *CreateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 	const ()
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -469,6 +828,65 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		hashDeptInfo = 0x909196037ac21a36 // HashKey("deptInfo")
 		hashContact  = 0x623617b538360a63 // HashKey("contact")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashName:
+			if r.Name, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashAge:
+			if r.Age, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashVip:
+			if r.Vip, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashSalary:
+			if r.Salary, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRole:
+			if r.Role, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashLevel:
+			if r.Level, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashDeptInfo:
+			if r.DeptInfo, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContact:
+			if r.Contact, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -508,6 +926,37 @@ func (r *UpdateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 	const (
 		hashID = 0x8b72e07b55c3ac0 // HashKey("id")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashID:
+			if r.ID, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -559,6 +1008,65 @@ func (r *UpdateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		hashDeptInfo = 0x1048de984afc041f // HashKey("dept_info")
 		hashContact  = 0x623617b538360a63 // HashKey("contact")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashName:
+			if r.Name, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashAge:
+			if r.Age, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashVip:
+			if r.Vip, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashSalary:
+			if r.Salary, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRole:
+			if r.Role, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashLevel:
+			if r.Level, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashDeptInfo:
+			if r.DeptInfo, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashContact:
+			if r.Contact, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -603,6 +1111,69 @@ func (r *ListManagersByPageReq) DecodeJSON(d jsonutil.Decoder) error {
 		hashMinLevel = 0x5554d9157aa41d07 // HashKey("minLevel")
 		hashVip      = 0x68e906194eba76f0 // HashKey("vip")
 	)
+
+	var (
+		hasPage bool
+		hasSize bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashPage:
+			hasPage = true
+			if r.Page, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashSize:
+			hasSize = true
+			if r.Size, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashKeyword:
+			if r.Keyword, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashDept:
+			if r.Dept, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashMinLevel:
+			if r.MinLevel, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashVip:
+			if r.Vip, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasPage {
+		return errutil.Explain(nil, "missing required field \"page\"")
+	}
+	if !hasSize {
+		return errutil.Explain(nil, "missing required field \"size\"")
+	}
+
 	return nil
 }
 
@@ -734,6 +1305,33 @@ type ListManagersByPageReqBody struct {
 // DecodeJSON ...
 func (r *ListManagersByPageReqBody) DecodeJSON(d jsonutil.Decoder) error {
 	const ()
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -766,6 +1364,57 @@ func (r *CreateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
 		hashData   = 0x855b556730a34a05 // HashKey("data")
 	)
+
+	var (
+		hasErrno  bool
+		hasErrmsg bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashErrno:
+			hasErrno = true
+			if r.Errno, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashErrmsg:
+			hasErrmsg = true
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasErrno {
+		return errutil.Explain(nil, "missing required field \"errno\"")
+	}
+	if !hasErrmsg {
+		return errutil.Explain(nil, "missing required field \"errmsg\"")
+	}
+
 	return nil
 }
 
@@ -782,6 +1431,57 @@ func (r *UpdateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
 		hashData   = 0x855b556730a34a05 // HashKey("data")
 	)
+
+	var (
+		hasErrno  bool
+		hasErrmsg bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashErrno:
+			hasErrno = true
+			if r.Errno, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashErrmsg:
+			hasErrmsg = true
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasErrno {
+		return errutil.Explain(nil, "missing required field \"errno\"")
+	}
+	if !hasErrmsg {
+		return errutil.Explain(nil, "missing required field \"errmsg\"")
+	}
+
 	return nil
 }
 
@@ -798,6 +1498,57 @@ func (r *GetManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
 		hashData   = 0x855b556730a34a05 // HashKey("data")
 	)
+
+	var (
+		hasErrno  bool
+		hasErrmsg bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashErrno:
+			hasErrno = true
+			if r.Errno, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashErrmsg:
+			hasErrmsg = true
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasErrno {
+		return errutil.Explain(nil, "missing required field \"errno\"")
+	}
+	if !hasErrmsg {
+		return errutil.Explain(nil, "missing required field \"errmsg\"")
+	}
+
 	return nil
 }
 
@@ -814,6 +1565,57 @@ func (r *DeleteManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
 		hashData   = 0x855b556730a34a05 // HashKey("data")
 	)
+
+	var (
+		hasErrno  bool
+		hasErrmsg bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashErrno:
+			hasErrno = true
+			if r.Errno, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashErrmsg:
+			hasErrmsg = true
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasErrno {
+		return errutil.Explain(nil, "missing required field \"errno\"")
+	}
+	if !hasErrmsg {
+		return errutil.Explain(nil, "missing required field \"errmsg\"")
+	}
+
 	return nil
 }
 
@@ -833,6 +1635,49 @@ func (r *ManagersPageData) DecodeJSON(d jsonutil.Decoder) error {
 		hashSize  = 0x4dea9618e618ae3c // HashKey("size")
 		hashItems = 0x3e7884bf4f412c6f // HashKey("items")
 	)
+
+	var ()
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashTotal:
+			if r.Total, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashPage:
+			if r.Page, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashSize:
+			if r.Size, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashItems:
+			if r.Items, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -849,5 +1694,56 @@ func (r *ListManagersByPageResp) DecodeJSON(d jsonutil.Decoder) error {
 		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
 		hashData   = 0x855b556730a34a05 // HashKey("data")
 	)
+
+	var (
+		hasErrno  bool
+		hasErrmsg bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashErrno:
+			hasErrno = true
+			if r.Errno, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashErrmsg:
+			hasErrmsg = true
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasErrno {
+		return errutil.Explain(nil, "missing required field \"errno\"")
+	}
+	if !hasErrmsg {
+		return errutil.Explain(nil, "missing required field \"errmsg\"")
+	}
+
 	return nil
 }

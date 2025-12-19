@@ -490,6 +490,62 @@ var _ = strconv.FormatInt
 				{{- end}}
 			{{- end}}
 		)
+
+		var (
+			{{- range $f := $s.Fields}}
+				{{- if or $f.Binding (not $s.Request) }}
+					{{- if $f.Required}}
+						has{{$f.Name}} bool
+					{{- end}}
+				{{- end}}
+			{{- end}}
+		)
+
+		if err := jsonutil.DecodeObjectBegin(d); err != nil {
+			return err
+		}
+
+		for {
+			if d.PeekKind() == '}' {
+				break
+			}
+			key, err := jsonutil.DecodeKey(d)
+			if err != nil {
+				return err
+			}
+			switch jsonutil.HashKey(key) {
+			{{- range $f := $s.Fields}}
+				{{- if or $f.Binding (not $s.Request) }}
+					case hash{{$f.Name}}:
+						{{- if $f.Required}}
+							has{{$f.Name}} = true
+						{{- end}}
+						if r.{{$f.Name}}, err = jsonutil.DecodeString(d); err != nil {
+							return err
+						}
+				{{- end}}
+			{{- end}}
+			default:
+				if err = d.SkipValue(); err != nil {
+					return err
+				}
+			}
+		}
+
+		if err := jsonutil.DecodeObjectEnd(d); err != nil {
+			return err
+		}
+
+		{{range $f := $s.Fields}}
+			{{- if or $f.Binding (not $s.Request) }}
+				{{- if $f.Required}}
+					if !has{{$f.Name}} {
+						return errutil.Explain(nil, "missing required field \"{{$f.JSONTag.Name}}\"")
+					}
+				{{- end}}
+			{{- end}}
+		{{- end}}
+
 		return nil
 	}
 
@@ -579,6 +635,62 @@ var _ = strconv.FormatInt
 					{{- end}}
 				{{- end}}
 			)
+
+			var (
+				{{- range $f := $s.Fields}}
+					{{- if not $f.Binding}}
+						{{- if $f.Required}}
+							has{{$f.Name}} bool
+						{{- end}}
+					{{- end}}
+				{{- end}}
+			)
+
+			if err := jsonutil.DecodeObjectBegin(d); err != nil {
+				return err
+			}
+
+			for {
+				if d.PeekKind() == '}' {
+					break
+				}
+				key, err := jsonutil.DecodeKey(d)
+				if err != nil {
+					return err
+				}
+				switch jsonutil.HashKey(key) {
+				{{- range $f := $s.Fields}}
+					{{- if not $f.Binding}}
+						case hash{{$f.Name}}:
+							{{- if $f.Required}}
+								has{{$f.Name}} = true
+							{{- end}}
+							if r.{{$f.Name}}, err = jsonutil.DecodeString(d); err != nil {
+								return err
+							}
+					{{- end}}
+				{{- end}}
+				default:
+					if err = d.SkipValue(); err != nil {
+						return err
+					}
+				}
+			}
+
+			if err := jsonutil.DecodeObjectEnd(d); err != nil {
+				return err
+			}
+
+			{{range $f := $s.Fields}}
+				{{- if not $f.Binding}}
+					{{- if $f.Required}}
+						if !has{{$f.Name}} {
+							return errutil.Explain(nil, "missing required field \"{{$f.JSONTag.Name}}\"")
+						}
+					{{- end}}
+				{{- end}}
+			{{- end}}
+
 			return nil
 		}
 	{{- end}}
