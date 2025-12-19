@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-spring/gs-http-gen/lib/jsonutil"
 	"github.com/lvan100/golib/errutil"
 )
 
@@ -76,6 +77,12 @@ type AssistantReq struct {
 	AssistantReqBody
 }
 
+// DecodeJSON ...
+func (r *AssistantReq) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
+}
+
 // QueryForm returns the form values of the object.
 func (x *AssistantReq) QueryForm() (string, error) {
 	return "", nil
@@ -96,6 +103,14 @@ func (x *AssistantReq) Validate() (err error) {
 
 type AssistantReqBody struct {
 	Items []*Item `json:"items,omitempty" form:"items"`
+}
+
+// DecodeJSON ...
+func (r *AssistantReqBody) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashItems = 0x3e7884bf4f412c6f // HashKey("items")
+	)
+	return nil
 }
 
 // EncodeForm encodes the object to form data.
@@ -144,6 +159,14 @@ type Item struct {
 	Id *string `json:"id,omitempty" form:"id"`
 }
 
+// DecodeJSON ...
+func (r *Item) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashId = 0x8b72e07b55c3ac0 // HashKey("id")
+	)
+	return nil
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *Item) Validate() (err error) {
 	return
@@ -156,6 +179,17 @@ type AssistantResp struct {
 	Image   []byte   `json:"image,omitempty" form:"image"`
 }
 
+// DecodeJSON ...
+func (r *AssistantResp) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashId      = 0x8b72e07b55c3ac0  // HashKey("id")
+		hashData    = 0x855b556730a34a05 // HashKey("data")
+		hashPayload = 0xcfb8a9d063b5e9e5 // HashKey("payload")
+		hashImage   = 0x2ab612888528489a // HashKey("image")
+	)
+	return nil
+}
+
 type Payload struct {
 	FieldType PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
 	Payload1  *Payload_1          `json:"Payload_1,omitempty" form:"Payload_1"`
@@ -163,11 +197,40 @@ type Payload struct {
 	Payload3  *Payload_3          `json:"Payload_3,omitempty" form:"Payload_3"`
 }
 
+// DecodeJSON ...
+func (r *Payload) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashFieldType = 0x924fb655ccf9c75f // HashKey("FieldType")
+		hashPayload1  = 0x8a0cb93175b73aad // HashKey("Payload_1")
+		hashPayload2  = 0x8a0cb63175b73594 // HashKey("Payload_2")
+		hashPayload3  = 0x8a0cb73175b73747 // HashKey("Payload_3")
+	)
+	return nil
+}
+
 type Payload_1 struct {
+}
+
+// DecodeJSON ...
+func (r *Payload_1) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
 }
 
 type Payload_2 struct {
 }
 
+// DecodeJSON ...
+func (r *Payload_2) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
+}
+
 type Payload_3 struct {
+}
+
+// DecodeJSON ...
+func (r *Payload_3) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
 }

@@ -374,6 +374,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-spring/gs-http-gen/lib/jsonutil"
 	"github.com/lvan100/golib/errutil"
 )
 
@@ -480,6 +481,18 @@ var _ = strconv.FormatInt
 		{{- end}}
 	}
 
+	// DecodeJSON ...
+	func (r *{{$s.Name}}) DecodeJSON(d jsonutil.Decoder) error {
+		const (
+			{{- range $f := $s.Fields}}
+				{{- if or $f.Binding (not $s.Request) }}
+					hash{{$f.Name}} = {{$f.JSONTag.HashKey}} // HashKey("{{$f.JSONTag.Name}}")
+				{{- end}}
+			{{- end}}
+		)
+		return nil
+	}
+
 	{{if $s.Request}}
 		// QueryForm returns the form values of the object.
 		func (x *{{$s.Name}}) QueryForm() (string, error) {
@@ -555,6 +568,18 @@ var _ = strconv.FormatInt
 					{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 				{{- end}}
 			{{- end}}
+		}
+
+		// DecodeJSON ...
+		func (r *{{$s.Name}}Body) DecodeJSON(d jsonutil.Decoder) error {
+			const (
+				{{- range $f := $s.Fields}}
+					{{- if not $f.Binding}}
+						hash{{$f.Name}} = {{$f.JSONTag.HashKey}} // HashKey("{{$f.JSONTag.Name}}")
+					{{- end}}
+				{{- end}}
+			)
+			return nil
 		}
 	{{- end}}
 

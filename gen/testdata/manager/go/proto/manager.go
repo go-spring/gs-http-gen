@@ -228,11 +228,30 @@ type PageReq struct {
 	Size int64 `json:"size" query:"size" validate:"required"`
 }
 
+// DecodeJSON ...
+func (r *PageReq) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashPage = 0x38b2a0deba58916  // HashKey("page")
+		hashSize = 0x4dea9618e618ae3c // HashKey("size")
+	)
+	return nil
+}
+
 // Address & Contact info
 type Address struct {
 	City       *string `json:"city,omitempty" form:"city"`
 	Street     *string `json:"street,omitempty" form:"street"`
 	PostalCode *string `json:"postalCode,omitempty" form:"postalCode"`
+}
+
+// DecodeJSON ...
+func (r *Address) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashCity       = 0xf9dab5910f08a8a2 // HashKey("city")
+		hashStreet     = 0x4f5c4dd8e884633e // HashKey("street")
+		hashPostalCode = 0x95dac24ad2f17db7 // HashKey("postalCode")
+	)
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.
@@ -244,6 +263,16 @@ type ContactInfo struct {
 	Email   string   `json:"email" form:"email" validate:"required"`
 	Phone   *string  `json:"phone,omitempty" form:"phone"`
 	Address *Address `json:"address,omitempty" form:"address"`
+}
+
+// DecodeJSON ...
+func (r *ContactInfo) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashEmail   = 0x123467b419acbc07 // HashKey("email")
+		hashPhone   = 0x31fc9c6bde865d6f // HashKey("phone")
+		hashAddress = 0x1737f69e334c12b3 // HashKey("address")
+	)
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.
@@ -258,6 +287,15 @@ func (x *ContactInfo) Validate() (err error) {
 type DepartmentInfo struct {
 	Dept     *Department `json:"dept,omitempty" form:"dept"`
 	DeptName *string     `json:"deptName,omitempty" form:"deptName"`
+}
+
+// DecodeJSON ...
+func (r *DepartmentInfo) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashDept     = 0xa5ef04674280b406 // HashKey("dept")
+		hashDeptName = 0x63c798c819b02345 // HashKey("deptName")
+	)
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.
@@ -289,10 +327,45 @@ type Manager struct {
 	ExtraV5        map[string][]string                     `json:"extraV5,omitempty" form:"extraV5"`
 }
 
+// DecodeJSON ...
+func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashId             = 0x8b72e07b55c3ac0  // HashKey("id")
+		hashName           = 0xc4bcadba8e631b86 // HashKey("name")
+		hashAge            = 0xe715b4190539215c // HashKey("age")
+		hashVip            = 0x68e906194eba76f0 // HashKey("vip")
+		hashSalary         = 0x69c724098dbd2bc3 // HashKey("salary")
+		hashRole           = 0xa358ec1ff0c833b9 // HashKey("role")
+		hashLevel          = 0xe8ddc90a9d7c709d // HashKey("level")
+		hashDeptInfo       = 0x909196037ac21a36 // HashKey("deptInfo")
+		hashContact        = 0x623617b538360a63 // HashKey("contact")
+		hashContactInfos   = 0xe86fa0653a0df08c // HashKey("contactInfos")
+		hashContactInfoV2s = 0xd0c2fecd180f9960 // HashKey("contactInfoV2s")
+		hashContactInfoV3s = 0xd0bffecd180d6389 // HashKey("contactInfoV3s")
+		hashContactMaps    = 0xd342cef8b6401440 // HashKey("contactMaps")
+		hashContactMapV2s  = 0xb6aa83f0e06775cc // HashKey("contactMapV2s")
+		hashContactMapV3s  = 0xb6a783f0e0653ff5 // HashKey("contactMapV3s")
+		hashExtra          = 0xfd29ee12a979cb69 // HashKey("extra")
+		hashExtraV2        = 0x7eaf4c37ba38bf0d // HashKey("extraV2")
+		hashExtraV3        = 0x7eaf4b37ba38bd5a // HashKey("extraV3")
+		hashExtraV4        = 0x7eaf4637ba38b4db // HashKey("extraV4")
+		hashExtraV5        = 0x7eaf4537ba38b328 // HashKey("extraV5")
+	)
+	return nil
+}
+
 // Single manager by ID
 type ManagerReq struct {
 	ManagerReqBody
 	Id *string `json:"id,omitempty" path:"id"`
+}
+
+// DecodeJSON ...
+func (r *ManagerReq) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashId = 0x8b72e07b55c3ac0 // HashKey("id")
+	)
+	return nil
 }
 
 // QueryForm returns the form values of the object.
@@ -323,6 +396,12 @@ func (x *ManagerReq) Validate() (err error) {
 type ManagerReqBody struct {
 }
 
+// DecodeJSON ...
+func (r *ManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
+}
+
 // EncodeForm encodes the object to form data.
 func (x *ManagerReqBody) EncodeForm() (string, error) {
 	return "", nil
@@ -341,6 +420,12 @@ func (x *ManagerReqBody) Validate() (err error) {
 // Create new manager
 type CreateManagerReq struct {
 	CreateManagerReqBody
+}
+
+// DecodeJSON ...
+func (r *CreateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
 }
 
 // QueryForm returns the form values of the object.
@@ -372,6 +457,21 @@ type CreateManagerReqBody struct {
 	Contact  *ContactInfo          `json:"contact,omitempty" form:"contact"`
 }
 
+// DecodeJSON ...
+func (r *CreateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashName     = 0xc4bcadba8e631b86 // HashKey("name")
+		hashAge      = 0xe715b4190539215c // HashKey("age")
+		hashVip      = 0x68e906194eba76f0 // HashKey("vip")
+		hashSalary   = 0x69c724098dbd2bc3 // HashKey("salary")
+		hashRole     = 0xa358ec1ff0c833b9 // HashKey("role")
+		hashLevel    = 0xe8ddc90a9d7c709d // HashKey("level")
+		hashDeptInfo = 0x909196037ac21a36 // HashKey("deptInfo")
+		hashContact  = 0x623617b538360a63 // HashKey("contact")
+	)
+	return nil
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerReqBody) Validate() (err error) {
 	if x.Name != nil {
@@ -401,6 +501,14 @@ func (x *CreateManagerReqBody) Validate() (err error) {
 type UpdateManagerReq struct {
 	UpdateManagerReqBody
 	ID *string `json:"id,omitempty" path:"id"`
+}
+
+// DecodeJSON ...
+func (r *UpdateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashID = 0x8b72e07b55c3ac0 // HashKey("id")
+	)
+	return nil
 }
 
 // QueryForm returns the form values of the object.
@@ -439,6 +547,21 @@ type UpdateManagerReqBody struct {
 	Contact  *ContactInfo    `json:"contact,omitempty" form:"contact"`
 }
 
+// DecodeJSON ...
+func (r *UpdateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashName     = 0xc4bcadba8e631b86 // HashKey("name")
+		hashAge      = 0xe715b4190539215c // HashKey("age")
+		hashVip      = 0x68e906194eba76f0 // HashKey("vip")
+		hashSalary   = 0x69c724098dbd2bc3 // HashKey("salary")
+		hashRole     = 0xa358ec1ff0c833b9 // HashKey("role")
+		hashLevel    = 0xe8ddc90a9d7c709d // HashKey("level")
+		hashDeptInfo = 0x1048de984afc041f // HashKey("dept_info")
+		hashContact  = 0x623617b538360a63 // HashKey("contact")
+	)
+	return nil
+}
+
 // Validate checks field values using generated validation expressions.
 func (x *UpdateManagerReqBody) Validate() (err error) {
 	if x.Age != nil {
@@ -468,6 +591,19 @@ type ListManagersByPageReq struct {
 	Dept     *Department   `json:"dept,omitempty" query:"dept"`
 	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
 	Vip      *bool         `json:"vip,omitempty" query:"vip"`
+}
+
+// DecodeJSON ...
+func (r *ListManagersByPageReq) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashPage     = 0x38b2a0deba58916  // HashKey("page")
+		hashSize     = 0x4dea9618e618ae3c // HashKey("size")
+		hashKeyword  = 0x301714779471eea4 // HashKey("keyword")
+		hashDept     = 0xa5ef04674280b406 // HashKey("dept")
+		hashMinLevel = 0x5554d9157aa41d07 // HashKey("minLevel")
+		hashVip      = 0x68e906194eba76f0 // HashKey("vip")
+	)
+	return nil
 }
 
 // QueryForm returns the form values of the object.
@@ -595,6 +731,12 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 type ListManagersByPageReqBody struct {
 }
 
+// DecodeJSON ...
+func (r *ListManagersByPageReqBody) DecodeJSON(d jsonutil.Decoder) error {
+	const ()
+	return nil
+}
+
 // EncodeForm encodes the object to form data.
 func (x *ListManagersByPageReqBody) EncodeForm() (string, error) {
 	return "", nil
@@ -617,10 +759,30 @@ type CreateManagerResp struct {
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
+// DecodeJSON ...
+func (r *CreateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
+		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
+		hashData   = 0x855b556730a34a05 // HashKey("data")
+	)
+	return nil
+}
+
 type UpdateManagerResp struct {
 	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
 	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
+}
+
+// DecodeJSON ...
+func (r *UpdateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
+		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
+		hashData   = 0x855b556730a34a05 // HashKey("data")
+	)
+	return nil
 }
 
 type GetManagerResp struct {
@@ -629,10 +791,30 @@ type GetManagerResp struct {
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
+// DecodeJSON ...
+func (r *GetManagerResp) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
+		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
+		hashData   = 0x855b556730a34a05 // HashKey("data")
+	)
+	return nil
+}
+
 type DeleteManagerResp struct {
 	Errno  ErrCode `json:"errno" form:"errno" validate:"required"`
 	Errmsg string  `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *bool   `json:"data,omitempty" form:"data"`
+}
+
+// DecodeJSON ...
+func (r *DeleteManagerResp) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
+		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
+		hashData   = 0x855b556730a34a05 // HashKey("data")
+	)
+	return nil
 }
 
 // Paginated response
@@ -643,11 +825,14 @@ type ManagersPageData struct {
 	Items []*Manager `json:"items,omitempty" form:"items"`
 }
 
-func NewManagersPageData() *ManagersPageData {
-	return &ManagersPageData{}
-}
-
+// DecodeJSON ...
 func (r *ManagersPageData) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashTotal = 0x2dcede7d543a4ffd // HashKey("total")
+		hashPage  = 0x38b2a0deba58916  // HashKey("page")
+		hashSize  = 0x4dea9618e618ae3c // HashKey("size")
+		hashItems = 0x3e7884bf4f412c6f // HashKey("items")
+	)
 	return nil
 }
 
@@ -657,62 +842,12 @@ type ListManagersByPageResp struct {
 	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
 }
 
+// DecodeJSON ...
 func (r *ListManagersByPageResp) DecodeJSON(d jsonutil.Decoder) error {
 	const (
-		hashErrno  = 0xc3172d7c329b5eef // HashKey("errno")
-		hashErrmsg = 0xc3447c678a33494b // HashKey("errmsg")
-		hashData   = 0xcdf8c071ff4079ec // HashKey("data")
+		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
+		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
+		hashData   = 0x855b556730a34a05 // HashKey("data")
 	)
-
-	var (
-		hasErrno  bool
-		hasErrmsg bool
-	)
-
-	if err := jsonutil.DecodeObjectBegin(d); err != nil {
-		return err
-	}
-
-	for {
-		if d.PeekKind() == '}' {
-			break
-		}
-		key, err := jsonutil.DecodeKey(d)
-		if err != nil {
-			return err
-		}
-		switch jsonutil.HashKey(key) {
-		case hashErrno:
-			hasErrno = true
-			if r.Errno, err = jsonutil.DecodeEnum[ErrCode](d); err != nil {
-				return err
-			}
-		case hashErrmsg:
-			hasErrmsg = true
-			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
-				return err
-			}
-		case hashData:
-			if r.Data, err = jsonutil.DecodeObject(NewManagersPageData)(d); err != nil {
-				return err
-			}
-		default:
-			if err = d.SkipValue(); err != nil {
-				return err
-			}
-		}
-	}
-
-	if err := jsonutil.DecodeObjectEnd(d); err != nil {
-		return err
-	}
-
-	if !hasErrno {
-		return errutil.Explain(nil, "missing required field \"errno\"")
-	}
-	if !hasErrmsg {
-		return errutil.Explain(nil, "missing required field \"errmsg\"")
-	}
-
 	return nil
 }
