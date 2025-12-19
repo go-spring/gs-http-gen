@@ -31,17 +31,23 @@ type TypeKind int
 
 const (
 	TypeKindBool = TypeKind(iota)
+	TypeKindBoolPtr
 	TypeKindInt
+	TypeKindIntPtr
 	TypeKindUint
+	TypeKindUintPtr
 	TypeKindFloat
+	TypeKindFloatPtr
 	TypeKindString
-	TypeKindStruct
+	TypeKindStringPtr
+	TypeKindBytes
 	TypeKindEnum
+	TypeKindEnumPtr
 	TypeKindEnumAsString
+	TypeKindEnumAsStringPtr
+	TypeKindStructPtr
 	TypeKindList
 	TypeKindMap
-	TypeKindBytes
-	TypeKindPointer
 )
 
 // Const represents a Go constant
@@ -73,7 +79,19 @@ type TypeField struct {
 
 // IsPointer returns true if the field is a pointer
 func (x *TypeField) IsPointer() bool {
-	return x.TypeKind[0] == TypeKindPointer
+	return IsPointer(x.TypeKind[0])
+}
+
+// IsPointer returns true if the field is a pointer
+func IsPointer(x TypeKind) bool {
+	switch x {
+	case TypeKindBoolPtr, TypeKindIntPtr, TypeKindUintPtr,
+		TypeKindFloatPtr, TypeKindStringPtr, TypeKindEnumPtr,
+		TypeKindEnumAsStringPtr, TypeKindStructPtr:
+		return true
+	default:
+		return false
+	}
 }
 
 // RPC represents a single remote procedure call with HTTP metadata.
@@ -256,7 +274,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
-		if f.Required && typeKind[0] == TypeKindPointer {
+		if f.Required && IsPointer(typeKind[0]) {
 			return Type{}, errutil.Explain(nil, "field %s in type %s is required but has pointer type", f.Name, r.Name)
 		}
 
@@ -375,27 +393,27 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 		return []TypeKind{TypeKindBytes}, typeName, nil
 	case "bool":
 		if pointer {
-			return []TypeKind{TypeKindPointer, TypeKindBool}, typeName, nil
+			return []TypeKind{TypeKindBoolPtr}, typeName, nil
 		}
 		return []TypeKind{TypeKindBool}, typeName, nil
 	case "int", "int8", "int16", "int32", "int64":
 		if pointer {
-			return []TypeKind{TypeKindPointer, TypeKindInt}, typeName, nil
+			return []TypeKind{TypeKindIntPtr}, typeName, nil
 		}
 		return []TypeKind{TypeKindInt}, typeName, nil
 	case "uint", "uint8", "uint16", "uint32", "uint64":
 		if pointer {
-			return []TypeKind{TypeKindPointer, TypeKindUint}, typeName, nil
+			return []TypeKind{TypeKindUintPtr}, typeName, nil
 		}
 		return []TypeKind{TypeKindUint}, typeName, nil
 	case "float32", "float64":
 		if pointer {
-			return []TypeKind{TypeKindPointer, TypeKindFloat}, typeName, nil
+			return []TypeKind{TypeKindFloatPtr}, typeName, nil
 		}
 		return []TypeKind{TypeKindFloat}, typeName, nil
 	case "string":
 		if pointer {
-			return []TypeKind{TypeKindPointer, TypeKindString}, typeName, nil
+			return []TypeKind{TypeKindStringPtr}, typeName, nil
 		}
 		return []TypeKind{TypeKindString}, typeName, nil
 	default: // for linter
@@ -416,28 +434,33 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 			return nil, "", errutil.Explain(nil, "map type can not be pointer")
 		}
 		itemInex := strings.Index(typeName, "]")
+		keyType, _, err := getTypeKind(spec, typeName[4:itemInex])
+		if err != nil {
+			return nil, "", err
+		}
 		itemType, _, err := getTypeKind(spec, typeName[itemInex+1:])
 		if err != nil {
 			return nil, "", err
 		}
-		return append([]TypeKind{TypeKindMap}, itemType...), typeName, nil
+		return append([]TypeKind{TypeKindMap, keyType[0]}, itemType...), typeName, nil
 	default:
 		strType, asString := strings.CutSuffix(typeName, "AsString")
 		if _, ok := httpidl.GetEnum(spec.Files, strType); ok {
-			k := TypeKindEnum
 			if asString {
-				k = TypeKindEnumAsString
+				if pointer {
+					return []TypeKind{TypeKindEnumAsStringPtr}, typeName, nil
+				}
+				return []TypeKind{TypeKindEnumAsString}, typeName, nil
 			}
 			if pointer {
-				return []TypeKind{TypeKindPointer, k}, typeName, nil
+				return []TypeKind{TypeKindEnumPtr}, typeName, nil
 			}
-			return []TypeKind{k}, typeName, nil
+			return []TypeKind{TypeKindEnum}, typeName, nil
 		}
 		if _, ok := httpidl.GetType(spec.Files, typeName); ok {
 			if pointer {
-				return []TypeKind{TypeKindPointer, TypeKindStruct}, typeName, nil
+				return []TypeKind{TypeKindStructPtr}, typeName, nil
 			}
-			return []TypeKind{TypeKindStruct}, typeName, nil
 		}
 		return nil, "", errutil.Explain(nil, "unknown type: %s", typeName)
 	}

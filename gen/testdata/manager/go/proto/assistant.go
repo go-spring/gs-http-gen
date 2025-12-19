@@ -154,7 +154,7 @@ func (r *AssistantReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashItems:
-			if r.Items, err = jsonutil.DecodeString(d); err != nil {
+			if r.Items, err = a(d); err != nil {
 				return err
 			}
 		default:
@@ -239,7 +239,7 @@ func (r *Item) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashId:
-			if r.Id, err = jsonutil.DecodeString(d); err != nil {
+			if r.Id, err = a(d); err != nil {
 				return err
 			}
 		default:
@@ -293,19 +293,19 @@ func (r *AssistantResp) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashId:
-			if r.Id, err = jsonutil.DecodeString(d); err != nil {
+			if r.Id, err = a(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = jsonutil.DecodeString(d); err != nil {
+			if r.Data, err = a(d); err != nil {
 				return err
 			}
 		case hashPayload:
-			if r.Payload, err = jsonutil.DecodeString(d); err != nil {
+			if r.Payload, err = a(d); err != nil {
 				return err
 			}
 		case hashImage:
-			if r.Image, err = jsonutil.DecodeString(d); err != nil {
+			if r.Image, err = a(d); err != nil {
 				return err
 			}
 		default:
@@ -357,19 +357,19 @@ func (r *Payload) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashFieldType:
 			hasFieldType = true
-			if r.FieldType, err = jsonutil.DecodeString(d); err != nil {
+			if r.FieldType, err = a(d); err != nil {
 				return err
 			}
 		case hashPayload1:
-			if r.Payload1, err = jsonutil.DecodeString(d); err != nil {
+			if r.Payload1, err = a(d); err != nil {
 				return err
 			}
 		case hashPayload2:
-			if r.Payload2, err = jsonutil.DecodeString(d); err != nil {
+			if r.Payload2, err = a(d); err != nil {
 				return err
 			}
 		case hashPayload3:
-			if r.Payload3, err = jsonutil.DecodeString(d); err != nil {
+			if r.Payload3, err = a(d); err != nil {
 				return err
 			}
 		default:
