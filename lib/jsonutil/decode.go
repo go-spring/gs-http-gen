@@ -331,6 +331,15 @@ func ParseBytes(s string, k Kind) ([]byte, error) {
 var DecodeBool = DecodeValue(ParseBool)
 var DecodeBoolPtr = DecodeValuePtr(ParseBool)
 
+// DecodeEnum ...
+func DecodeEnum[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
+	v, err := DecodeValue(ParseInt[T])(d)
+	if err != nil {
+		return 0, err
+	}
+	return v, nil
+}
+
 var DecodeInt = DecodeValue(ParseInt[int])
 var DecodeInt8 = DecodeValue(ParseInt[int8])
 var DecodeInt16 = DecodeValue(ParseInt[int16])

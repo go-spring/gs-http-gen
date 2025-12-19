@@ -125,7 +125,7 @@ func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq
 			&proto.AssistantResp{
 				Id: httputil.Ptr(strconv.Itoa(i)),
 				Payload: httputil.Ptr(proto.Payload{
-					FieldType: httputil.Ptr(proto.PayloadTypeAsString(proto.PayloadType_Payload_1)),
+					FieldType: proto.PayloadTypeAsString(proto.PayloadType_Payload_1),
 					Payload1:  httputil.Ptr(proto.Payload_1{}),
 				}),
 				Image: []byte("000111222333444555666777888999000"),

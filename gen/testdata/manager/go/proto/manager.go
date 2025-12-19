@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-spring/gs-http-gen/lib/jsonutil"
 	"github.com/lvan100/golib/errutil"
 )
 
@@ -642,8 +643,76 @@ type ManagersPageData struct {
 	Items []*Manager `json:"items,omitempty" form:"items"`
 }
 
+func NewManagersPageData() *ManagersPageData {
+	return &ManagersPageData{}
+}
+
+func (r *ManagersPageData) DecodeJSON(d jsonutil.Decoder) error {
+	return nil
+}
+
 type ListManagersByPageResp struct {
 	Errno  ErrCode           `json:"errno" form:"errno" validate:"required"`
 	Errmsg string            `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
+}
+
+func (r *ListManagersByPageResp) DecodeJSON(d jsonutil.Decoder) error {
+	const (
+		hashErrno  = 0xc3172d7c329b5eef // HashKey("errno")
+		hashErrmsg = 0xc3447c678a33494b // HashKey("errmsg")
+		hashData   = 0xcdf8c071ff4079ec // HashKey("data")
+	)
+
+	var (
+		hasErrno  bool
+		hasErrmsg bool
+	)
+
+	if err := jsonutil.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+		key, err := jsonutil.DecodeKey(d)
+		if err != nil {
+			return err
+		}
+		switch jsonutil.HashKey(key) {
+		case hashErrno:
+			hasErrno = true
+			if r.Errno, err = jsonutil.DecodeEnum[ErrCode](d); err != nil {
+				return err
+			}
+		case hashErrmsg:
+			hasErrmsg = true
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonutil.DecodeObject(NewManagersPageData)(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := jsonutil.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasErrno {
+		return errutil.Explain(nil, "missing required field \"errno\"")
+	}
+	if !hasErrmsg {
+		return errutil.Explain(nil, "missing required field \"errmsg\"")
+	}
+
+	return nil
 }
