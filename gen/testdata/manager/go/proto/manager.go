@@ -228,6 +228,11 @@ type PageReq struct {
 	Size int64 `json:"size" query:"size" validate:"required"`
 }
 
+// NewPageReq ...
+func NewPageReq() *PageReq {
+	return &PageReq{}
+}
+
 // DecodeJSON ...
 func (r *PageReq) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -255,12 +260,12 @@ func (r *PageReq) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashPage:
 			hasPage = true
-			if r.Page, err = a(d); err != nil {
+			if r.Page, err = jsonutil.DecodeInt[int64](d); err != nil {
 				return err
 			}
 		case hashSize:
 			hasSize = true
-			if r.Size, err = a(d); err != nil {
+			if r.Size, err = jsonutil.DecodeInt[int64](d); err != nil {
 				return err
 			}
 		default:
@@ -291,6 +296,11 @@ type Address struct {
 	PostalCode *string `json:"postalCode,omitempty" form:"postalCode"`
 }
 
+// NewAddress ...
+func NewAddress() *Address {
+	return &Address{}
+}
+
 // DecodeJSON ...
 func (r *Address) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -315,15 +325,15 @@ func (r *Address) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashCity:
-			if r.City, err = a(d); err != nil {
+			if r.City, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashStreet:
-			if r.Street, err = a(d); err != nil {
+			if r.Street, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashPostalCode:
-			if r.PostalCode, err = a(d); err != nil {
+			if r.PostalCode, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -349,6 +359,11 @@ type ContactInfo struct {
 	Email   string   `json:"email" form:"email" validate:"required"`
 	Phone   *string  `json:"phone,omitempty" form:"phone"`
 	Address *Address `json:"address,omitempty" form:"address"`
+}
+
+// NewContactInfo ...
+func NewContactInfo() *ContactInfo {
+	return &ContactInfo{}
 }
 
 // DecodeJSON ...
@@ -378,15 +393,15 @@ func (r *ContactInfo) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashEmail:
 			hasEmail = true
-			if r.Email, err = a(d); err != nil {
+			if r.Email, err = jsonutil.DecodeString(d); err != nil {
 				return err
 			}
 		case hashPhone:
-			if r.Phone, err = a(d); err != nil {
+			if r.Phone, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashAddress:
-			if r.Address, err = a(d); err != nil {
+			if r.Address, err = jsonutil.DecodeObject(NewAddress)(d); err != nil {
 				return err
 			}
 		default:
@@ -421,6 +436,11 @@ type DepartmentInfo struct {
 	DeptName *string     `json:"deptName,omitempty" form:"deptName"`
 }
 
+// NewDepartmentInfo ...
+func NewDepartmentInfo() *DepartmentInfo {
+	return &DepartmentInfo{}
+}
+
 // DecodeJSON ...
 func (r *DepartmentInfo) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -444,11 +464,11 @@ func (r *DepartmentInfo) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashDept:
-			if r.Dept, err = a(d); err != nil {
+			if r.Dept, err = jsonutil.DecodeIntPtr[Department](d); err != nil {
 				return err
 			}
 		case hashDeptName:
-			if r.DeptName, err = a(d); err != nil {
+			if r.DeptName, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -494,6 +514,11 @@ type Manager struct {
 	ExtraV5        map[string][]string                     `json:"extraV5,omitempty" form:"extraV5"`
 }
 
+// NewManager ...
+func NewManager() *Manager {
+	return &Manager{}
+}
+
 // DecodeJSON ...
 func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -535,83 +560,83 @@ func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashId:
-			if r.Id, err = a(d); err != nil {
+			if r.Id, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashName:
-			if r.Name, err = a(d); err != nil {
+			if r.Name, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashAge:
-			if r.Age, err = a(d); err != nil {
+			if r.Age, err = jsonutil.DecodeIntPtr[int64](d); err != nil {
 				return err
 			}
 		case hashVip:
-			if r.Vip, err = a(d); err != nil {
+			if r.Vip, err = jsonutil.DecodeBoolPtr(d); err != nil {
 				return err
 			}
 		case hashSalary:
-			if r.Salary, err = a(d); err != nil {
+			if r.Salary, err = jsonutil.DecodeFloatPtr[float64](d); err != nil {
 				return err
 			}
 		case hashRole:
-			if r.Role, err = a(d); err != nil {
+			if r.Role, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashLevel:
-			if r.Level, err = a(d); err != nil {
+			if r.Level, err = jsonutil.DecodeIntPtr[ManagerLevelAsString](d); err != nil {
 				return err
 			}
 		case hashDeptInfo:
-			if r.DeptInfo, err = a(d); err != nil {
+			if r.DeptInfo, err = jsonutil.DecodeObject(NewDepartmentInfo)(d); err != nil {
 				return err
 			}
 		case hashContact:
-			if r.Contact, err = a(d); err != nil {
+			if r.Contact, err = jsonutil.DecodeObject(NewContactInfo)(d); err != nil {
 				return err
 			}
 		case hashContactInfos:
-			if r.ContactInfos, err = a(d); err != nil {
+			if r.ContactInfos, err = jsonutil.DecodeArray(jsonutil.DecodeObject(NewContactInfo))(d); err != nil {
 				return err
 			}
 		case hashContactInfoV2s:
-			if r.ContactInfoV2s, err = a(d); err != nil {
+			if r.ContactInfoV2s, err = jsonutil.DecodeArray(jsonutil.DecodeArray(jsonutil.DecodeObject(NewContactInfo)))(d); err != nil {
 				return err
 			}
 		case hashContactInfoV3s:
-			if r.ContactInfoV3s, err = a(d); err != nil {
+			if r.ContactInfoV3s, err = jsonutil.DecodeArray(jsonutil.DecodeArray(jsonutil.DecodeArray(jsonutil.DecodeObject(NewContactInfo))))(d); err != nil {
 				return err
 			}
 		case hashContactMaps:
-			if r.ContactMaps, err = a(d); err != nil {
+			if r.ContactMaps, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeObject(NewContactInfo))(d); err != nil {
 				return err
 			}
 		case hashContactMapV2s:
-			if r.ContactMapV2s, err = a(d); err != nil {
+			if r.ContactMapV2s, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeArray(jsonutil.DecodeObject(NewContactInfo)))(d); err != nil {
 				return err
 			}
 		case hashContactMapV3s:
-			if r.ContactMapV3s, err = a(d); err != nil {
+			if r.ContactMapV3s, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeMap(jsonutil.DecodeInt[int64], jsonutil.DecodeObject(NewContactInfo)))(d); err != nil {
 				return err
 			}
 		case hashExtra:
-			if r.Extra, err = a(d); err != nil {
+			if r.Extra, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeString)(d); err != nil {
 				return err
 			}
 		case hashExtraV2:
-			if r.ExtraV2, err = a(d); err != nil {
+			if r.ExtraV2, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeString))(d); err != nil {
 				return err
 			}
 		case hashExtraV3:
-			if r.ExtraV3, err = a(d); err != nil {
+			if r.ExtraV3, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeString)))(d); err != nil {
 				return err
 			}
 		case hashExtraV4:
-			if r.ExtraV4, err = a(d); err != nil {
+			if r.ExtraV4, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeArray(jsonutil.DecodeString)))(d); err != nil {
 				return err
 			}
 		case hashExtraV5:
-			if r.ExtraV5, err = a(d); err != nil {
+			if r.ExtraV5, err = jsonutil.DecodeMap(jsonutil.DecodeString, jsonutil.DecodeArray(jsonutil.DecodeString))(d); err != nil {
 				return err
 			}
 		default:
@@ -632,6 +657,11 @@ func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
 type ManagerReq struct {
 	ManagerReqBody
 	Id *string `json:"id,omitempty" path:"id"`
+}
+
+// NewManagerReq ...
+func NewManagerReq() *ManagerReq {
+	return &ManagerReq{}
 }
 
 // DecodeJSON ...
@@ -656,7 +686,7 @@ func (r *ManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashId:
-			if r.Id, err = a(d); err != nil {
+			if r.Id, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -699,6 +729,11 @@ func (x *ManagerReq) Validate() (err error) {
 }
 
 type ManagerReqBody struct {
+}
+
+// NewManagerReqBody ...
+func NewManagerReqBody() *ManagerReqBody {
+	return &ManagerReqBody{}
 }
 
 // DecodeJSON ...
@@ -752,6 +787,11 @@ func (x *ManagerReqBody) Validate() (err error) {
 // Create new manager
 type CreateManagerReq struct {
 	CreateManagerReqBody
+}
+
+// NewCreateManagerReq ...
+func NewCreateManagerReq() *CreateManagerReq {
+	return &CreateManagerReq{}
 }
 
 // DecodeJSON ...
@@ -816,6 +856,11 @@ type CreateManagerReqBody struct {
 	Contact  *ContactInfo          `json:"contact,omitempty" form:"contact"`
 }
 
+// NewCreateManagerReqBody ...
+func NewCreateManagerReqBody() *CreateManagerReqBody {
+	return &CreateManagerReqBody{}
+}
+
 // DecodeJSON ...
 func (r *CreateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -845,35 +890,35 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashName:
-			if r.Name, err = a(d); err != nil {
+			if r.Name, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashAge:
-			if r.Age, err = a(d); err != nil {
+			if r.Age, err = jsonutil.DecodeIntPtr[int64](d); err != nil {
 				return err
 			}
 		case hashVip:
-			if r.Vip, err = a(d); err != nil {
+			if r.Vip, err = jsonutil.DecodeBoolPtr(d); err != nil {
 				return err
 			}
 		case hashSalary:
-			if r.Salary, err = a(d); err != nil {
+			if r.Salary, err = jsonutil.DecodeFloatPtr[float64](d); err != nil {
 				return err
 			}
 		case hashRole:
-			if r.Role, err = a(d); err != nil {
+			if r.Role, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashLevel:
-			if r.Level, err = a(d); err != nil {
+			if r.Level, err = jsonutil.DecodeIntPtr[ManagerLevelAsString](d); err != nil {
 				return err
 			}
 		case hashDeptInfo:
-			if r.DeptInfo, err = a(d); err != nil {
+			if r.DeptInfo, err = jsonutil.DecodeObject(NewDepartmentInfo)(d); err != nil {
 				return err
 			}
 		case hashContact:
-			if r.Contact, err = a(d); err != nil {
+			if r.Contact, err = jsonutil.DecodeObject(NewContactInfo)(d); err != nil {
 				return err
 			}
 		default:
@@ -921,6 +966,11 @@ type UpdateManagerReq struct {
 	ID *string `json:"id,omitempty" path:"id"`
 }
 
+// NewUpdateManagerReq ...
+func NewUpdateManagerReq() *UpdateManagerReq {
+	return &UpdateManagerReq{}
+}
+
 // DecodeJSON ...
 func (r *UpdateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -943,7 +993,7 @@ func (r *UpdateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashID:
-			if r.ID, err = a(d); err != nil {
+			if r.ID, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -996,6 +1046,11 @@ type UpdateManagerReqBody struct {
 	Contact  *ContactInfo    `json:"contact,omitempty" form:"contact"`
 }
 
+// NewUpdateManagerReqBody ...
+func NewUpdateManagerReqBody() *UpdateManagerReqBody {
+	return &UpdateManagerReqBody{}
+}
+
 // DecodeJSON ...
 func (r *UpdateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -1025,35 +1080,35 @@ func (r *UpdateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashName:
-			if r.Name, err = a(d); err != nil {
+			if r.Name, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashAge:
-			if r.Age, err = a(d); err != nil {
+			if r.Age, err = jsonutil.DecodeIntPtr[int64](d); err != nil {
 				return err
 			}
 		case hashVip:
-			if r.Vip, err = a(d); err != nil {
+			if r.Vip, err = jsonutil.DecodeBoolPtr(d); err != nil {
 				return err
 			}
 		case hashSalary:
-			if r.Salary, err = a(d); err != nil {
+			if r.Salary, err = jsonutil.DecodeFloatPtr[float64](d); err != nil {
 				return err
 			}
 		case hashRole:
-			if r.Role, err = a(d); err != nil {
+			if r.Role, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashLevel:
-			if r.Level, err = a(d); err != nil {
+			if r.Level, err = jsonutil.DecodeIntPtr[ManagerLevel](d); err != nil {
 				return err
 			}
 		case hashDeptInfo:
-			if r.DeptInfo, err = a(d); err != nil {
+			if r.DeptInfo, err = jsonutil.DecodeObject(NewDepartmentInfo)(d); err != nil {
 				return err
 			}
 		case hashContact:
-			if r.Contact, err = a(d); err != nil {
+			if r.Contact, err = jsonutil.DecodeObject(NewContactInfo)(d); err != nil {
 				return err
 			}
 		default:
@@ -1101,6 +1156,11 @@ type ListManagersByPageReq struct {
 	Vip      *bool         `json:"vip,omitempty" query:"vip"`
 }
 
+// NewListManagersByPageReq ...
+func NewListManagersByPageReq() *ListManagersByPageReq {
+	return &ListManagersByPageReq{}
+}
+
 // DecodeJSON ...
 func (r *ListManagersByPageReq) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -1132,28 +1192,28 @@ func (r *ListManagersByPageReq) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashPage:
 			hasPage = true
-			if r.Page, err = a(d); err != nil {
+			if r.Page, err = jsonutil.DecodeInt[int64](d); err != nil {
 				return err
 			}
 		case hashSize:
 			hasSize = true
-			if r.Size, err = a(d); err != nil {
+			if r.Size, err = jsonutil.DecodeInt[int64](d); err != nil {
 				return err
 			}
 		case hashKeyword:
-			if r.Keyword, err = a(d); err != nil {
+			if r.Keyword, err = jsonutil.DecodeArray(jsonutil.DecodeString)(d); err != nil {
 				return err
 			}
 		case hashDept:
-			if r.Dept, err = a(d); err != nil {
+			if r.Dept, err = jsonutil.DecodeIntPtr[Department](d); err != nil {
 				return err
 			}
 		case hashMinLevel:
-			if r.MinLevel, err = a(d); err != nil {
+			if r.MinLevel, err = jsonutil.DecodeIntPtr[ManagerLevel](d); err != nil {
 				return err
 			}
 		case hashVip:
-			if r.Vip, err = a(d); err != nil {
+			if r.Vip, err = jsonutil.DecodeBoolPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -1302,6 +1362,11 @@ func (x *ListManagersByPageReq) Validate() (err error) {
 type ListManagersByPageReqBody struct {
 }
 
+// NewListManagersByPageReqBody ...
+func NewListManagersByPageReqBody() *ListManagersByPageReqBody {
+	return &ListManagersByPageReqBody{}
+}
+
 // DecodeJSON ...
 func (r *ListManagersByPageReqBody) DecodeJSON(d jsonutil.Decoder) error {
 	const ()
@@ -1357,6 +1422,11 @@ type CreateManagerResp struct {
 	Data   *Manager `json:"data,omitempty" form:"data"`
 }
 
+// NewCreateManagerResp ...
+func NewCreateManagerResp() *CreateManagerResp {
+	return &CreateManagerResp{}
+}
+
 // DecodeJSON ...
 func (r *CreateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -1385,16 +1455,16 @@ func (r *CreateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashErrno:
 			hasErrno = true
-			if r.Errno, err = a(d); err != nil {
+			if r.Errno, err = jsonutil.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
 		case hashErrmsg:
 			hasErrmsg = true
-			if r.Errmsg, err = a(d); err != nil {
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = a(d); err != nil {
+			if r.Data, err = jsonutil.DecodeObject(NewManager)(d); err != nil {
 				return err
 			}
 		default:
@@ -1422,6 +1492,11 @@ type UpdateManagerResp struct {
 	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
 	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
+}
+
+// NewUpdateManagerResp ...
+func NewUpdateManagerResp() *UpdateManagerResp {
+	return &UpdateManagerResp{}
 }
 
 // DecodeJSON ...
@@ -1452,16 +1527,16 @@ func (r *UpdateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashErrno:
 			hasErrno = true
-			if r.Errno, err = a(d); err != nil {
+			if r.Errno, err = jsonutil.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
 		case hashErrmsg:
 			hasErrmsg = true
-			if r.Errmsg, err = a(d); err != nil {
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = a(d); err != nil {
+			if r.Data, err = jsonutil.DecodeObject(NewManager)(d); err != nil {
 				return err
 			}
 		default:
@@ -1489,6 +1564,11 @@ type GetManagerResp struct {
 	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
 	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *Manager `json:"data,omitempty" form:"data"`
+}
+
+// NewGetManagerResp ...
+func NewGetManagerResp() *GetManagerResp {
+	return &GetManagerResp{}
 }
 
 // DecodeJSON ...
@@ -1519,16 +1599,16 @@ func (r *GetManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashErrno:
 			hasErrno = true
-			if r.Errno, err = a(d); err != nil {
+			if r.Errno, err = jsonutil.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
 		case hashErrmsg:
 			hasErrmsg = true
-			if r.Errmsg, err = a(d); err != nil {
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = a(d); err != nil {
+			if r.Data, err = jsonutil.DecodeObject(NewManager)(d); err != nil {
 				return err
 			}
 		default:
@@ -1556,6 +1636,11 @@ type DeleteManagerResp struct {
 	Errno  ErrCode `json:"errno" form:"errno" validate:"required"`
 	Errmsg string  `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *bool   `json:"data,omitempty" form:"data"`
+}
+
+// NewDeleteManagerResp ...
+func NewDeleteManagerResp() *DeleteManagerResp {
+	return &DeleteManagerResp{}
 }
 
 // DecodeJSON ...
@@ -1586,16 +1671,16 @@ func (r *DeleteManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashErrno:
 			hasErrno = true
-			if r.Errno, err = a(d); err != nil {
+			if r.Errno, err = jsonutil.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
 		case hashErrmsg:
 			hasErrmsg = true
-			if r.Errmsg, err = a(d); err != nil {
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = a(d); err != nil {
+			if r.Data, err = jsonutil.DecodeBoolPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -1627,6 +1712,11 @@ type ManagersPageData struct {
 	Items []*Manager `json:"items,omitempty" form:"items"`
 }
 
+// NewManagersPageData ...
+func NewManagersPageData() *ManagersPageData {
+	return &ManagersPageData{}
+}
+
 // DecodeJSON ...
 func (r *ManagersPageData) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -1652,19 +1742,19 @@ func (r *ManagersPageData) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashTotal:
-			if r.Total, err = a(d); err != nil {
+			if r.Total, err = jsonutil.DecodeIntPtr[int64](d); err != nil {
 				return err
 			}
 		case hashPage:
-			if r.Page, err = a(d); err != nil {
+			if r.Page, err = jsonutil.DecodeIntPtr[int64](d); err != nil {
 				return err
 			}
 		case hashSize:
-			if r.Size, err = a(d); err != nil {
+			if r.Size, err = jsonutil.DecodeIntPtr[int64](d); err != nil {
 				return err
 			}
 		case hashItems:
-			if r.Items, err = a(d); err != nil {
+			if r.Items, err = jsonutil.DecodeArray(jsonutil.DecodeObject(NewManager))(d); err != nil {
 				return err
 			}
 		default:
@@ -1685,6 +1775,11 @@ type ListManagersByPageResp struct {
 	Errno  ErrCode           `json:"errno" form:"errno" validate:"required"`
 	Errmsg string            `json:"errmsg" form:"errmsg" validate:"required"`
 	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
+}
+
+// NewListManagersByPageResp ...
+func NewListManagersByPageResp() *ListManagersByPageResp {
+	return &ListManagersByPageResp{}
 }
 
 // DecodeJSON ...
@@ -1715,16 +1810,16 @@ func (r *ListManagersByPageResp) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashErrno:
 			hasErrno = true
-			if r.Errno, err = a(d); err != nil {
+			if r.Errno, err = jsonutil.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
 		case hashErrmsg:
 			hasErrmsg = true
-			if r.Errmsg, err = a(d); err != nil {
+			if r.Errmsg, err = jsonutil.DecodeString(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = a(d); err != nil {
+			if r.Data, err = jsonutil.DecodeObject(NewManagersPageData)(d); err != nil {
 				return err
 			}
 		default:

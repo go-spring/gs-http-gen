@@ -60,90 +60,65 @@ func formatComments(c httpidl.Comments) string {
 // encodeFormValue generates Go code to encode a field value to form data.
 func encodeFormValue(fieldName string, typeKind []TypeKind, formName string) string {
 	var sb strings.Builder
-
-	//// pointer
-	//if typeKind[0] == TypeKindPointer {
-	//	sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-	//	sb.WriteString(encodeFormValue("*"+fieldName, typeKind[1:], formName))
-	//	sb.WriteString(fmt.Sprintf("\n}"))
-	//	return sb.String()
-	//}
-
-	switch typeKind[0] {
-	case TypeKindBool:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, fieldName))
-	case TypeKindBoolPtr:
+	if IsPointer(typeKind[0]) {
 		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, "*"+fieldName))
+		switch typeKind[0] {
+		case TypeKindBoolPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, "*"+fieldName))
+		case TypeKindIntPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, "*"+fieldName))
+		case TypeKindUintPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, "*"+fieldName))
+		case TypeKindFloatPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, "*"+fieldName))
+		case TypeKindStringPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, "*"+fieldName))
+		case TypeKindBytes:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, "*"+fieldName)) // todo
+		case TypeKindEnumPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, "*"+fieldName))
+		case TypeKindEnumAsStringPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, "*"+fieldName))
+		case TypeKindStructPtr:
+			sb.WriteString(fmt.Sprintf(`b, err := json.Marshal(%s)
+				if err != nil {
+					return "", err
+				}
+				m.Add("%s", string(b))`, "*"+fieldName, formName))
+		default:
+			panic("unsupported type")
+		}
 		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindInt:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
-	case TypeKindIntPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, "*"+fieldName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindUint:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, fieldName))
-	case TypeKindUintPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, "*"+fieldName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindFloat:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, fieldName))
-	case TypeKindFloatPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, "*"+fieldName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindString:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, fieldName))
-	case TypeKindStringPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, "*"+fieldName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindBytes:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, "*"+fieldName)) // todo
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindEnum:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
-	case TypeKindEnumPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, "*"+fieldName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindEnumAsString:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, fieldName))
-	case TypeKindEnumAsStringPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, "*"+fieldName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindStructPtr:
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(fmt.Sprintf("b, err := json.Marshal(%s)", "*"+fieldName))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf(`if err != nil {
-			return "", err
-		}`))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, formName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-	case TypeKindMap:
-		sb.WriteString(fmt.Sprintf("b, err := json.Marshal(%s)", fieldName))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf(`if err != nil {
-			return "", err
-		}`))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, formName))
-	case TypeKindList:
-		sb.WriteString(fmt.Sprintf("for i := range len(%s) {", fieldName))
-		sb.WriteString("\n")
-		sb.WriteString(encodeFormValue(fieldName+"[i]", typeKind[1:], formName))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf("}"))
-	default:
-		panic("unsupported type")
+	} else {
+		switch typeKind[0] {
+		case TypeKindBool:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, fieldName))
+		case TypeKindInt:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+		case TypeKindUint:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, fieldName))
+		case TypeKindFloat:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, fieldName))
+		case TypeKindString:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, fieldName))
+		case TypeKindEnum:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+		case TypeKindEnumAsString:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, fieldName))
+		case TypeKindMap:
+			sb.WriteString(fmt.Sprintf(`b, err := json.Marshal(%s)
+				if err != nil {
+					return "", err
+				}
+				m.Add("%s", string(b))`, fieldName, formName))
+		case TypeKindList:
+			sb.WriteString(fmt.Sprintf("for i := range len(%s) {\n", fieldName))
+			sb.WriteString(encodeFormValue(fieldName+"[i]", typeKind[1:], formName))
+			sb.WriteString(fmt.Sprintf("\n}"))
+		default:
+			panic("unsupported type")
+		}
 	}
-
 	return sb.String()
 }
 
@@ -166,16 +141,18 @@ func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, for
 		sb.WriteString("}")
 		return sb.String()
 	case TypeKindMap:
-		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
-		sb.WriteString(fmt.Sprintf(`parseErr := json.Unmarshal([]byte(v[0]), &%s)
-			if parseErr != nil {
-				err = errutil.Stack(err, "json decode error: %%w", parseErr)
-			}`, fieldName))
-		sb.WriteString(fmt.Sprintf(`} else {
+		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {
+				parseErr := json.Unmarshal([]byte(v[0]), &%s)
+				if parseErr != nil {
+					err = errutil.Stack(err, "json decode error: %%w", parseErr)
+				}
+			} else {
 				err = errutil.Stack(err, "invalid value for \"%s\"")
-			}`, formName))
+			}
+		`, fieldName, formName))
 		sb.WriteString("}")
 		return sb.String()
+	default: // for linter
 	}
 
 	sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
@@ -237,7 +214,7 @@ func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, for
 				err = errutil.Stack(err, "json decode error: %%w", parseErr)
 			}`, fieldName))
 	case TypeKindBytes: // todo
-	case TypeKindEnum, TypeKindEnumAsString:
+	case TypeKindEnum:
 		valueType := strings.TrimPrefix(typeName, "*")
 		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
 				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
@@ -248,7 +225,7 @@ func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, for
 					%s = e
 				}
 			}`, formName, valueType, valueType, formName, fieldName))
-	case TypeKindEnumPtr, TypeKindEnumAsStringPtr:
+	case TypeKindEnumPtr:
 		valueType := strings.TrimPrefix(typeName, "*")
 		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
 				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
@@ -259,11 +236,15 @@ func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, for
 					%s = &e
 				}
 			}`, formName, valueType, valueType, formName, fieldName))
+	case TypeKindEnumAsString:
+	case TypeKindEnumAsStringPtr:
+	default:
+		panic("unsupported type")
 	}
 
 	sb.WriteString(fmt.Sprintf(`} else {
-				err = errutil.Stack(err, "invalid value for \"%s\"")
-			}`, formName))
+			err = errutil.Stack(err, "invalid value for \"%s\"")
+		}`, formName))
 
 	sb.WriteString("}")
 	return sb.String()
@@ -384,52 +365,52 @@ func genValidateNested(receiverType, fieldName string, itemName string, typeKind
 
 // genDecodeJSON generates the JSON decoding code for a Go struct field.
 func genDecodeJSON(typeName string, typeKind []TypeKind) string {
-	//switch typeName {
-	//case "bool":
-	//	return "jsonutil.DecodeBool"
-	//case "*bool":
-	//	return "jsonutil.DecodeBoolPtr"
-	//case "int", "int8", "int16", "int32", "int64":
-	//	return "jsonutil.DecodeInt[" + typeName + "]"
-	//case "*int", "*int8", "*int16", "*int32", "*int64":
-	//	return "jsonutil.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
-	//case "uint", "uint8", "uint16", "uint32", "uint64":
-	//	return "jsonutil.DecodeUint[" + typeName + "]"
-	//case "*uint", "*uint8", "*uint16", "*uint32", "*uint64":
-	//	return "jsonutil.DecodeUintPtr[" + strings.TrimPrefix(typeName, "*") + "]"
-	//case "float32", "float64":
-	//	return "jsonutil.DecodeFloat[" + typeName + "]"
-	//case "*float32", "*float64":
-	//	return "jsonutil.DecodeFloatPtr[" + strings.TrimPrefix(typeName, "*") + "]"
-	//case "string":
-	//	return "jsonutil.DecodeString"
-	//case "*string":
-	//	return "jsonutil.DecodeStringPtr"
-	//case "[]byte":
-	//	return "jsonutil.DecodeBytes"
-	//}
-	//switch typeKind[0] {
-	//case TypeKindList:
-	//	e := genDecodeJSON(strings.TrimPrefix(typeName, "[]"), typeKind[1:])
-	//	return "jsonutil.DecodeArray(" + e + ")"
-	//case TypeKindMap:
-	//	//s := strings.TrimPrefix(typeName, "map[")
-	//	//i := strings.Index(s, "]")
-	//	//k, v := s[:i], s[i+1:]
-	//	//getTypeKind()
-	//	//ks := genDecodeJSON(k, typeKind[1:])
-	//	//vs := genDecodeJSON(v, typeKind[1:])
-	//	//return "jsonutil.DecodeMap(" + k + "," + v + ")"
-	//	//case TypeKindStruct:
-	//	//	return "jsonutil.DecodeObject"
-	//	//case TypeKindPointer:
-	//
-	//	//	TypeKindStruct
-	//	//	TypeKindEnum
-	//	//	TypeKindEnumAsString
-	//	//	TypeKindPointer
-	//}
-	return "a"
+	switch typeKind[0] {
+	case TypeKindBool:
+		return "jsonutil.DecodeBool"
+	case TypeKindBoolPtr:
+		return "jsonutil.DecodeBoolPtr"
+	case TypeKindInt:
+		return "jsonutil.DecodeInt[" + typeName + "]"
+	case TypeKindIntPtr:
+		return "jsonutil.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindUint:
+		return "jsonutil.DecodeUint[" + typeName + "]"
+	case TypeKindUintPtr:
+		return "jsonutil.DecodeUintPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindFloat:
+		return "jsonutil.DecodeFloat[" + typeName + "]"
+	case TypeKindFloatPtr:
+		return "jsonutil.DecodeFloatPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindString:
+		return "jsonutil.DecodeString"
+	case TypeKindStringPtr:
+		return "jsonutil.DecodeStringPtr"
+	case TypeKindBytes:
+		return "jsonutil.DecodeBytes"
+	case TypeKindEnum:
+		return "jsonutil.DecodeInt[" + typeName + "]"
+	case TypeKindEnumPtr:
+		return "jsonutil.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindEnumAsString:
+		return "jsonutil.DecodeInt[" + typeName + "]"
+	case TypeKindEnumAsStringPtr:
+		return "jsonutil.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindStructPtr:
+		return "jsonutil.DecodeObject(New" + strings.TrimPrefix(typeName, "*") + ")"
+	case TypeKindList:
+		e := genDecodeJSON(strings.TrimPrefix(typeName, "[]"), typeKind[1:])
+		return "jsonutil.DecodeArray(" + e + ")"
+	case TypeKindMap:
+		s := strings.TrimPrefix(typeName, "map[")
+		i := strings.Index(s, "]")
+		k, v := s[:i], s[i+1:]
+		ks := genDecodeJSON(k, typeKind[1:2])
+		vs := genDecodeJSON(v, typeKind[2:])
+		return "jsonutil.DecodeMap(" + ks + "," + vs + ")"
+	default:
+		panic("unsupported type")
+	}
 }
 
 // typeTmpl is a Go template used to generate Go source code from IDL definitions.
@@ -560,6 +541,11 @@ var _ = strconv.FormatInt
 				{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 			{{- end}}
 		{{- end}}
+	}
+
+	// New{{$s.Name}} ...
+	func New{{$s.Name}}() *{{$s.Name}} {
+		return &{{$s.Name}}{}
 	}
 
 	// DecodeJSON ...
@@ -705,6 +691,12 @@ var _ = strconv.FormatInt
 					{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 				{{- end}}
 			{{- end}}
+		}
+
+
+		// New{{$s.Name}}Body ...
+		func New{{$s.Name}}Body() *{{$s.Name}}Body {
+			return &{{$s.Name}}Body{}
 		}
 
 		// DecodeJSON ...

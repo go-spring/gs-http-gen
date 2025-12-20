@@ -328,8 +328,15 @@ func ParseBytes(s string, k Kind) ([]byte, error) {
 
 //////////////////////////////////// decode ////////////////////////////////////
 
-var DecodeBool = DecodeValue(ParseBool)
-var DecodeBoolPtr = DecodeValuePtr(ParseBool)
+// DecodeBool ...
+func DecodeBool(d Decoder) (bool, error) {
+	return DecodeValue(ParseBool)(d)
+}
+
+// DecodeBoolPtr ...
+func DecodeBoolPtr(d Decoder) (*bool, error) {
+	return DecodeValuePtr(ParseBool)(d)
+}
 
 // DecodeInt ...
 func DecodeInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
@@ -366,14 +373,25 @@ func DecodeFloat[T ~float32 | ~float64](d Decoder) (T, error) {
 	return DecodeValue(ParseFloat[T])(d)
 }
 
+// DecodeFloatPtr ...
 func DecodeFloatPtr[T ~float32 | ~float64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseFloat[T])(d)
 }
 
-var DecodeString = DecodeValue(ParseString)
-var DecodeStringPtr = DecodeValuePtr(ParseString)
+// DecodeString ...
+func DecodeString(d Decoder) (string, error) {
+	return DecodeValue(ParseString)(d)
+}
 
-var DecodeBytes = DecodeValue(ParseBytes)
+// DecodeStringPtr ...
+func DecodeStringPtr(d Decoder) (*string, error) {
+	return DecodeValuePtr(ParseString)(d)
+}
+
+// DecodeBytes ...
+func DecodeBytes(d Decoder) ([]byte, error) {
+	return DecodeValue(ParseBytes)(d)
+}
 
 // DecodeAny ...
 func DecodeAny(d Decoder) (any, error) {

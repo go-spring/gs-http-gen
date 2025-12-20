@@ -77,6 +77,11 @@ type AssistantReq struct {
 	AssistantReqBody
 }
 
+// NewAssistantReq ...
+func NewAssistantReq() *AssistantReq {
+	return &AssistantReq{}
+}
+
 // DecodeJSON ...
 func (r *AssistantReq) DecodeJSON(d jsonutil.Decoder) error {
 	const ()
@@ -132,6 +137,11 @@ type AssistantReqBody struct {
 	Items []*Item `json:"items,omitempty" form:"items"`
 }
 
+// NewAssistantReqBody ...
+func NewAssistantReqBody() *AssistantReqBody {
+	return &AssistantReqBody{}
+}
+
 // DecodeJSON ...
 func (r *AssistantReqBody) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -154,7 +164,7 @@ func (r *AssistantReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashItems:
-			if r.Items, err = a(d); err != nil {
+			if r.Items, err = jsonutil.DecodeArray(jsonutil.DecodeObject(NewItem))(d); err != nil {
 				return err
 			}
 		default:
@@ -217,6 +227,11 @@ type Item struct {
 	Id *string `json:"id,omitempty" form:"id"`
 }
 
+// NewItem ...
+func NewItem() *Item {
+	return &Item{}
+}
+
 // DecodeJSON ...
 func (r *Item) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -239,7 +254,7 @@ func (r *Item) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashId:
-			if r.Id, err = a(d); err != nil {
+			if r.Id, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -268,6 +283,11 @@ type AssistantResp struct {
 	Image   []byte   `json:"image,omitempty" form:"image"`
 }
 
+// NewAssistantResp ...
+func NewAssistantResp() *AssistantResp {
+	return &AssistantResp{}
+}
+
 // DecodeJSON ...
 func (r *AssistantResp) DecodeJSON(d jsonutil.Decoder) error {
 	const (
@@ -293,19 +313,19 @@ func (r *AssistantResp) DecodeJSON(d jsonutil.Decoder) error {
 		}
 		switch jsonutil.HashKey(key) {
 		case hashId:
-			if r.Id, err = a(d); err != nil {
+			if r.Id, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = a(d); err != nil {
+			if r.Data, err = jsonutil.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashPayload:
-			if r.Payload, err = a(d); err != nil {
+			if r.Payload, err = jsonutil.DecodeObject(NewPayload)(d); err != nil {
 				return err
 			}
 		case hashImage:
-			if r.Image, err = a(d); err != nil {
+			if r.Image, err = jsonutil.DecodeBytes(d); err != nil {
 				return err
 			}
 		default:
@@ -327,6 +347,11 @@ type Payload struct {
 	Payload1  *Payload_1          `json:"Payload_1,omitempty" form:"Payload_1"`
 	Payload2  *Payload_2          `json:"Payload_2,omitempty" form:"Payload_2"`
 	Payload3  *Payload_3          `json:"Payload_3,omitempty" form:"Payload_3"`
+}
+
+// NewPayload ...
+func NewPayload() *Payload {
+	return &Payload{}
 }
 
 // DecodeJSON ...
@@ -357,19 +382,19 @@ func (r *Payload) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashFieldType:
 			hasFieldType = true
-			if r.FieldType, err = a(d); err != nil {
+			if r.FieldType, err = jsonutil.DecodeInt[PayloadTypeAsString](d); err != nil {
 				return err
 			}
 		case hashPayload1:
-			if r.Payload1, err = a(d); err != nil {
+			if r.Payload1, err = jsonutil.DecodeObject(NewPayload_1)(d); err != nil {
 				return err
 			}
 		case hashPayload2:
-			if r.Payload2, err = a(d); err != nil {
+			if r.Payload2, err = jsonutil.DecodeObject(NewPayload_2)(d); err != nil {
 				return err
 			}
 		case hashPayload3:
-			if r.Payload3, err = a(d); err != nil {
+			if r.Payload3, err = jsonutil.DecodeObject(NewPayload_3)(d); err != nil {
 				return err
 			}
 		default:
@@ -391,6 +416,11 @@ func (r *Payload) DecodeJSON(d jsonutil.Decoder) error {
 }
 
 type Payload_1 struct {
+}
+
+// NewPayload_1 ...
+func NewPayload_1() *Payload_1 {
+	return &Payload_1{}
 }
 
 // DecodeJSON ...
@@ -429,6 +459,11 @@ func (r *Payload_1) DecodeJSON(d jsonutil.Decoder) error {
 type Payload_2 struct {
 }
 
+// NewPayload_2 ...
+func NewPayload_2() *Payload_2 {
+	return &Payload_2{}
+}
+
 // DecodeJSON ...
 func (r *Payload_2) DecodeJSON(d jsonutil.Decoder) error {
 	const ()
@@ -463,6 +498,11 @@ func (r *Payload_2) DecodeJSON(d jsonutil.Decoder) error {
 }
 
 type Payload_3 struct {
+}
+
+// NewPayload_3 ...
+func NewPayload_3() *Payload_3 {
+	return &Payload_3{}
 }
 
 // DecodeJSON ...
