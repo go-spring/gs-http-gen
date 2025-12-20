@@ -393,19 +393,6 @@ func DecodeBytes(d Decoder) ([]byte, error) {
 	return DecodeValue(ParseBytes)(d)
 }
 
-// DecodeAny ...
-func DecodeAny(d Decoder) (any, error) {
-	v, err := d.ReadValue()
-	if err != nil {
-		return nil, err
-	}
-	var i any
-	if err = d.Unmarshal(v, &i); err != nil {
-		return nil, err
-	}
-	return i, nil
-}
-
 // DecodeValue ...
 func DecodeValue[T any](
 	parseFn func(string, Kind) (T, error),
@@ -536,4 +523,18 @@ func DecodeMap[K comparable, V any](
 			return nil, errutil.Explain(nil, "invalid JSON: expected object or map")
 		}
 	}
+}
+
+// DecodeAny ...
+func DecodeAny[T any](d Decoder) (T, error) {
+	var zero T
+	v, err := d.ReadValue()
+	if err != nil {
+		return zero, err
+	}
+	var i T
+	if err = d.Unmarshal(v, &i); err != nil {
+		return zero, err
+	}
+	return i, nil
 }

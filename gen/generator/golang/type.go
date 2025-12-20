@@ -393,9 +393,9 @@ func genDecodeJSON(typeName string, typeKind []TypeKind) string {
 	case TypeKindEnumPtr:
 		return "jsonutil.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
 	case TypeKindEnumAsString:
-		return "jsonutil.DecodeInt[" + typeName + "]"
+		return "jsonutil.DecodeAny[" + typeName + "]"
 	case TypeKindEnumAsStringPtr:
-		return "jsonutil.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+		return "jsonutil.DecodeAny[" + typeName + "]"
 	case TypeKindStructPtr:
 		return "jsonutil.DecodeObject(New" + strings.TrimPrefix(typeName, "*") + ")"
 	case TypeKindList:

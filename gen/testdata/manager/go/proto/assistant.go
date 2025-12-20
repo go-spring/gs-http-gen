@@ -382,7 +382,7 @@ func (r *Payload) DecodeJSON(d jsonutil.Decoder) error {
 		switch jsonutil.HashKey(key) {
 		case hashFieldType:
 			hasFieldType = true
-			if r.FieldType, err = jsonutil.DecodeInt[PayloadTypeAsString](d); err != nil {
+			if r.FieldType, err = jsonutil.DecodeAny[PayloadTypeAsString](d); err != nil {
 				return err
 			}
 		case hashPayload1:

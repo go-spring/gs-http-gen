@@ -584,7 +584,7 @@ func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
 				return err
 			}
 		case hashLevel:
-			if r.Level, err = jsonutil.DecodeIntPtr[ManagerLevelAsString](d); err != nil {
+			if r.Level, err = jsonutil.DecodeAny[*ManagerLevelAsString](d); err != nil {
 				return err
 			}
 		case hashDeptInfo:
@@ -910,7 +910,7 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 				return err
 			}
 		case hashLevel:
-			if r.Level, err = jsonutil.DecodeIntPtr[ManagerLevelAsString](d); err != nil {
+			if r.Level, err = jsonutil.DecodeAny[*ManagerLevelAsString](d); err != nil {
 				return err
 			}
 		case hashDeptInfo:

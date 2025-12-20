@@ -131,7 +131,7 @@ func (b *Base) DecodeJSON(d Decoder) error {
 			//if key != "Int" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.Int, err = DecodeInt(d); err != nil {
+			if b.Int, err = DecodeInt[int](d); err != nil {
 				return err
 			}
 			foundInt = true
@@ -139,7 +139,7 @@ func (b *Base) DecodeJSON(d Decoder) error {
 			//if key != "IntPtr" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if b.IntPtr, err = DecodeIntPtr(d); err != nil {
+			if b.IntPtr, err = DecodeIntPtr[int](d); err != nil {
 				return err
 			}
 		case hashString:
@@ -215,7 +215,7 @@ func (l *List) DecodeJSON(d Decoder) error {
 			//if key != "IntList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntList, err = DecodeArray(DecodeInt)(d); err != nil {
+			if l.IntList, err = DecodeArray(DecodeInt[int])(d); err != nil {
 				return err
 			}
 		case hashStringList:
@@ -229,7 +229,7 @@ func (l *List) DecodeJSON(d Decoder) error {
 			//if key != "IntPtrList" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if l.IntPtrList, err = DecodeArray(DecodeArray(DecodeIntPtr))(d); err != nil {
+			if l.IntPtrList, err = DecodeArray(DecodeArray(DecodeIntPtr[int]))(d); err != nil {
 				return err
 			}
 		default:
@@ -280,7 +280,7 @@ func (m *Map) DecodeJSON(d Decoder) error {
 			//if key != "IntIntMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.IntIntMap, err = DecodeMap(DecodeInt64Key, DecodeInt)(d); err != nil {
+			if m.IntIntMap, err = DecodeMap(DecodeIntKey[int64], DecodeInt[int])(d); err != nil {
 				return err
 			}
 		case hashStrStrPtrMap:
@@ -301,14 +301,14 @@ func (m *Map) DecodeJSON(d Decoder) error {
 			//if key != "IntMapStrIntMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.IntMapStrIntMap, err = DecodeMap(DecodeIntKey, DecodeMap(DecodeString, DecodeInt))(d); err != nil {
+			if m.IntMapStrIntMap, err = DecodeMap(DecodeIntKey[int], DecodeMap(DecodeString, DecodeInt[int]))(d); err != nil {
 				return err
 			}
 		case hashStrAnyMap:
 			//if key != "StrAnyMap" {
 			//	return fmt.Errorf("unknown field name: %s", key)
 			//}
-			if m.StrAnyMap, err = DecodeMap(DecodeString, DecodeAny)(d); err != nil {
+			if m.StrAnyMap, err = DecodeMap(DecodeString, DecodeAny[any])(d); err != nil {
 				return err
 			}
 		default:
