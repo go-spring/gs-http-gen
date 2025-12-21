@@ -217,6 +217,9 @@ func formatEnum(e Enum) string {
 	sb.WriteString(" {")
 
 	for _, f := range e.Fields {
+		if f.ExtendsFrom != nil {
+			continue
+		}
 		sb.WriteString("\n")
 		formatAboveComments(f.Comments.Above, &sb, indent)
 

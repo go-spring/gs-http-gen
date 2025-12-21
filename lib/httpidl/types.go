@@ -104,6 +104,7 @@ type Enum struct {
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
+	ExtendsFrom  *string      // ExtendsFrom ...
 	Name         string       // Name of the enum field
 	Value        int64        // Integer value assigned to the enum field
 	ErrorMessage *string      // Error message (only for `ErrCode`)

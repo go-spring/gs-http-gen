@@ -137,6 +137,7 @@
       "OneOf": false,
       "Fields": [
         {
+          "ExtendsFrom": null,
           "Name": "ErrOk",
           "Value": 0,
           "ErrorMessage": null,
@@ -151,6 +152,7 @@
           }
         },
         {
+          "ExtendsFrom": null,
           "Name": "PARAM_ERROR",
           "Value": 1003,
           "ErrorMessage": "param error",
@@ -204,6 +206,7 @@
       "OneOf": true,
       "Fields": [
         {
+          "ExtendsFrom": null,
           "Name": "User",
           "Value": 0,
           "ErrorMessage": null,
@@ -218,6 +221,7 @@
           }
         },
         {
+          "ExtendsFrom": null,
           "Name": "Address",
           "Value": 1,
           "ErrorMessage": null,
