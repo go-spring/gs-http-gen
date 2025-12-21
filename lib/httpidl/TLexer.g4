@@ -9,6 +9,7 @@ channels {WS_CHAN, SL_COMMENT_CHAN, ML_COMMENT_CHAN}
 // --------------------
 // Keywords
 // --------------------
+KW_EXTENDS  : 'extends';
 KW_CONST    : 'const';
 KW_ENUM     : 'enum';
 KW_TYPE     : 'type';

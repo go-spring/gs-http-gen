@@ -443,7 +443,8 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 // ExitEnum_def handles enum definitions and their fields.
 func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 	e := Enum{
-		Name: ctx.IDENTIFIER().GetText(),
+		Extends: ctx.KW_EXTENDS() != nil,
+		Name:    ctx.IDENTIFIER().GetText(),
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),

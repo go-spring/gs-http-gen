@@ -94,6 +94,7 @@ type Const struct {
 
 // Enum represents an enum type definition.
 type Enum struct {
+	Extends  bool        // True if produced from an extends declaration
 	Name     string      // Name of the enum
 	OneOf    bool        // True if produced from a oneof declaration
 	Fields   []EnumField // List of fields

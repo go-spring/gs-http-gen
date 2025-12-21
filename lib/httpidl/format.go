@@ -210,6 +210,9 @@ func formatEnum(e Enum) string {
 	formatAboveComments(e.Comments.Above, &sb, "")
 
 	sb.WriteString("enum ")
+	if e.Extends {
+		sb.WriteString("extends ")
+	}
 	sb.WriteString(e.Name)
 	sb.WriteString(" {")
 

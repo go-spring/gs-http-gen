@@ -132,6 +132,7 @@
   ],
   "Enums": [
     {
+      "Extends": true,
       "Name": "ErrCode",
       "OneOf": false,
       "Fields": [
@@ -198,6 +199,7 @@
       }
     },
     {
+      "Extends": false,
       "Name": "PayloadType",
       "OneOf": true,
       "Fields": [

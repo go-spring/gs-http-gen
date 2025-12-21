@@ -38,7 +38,7 @@ const_def
 // }
 // --------------------
 enum_def
-    : KW_ENUM IDENTIFIER LEFT_BRACE terminator? (enum_field terminator)* terminator? RIGHT_BRACE
+    : KW_ENUM KW_EXTENDS? IDENTIFIER LEFT_BRACE terminator? (enum_field terminator)* terminator? RIGHT_BRACE
     ;
 
 // --------------------
