@@ -182,32 +182,23 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 
 // parseValueType resolves value types inside container types.
 func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) TypeDefinition {
-
-	// Built-in bytes type
 	if ctx.TYPE_BYTES() != nil {
 		return BytesType{}
 	}
-
-	// Built-in primitive type
 	if ctx.Base_type() != nil {
 		return BaseType{
 			Name: ctx.Base_type().GetText(),
 		}
 	}
-
-	// Reference to a user-defined type
 	if ctx.User_type() != nil {
 		ut := UserType{
 			Name: ctx.User_type().IDENTIFIER().GetText(),
 		}
-		// Track user-defined types
 		if t == nil || t.GenericParam == nil || ut.Name != *t.GenericParam {
 			l.Document.UserTypes[ut.Name] = struct{}{}
 		}
 		return ut
 	}
-
-	// Container types (map / list)
 	if c := ctx.Container_type(); c != nil {
 		if c.Map_type() != nil {
 			kt := c.Map_type().Key_type().GetText()
@@ -222,11 +213,10 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 			return ListType{Item: vt}
 		}
 	}
-
 	panic(errutil.Explain(nil, "invalid type %s in line %d", ctx.GetText(), ctx.GetStart().GetLine()))
 }
 
-// parseInstantiatedType handles instantiated types, including generic types.
+// parseInstantiatedType handles instantiated types.
 func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
 	t.InstType = &InstType{
 		BaseName: ctx.IDENTIFIER(1).GetText(),
@@ -238,7 +228,7 @@ func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type)
 	t.InstType.GenericType = l.parseValueType(ctx.Value_type(), t)
 }
 
-// parseCompleteType handles a "struct-like" type with fields and optional generic parameter.
+// parseCompleteType handles a struct with fields and optional generic parameter.
 func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 
 	// Handle generic type parameter (if any)
@@ -279,7 +269,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 	}
 }
 
-// parseCommonTypeField parses a regular field (not embedded) inside a type or oneof.
+// parseCommonTypeField parses a regular field (not embedded) inside a type (struct) or oneof.
 func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, typeField *TypeField, t *Type) {
 	typeField.Type = l.parseValueType(f.Value_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
@@ -678,7 +668,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 }
 
 // isTerminatorToken returns true if the given token is considered a statement terminator.
-// In this parser, a newline or semicolon marks the end of a statement.
+// In this parser, a newline marks the end of a statement.
 func isTerminatorToken(t antlr.Token) bool {
 	return t.GetTokenType() == TLexerNEWLINE
 }
