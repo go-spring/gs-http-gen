@@ -504,7 +504,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		// add enum fields
 		e.Fields = append(e.Fields, EnumField{
 			Name:  f.IDENTIFIER().GetText(),
-			Value: int64(i),
+			Value: int64(i + 1),
 		})
 
 		typeField := TypeField{
@@ -534,7 +534,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		o.RawFields = append(o.RawFields, typeField)
 	}
 
-	l.Document.EnumTypes[e.Name] = len(l.Document.EnumTypes)
+	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)
 	l.Document.Enums = append(l.Document.Enums, e)
 
 	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
@@ -776,8 +776,10 @@ func (l *ParseTreeListener) GetHiddenTokensToRight(tokenIndex, channel int) []an
 // formatSingleLineComment trims and normalizes a single-line comment text.
 // It ensures the comment starts with "// " and removes extra whitespace.
 func formatSingleLineComment(text string) string {
-	s := strings.TrimSpace(text)
-	s = strings.TrimSpace(strings.TrimPrefix(s, "//"))
+	s := strings.TrimPrefix(strings.TrimSpace(text), "//")
+	if s = strings.TrimSpace(s); s == "" {
+		return "//"
+	}
 	return "// " + s
 }
 
@@ -794,13 +796,12 @@ func formatMultiLineComment(text string) []string {
 			} else {
 				s = "/* " + s
 			}
-		} else {
-			if strings.HasSuffix(s, "*/") {
-				s = strings.TrimSpace(s[:len(s)-2]) + " */"
-			}
-			if strings.HasPrefix(s, "*") {
-				s = " * " + strings.TrimSpace(s[1:])
-			}
+		}
+		if strings.HasSuffix(s, "*/") {
+			s = strings.TrimSpace(s[:len(s)-2]) + " */"
+		}
+		if strings.HasPrefix(s, "*") {
+			s = " * " + strings.TrimSpace(s[1:])
 		}
 		lines = append(lines, s)
 	}
@@ -881,7 +882,7 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	// Single-line comments
 	comments := l.tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
 	for _, c := range comments {
-		if c.GetLine() != token.GetLine() {
+		if c.GetLine() >= token.GetLine() {
 			continue
 		}
 		l.attached[c.GetLine()] = struct{}{}
@@ -899,7 +900,7 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	// Multi-line comments
 	comments = l.tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
 	for _, c := range comments {
-		if c.GetLine() != token.GetLine() {
+		if c.GetLine() >= token.GetLine() {
 			continue
 		}
 		l.attached[c.GetLine()] = struct{}{}
