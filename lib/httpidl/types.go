@@ -23,35 +23,35 @@ import (
 
 // MetaInfo represents metadata about the parsed document.
 type MetaInfo struct {
-	Name        string         `json:"name"`        // 项目名称
-	Description string         `json:"description"` // 项目描述
-	Version     string         `json:"version"`     // 版本号
-	Import      []string       `json:"import"`      // 依赖的外部项目或者 IDL 文件
-	Config      map[string]any `json:"config"`      // 其他自定义的元数据
+	Name        string         `json:"name"`        // Project name
+	Description string         `json:"description"` // Project description
+	Version     string         `json:"version"`     // Version
+	Import      []string       `json:"import"`      // External projects or IDL files
+	Config      map[string]any `json:"config"`      // Other custom metadata
 }
 
 // Position represents the start and stop line numbers of a parsed element.
 // This allows tracing back to the original source code location.
 type Position struct {
-	StartLine int // 起始行
-	EndLine   int // 终止行
+	StartLine int
+	EndLine   int
 }
 
 // Comment represents a single comment block or line.
 // Single == true means it was parsed from a single-line comment (e.g. //).
 // Single == false means it was parsed from a multi-line block comment (e.g. /* ... */).
 type Comment struct {
-	Text     []string // 注释文本
-	Single   bool     // 是否单行注释
-	Position Position // 所在位置
+	Text     []string
+	Single   bool
+	Position Position
 }
 
 // Comments groups the two major comment placements:
 //   - Above: comments located above a declaration.
 //   - Right: comments located at the end of a declaration's line.
 type Comments struct {
-	Above []Comment // 上注释
-	Right *Comment  // 右注释
+	Above []Comment
+	Right *Comment
 }
 
 // Exists reports whether any comments (above or right) are associated with the node.
@@ -63,15 +63,15 @@ func (c Comments) Exists() bool {
 // It contains all top-level definitions such as constants, enums, types, and RPCs.
 // Additionally, it stores any global comments that are not attached to specific nodes.
 type Document struct {
-	Comments []Comment // 顶层注释(不与其他元素关联)
-	Consts   []Const   // 常量定义
-	Enums    []Enum    // 枚举定义
-	Types    []Type    // 类型定义（结构体、泛型、实例化等）
-	RPCs     []RPC     // 函数定义（http 请求响应函数定义）
+	Comments []Comment // Top-level comments (not associated with any element)
+	Consts   []Const   // Constant definitions
+	Enums    []Enum    // Enum definitions
+	Types    []Type    // Type definitions (structs, generics, instantiations, etc.)
+	RPCs     []RPC     // Function definitions (HTTP request/response RPCs)
 
 	EnumTypes map[string]int      // Lookup: enum name → index in Enums
 	TypeTypes map[string]int      // Lookup: type name → index in Types
-	UserTypes map[string]struct{} // 当前文件使用到的用户自定义类型
+	UserTypes map[string]struct{} // User-defined types referenced in this file
 }
 
 // Annotation represents a key-value metadata entry attached to a type,
@@ -85,7 +85,7 @@ type Annotation struct {
 
 // Const represents a constant definition in the parsed document.
 type Const struct {
-	Type     BaseType // Data type of the constant，只能是基础类型
+	Type     BaseType // Data type of the constant (base types only)
 	Name     string   // Name of the constant
 	Value    string   // Literal value
 	Position Position // Location in the source file
@@ -94,9 +94,9 @@ type Const struct {
 
 // Enum represents an enum type definition.
 type Enum struct {
-	Extends  bool        // 用于错误码继承的特殊情况
+	Extends  bool        // Special case for error code inheritance
 	Name     string      // Name of the enum
-	OneOf    bool        // 该枚举派生自 oneof 类型
+	OneOf    bool        // Whether this enum is derived from a oneof type
 	Fields   []EnumField // List of fields
 	Position Position    // Location in the source file
 	Comments Comments    // Associated comments
@@ -104,10 +104,10 @@ type Enum struct {
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
-	ExtendsFrom  *string      // 当前字段从哪个文件继承而来
+	ExtendsFrom  *string      // Source file from which this field is inherited
 	Name         string       // Name of the enum field
 	Value        int64        // Integer value assigned to the enum field
-	ErrorMessage *string      // Error message (仅用于错误码的情况)
+	ErrorMessage *string      // Error message (only for error-code enums)
 	Annotations  []Annotation // Attached annotations
 	Position     Position     // Location in the source file
 	Comments     Comments     // Associated comments
@@ -122,14 +122,14 @@ type TypeDefinition interface {
 // JSONTag represents metadata for a JSON field tag.
 type JSONTag struct {
 	Name      string // JSON field name
-	HashKey   string // 哈希 key，用于解码时字段匹配
-	OmitEmpty bool   // 当字段为 null 时不序列化该字段
+	HashKey   string // Hash key used for field matching during decoding
+	OmitEmpty bool   // Do not serialize this field when it is null
 }
 
 // FormTag represents metadata for a form field binding.
 type FormTag struct {
 	Name    string // Key used in form submissions
-	HashKey string // 哈希 key，用于解码时字段匹配
+	HashKey string // Hash key used for field matching during decoding
 }
 
 // Binding represents a binding between a struct field and an HTTP input
@@ -145,16 +145,16 @@ type Type struct {
 	Name         string      // Name of the type
 	OneOf        bool        // True if representing a oneof type
 	InstType     *InstType   // Represents a generic instantiation
-	GenericParam *string     // 表示泛型，拥有一个可选的泛型参数
+	GenericParam *string     // Optional generic parameter
 	RawFields    []TypeField // Original, unmodified fields
 	Fields       []TypeField // Actual fields after processing
 	Position     Position    // Location in the source file
 	Comments     Comments    // Associated comments
 
-	Embedded  bool // True if contains anonymous embedded fields.
-	Validate  bool // 表示拥有 validate 函数
+	Embedded  bool // True if contains anonymous embedded fields
+	Validate  bool // Indicates that a validate function should be generated
 	Request   bool // True if used as an HTTP request type
-	OnRequest bool // True if used specifically on request side
+	OnRequest bool // True if used specifically on the request side
 	OnForm    bool // True if representing form data
 }
 
@@ -189,7 +189,7 @@ func (t *Type) BindingCount() int {
 }
 
 // QueryCount returns the number of fields that are explicitly bound
-// to HTTP query parameters (i.e., Binding.From == "query").
+// to HTTP query parameters (i.e., Binding.Source == "query").
 func (t *Type) QueryCount() int {
 	var count int
 	for _, f := range t.Fields {
@@ -215,8 +215,8 @@ type TypeField struct {
 	FormTag        FormTag       // Form tag info
 	Binding        *Binding      // Path/query parameter binding
 	ValidateExpr   validate.Expr // Validation expression
-	ValidateNested bool          // 是否需要进行递归 validate 检查
-	EnumAsString   bool          // Whether enum should be marshaled as a string // todo 检查必须是枚举类型
+	ValidateNested bool          // Whether recursive validation is required
+	EnumAsString   bool          // Whether the enum should be marshaled as a string (TODO: ensure type is enum)
 }
 
 // InstType represents an instantiation of a generic type.
@@ -270,7 +270,7 @@ func (t BytesType) MarshalText() ([]byte, error) {
 
 // MapType represents a key-value container type (map<K,V>).
 type MapType struct {
-	Key   string         // Key type，只能是 int 或者 string
+	Key   string         // Key type (int or string only)
 	Value TypeDefinition // Value type
 }
 
@@ -292,7 +292,7 @@ type RPC struct {
 	SSE bool // True if this RPC uses Server-Sent Events
 
 	Name        string         // Name of the RPC
-	Request     string         // Request type，只能是用户自定义类型
+	Request     string         // Request type (user-defined types only)
 	Response    TypeDefinition // Response type
 	Annotations []Annotation   // Attached annotations
 	Position    Position       // Location in the source file
