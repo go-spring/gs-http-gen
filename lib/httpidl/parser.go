@@ -65,46 +65,14 @@ func ParseDir(dir string) (Project, error) {
 		return Project{}, err
 	}
 
-	for _, doc := range p.Files {
-		for i := range doc.Types {
-			t := doc.Types[i]
-			t.Fields = t.RawFields
-			if t.GenericParam != nil { // generic type, need instance
-				// do nothing ...
-			} else if t.InstType != nil { // generic type instance
-				srcType, ok := GetType(p.Files, t.InstType.BaseName)
-				if !ok {
-					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.InstType.BaseName)
-				}
-				var fields []TypeField
-				for _, f := range srcType.Fields {
-					f.Type = replaceGenericType(f.Type, *srcType.GenericParam, t.InstType.GenericType)
-					fields = append(fields, f)
-				}
-				t.Fields = fields
-			} else if t.Embedded {
-				var fields []TypeField
-				for _, f := range t.Fields {
-					if e, ok := f.Type.(EmbedType); ok {
-						srcType, ok := GetType(p.Files, e.Name)
-						if !ok {
-							return Project{}, errutil.Explain(nil, "type %s is used but not defined", e.Name)
-						}
-						fields = append(fields, srcType.Fields...)
-					} else {
-						fields = append(fields, f)
-					}
-				}
-				t.Fields = fields
-			}
+	// process errcode
+	if err = processErrcode(p); err != nil {
+		return Project{}, err
+	}
 
-			if v, ok := p.Reqs[t.Name]; ok {
-				t.Request = true
-				t.OnRequest = true
-				t.OnForm = v.OnForm
-			}
-			doc.Types[i] = t // update
-		}
+	// process types
+	if err = processTypes(p); err != nil {
+		return Project{}, err
 	}
 
 	// 一般来说，我们只需要最 request 类型进行 validate 操作
@@ -249,6 +217,62 @@ func checkUserTypes(p Project) error {
 	for k := range userTypes {
 		if _, ok := definedTypes[k]; !ok {
 			return errutil.Explain(nil, "type %s is used but not defined", k)
+		}
+	}
+	return nil
+}
+
+// processErrcode processes the error codes in the project.
+func processErrcode(p Project) error {
+	//for _, doc := range p.Files {
+	//	for i, e := range doc.Enums {
+	//
+	//	}
+	//}
+	return nil
+}
+
+// processTypes processes the types in the project.
+func processTypes(p Project) error {
+	for _, doc := range p.Files {
+		for i := range doc.Types {
+			t := doc.Types[i]
+			t.Fields = t.RawFields
+			if t.GenericParam != nil { // generic type, need instance
+				// do nothing ...
+			} else if t.InstType != nil { // generic type instance
+				srcType, ok := GetType(p.Files, t.InstType.BaseName)
+				if !ok {
+					return errutil.Explain(nil, "type %s is used but not defined", t.InstType.BaseName)
+				}
+				var fields []TypeField
+				for _, f := range srcType.Fields {
+					f.Type = replaceGenericType(f.Type, *srcType.GenericParam, t.InstType.GenericType)
+					fields = append(fields, f)
+				}
+				t.Fields = fields
+			} else if t.Embedded {
+				var fields []TypeField
+				for _, f := range t.Fields {
+					if e, ok := f.Type.(EmbedType); ok {
+						srcType, ok := GetType(p.Files, e.Name)
+						if !ok {
+							return errutil.Explain(nil, "type %s is used but not defined", e.Name)
+						}
+						fields = append(fields, srcType.Fields...)
+					} else {
+						fields = append(fields, f)
+					}
+				}
+				t.Fields = fields
+			}
+
+			if v, ok := p.Reqs[t.Name]; ok {
+				t.Request = true
+				t.OnRequest = true
+				t.OnForm = v.OnForm
+			}
+			doc.Types[i] = t // update
 		}
 	}
 	return nil
