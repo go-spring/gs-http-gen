@@ -48,6 +48,18 @@ func ToPascal(s string) string {
 	return sb.String()
 }
 
+// FindEnum searches all documents for an enum type with the given name.
+func FindEnum(files map[string]Document, name string) (Enum, *string) {
+	for fileName, doc := range files {
+		if i, ok := doc.EnumTypes[name]; ok {
+			if e := doc.Enums[i]; !e.Extends {
+				return e, &fileName
+			}
+		}
+	}
+	return Enum{}, nil
+}
+
 // GetEnum searches all documents for an enum type with the given name.
 func GetEnum(files map[string]Document, name string) (Enum, bool) {
 	for _, doc := range files {

@@ -25,6 +25,7 @@ import (
 
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
 	"github.com/lvan100/golib/errutil"
+	"github.com/lvan100/golib/ordered"
 )
 
 // BuiltinFuncs is a set of built-in validation functions
@@ -66,7 +67,7 @@ func ParseDir(dir string) (Project, error) {
 	}
 
 	// process errcode
-	if err = processErrcode(p); err != nil {
+	if err = mergeErrcode(p); err != nil {
 		return Project{}, err
 	}
 
@@ -75,15 +76,9 @@ func ParseDir(dir string) (Project, error) {
 		return Project{}, err
 	}
 
-	// 一般来说，我们只需要最 request 类型进行 validate 操作
-	for _, doc := range p.Files {
-		for _, t := range doc.Types {
-			if t.Request {
-				if _, err = getAndUpdateTypeValidate(p.Files, t); err != nil {
-					return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
-				}
-			}
-		}
+	// process validation
+	if err = checkValidate(p); err != nil {
+		return Project{}, err
 	}
 
 	for _, doc := range p.Files {
@@ -222,13 +217,25 @@ func checkUserTypes(p Project) error {
 	return nil
 }
 
-// processErrcode processes the error codes in the project.
-func processErrcode(p Project) error {
-	//for _, doc := range p.Files {
-	//	for i, e := range doc.Enums {
-	//
-	//	}
-	//}
+// mergeErrcode merges error codes from different files.
+func mergeErrcode(p Project) error {
+	files := ordered.MapKeys(p.Files)
+	for _, file := range files {
+		doc := p.Files[file]
+		for _, e := range doc.Enums {
+			if !e.Extends {
+				continue
+			}
+			t, fileName := FindEnum(p.Files, e.Name)
+			if fileName == nil {
+				return errutil.Explain(nil, "enum %s is used but not defined", e.Name)
+			}
+			for _, field := range e.Fields {
+				field.ExtendsFrom = fileName
+				t.Fields = append(t.Fields, field)
+			}
+		}
+	}
 	return nil
 }
 
@@ -278,46 +285,6 @@ func processTypes(p Project) error {
 	return nil
 }
 
-func getAndUpdateTypeValidate(files map[string]Document, t Type) (bool, error) {
-	t.OnRequest = true
-	for i, f := range t.Fields {
-		b, err := getTypeValidate(files, f.Type)
-		if err != nil {
-			return false, err
-		}
-		if b {
-			f.ValidateNested = true
-			t.Fields[i] = f
-		}
-		if f.Required || f.ValidateExpr != nil || f.ValidateNested {
-			t.Validate = true
-		}
-	}
-	fileName, index := FindType(files, t.Name)
-	files[fileName].Types[index] = t // update
-	return t.Validate, nil
-}
-
-func getTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
-	switch x := t.(type) {
-	case UserType:
-		srcType, ok := GetType(files, x.Name)
-		if !ok {
-			if _, ok = GetEnum(files, x.Name); !ok {
-				return false, errutil.Explain(nil, "type %s is used but not defined", x.Name)
-			}
-			return false, nil
-		}
-		return getAndUpdateTypeValidate(files, srcType)
-	case ListType:
-		return getTypeValidate(files, x.Item)
-	case MapType:
-		return getTypeValidate(files, x.Value)
-	default: // for linter
-	}
-	return false, nil
-}
-
 // replaceGenericType replaces a generic type with a concrete type.
 func replaceGenericType(t TypeDefinition, genericName string, genericType TypeDefinition) TypeDefinition {
 	switch u := t.(type) {
@@ -335,4 +302,61 @@ func replaceGenericType(t TypeDefinition, genericName string, genericType TypeDe
 	default:
 		return t
 	}
+}
+
+// checkValidate checks if all types have validated expressions.
+func checkValidate(p Project) error {
+	for _, doc := range p.Files {
+		for _, t := range doc.Types {
+			if !t.Request {
+				continue
+			}
+			if _, err := checkTypeValidate(p.Files, t); err != nil {
+				return errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
+			}
+		}
+	}
+	return nil
+}
+
+// checkTypeValidate checks if a type has validated expressions.
+func checkTypeValidate(files map[string]Document, t Type) (bool, error) {
+	t.OnRequest = true
+	for i, f := range t.Fields {
+		ok, err := checkUserTypeValidate(files, f.Type)
+		if err != nil {
+			return false, err
+		}
+		if ok {
+			f.ValidateNested = true
+			t.Fields[i] = f
+		}
+		if f.Required || f.ValidateExpr != nil || f.ValidateNested {
+			t.Validate = true
+		}
+	}
+	fileName, index := FindType(files, t.Name)
+	files[fileName].Types[index] = t // update
+	return t.Validate, nil
+}
+
+// checkUserTypeValidate checks if a user-defined type has validated expressions.
+func checkUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
+	switch x := t.(type) {
+	case UserType:
+		srcType, ok := GetType(files, x.Name)
+		if !ok {
+			if _, ok = GetEnum(files, x.Name); !ok {
+				return false, errutil.Explain(nil, "type %s is used but not defined", x.Name)
+			}
+			return false, nil
+		}
+		return checkTypeValidate(files, srcType)
+	case ListType:
+		return checkUserTypeValidate(files, x.Item)
+	case MapType:
+		return checkUserTypeValidate(files, x.Value)
+	default: // for linter
+	}
+	return false, nil
 }
