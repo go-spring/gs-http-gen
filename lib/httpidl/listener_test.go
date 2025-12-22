@@ -23,7 +23,7 @@ import (
 	"testing"
 )
 
-func TestParser(t *testing.T) {
+func TestListener(t *testing.T) {
 	fileName := "testdata/success/http.idl"
 	b, err := os.ReadFile(fileName)
 	if err != nil {

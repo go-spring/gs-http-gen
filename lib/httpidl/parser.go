@@ -312,7 +312,7 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 	}
 
 	e := &ErrorListener{
-		Scanner: bufio.NewScanner(bytes.NewReader(data)),
+		scanner: bufio.NewScanner(bytes.NewReader(data)),
 	}
 
 	// Recover from parser panics to provide better error reporting
@@ -344,13 +344,13 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 
 	// Step 3: Walk the parse tree with a custom listener
 	l := &ParseTreeListener{
-		Tokens: tokens,
+		tokens: tokens,
 		Document: Document{
 			EnumTypes: make(map[string]int),
 			TypeTypes: make(map[string]int),
 			UserTypes: make(map[string]struct{}),
 		},
-		Attached: make(map[int]struct{}),
+		attached: make(map[int]struct{}),
 		Funcs:    make(map[string]ValidateFunc),
 	}
 	antlr.ParseTreeWalkerDefault.Walk(l, p.Document())

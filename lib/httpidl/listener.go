@@ -33,25 +33,25 @@ import (
 type ErrorListener struct {
 	*antlr.DefaultErrorListener
 	Error   error
-	Scanner *bufio.Scanner
-	Line    int
+	scanner *bufio.Scanner
+	line    int
 }
 
 // SyntaxError is called by ANTLR when a syntax error is encountered.
 func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
 	var text string
-	for l.Scanner.Scan() {
-		l.Line++
-		if l.Line == line {
-			text = l.Scanner.Text()
+	for l.scanner.Scan() {
+		l.line++
+		if l.line == line {
+			text = l.scanner.Text()
 			break
 		}
 	}
 	if l.Error == nil {
 		l.Error = errutil.Explain(nil, "line %d:%d %s << text: %q", line, column, msg, text)
-		return
+	} else {
+		l.Error = errutil.Stack(l.Error, "line %d:%d %s << text: %q", line, column, msg, text)
 	}
-	l.Error = errutil.Explain(nil, "%w\nline %d:%d %s << text: %q", l.Error, line, column, msg, text)
 }
 
 // ParseTreeListener extends the auto-generated base listener.
@@ -59,12 +59,12 @@ func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int,
 // and collects associated comments.
 type ParseTreeListener struct {
 	BaseTParserListener
-	Tokens   *antlr.CommonTokenStream
+	tokens   *antlr.CommonTokenStream
 	Document Document
 
-	// Attached stores lines that already have "right-side" comments
+	// attached stores lines that already have "right-side" comments
 	// to prevent re-using them as "top" comments.
-	Attached map[int]struct{}
+	attached map[int]struct{}
 
 	// Funcs stores validate functions
 	Funcs map[string]ValidateFunc
@@ -134,10 +134,8 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
+			Annotations: l.parseFieldAnnotations(f.Field_annotations()),
 		}
-
-		// Annotations
-		enumField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
 		// Error message
 		if errmsg, ok := GetAnnotation(enumField.Annotations, "errmsg"); ok {
@@ -213,6 +211,9 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 	if c := ctx.Container_type(); c != nil {
 		if c.Map_type() != nil {
 			kt := c.Map_type().Key_type().GetText()
+			if kt != "int" && kt != "string" {
+				panic(errutil.Explain(nil, "map key type must be 'int' or 'string' in line %d", c.GetStart().GetLine()))
+			}
 			vt := l.parseValueType(c.Map_type().Value_type(), t)
 			return MapType{Key: kt, Value: vt}
 		}
@@ -290,7 +291,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 
 	if opt, ok := GetAnnotation(typeField.Annotations, "compat_default"); ok {
 		if !typeField.Required {
-			panic(errutil.Explain(nil, "field %s is required but has compat_default annotation in line %d", typeField.Name, typeField.Position.StartLine))
+			panic(errutil.Explain(nil, "field %s is not required but has compat_default annotation in line %d", typeField.Name, typeField.Position.StartLine))
 		}
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation compat_default for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
@@ -327,8 +328,6 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 				continue
 			}
 			switch v {
-			case "omitempty":
-				typeField.JSONTag.OmitEmpty = true
 			case "non-omitempty":
 				typeField.JSONTag.OmitEmpty = false
 			default: // for linter
@@ -365,7 +364,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	if opt, ok := GetAnnotation(typeField.Annotations, "path", "query"); ok {
 		if opt.Key == "path" {
 			if s := typeField.Type.Text(); s != "string" && s != "int" {
-				panic(errutil.Explain(nil, "annotation path for field %s is not string or int in line %d", typeField.Name, typeField.Position.StartLine))
+				panic(errutil.Explain(nil, "annotation path for field %s is not 'string' or 'int' in line %d", typeField.Name, typeField.Position.StartLine))
 			}
 		}
 		if opt.Value == nil {
@@ -396,7 +395,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 		typeField.ValidateExpr, err = validate.Parse(s)
 		if err != nil {
-			panic(errutil.Explain(err, `failed to parse validate expression %s`, *opt.Value))
+			panic(errutil.Explain(err, `failed to parse validate expression %s in line %d`, *opt.Value, typeField.Position.StartLine))
 		}
 		l.collectValidateFuncs(typeField.Type.Text(), typeField.ValidateExpr)
 	}
@@ -477,7 +476,11 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.StartLine))
 	}
 
-	e := Enum{Name: o.Name + "Type", OneOf: true}
+	e := Enum{
+		Name:  o.Name + "Type",
+		OneOf: true,
+	}
+
 	o.RawFields = append(o.RawFields, TypeField{
 		Name: "FieldType",
 		Type: UserType{Name: e.Name},
@@ -659,15 +662,15 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	r.ContentType = contentType
 
 	r.ConnTimeout, err = strconv.Atoi(strings.Trim(*connTimeout.Value, `"`))
-	if err != nil {
+	if err != nil || r.ConnTimeout < 0 {
 		panic(errutil.Explain(nil, "invalid connTimeout value in rpc %s", r.Name))
 	}
 	r.ReadTimeout, err = strconv.Atoi(strings.Trim(*readTimeout.Value, `"`))
-	if err != nil {
+	if err != nil || r.ReadTimeout < 0 {
 		panic(errutil.Explain(nil, "invalid readTimeout value in rpc %s", r.Name))
 	}
 	r.WriteTimeout, err = strconv.Atoi(strings.Trim(*writeTimeout.Value, `"`))
-	if err != nil {
+	if err != nil || r.WriteTimeout < 0 {
 		panic(errutil.Explain(nil, "invalid writeTimeout value in rpc %s", r.Name))
 	}
 
@@ -683,7 +686,7 @@ func isTerminatorToken(t antlr.Token) bool {
 // previousTokenOnChannel finds the index of the previous token that is on the default channel.
 // It skips terminator tokens (newline/semicolon) and tokens on hidden channels.
 func (l *ParseTreeListener) previousTokenOnChannel(i int) int {
-	tokens := l.Tokens.GetAllTokens()
+	tokens := l.tokens.GetAllTokens()
 	for i >= 0 && (isTerminatorToken(tokens[i]) || tokens[i].GetChannel() != antlr.LexerDefaultTokenChannel) {
 		i--
 	}
@@ -693,7 +696,7 @@ func (l *ParseTreeListener) previousTokenOnChannel(i int) int {
 // filterForChannel returns a slice of tokens between indices [left, right] that belong to the given channel.
 // channel = -1 means "all hidden channels".
 func (l *ParseTreeListener) filterForChannel(left, right, channel int) []antlr.Token {
-	tokens := l.Tokens.GetAllTokens()
+	tokens := l.tokens.GetAllTokens()
 	hidden := make([]antlr.Token, 0)
 	for i := left; i < right+1; i++ {
 		t := tokens[i]
@@ -714,7 +717,7 @@ func (l *ParseTreeListener) filterForChannel(left, right, channel int) []antlr.T
 // GetHiddenTokensToLeft returns all hidden tokens to the left of a given token index
 // that belong to the specified channel.
 func (l *ParseTreeListener) GetHiddenTokensToLeft(tokenIndex, channel int) []antlr.Token {
-	tokens := l.Tokens.GetAllTokens()
+	tokens := l.tokens.GetAllTokens()
 	if tokenIndex < 0 || tokenIndex >= len(tokens) {
 		panic(strconv.Itoa(tokenIndex) + " not in 0.." + strconv.Itoa(len(tokens)-1))
 	}
@@ -734,7 +737,7 @@ func (l *ParseTreeListener) GetHiddenTokensToLeft(tokenIndex, channel int) []ant
 // skipping terminators and hidden tokens.
 // Returns -1 if no such token exists.
 func (l *ParseTreeListener) nextTokenOnChannel(i int) int {
-	tokens := l.Tokens.GetAllTokens()
+	tokens := l.tokens.GetAllTokens()
 	if i >= len(tokens) {
 		return -1
 	}
@@ -752,7 +755,7 @@ func (l *ParseTreeListener) nextTokenOnChannel(i int) int {
 // GetHiddenTokensToRight returns all hidden tokens to the right of a given token index
 // that belong to the specified channel.
 func (l *ParseTreeListener) GetHiddenTokensToRight(tokenIndex, channel int) []antlr.Token {
-	tokens := l.Tokens.GetAllTokens()
+	tokens := l.tokens.GetAllTokens()
 	if tokenIndex < 0 || tokenIndex >= len(tokens) {
 		panic(strconv.Itoa(tokenIndex) + " not in 0.." + strconv.Itoa(len(tokens)-1))
 	}
@@ -816,7 +819,7 @@ func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 	// Collect single-line comments
 	comments := l.GetHiddenTokensToLeft(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
 	for _, c := range comments {
-		if _, ok := l.Attached[c.GetLine()]; ok {
+		if _, ok := l.attached[c.GetLine()]; ok {
 			continue
 		}
 		line := formatSingleLineComment(c.GetText())
@@ -833,7 +836,7 @@ func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 	// Collect multi-line comments
 	comments = l.GetHiddenTokensToLeft(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
 	for _, c := range comments {
-		if _, ok := l.Attached[c.GetLine()]; ok {
+		if _, ok := l.attached[c.GetLine()]; ok {
 			continue
 		}
 		lines := formatMultiLineComment(c.GetText())
@@ -876,12 +879,12 @@ func (l *ParseTreeListener) aboveComment(token antlr.Token) []Comment {
 // Supports both single-line and multi-line comments.
 func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	// Single-line comments
-	comments := l.Tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
+	comments := l.tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
 	for _, c := range comments {
 		if c.GetLine() != token.GetLine() {
 			continue
 		}
-		l.Attached[c.GetLine()] = struct{}{}
+		l.attached[c.GetLine()] = struct{}{}
 		line := formatSingleLineComment(c.GetText())
 		return &Comment{
 			Text:   []string{line},
@@ -894,12 +897,12 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	}
 
 	// Multi-line comments
-	comments = l.Tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
+	comments = l.tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
 	for _, c := range comments {
 		if c.GetLine() != token.GetLine() {
 			continue
 		}
-		l.Attached[c.GetLine()] = struct{}{}
+		l.attached[c.GetLine()] = struct{}{}
 		lines := formatMultiLineComment(c.GetText())
 		return &Comment{
 			Text:   lines,
