@@ -29,7 +29,7 @@ func TestParser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc, _, err := Parse(b)
+	doc, _, err := ParseIDL(b)
 	if err != nil {
 		t.Fatal(err)
 	}

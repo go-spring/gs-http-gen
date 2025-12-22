@@ -81,7 +81,7 @@ func ParseDir(dir string) (Project, error) {
 			if b, err = os.ReadFile(fileName); err != nil {
 				return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 			}
-			if meta, err = ParseMeta(b); err != nil {
+			if err = json.Unmarshal(b, &meta); err != nil {
 				return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 			}
 			continue
@@ -98,7 +98,7 @@ func ParseDir(dir string) (Project, error) {
 			return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
 		}
 
-		doc, validateFuncs, err := Parse(b)
+		doc, validateFuncs, err := ParseIDL(b)
 		if err != nil {
 			return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
 		}
@@ -305,17 +305,8 @@ func replaceGenericType(t TypeDefinition, genericName string, genericType TypeDe
 	}
 }
 
-// ParseMeta parses the JSON meta-information file.
-func ParseMeta(data []byte) (*MetaInfo, error) {
-	r := &MetaInfo{}
-	if err := json.Unmarshal(data, r); err != nil {
-		return nil, err
-	}
-	return r, nil
-}
-
-// Parse runs the parsing pipeline for a single IDL input.
-func Parse(data []byte) (doc Document, funcs map[string]ValidateFunc, err error) {
+// ParseIDL runs the parsing pipeline for a single IDL input.
+func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err error) {
 	if data = bytes.TrimSpace(data); len(data) == 0 {
 		return Document{}, nil, nil
 	}
