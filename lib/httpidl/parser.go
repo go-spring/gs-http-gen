@@ -32,11 +32,10 @@ var BuiltinFuncs = map[string]struct{}{
 	"len": {},
 }
 
-// Project represents a collection of IDL files and their associated meta-information.
-type Project struct {
-	Meta  *MetaInfo
-	Files map[string]Document
-	Funcs map[string]ValidateFunc
+// ValidateFunc represents a validate function.
+type ValidateFunc struct {
+	Name string
+	Type string
 }
 
 // RequestMeta represents the metadata of a request type.
@@ -44,90 +43,27 @@ type RequestMeta struct {
 	OnForm bool
 }
 
-// ValidateFunc represents a validate function.
-type ValidateFunc struct {
-	Name string
-	Type string
+// Project represents a collection of IDL files and their associated meta-information.
+type Project struct {
+	Meta  *MetaInfo
+	Files map[string]Document
+	Reqs  map[string]RequestMeta
+	Funcs map[string]ValidateFunc
 }
 
 // ParseDir scans the specified directory for IDL files (*.idl) and a meta.json file.
 // It parses each file into a Document structure and validates cross-file type references.
 func ParseDir(dir string) (Project, error) {
-	var meta *MetaInfo
-	files := make(map[string]Document)
-	reqs := make(map[string]RequestMeta)
-	funcs := make(map[string]ValidateFunc)
 
-	entries, err := os.ReadDir(dir)
+	p, err := loadProject(dir)
 	if err != nil {
-		return Project{}, errutil.Explain(nil, "read dir %s error: %w", dir, err)
-	}
-
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-
-		fileName := e.Name()
-
-		// Parse meta.json file if found
-		if fileName == "meta.json" {
-			var b []byte
-			fileName = filepath.Join(dir, fileName)
-			if b, err = os.ReadFile(fileName); err != nil {
-				return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
-			}
-			if err = json.Unmarshal(b, &meta); err != nil {
-				return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
-			}
-			continue
-		}
-
-		// Skip non-IDL files
-		if !strings.HasSuffix(fileName, ".idl") {
-			continue
-		}
-
-		var b []byte
-		fileName = filepath.Join(dir, fileName)
-		if b, err = os.ReadFile(fileName); err != nil {
-			return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
-		}
-
-		doc, validateFuncs, err := ParseIDL(b)
-		if err != nil {
-			return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
-		}
-		files[e.Name()] = doc
-
-		// validate request type
-		for _, r := range doc.RPCs {
-			reqs[r.Request] = RequestMeta{
-				OnForm: strings.HasPrefix(r.ContentType, "application/x-www-form-urlencoded"),
-			}
-		}
-
-		// record validate func
-		for name, f := range validateFuncs {
-			if v, ok := funcs[name]; !ok {
-				funcs[name] = f
-			} else if v.Type != f.Type {
-				return Project{}, errutil.Explain(nil, "validate func %s is defined multiple times", name)
-			}
-		}
-	}
-
-	if meta == nil {
-		return Project{}, errutil.Explain(nil, "no meta file")
-	}
-	if len(files) == 0 {
-		return Project{}, errutil.Explain(nil, "no idl file")
+		return Project{}, err
 	}
 
 	// Validate that all used types are defined
 	userTypes := map[string]struct{}{}
 	definedTypes := make(map[string]struct{})
-	for _, doc := range files {
+	for _, doc := range p.Files {
 		for k := range doc.EnumTypes {
 			definedTypes[k] = struct{}{}
 		}
@@ -142,14 +78,14 @@ func ParseDir(dir string) (Project, error) {
 		}
 	}
 
-	for _, doc := range files {
+	for _, doc := range p.Files {
 		for i := range doc.Types {
 			t := doc.Types[i]
 			t.Fields = t.RawFields
 			if t.GenericParam != nil { // generic type, need instance
 				// do nothing ...
 			} else if t.InstType != nil { // generic type instance
-				srcType, ok := GetType(files, t.InstType.BaseName)
+				srcType, ok := GetType(p.Files, t.InstType.BaseName)
 				if !ok {
 					return Project{}, errutil.Explain(nil, "type %s is used but not defined", t.InstType.BaseName)
 				}
@@ -163,7 +99,7 @@ func ParseDir(dir string) (Project, error) {
 				var fields []TypeField
 				for _, f := range t.Fields {
 					if e, ok := f.Type.(EmbedType); ok {
-						srcType, ok := GetType(files, e.Name)
+						srcType, ok := GetType(p.Files, e.Name)
 						if !ok {
 							return Project{}, errutil.Explain(nil, "type %s is used but not defined", e.Name)
 						}
@@ -175,7 +111,7 @@ func ParseDir(dir string) (Project, error) {
 				t.Fields = fields
 			}
 
-			if v, ok := reqs[t.Name]; ok {
+			if v, ok := p.Reqs[t.Name]; ok {
 				t.Request = true
 				t.OnRequest = true
 				t.OnForm = v.OnForm
@@ -185,17 +121,17 @@ func ParseDir(dir string) (Project, error) {
 	}
 
 	// 一般来说，我们只需要最 request 类型进行 validate 操作
-	for _, doc := range files {
+	for _, doc := range p.Files {
 		for _, t := range doc.Types {
 			if t.Request {
-				if _, err = getAndUpdateTypeValidate(files, t); err != nil {
+				if _, err = getAndUpdateTypeValidate(p.Files, t); err != nil {
 					return Project{}, errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
 				}
 			}
 		}
 	}
 
-	for _, doc := range files {
+	for _, doc := range p.Files {
 		for i := range doc.RPCs {
 			rpc := doc.RPCs[i]
 			segments, err := pathidl.Parse(rpc.Path)
@@ -209,7 +145,7 @@ func ParseDir(dir string) (Project, error) {
 				}
 				params[seg.Value] = ""
 			}
-			srcType, ok := GetType(files, rpc.Request)
+			srcType, ok := GetType(p.Files, rpc.Request)
 			if !ok {
 				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
 			}
@@ -235,11 +171,79 @@ func ParseDir(dir string) (Project, error) {
 		}
 	}
 
-	return Project{
-		Meta:  meta,
-		Files: files,
-		Funcs: funcs,
-	}, nil
+	return p, nil
+}
+
+// loadProject loads the project from the specified directory.
+func loadProject(dir string) (Project, error) {
+	var p Project
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return Project{}, errutil.Explain(nil, "read dir %s error: %w", dir, err)
+	}
+
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+
+		fileName := e.Name()
+
+		// Parse meta.json file if found
+		if fileName == "meta.json" {
+			var b []byte
+			fileName = filepath.Join(dir, fileName)
+			if b, err = os.ReadFile(fileName); err != nil {
+				return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
+			}
+			if err = json.Unmarshal(b, &p.Meta); err != nil {
+				return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
+			}
+			continue
+		}
+
+		// Skip non-IDL files
+		if !strings.HasSuffix(fileName, ".idl") {
+			continue
+		}
+
+		var b []byte
+		fileName = filepath.Join(dir, fileName)
+		if b, err = os.ReadFile(fileName); err != nil {
+			return Project{}, errutil.Explain(nil, "read file %s error: %w", fileName, err)
+		}
+
+		doc, validateFuncs, err := ParseIDL(b)
+		if err != nil {
+			return Project{}, errutil.Explain(nil, "parse file %s error: %w", fileName, err)
+		}
+		p.Files[e.Name()] = doc
+
+		// validate request type
+		for _, r := range doc.RPCs {
+			p.Reqs[r.Request] = RequestMeta{
+				OnForm: strings.HasPrefix(r.ContentType, "application/x-www-form-urlencoded"),
+			}
+		}
+
+		// record validate func
+		for name, f := range validateFuncs {
+			if v, ok := p.Funcs[name]; !ok {
+				p.Funcs[name] = f
+			} else if v.Type != f.Type {
+				return Project{}, errutil.Explain(nil, "validate func %s is defined multiple times", name)
+			}
+		}
+	}
+
+	if p.Meta == nil {
+		return Project{}, errutil.Explain(nil, "no meta file")
+	}
+	if len(p.Files) == 0 {
+		return Project{}, errutil.Explain(nil, "no idl file")
+	}
+	return p, nil
 }
 
 func getAndUpdateTypeValidate(files map[string]Document, t Type) (bool, error) {
