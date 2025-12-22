@@ -334,7 +334,6 @@ func formatRPC(r RPC) string {
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
 
-	// TODO: group annotations
 	for _, a := range r.Annotations {
 		sb.WriteString("\n")
 		formatAboveComments(a.Comments.Above, &sb, indent)
