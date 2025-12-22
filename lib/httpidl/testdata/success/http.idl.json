@@ -208,7 +208,7 @@
         {
           "ExtendsFrom": null,
           "Name": "User",
-          "Value": 0,
+          "Value": 1,
           "ErrorMessage": null,
           "Annotations": null,
           "Position": {
@@ -223,7 +223,7 @@
         {
           "ExtendsFrom": null,
           "Name": "Address",
-          "Value": 1,
+          "Value": 2,
           "ErrorMessage": null,
           "Annotations": null,
           "Position": {

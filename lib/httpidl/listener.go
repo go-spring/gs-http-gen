@@ -931,7 +931,7 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	// Single-line comments
 	comments := l.tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerSL_COMMENT_CHAN)
 	for _, c := range comments {
-		if c.GetLine() >= token.GetLine() {
+		if c.GetLine() != token.GetLine() {
 			continue
 		}
 		l.attached[c.GetLine()] = struct{}{}
@@ -949,7 +949,7 @@ func (l *ParseTreeListener) rightComment(token antlr.Token) *Comment {
 	// Multi-line comments
 	comments = l.tokens.GetHiddenTokensToRight(token.GetTokenIndex(), TLexerML_COMMENT_CHAN)
 	for _, c := range comments {
-		if c.GetLine() >= token.GetLine() {
+		if c.GetLine() != token.GetLine() {
 			continue
 		}
 		l.attached[c.GetLine()] = struct{}{}
