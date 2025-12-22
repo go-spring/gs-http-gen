@@ -77,7 +77,7 @@ type Document struct {
 // Annotation represents a key-value metadata entry attached to a type,
 // field, or RPC. The value is optional.
 type Annotation struct {
-	Key      string   // Annotation key (e.g., "deprecated", "route")
+	Key      string   // Annotation key (e.g., "deprecated")
 	Value    *string  // Optional annotation value
 	Position Position // Location in the source file
 	Comments Comments // Associated comments
