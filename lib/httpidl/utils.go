@@ -52,7 +52,9 @@ func ToPascal(s string) string {
 func GetEnum(files map[string]Document, name string) (Enum, bool) {
 	for _, doc := range files {
 		if i, ok := doc.EnumTypes[name]; ok {
-			return doc.Enums[i], true
+			if e := doc.Enums[i]; !e.Extends {
+				return e, true
+			}
 		}
 	}
 	return Enum{}, false
