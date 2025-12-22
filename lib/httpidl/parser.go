@@ -61,21 +61,8 @@ func ParseDir(dir string) (Project, error) {
 	}
 
 	// Validate that all used types are defined
-	userTypes := map[string]struct{}{}
-	definedTypes := make(map[string]struct{})
-	for _, doc := range p.Files {
-		for k := range doc.EnumTypes {
-			definedTypes[k] = struct{}{}
-		}
-		for k := range doc.TypeTypes {
-			definedTypes[k] = struct{}{}
-		}
-		maps.Copy(userTypes, doc.UserTypes)
-	}
-	for k := range userTypes {
-		if _, ok := definedTypes[k]; !ok {
-			return Project{}, errutil.Explain(nil, "type %s is used but not defined", k)
-		}
+	if err = checkUserTypes(p); err != nil {
+		return Project{}, err
 	}
 
 	for _, doc := range p.Files {
@@ -220,7 +207,7 @@ func loadProject(dir string) (Project, error) {
 		}
 		p.Files[e.Name()] = doc
 
-		// validate request type
+		// ...
 		for _, r := range doc.RPCs {
 			p.Reqs[r.Request] = RequestMeta{
 				OnForm: strings.HasPrefix(r.ContentType, "application/x-www-form-urlencoded"),
@@ -244,6 +231,27 @@ func loadProject(dir string) (Project, error) {
 		return Project{}, errutil.Explain(nil, "no idl file")
 	}
 	return p, nil
+}
+
+// checkUserTypes checks if all user-defined types are defined.
+func checkUserTypes(p Project) error {
+	userTypes := map[string]struct{}{}
+	definedTypes := make(map[string]struct{})
+	for _, doc := range p.Files {
+		for k := range doc.EnumTypes {
+			definedTypes[k] = struct{}{}
+		}
+		for k := range doc.TypeTypes {
+			definedTypes[k] = struct{}{}
+		}
+		maps.Copy(userTypes, doc.UserTypes)
+	}
+	for k := range userTypes {
+		if _, ok := definedTypes[k]; !ok {
+			return errutil.Explain(nil, "type %s is used but not defined", k)
+		}
+	}
+	return nil
 }
 
 func getAndUpdateTypeValidate(files map[string]Document, t Type) (bool, error) {
