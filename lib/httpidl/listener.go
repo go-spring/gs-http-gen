@@ -18,7 +18,9 @@ package httpidl
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,6 +30,63 @@ import (
 	"github.com/go-spring/gs-http-gen/lib/validate"
 	"github.com/lvan100/golib/errutil"
 )
+
+// ParseIDL runs the parsing pipeline for a single IDL input.
+func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err error) {
+	if data = bytes.TrimSpace(data); len(data) == 0 {
+		return Document{}, nil, nil
+	}
+
+	e := &ErrorListener{
+		scanner: bufio.NewScanner(bytes.NewReader(data)),
+	}
+
+	// Recover from parser panics to provide better error reporting
+	defer func() {
+		if r := recover(); r != nil {
+			doc = Document{}
+			err = errutil.Explain(nil, "[PANIC]: %v\n%s", r, debug.Stack())
+			if e.Error != nil {
+				err = errutil.Explain(nil, "%w\n%w", e.Error, err)
+			}
+		}
+	}()
+
+	// Step 1: Set up lexer and token stream
+	reader := bytes.NewReader(append(data, '\n'))
+	input := antlr.NewIoStream(reader)
+	lexer := NewTLexer(input)
+	lexer.RemoveErrorListeners()
+	lexer.AddErrorListener(e)
+	tokens := antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel)
+
+	// Step 2: Set up parser
+	p := NewTParser(tokens)
+	p.RemoveErrorListeners()
+	p.AddErrorListener(e)
+
+	// Use faster SLL prediction first (fallback to LL on failure)
+	p.GetInterpreter().SetPredictionMode(antlr.PredictionModeSLL)
+
+	// Step 3: Walk the parse tree with a custom listener
+	l := &ParseTreeListener{
+		tokens: tokens,
+		Document: Document{
+			EnumTypes: make(map[string]int),
+			TypeTypes: make(map[string]int),
+			UserTypes: make(map[string]struct{}),
+		},
+		attached: make(map[int]struct{}),
+		Funcs:    make(map[string]ValidateFunc),
+	}
+	antlr.ParseTreeWalkerDefault.Walk(l, p.Document())
+
+	// Step 4: Return result or error
+	if e.Error != nil {
+		return Document{}, nil, e.Error
+	}
+	return l.Document, l.Funcs, nil
+}
 
 // ErrorListener implements a custom ANTLR error listener.
 type ErrorListener struct {
