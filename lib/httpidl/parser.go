@@ -81,44 +81,9 @@ func ParseDir(dir string) (Project, error) {
 		return Project{}, err
 	}
 
-	for _, doc := range p.Files {
-		for i := range doc.RPCs {
-			rpc := doc.RPCs[i]
-			segments, err := pathidl.Parse(rpc.Path)
-			if err != nil {
-				return Project{}, errutil.Explain(err, `failed to parse path %s`, rpc.Path)
-			}
-			params := make(map[string]string)
-			for _, seg := range segments {
-				if seg.Type == pathidl.Static {
-					continue
-				}
-				params[seg.Value] = ""
-			}
-			srcType, ok := GetType(p.Files, rpc.Request)
-			if !ok {
-				return Project{}, errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
-			}
-			for _, f := range srcType.Fields {
-				if f.Binding == nil || f.Binding.Source != "path" {
-					continue
-				}
-				if _, ok = params[f.Binding.Field]; !ok {
-					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Field, rpc.Request)
-					return Project{}, err
-				}
-				params[f.Binding.Field] = f.Name
-			}
-			for k, s := range params {
-				if s == "" {
-					err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
-					return Project{}, err
-				}
-			}
-			rpc.PathSegments = segments
-			rpc.PathParams = params
-			doc.RPCs[i] = rpc
-		}
+	// process RPC path
+	if err = processRPCPaths(p); err != nil {
+		return Project{}, err
 	}
 
 	return p, nil
@@ -126,7 +91,12 @@ func ParseDir(dir string) (Project, error) {
 
 // loadProject loads the project from the specified directory.
 func loadProject(dir string) (Project, error) {
-	var p Project
+	p := Project{
+		Meta:  new(MetaInfo),
+		Files: make(map[string]Document),
+		Reqs:  make(map[string]RequestMeta),
+		Funcs: make(map[string]ValidateFunc),
+	}
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -359,4 +329,48 @@ func checkUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, e
 	default: // for linter
 	}
 	return false, nil
+}
+
+// processRPCPaths processes the paths in the project.
+func processRPCPaths(p Project) error {
+	for _, doc := range p.Files {
+		for i := range doc.RPCs {
+			rpc := doc.RPCs[i]
+			segments, err := pathidl.Parse(rpc.Path)
+			if err != nil {
+				return errutil.Explain(err, `failed to parse path %s`, rpc.Path)
+			}
+			params := make(map[string]string)
+			for _, seg := range segments {
+				if seg.Type == pathidl.Static {
+					continue
+				}
+				params[seg.Value] = ""
+			}
+			srcType, ok := GetType(p.Files, rpc.Request)
+			if !ok {
+				return errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
+			}
+			for _, f := range srcType.Fields {
+				if f.Binding == nil || f.Binding.Source != "path" {
+					continue
+				}
+				if _, ok = params[f.Binding.Field]; !ok {
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Field, rpc.Request)
+					return err
+				}
+				params[f.Binding.Field] = f.Name
+			}
+			for k, s := range params {
+				if s == "" {
+					err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
+					return err
+				}
+			}
+			rpc.PathSegments = segments
+			rpc.PathParams = params
+			doc.RPCs[i] = rpc
+		}
+	}
+	return nil
 }

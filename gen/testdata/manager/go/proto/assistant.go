@@ -22,21 +22,21 @@ var _ = strconv.FormatInt
 type PayloadType int32
 
 const (
-	PayloadType_Payload_1 PayloadType = 0
-	PayloadType_Payload_2 PayloadType = 1
-	PayloadType_Payload_3 PayloadType = 2
+	PayloadType_Payload_1 PayloadType = 1
+	PayloadType_Payload_2 PayloadType = 2
+	PayloadType_Payload_3 PayloadType = 3
 )
 
 var (
 	PayloadType_name = map[PayloadType]string{
-		0: "Payload_1",
-		1: "Payload_2",
-		2: "Payload_3",
+		1: "Payload_1",
+		2: "Payload_2",
+		3: "Payload_3",
 	}
 	PayloadType_value = map[string]PayloadType{
-		"Payload_1": 0,
-		"Payload_2": 1,
-		"Payload_3": 2,
+		"Payload_1": 1,
+		"Payload_2": 2,
+		"Payload_3": 3,
 	}
 )
 
