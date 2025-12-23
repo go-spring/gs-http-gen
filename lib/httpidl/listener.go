@@ -493,10 +493,10 @@ func (l *ParseTreeListener) collectValidateFuncs(fieldType string, expr validate
 		if _, ok := BuiltinFuncs[x.Name]; !ok {
 			if v, ok := l.Funcs[x.Name]; !ok {
 				l.Funcs[x.Name] = ValidateFunc{
-					Name: x.Name,
-					Type: fieldType,
+					FuncName:  x.Name,
+					ParamType: fieldType,
 				}
-			} else if v.Type != fieldType {
+			} else if v.ParamType != fieldType {
 				panic(errutil.Explain(nil, "validate function %s is used with different types", x.Name))
 			}
 		}

@@ -35,8 +35,8 @@ var BuiltinFuncs = map[string]struct{}{
 
 // ValidateFunc represents a validate function.
 type ValidateFunc struct {
-	Name string
-	Type string
+	FuncName  string
+	ParamType string
 }
 
 // RequestMeta represents the metadata of a request type.
@@ -77,7 +77,7 @@ func ParseDir(dir string) (Project, error) {
 	}
 
 	// process validation
-	if err = checkValidate(p); err != nil {
+	if err = updateValidate(p); err != nil {
 		return Project{}, err
 	}
 
@@ -92,7 +92,6 @@ func ParseDir(dir string) (Project, error) {
 // loadProject loads the project from the specified directory.
 func loadProject(dir string) (Project, error) {
 	p := Project{
-		Meta:  new(MetaInfo),
 		Files: make(map[string]Document),
 		Reqs:  make(map[string]RequestMeta),
 		Funcs: make(map[string]ValidateFunc),
@@ -151,7 +150,7 @@ func loadProject(dir string) (Project, error) {
 		for name, f := range validateFuncs {
 			if v, ok := p.Funcs[name]; !ok {
 				p.Funcs[name] = f
-			} else if v.Type != f.Type {
+			} else if v.ParamType != f.ParamType {
 				return Project{}, errutil.Explain(nil, "validate func %s is defined multiple times", name)
 			}
 		}
@@ -282,14 +281,14 @@ func replaceGenericType(t TypeDefinition, genericName string, genericType TypeDe
 	}
 }
 
-// checkValidate checks if all types have validated expressions.
-func checkValidate(p Project) error {
+// updateValidate checks if all types have validated expressions.
+func updateValidate(p Project) error {
 	for _, doc := range p.Files {
 		for _, t := range doc.Types {
 			if !t.Request {
 				continue
 			}
-			if _, err := checkTypeValidate(p.Files, t); err != nil {
+			if _, err := updateTypeValidate(p.Files, t); err != nil {
 				return errutil.Explain(err, `failed to get type attr of type %s`, t.Name)
 			}
 		}
@@ -297,11 +296,11 @@ func checkValidate(p Project) error {
 	return nil
 }
 
-// checkTypeValidate checks if a type has validated expressions.
-func checkTypeValidate(files map[string]Document, t Type) (bool, error) {
+// updateTypeValidate checks if a type has validated expressions.
+func updateTypeValidate(files map[string]Document, t Type) (bool, error) {
 	t.OnRequest = true
 	for i, f := range t.Fields {
-		ok, err := checkUserTypeValidate(files, f.Type)
+		ok, err := updateUserTypeValidate(files, f.Type)
 		if err != nil {
 			return false, err
 		}
@@ -318,8 +317,8 @@ func checkTypeValidate(files map[string]Document, t Type) (bool, error) {
 	return t.Validate, nil
 }
 
-// checkUserTypeValidate checks if a user-defined type has validated expressions.
-func checkUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
+// updateUserTypeValidate checks if a user-defined type has validated expressions.
+func updateUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
 	switch x := t.(type) {
 	case UserType:
 		srcType, ok := GetType(files, x.Name)
@@ -329,11 +328,11 @@ func checkUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, e
 			}
 			return false, nil
 		}
-		return checkTypeValidate(files, srcType)
+		return updateTypeValidate(files, srcType)
 	case ListType:
-		return checkUserTypeValidate(files, x.Item)
+		return updateUserTypeValidate(files, x.Item)
 	case MapType:
-		return checkUserTypeValidate(files, x.Value)
+		return updateUserTypeValidate(files, x.Value)
 	default: // for linter
 	}
 	return false, nil

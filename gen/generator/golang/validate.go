@@ -36,9 +36,9 @@ var validateTmpl = template.Must(template.New("validate").Parse(`
 package {{.Package}}
 
 {{- range $f := .Funcs}}
-	// {{$f.Name}} is a default validation function for fields of type {{$f.Type}}.
+	// {{$f.FuncName}} is a default validation function for fields of type {{$f.ParamType}}.
 	// This serves as a placeholder that can be overridden or extended.
-	var {{$f.Name}} = func ({{$f.Type}}) bool { return true }
+	var {{$f.FuncName}} = func ({{$f.ParamType}}) bool { return true }
 {{- end}}
 `))
 
