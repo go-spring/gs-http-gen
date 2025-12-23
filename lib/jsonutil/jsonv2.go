@@ -5,22 +5,26 @@ import (
 	"encoding/json/v2"
 )
 
-// JSONv2Decoder ...
+// JSONv2Decoder wraps jsontext.Decoder to implement the Decoder interface.
+// It provides streaming JSON decoding with convenience methods for reading tokens and values.
 type JSONv2Decoder struct {
 	*jsontext.Decoder
 }
 
-// NewJSONv2Decoder ...
+// NewJSONv2Decoder creates a new JSONv2Decoder that implements the Decoder interface.
+// It wraps an existing jsontext.Decoder.
 func NewJSONv2Decoder(d *jsontext.Decoder) Decoder {
 	return &JSONv2Decoder{d}
 }
 
-// Unmarshal ...
+// Unmarshal decodes JSON bytes into a Go value using the standard jsonv2.Unmarshal.
+// This satisfies the Decoder interface.
 func (d *JSONv2Decoder) Unmarshal(b []byte, i any) error {
 	return json.Unmarshal(b, i)
 }
 
-// toKind ...
+// toKind converts jsontext.Kind to the local Kind type used by jsonutil.
+// Returns InvalidKind if the input kind does not match any known JSON token.
 func toKind(k jsontext.Kind) Kind {
 	switch k {
 	case 'n':
@@ -46,12 +50,13 @@ func toKind(k jsontext.Kind) Kind {
 	}
 }
 
-// PeekKind ...
+// PeekKind returns the Kind of the next JSON token without consuming it.
 func (d *JSONv2Decoder) PeekKind() Kind {
 	return toKind(d.Decoder.PeekKind())
 }
 
-// ReadToken ...
+// ReadToken reads the next JSON token and returns its string representation,
+// kind, and any error encountered. The decoder state advances past the returned token.
 func (d *JSONv2Decoder) ReadToken() (string, Kind, error) {
 	token, err := d.Decoder.ReadToken()
 	if err != nil {
@@ -60,12 +65,14 @@ func (d *JSONv2Decoder) ReadToken() (string, Kind, error) {
 	return token.String(), toKind(token.Kind()), nil
 }
 
-// ReadValue ...
+// ReadValue reads the next JSON value (scalar, object, or array) as raw bytes.
+// The decoder state advances past the returned value.
 func (d *JSONv2Decoder) ReadValue() ([]byte, error) {
 	return d.Decoder.ReadValue()
 }
 
-// SkipValue ...
+// SkipValue skips over the next JSON value (scalar, object, or array).
+// The decoder state advances past the skipped value.
 func (d *JSONv2Decoder) SkipValue() error {
 	return d.Decoder.SkipValue()
 }
