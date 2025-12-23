@@ -4,8 +4,8 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
-// HashKey returns a 64-bit hash value for the given string using FNV-1a algorithm.
-// Recommended for short strings with very low collision probability.
+// HashKey returns a 64-bit hash value for the given string using the FNV-1a algorithm.
+// Suitable for short strings with low collision probability.
 func HashKey(s string) uint64 {
 	const (
 		offset = 14695981039346656037
@@ -47,7 +47,8 @@ type Decoder interface {
 	PeekKind() Kind
 	// ReadToken reads the next token and returns its string value, kind, and error.
 	ReadToken() (token string, _ Kind, _ error)
-	// ReadValue reads the next value (maybe a complete JSON node) as bytes.
+	// ReadValue reads the next value, which may be a complete JSON
+	// node (object, array, or scalar), as bytes.
 	ReadValue() (value []byte, _ error)
 	// SkipValue skips the next value (maybe a complete JSON node).
 	SkipValue() error
@@ -111,7 +112,8 @@ func DecodeArrayEnd(d Decoder) error {
 	return nil
 }
 
-// DecodeAny decodes the next JSON value into an arbitrary Go value using Decoder.Unmarshal.
+// DecodeAny decodes the next JSON value (scalar, object, or array)
+// into a Go value using Decoder.Unmarshal.
 func DecodeAny[T any](d Decoder) (T, error) {
 	var v T
 	b, err := d.ReadValue()
@@ -177,6 +179,7 @@ func DecodeValuePtr[T any](
 
 // DecodeObject decodes a JSON object into a struct that implements the Object interface.
 // Returns the zero value if the next token is null.
+// Internally calls DecodeJSON on the object to populate its fields.
 func DecodeObject[T Object](
 	newFn func() T,
 ) func(d Decoder) (T, error) {
@@ -270,7 +273,7 @@ func DecodeMap[K comparable, V any](
 			}
 			return m, nil
 		default:
-			return nil, errutil.Explain(nil, "invalid JSON: expected map")
+			return nil, errutil.Explain(nil, "invalid JSON: expected object")
 		}
 	}
 }
