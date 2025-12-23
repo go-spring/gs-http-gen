@@ -4,8 +4,8 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
-// HashKey returns a hash value for the given string.
-// 业界推荐算法，对于短字符串，碰撞的概率很低很低.
+// HashKey returns a 64-bit hash value for the given string using FNV-1a algorithm.
+// Recommended for short strings with very low collision probability.
 func HashKey(s string) uint64 {
 	const (
 		offset = 14695981039346656037
@@ -39,26 +39,28 @@ type Kind byte
 
 const InvalidKind Kind = 0
 
-// Decoder json 流式解析接口
+// Decoder defines a streaming JSON decoder interface.
 type Decoder interface {
-	// Unmarshal 对未知类型解析
+	// Unmarshal decodes JSON bytes into an arbitrary Go value.
 	Unmarshal(b []byte, i any) error
-	// PeekKind 获取下一个 token 的类型，但是不消费
+	// PeekKind returns the Kind of the next token without consuming it.
 	PeekKind() Kind
-	// ReadToken 读取下一个 token，返回 token 字符串和类型，以及错误。
+	// ReadToken reads the next token and returns its string value, kind, and error.
 	ReadToken() (token string, _ Kind, _ error)
-	// ReadValue 读取下一个值(可能是一个完整的节点)，返回值字节数组和错误。
+	// ReadValue reads the next value (maybe a complete JSON node) as bytes.
 	ReadValue() (value []byte, _ error)
-	// SkipValue 跳过下一个值(可能是一个完整的节点)，返回错误。
+	// SkipValue skips the next value (maybe a complete JSON node).
 	SkipValue() error
 }
 
-// Object 实现流式解析接口的对象，一般是结构体指针类型
+// Object represents a JSON-mappable object that supports streaming decoding.
 type Object interface {
+	// DecodeJSON reads JSON data from the Decoder and populates the object.
 	DecodeJSON(d Decoder) error
 }
 
-// DecodeObjectBegin 必须读取一个 '{'
+// DecodeObjectBegin consumes the opening '{' token of a JSON object.
+// Returns an error if the next token is not '{'.
 func DecodeObjectBegin(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -70,7 +72,8 @@ func DecodeObjectBegin(d Decoder) error {
 	return nil
 }
 
-// DecodeObjectEnd 必须读取一个 '}'
+// DecodeObjectEnd consumes the closing '}' token of a JSON object.
+// Returns an error if the next token is not '}'.
 func DecodeObjectEnd(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -82,7 +85,8 @@ func DecodeObjectEnd(d Decoder) error {
 	return nil
 }
 
-// DecodeArrayBegin 必须读取一个 '['
+// DecodeArrayBegin consumes the opening '[' token of a JSON array.
+// Returns an error if the next token is not '['.
 func DecodeArrayBegin(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -94,7 +98,8 @@ func DecodeArrayBegin(d Decoder) error {
 	return nil
 }
 
-// DecodeArrayEnd 必须读取一个 ']'
+// DecodeArrayEnd consumes the closing ']' token of a JSON array.
+// Returns an error if the next token is not ']'.
 func DecodeArrayEnd(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -106,7 +111,7 @@ func DecodeArrayEnd(d Decoder) error {
 	return nil
 }
 
-// DecodeAny 通过 Unmarshal 进行解析
+// DecodeAny decodes the next JSON value into an arbitrary Go value using Decoder.Unmarshal.
 func DecodeAny[T any](d Decoder) (T, error) {
 	var v T
 	b, err := d.ReadValue()
@@ -119,7 +124,8 @@ func DecodeAny[T any](d Decoder) (T, error) {
 	return v, nil
 }
 
-// DecodeValue 解析一个基础值，如 int，string 等，不能是结构体。
+// DecodeValue parses a scalar JSON value (number, boolean, or string) using parseFn.
+// Returns an error if the next token is null or invalid.
 func DecodeValue[T any](
 	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (T, error) {
@@ -140,7 +146,8 @@ func DecodeValue[T any](
 	}
 }
 
-// DecodeValuePtr 解析一个基础值的指针，如 *int，*string 等，不能是结构体。
+// DecodeValuePtr parses a scalar JSON value into a pointer type.
+// Returns nil if the next token is null.
 func DecodeValuePtr[T any](
 	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (*T, error) {
@@ -164,7 +171,8 @@ func DecodeValuePtr[T any](
 	}
 }
 
-// DecodeObject 解析结构体指针对象，要求实现 Object 接口。
+// DecodeObject decodes a JSON object into a struct that implements the Object interface.
+// Returns the zero value if the next token is null.
 func DecodeObject[T Object](
 	newFn func() T,
 ) func(d Decoder) (T, error) {
@@ -186,7 +194,9 @@ func DecodeObject[T Object](
 	}
 }
 
-// DecodeArray 读取一个数组，返回数组和错误。
+// DecodeArray decodes a JSON array of arbitrary type.
+// parseFn is used to parse each element of the array.
+// Returns nil if the next token is null.
 func DecodeArray[T any](
 	parseFn func(d Decoder) (T, error),
 ) func(d Decoder) ([]T, error) {
@@ -220,7 +230,9 @@ func DecodeArray[T any](
 	}
 }
 
-// DecodeMap 读取一个 map，返回 map 和错误。
+// DecodeMap decodes a JSON object into a Go map.
+// parseKeyFn and parseValFn are used to parse each key and value.
+// Returns nil if the next token is null.
 func DecodeMap[K comparable, V any](
 	parseKeyFn func(d Decoder) (K, error),
 	parseValFn func(d Decoder) (V, error),
