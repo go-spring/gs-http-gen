@@ -122,7 +122,7 @@ func (b *Base) DecodeJSON(d Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := DecodeKey(d)
+		key, err := DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -206,7 +206,7 @@ func (l *List) DecodeJSON(d Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := DecodeKey(d)
+		key, err := DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -271,7 +271,7 @@ func (m *Map) DecodeJSON(d Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := DecodeKey(d)
+		key, err := DecodeString(d)
 		if err != nil {
 			return err
 		}

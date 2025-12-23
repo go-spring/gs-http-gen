@@ -1,8 +1,6 @@
 package jsonutil
 
 import (
-	"errors"
-
 	"github.com/lvan100/golib/errutil"
 )
 
@@ -41,16 +39,19 @@ type Kind byte
 
 const InvalidKind Kind = 0
 
-// Decoder ...
+// Decoder json 流式解析接口
 type Decoder interface {
+	// Unmarshal 对未知类型解析
 	Unmarshal(b []byte, i any) error
+	// PeekKind 获取下一个 token 的类型，但是不消费
 	PeekKind() Kind
+	// ReadToken 读取下一个 token，返回 token 字符串和类型，以及错误。
 	ReadToken() (token string, _ Kind, _ error)
+	// ReadValue 读取下一个值(可能是一个完整的节点)，返回值字节数组和错误。
 	ReadValue() (value []byte, _ error)
+	// SkipValue 跳过下一个值(可能是一个完整的节点)，返回错误。
 	SkipValue() error
 }
-
-var ErrNull = errors.New("json: null")
 
 // Object ...
 type Object interface {
@@ -105,18 +106,6 @@ func DecodeArrayEnd(d Decoder) error {
 	return nil
 }
 
-// DecodeKey ...
-func DecodeKey(d Decoder) (string, error) {
-	key, err := DecodeString(d)
-	if err != nil {
-		if errors.Is(err, ErrNull) {
-			return "", errutil.Explain(err, "invalid JSON: expected key")
-		}
-		return "", err
-	}
-	return key, nil
-}
-
 // DecodeAny ...
 func DecodeAny[T any](d Decoder) (T, error) {
 	var v T
@@ -142,7 +131,7 @@ func DecodeValue[T any](
 		}
 		switch tokenKind {
 		case 'n':
-			return zero, ErrNull
+			return zero, errutil.Explain(err, "invalid JSON: expected value")
 		case 'f', 't', '0', '"':
 			return parseFn(token, tokenKind)
 		default:
@@ -156,18 +145,26 @@ func DecodeValuePtr[T any](
 	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (*T, error) {
 	return func(d Decoder) (*T, error) {
-		v, err := DecodeValue(parseFn)(d)
+		token, tokenKind, err := d.ReadToken()
 		if err != nil {
-			if errors.Is(err, ErrNull) {
-				return nil, nil
-			}
 			return nil, err
 		}
-		return &v, nil
+		switch tokenKind {
+		case 'n':
+			return nil, nil
+		case 'f', 't', '0', '"':
+			v, err := parseFn(token, tokenKind)
+			if err != nil {
+				return nil, err
+			}
+			return &v, nil
+		default:
+			return nil, errutil.Explain(err, "invalid JSON: expected value")
+		}
 	}
 }
 
-// DecodeObject ...
+// DecodeObject 根据 Object 的定义，zero 一定是指针。
 func DecodeObject[T Object](
 	newFn func() T,
 ) func(d Decoder) (T, error) {
@@ -199,7 +196,7 @@ func DecodeArray[T any](
 			_, _, _ = d.ReadToken()
 			return nil, nil
 		case '[':
-			var v []T
+			v := make([]T, 0)
 			if err := DecodeArrayBegin(d); err != nil {
 				return nil, err
 			}
