@@ -30,7 +30,7 @@ type MetaInfo struct {
 	Config      map[string]any `json:"config"`      // Other custom metadata
 }
 
-// Position represents the start and stop line numbers of a parsed element.
+// Position represents the source line range of a parsed element.
 // This allows tracing back to the original source code location.
 type Position struct {
 	StartLine int
@@ -75,7 +75,7 @@ type Document struct {
 }
 
 // Annotation represents a key-value metadata entry attached to a type,
-// field, or RPC. The value is optional.
+// field, or RPC. The value is optional and represented as raw text.
 type Annotation struct {
 	Key      string   // Annotation key (e.g., "deprecated")
 	Value    *string  // Optional annotation value
@@ -94,7 +94,11 @@ type Const struct {
 
 // Enum represents an enum type definition.
 type Enum struct {
-	Extends  bool        // Special case for error code inheritance
+
+	// Extends Indicates this enum extends another enum definition.
+	// Typically used for error-code enums.
+	Extends bool
+
 	Name     string      // Name of the enum
 	OneOf    bool        // Whether this enum is derived from a oneof type
 	Fields   []EnumField // List of fields
@@ -104,7 +108,11 @@ type Enum struct {
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
-	ExtendsFrom  *string      // Source file from which this field is inherited
+
+	// ExtendsFrom File name of the enum definition this field is
+	// inherited from.
+	ExtendsFrom *string
+
 	Name         string       // Name of the enum field
 	Value        int64        // Integer value assigned to the enum field
 	ErrorMessage *string      // Error message (only for error-code enums)
@@ -135,7 +143,7 @@ type FormTag struct {
 // Binding represents a binding between a struct field and an HTTP input
 // (e.g., from a query string or from a path segment).
 type Binding struct {
-	Source string // "path" or "query"
+	Source string // Binding source ("path" or "query")
 	Field  string // Field name from the source
 }
 
@@ -152,10 +160,10 @@ type Type struct {
 	Comments     Comments    // Associated comments
 
 	Embedded  bool // True if contains anonymous embedded fields
-	Validate  bool // Indicates that a validate function should be generated
-	Request   bool // True if used as an HTTP request type
-	OnRequest bool // True if used specifically on the request side
-	OnForm    bool // True if representing form data
+	Validate  bool // Indicates validation code should be generated for this type
+	Request   bool // Indicates this type is used as an HTTP request type
+	OnRequest bool // Indicates this type is processed in a request context
+	OnForm    bool // Indicates this request type represents form-encoded data
 }
 
 // FieldCount returns the total number of fields after all processing.
@@ -163,9 +171,8 @@ func (t *Type) FieldCount() int {
 	return len(t.Fields)
 }
 
-// BodyCount reports whether the type contains any fields that are not
-// bound to a specific HTTP input source (e.g., not from path or query).
-// Such fields are typically treated as request body fields.
+// BodyCount returns the number of fields that are not bound to
+// a specific HTTP input source (e.g., path or query).
 func (t *Type) BodyCount() int {
 	var count int
 	for _, f := range t.Fields {
@@ -287,7 +294,7 @@ func (t ListType) Text() string {
 	return "list<" + t.Item.Text() + ">"
 }
 
-// RPC represents a remote procedure call definition, including HTTP metadata.
+// RPC represents an HTTP-based remote procedure call definition.
 type RPC struct {
 	SSE bool // True if this RPC uses Server-Sent Events
 
