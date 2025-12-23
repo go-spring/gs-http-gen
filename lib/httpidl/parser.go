@@ -196,14 +196,15 @@ func mergeErrcode(p Project) error {
 			if !e.Extends {
 				continue
 			}
-			t, fileName := FindEnum(p.Files, e.Name)
-			if fileName == nil {
+			t, s, index := FindEnum(p.Files, e.Name)
+			if index < 0 {
 				return errutil.Explain(nil, "enum %s is used but not defined", e.Name)
 			}
 			for _, field := range e.Fields {
-				field.ExtendsFrom = fileName
+				field.ExtendsFrom = &s
 				t.Fields = append(t.Fields, field)
 			}
+			p.Files[s].Enums[index] = t
 		}
 	}
 	return nil
