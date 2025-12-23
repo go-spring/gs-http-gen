@@ -134,7 +134,7 @@ func Convert(dir string) (GoSpec, error) {
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
 			var response string
-			if a, ok := httpidl.GetAnnotation(r.Annotations, "resp.go.type"); ok {
+			if a, ok := httpidl.FindAnnotation(r.Annotations, "resp.go.type"); ok {
 				if a.Value == nil {
 					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must have a value`)
 				}
@@ -312,7 +312,7 @@ func goBaseType(typeName string) (string, error) {
 
 // goType returns the Go type name for a given IDL type
 func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
-	if a, ok := httpidl.GetAnnotation(f.Annotations, "go.type"); ok {
+	if a, ok := httpidl.FindAnnotation(f.Annotations, "go.type"); ok {
 		if a.Value == nil {
 			return "", errutil.Explain(nil, `annotation "go.type" must have a value`)
 		}

@@ -48,46 +48,46 @@ func ToPascal(s string) string {
 	return sb.String()
 }
 
-// EnumMeta contains meta information about an enum type.
-type EnumMeta struct {
+// EnumRef contains meta information about an enum type.
+type EnumRef struct {
 	Type  Enum
 	File  string
 	Index int
 }
 
 // FindEnum searches all documents for an enum type with the given name.
-func FindEnum(files map[string]Document, name string) (EnumMeta, bool) {
+func FindEnum(files map[string]Document, name string) (EnumRef, bool) {
 	for file, doc := range files {
 		if i, ok := doc.EnumTypes[name]; ok {
 			if e := doc.Enums[i]; !e.Extends {
-				return EnumMeta{Type: e, File: file, Index: i}, true
+				return EnumRef{Type: e, File: file, Index: i}, true
 			}
 		}
 	}
-	return EnumMeta{}, false
+	return EnumRef{}, false
 }
 
-// TypeMeta contains meta information about a type.
-type TypeMeta struct {
+// TypeRef contains meta information about a type.
+type TypeRef struct {
 	Type  Type
 	File  string
 	Index int
 }
 
 // FindType searches all documents for a type with the given name.
-func FindType(files map[string]Document, name string) (TypeMeta, bool) {
+func FindType(files map[string]Document, name string) (TypeRef, bool) {
 	for file, doc := range files {
 		if i, ok := doc.TypeTypes[name]; ok {
 			t := doc.Types[i]
-			return TypeMeta{Type: t, File: file, Index: i}, true
+			return TypeRef{Type: t, File: file, Index: i}, true
 		}
 	}
-	return TypeMeta{}, false
+	return TypeRef{}, false
 }
 
-// GetAnnotation searches through a slice of annotations and returns
+// FindAnnotation searches through a slice of annotations and returns
 // the first annotation whose key matches any of the provided names.
-func GetAnnotation(arr []Annotation, names ...string) (Annotation, bool) {
+func FindAnnotation(arr []Annotation, names ...string) (Annotation, bool) {
 	for _, a := range arr {
 		if slices.Contains(names, a.Key) {
 			return a, true

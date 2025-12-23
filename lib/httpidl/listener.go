@@ -197,7 +197,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		}
 
 		// Error message
-		if errmsg, ok := GetAnnotation(enumField.Annotations, "errmsg"); ok {
+		if errmsg, ok := FindAnnotation(enumField.Annotations, "errmsg"); ok {
 			if errmsg.Value == nil {
 				panic(errutil.Explain(nil, `annotation "errmsg" value is nil in field %s of enum %s`, fieldName, e.Name))
 			}
@@ -335,10 +335,10 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Required = f.KW_REQUIRED() != nil
 	typeField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
 
-	_, typeField.Deprecated = GetAnnotation(typeField.Annotations, "deprecated")
-	_, typeField.EnumAsString = GetAnnotation(typeField.Annotations, "enum_as_string")
+	_, typeField.Deprecated = FindAnnotation(typeField.Annotations, "deprecated")
+	_, typeField.EnumAsString = FindAnnotation(typeField.Annotations, "enum_as_string")
 
-	if opt, ok := GetAnnotation(typeField.Annotations, "compat_default"); ok {
+	if opt, ok := FindAnnotation(typeField.Annotations, "compat_default"); ok {
 		if !typeField.Required {
 			panic(errutil.Explain(nil, "field %s is not required but has compat_default annotation in line %d", typeField.Name, typeField.Position.StartLine))
 		}
@@ -358,7 +358,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		HashKey:   fmt.Sprintf("0x%x", jsonutil.HashKey(typeField.Name)),
 		OmitEmpty: !typeField.Required,
 	}
-	if opt, ok := GetAnnotation(typeField.Annotations, "json"); ok {
+	if opt, ok := FindAnnotation(typeField.Annotations, "json"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation json for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
 		}
@@ -388,7 +388,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		Name:    typeField.JSONTag.Name,
 		HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey(typeField.JSONTag.Name)),
 	}
-	if opt, ok := GetAnnotation(typeField.Annotations, "form"); ok {
+	if opt, ok := FindAnnotation(typeField.Annotations, "form"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation form for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
 		}
@@ -410,7 +410,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		}
 	}
 
-	if opt, ok := GetAnnotation(typeField.Annotations, "path", "query"); ok {
+	if opt, ok := FindAnnotation(typeField.Annotations, "path", "query"); ok {
 		if opt.Key == "path" {
 			if s := typeField.Type.Text(); s != "string" && s != "int" {
 				panic(errutil.Explain(nil, "annotation path for field %s is not 'string' or 'int' in line %d", typeField.Name, typeField.Position.StartLine))
@@ -427,7 +427,7 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 		typeField.Binding = &Binding{Source: opt.Key, Field: s}
 	}
 
-	if opt, ok := GetAnnotation(typeField.Annotations, "validate"); ok {
+	if opt, ok := FindAnnotation(typeField.Annotations, "validate"); ok {
 		if opt.Value == nil {
 			panic(errutil.Explain(nil, "annotation validate for field %s is missing value in line %d", typeField.Name, typeField.Position.StartLine))
 		}
@@ -643,7 +643,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Retrieve the "path" annotation
-	path, ok := GetAnnotation(r.Annotations, "path")
+	path, ok := FindAnnotation(r.Annotations, "path")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "path" not found in rpc %s`, r.Name))
 	}
@@ -652,7 +652,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Retrieve the "method" annotation
-	method, ok := GetAnnotation(r.Annotations, "method")
+	method, ok := FindAnnotation(r.Annotations, "method")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "method" not found in rpc %s`, r.Name))
 	}
@@ -661,7 +661,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Retrieve the "contentType" annotation
-	ct, ok := GetAnnotation(r.Annotations, "contentType")
+	ct, ok := FindAnnotation(r.Annotations, "contentType")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "contentType" not found in rpc %s`, r.Name))
 	}
@@ -680,7 +680,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Retrieve the "connTimeout" annotation
-	connTimeout, ok := GetAnnotation(r.Annotations, "connTimeout")
+	connTimeout, ok := FindAnnotation(r.Annotations, "connTimeout")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "connTimeout" not found in rpc %s`, r.Name))
 	}
@@ -689,7 +689,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Retrieve the "readTimeout" annotation
-	readTimeout, ok := GetAnnotation(r.Annotations, "readTimeout")
+	readTimeout, ok := FindAnnotation(r.Annotations, "readTimeout")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "readTimeout" not found in rpc %s`, r.Name))
 	}
@@ -698,7 +698,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	}
 
 	// Retrieve the "writeTimeout" annotation
-	writeTimeout, ok := GetAnnotation(r.Annotations, "writeTimeout")
+	writeTimeout, ok := FindAnnotation(r.Annotations, "writeTimeout")
 	if !ok {
 		panic(errutil.Explain(nil, `annotation "writeTimeout" not found in rpc %s`, r.Name))
 	}
