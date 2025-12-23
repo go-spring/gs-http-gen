@@ -8,7 +8,8 @@ import (
 	"github.com/lvan100/golib/errutil"
 )
 
-// ParseBool ...
+// ParseBool parses a JSON boolean token into a Go bool.
+// The input Kind must be 't' or 'f', otherwise an error is returned.
 func ParseBool(_ string, k Kind) (bool, error) {
 	if k != 'f' && k != 't' {
 		return false, errutil.Explain(nil, "invalid JSON: expected boolean")
@@ -16,17 +17,18 @@ func ParseBool(_ string, k Kind) (bool, error) {
 	return k == 't', nil
 }
 
-// DecodeBool ...
+// DecodeBool reads the next JSON value from the decoder and parses it as bool.
 func DecodeBool(d Decoder) (bool, error) {
 	return DecodeValue(ParseBool)(d)
 }
 
-// DecodeBoolPtr ...
+// DecodeBoolPtr reads the next JSON value and parses it as *bool.
+// Returns nil if the JSON token is null.
 func DecodeBoolPtr(d Decoder) (*bool, error) {
 	return DecodeValuePtr(ParseBool)(d)
 }
 
-// OverflowInt ...
+// OverflowInt checks whether an int64 value exceeds the bounds of the target integer type T.
 func OverflowInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v int64) bool {
 	var z T
 	switch any(z).(type) {
@@ -44,7 +46,8 @@ func OverflowInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v int64) bool {
 	return false
 }
 
-// ParseInt ...
+// ParseInt parses a JSON number token into an integer type T.
+// Returns an error if the token is not a number or if the value overflows.
 func ParseInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
@@ -59,18 +62,20 @@ func ParseInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, e
 	return T(v), nil
 }
 
-// DecodeInt ...
+// DecodeInt reads the next JSON value and parses it into an integer type T.
 func DecodeInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
 	return DecodeValue(ParseInt[T])(d)
 }
 
-// DecodeIntPtr ...
+// DecodeIntPtr reads the next JSON value and parses it into a pointer to integer type T.
+// Returns nil if the JSON token is null.
 func DecodeIntPtr[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseInt[T])(d)
 }
 
-// ParseIntKey ...
-func ParseIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
+// ParseIntKey parses a JSON object key as an integer type T.
+// Returns an error if parsing fails or the value overflows.
+func ParseIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, _ Kind) (T, error) {
 	v, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -81,12 +86,12 @@ func ParseIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T
 	return T(v), nil
 }
 
-// DecodeIntKey ...
+// DecodeIntKey reads a JSON object key and parses it as an integer type T.
 func DecodeIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
 	return DecodeValue(ParseIntKey[T])(d)
 }
 
-// OverflowUint ...
+// OverflowUint checks whether a uint64 value exceeds the bounds of the target unsigned type T.
 func OverflowUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](v uint64) bool {
 	var z T
 	switch any(z).(type) {
@@ -102,7 +107,7 @@ func OverflowUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](v uint64) bool
 	return false
 }
 
-// ParseUint ...
+// ParseUint parses a JSON number token into an unsigned integer type T.
 func ParseUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
@@ -117,18 +122,18 @@ func ParseUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind)
 	return T(v), nil
 }
 
-// DecodeUint ...
+// DecodeUint reads the next JSON value and parses it as an unsigned integer type T.
 func DecodeUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (T, error) {
 	return DecodeValue(ParseUint[T])(d)
 }
 
-// DecodeUintPtr ...
+// DecodeUintPtr reads the next JSON value and parses it into a pointer to unsigned type T.
 func DecodeUintPtr[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseUint[T])(d)
 }
 
-// ParseUintKey ...
-func ParseUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
+// ParseUintKey parses a JSON object key as an unsigned integer type T.
+func ParseUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, _ Kind) (T, error) {
 	v, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -139,12 +144,12 @@ func ParseUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Ki
 	return T(v), nil
 }
 
-// DecodeUintKey ...
+// DecodeUintKey reads a JSON object key and parses it as an unsigned integer type T.
 func DecodeUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (T, error) {
 	return DecodeValue(ParseUintKey[T])(d)
 }
 
-// OverflowFloat ...
+// OverflowFloat checks whether a float64 value exceeds the bounds of the target float type T.
 func OverflowFloat[T ~float32 | ~float64](v float64) bool {
 	var z T
 	switch any(z).(type) {
@@ -154,7 +159,7 @@ func OverflowFloat[T ~float32 | ~float64](v float64) bool {
 	return false
 }
 
-// ParseFloat ...
+// ParseFloat parses a JSON number token into a float type T.
 func ParseFloat[T ~float32 | ~float64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
@@ -169,17 +174,17 @@ func ParseFloat[T ~float32 | ~float64](s string, k Kind) (T, error) {
 	return T(f), nil
 }
 
-// DecodeFloat ...
+// DecodeFloat reads the next JSON value and parses it as a float type T.
 func DecodeFloat[T ~float32 | ~float64](d Decoder) (T, error) {
 	return DecodeValue(ParseFloat[T])(d)
 }
 
-// DecodeFloatPtr ...
+// DecodeFloatPtr reads the next JSON value and parses it into a pointer to float type T.
 func DecodeFloatPtr[T ~float32 | ~float64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseFloat[T])(d)
 }
 
-// ParseString ...
+// ParseString parses a JSON string token into a Go string.
 func ParseString(s string, k Kind) (string, error) {
 	if k != '"' {
 		return "", errutil.Explain(nil, "invalid JSON: expected string")
@@ -187,17 +192,17 @@ func ParseString(s string, k Kind) (string, error) {
 	return s, nil
 }
 
-// DecodeString ...
+// DecodeString reads the next JSON value and parses it as a string.
 func DecodeString(d Decoder) (string, error) {
 	return DecodeValue(ParseString)(d)
 }
 
-// DecodeStringPtr ...
+// DecodeStringPtr reads the next JSON value and parses it as a pointer to string.
 func DecodeStringPtr(d Decoder) (*string, error) {
 	return DecodeValuePtr(ParseString)(d)
 }
 
-// ParseBytes ...
+// ParseBytes parses a JSON string token as base64-encoded bytes.
 func ParseBytes(s string, k Kind) ([]byte, error) {
 	if k != '"' {
 		return nil, errutil.Explain(nil, "invalid JSON: expected string")
@@ -205,7 +210,7 @@ func ParseBytes(s string, k Kind) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(s)
 }
 
-// DecodeBytes ...
+// DecodeBytes reads the next JSON value and parses it as base64-decoded bytes.
 func DecodeBytes(d Decoder) ([]byte, error) {
 	return DecodeValue(ParseBytes)(d)
 }
