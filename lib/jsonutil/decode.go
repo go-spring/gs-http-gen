@@ -50,7 +50,7 @@ type Decoder interface {
 	SkipValue() error
 }
 
-var ErrNull = errors.New("null")
+var ErrNull = errors.New("json: null")
 
 // Object ...
 type Object interface {
@@ -119,16 +119,15 @@ func DecodeKey(d Decoder) (string, error) {
 
 // DecodeAny ...
 func DecodeAny[T any](d Decoder) (T, error) {
-	var zero T
-	v, err := d.ReadValue()
+	var v T
+	b, err := d.ReadValue()
 	if err != nil {
-		return zero, err
+		return v, err
 	}
-	var i T
-	if err = d.Unmarshal(v, &i); err != nil {
-		return zero, err
+	if err = d.Unmarshal(b, &v); err != nil {
+		return v, err
 	}
-	return i, nil
+	return v, nil
 }
 
 // DecodeValue ...
@@ -170,7 +169,7 @@ func DecodeValuePtr[T any](
 
 // DecodeObject ...
 func DecodeObject[T Object](
-	f func() T,
+	newFn func() T,
 ) func(d Decoder) (T, error) {
 	return func(d Decoder) (T, error) {
 		var zero T
@@ -179,7 +178,7 @@ func DecodeObject[T Object](
 			_, _, _ = d.ReadToken()
 			return zero, nil
 		case '{':
-			v := f()
+			v := newFn()
 			if err := v.DecodeJSON(d); err != nil {
 				return zero, err
 			}
@@ -192,7 +191,7 @@ func DecodeObject[T Object](
 
 // DecodeArray ...
 func DecodeArray[T any](
-	f func(d Decoder) (T, error),
+	parseFn func(d Decoder) (T, error),
 ) func(d Decoder) ([]T, error) {
 	return func(d Decoder) ([]T, error) {
 		switch d.PeekKind() {
@@ -208,7 +207,7 @@ func DecodeArray[T any](
 				if d.PeekKind() == ']' {
 					break
 				}
-				i, err := f(d)
+				i, err := parseFn(d)
 				if err != nil {
 					return nil, err
 				}
@@ -227,7 +226,7 @@ func DecodeArray[T any](
 // DecodeMap ...
 func DecodeMap[K comparable, V any](
 	parseKeyFn func(d Decoder) (K, error),
-	parseValueFn func(d Decoder) (V, error),
+	parseValFn func(d Decoder) (V, error),
 ) func(d Decoder) (map[K]V, error) {
 	return func(d Decoder) (map[K]V, error) {
 		switch d.PeekKind() {
@@ -247,7 +246,7 @@ func DecodeMap[K comparable, V any](
 				if err != nil {
 					return nil, err
 				}
-				val, err := parseValueFn(d)
+				val, err := parseValFn(d)
 				if err != nil {
 					return nil, err
 				}
@@ -258,7 +257,7 @@ func DecodeMap[K comparable, V any](
 			}
 			return m, nil
 		default:
-			return nil, errutil.Explain(nil, "invalid JSON: expected object or map")
+			return nil, errutil.Explain(nil, "invalid JSON: expected map")
 		}
 	}
 }
