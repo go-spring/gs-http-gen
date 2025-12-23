@@ -97,7 +97,7 @@ type ErrorListener struct {
 }
 
 // SyntaxError is called by ANTLR when a syntax error is encountered.
-func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, e antlr.RecognitionException) {
+func (l *ErrorListener) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, _ antlr.RecognitionException) {
 	var text string
 	for l.scanner.Scan() {
 		l.line++

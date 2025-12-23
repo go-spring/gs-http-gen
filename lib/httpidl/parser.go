@@ -223,8 +223,8 @@ func processTypes(p Project) error {
 				// do nothing ...
 
 			} else if t.InstType != nil { // generic type instance
-				srcType, ok := GetType(p.Files, t.InstType.BaseName)
-				if !ok {
+				srcType, _, index := FindType(p.Files, t.InstType.BaseName)
+				if index < 0 {
 					return errutil.Explain(nil, "type %s is used but not defined", t.InstType.BaseName)
 				}
 				var fields []TypeField
@@ -238,8 +238,8 @@ func processTypes(p Project) error {
 				var fields []TypeField
 				for _, f := range t.Fields {
 					if e, ok := f.Type.(EmbedType); ok {
-						srcType, ok := GetType(p.Files, e.Name)
-						if !ok {
+						srcType, _, index := FindType(p.Files, e.Name)
+						if index < 0 {
 							return errutil.Explain(nil, "type %s is used but not defined", e.Name)
 						}
 						fields = append(fields, srcType.Fields...)
@@ -321,9 +321,9 @@ func updateTypeValidate(files map[string]Document, t Type) (bool, error) {
 func updateUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
 	switch x := t.(type) {
 	case UserType:
-		srcType, ok := GetType(files, x.Name)
-		if !ok {
-			if _, ok = GetEnum(files, x.Name); !ok {
+		srcType, _, index := FindType(files, x.Name)
+		if index < 0 {
+			if _, _, index = FindEnum(files, x.Name); index < 0 {
 				return false, errutil.Explain(nil, "type %s is used but not defined", x.Name)
 			}
 			return false, nil
@@ -356,15 +356,15 @@ func processRPCPaths(p Project) error {
 				params[seg.Value] = ""
 			}
 
-			srcType, ok := GetType(p.Files, rpc.Request)
-			if !ok {
+			srcType, _, index := FindType(p.Files, rpc.Request)
+			if index < 0 {
 				return errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
 			}
 			for _, f := range srcType.Fields {
 				if f.Binding == nil || f.Binding.Source != "path" {
 					continue
 				}
-				if _, ok = params[f.Binding.Field]; !ok {
+				if _, ok := params[f.Binding.Field]; !ok {
 					err = errutil.Explain(nil, "path parameter %s not found in request type %s", f.Binding.Field, rpc.Request)
 					return err
 				}

@@ -60,18 +60,6 @@ func FindEnum(files map[string]Document, name string) (Enum, string, int) {
 	return Enum{}, "", -1
 }
 
-// GetEnum searches all documents for an enum type with the given name.
-func GetEnum(files map[string]Document, name string) (Enum, bool) {
-	for _, doc := range files {
-		if i, ok := doc.EnumTypes[name]; ok {
-			if e := doc.Enums[i]; !e.Extends {
-				return e, true
-			}
-		}
-	}
-	return Enum{}, false
-}
-
 // FindType searches all documents for a type with the given name.
 func FindType(files map[string]Document, name string) (Type, string, int) {
 	for fileName, doc := range files {
@@ -80,16 +68,6 @@ func FindType(files map[string]Document, name string) (Type, string, int) {
 		}
 	}
 	return Type{}, "", -1
-}
-
-// GetType searches all documents for a type with the given name.
-func GetType(files map[string]Document, name string) (Type, bool) {
-	for _, doc := range files {
-		if i, ok := doc.TypeTypes[name]; ok {
-			return doc.Types[i], true
-		}
-	}
-	return Type{}, false
 }
 
 // GetAnnotation searches through a slice of annotations and returns
