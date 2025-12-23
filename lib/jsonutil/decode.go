@@ -1,12 +1,7 @@
 package jsonutil
 
 import (
-	"encoding/base64"
-	"encoding/json/jsontext"
-	"encoding/json/v2"
 	"errors"
-	"math"
-	"strconv"
 
 	"github.com/lvan100/golib/errutil"
 )
@@ -53,71 +48,6 @@ type Decoder interface {
 	ReadToken() (token string, _ Kind, _ error)
 	ReadValue() (value []byte, _ error)
 	SkipValue() error
-}
-
-// JSONv2Decoder ...
-type JSONv2Decoder struct {
-	*jsontext.Decoder
-}
-
-// NewJSONv2Decoder ...
-func NewJSONv2Decoder(d *jsontext.Decoder) Decoder {
-	return &JSONv2Decoder{d}
-}
-
-// Unmarshal ...
-func (d *JSONv2Decoder) Unmarshal(b []byte, i any) error {
-	return json.Unmarshal(b, i)
-}
-
-// toKind ...
-func toKind(k jsontext.Kind) Kind {
-	switch k {
-	case 'n':
-		return 'n'
-	case 'f':
-		return 'f'
-	case 't':
-		return 't'
-	case '"':
-		return '"'
-	case '0':
-		return '0'
-	case '{':
-		return '{'
-	case '}':
-		return '}'
-	case '[':
-		return '['
-	case ']':
-		return ']'
-	default:
-		return InvalidKind
-	}
-}
-
-// PeekKind ...
-func (d *JSONv2Decoder) PeekKind() Kind {
-	return toKind(d.Decoder.PeekKind())
-}
-
-// ReadToken ...
-func (d *JSONv2Decoder) ReadToken() (string, Kind, error) {
-	token, err := d.Decoder.ReadToken()
-	if err != nil {
-		return "", 0, err
-	}
-	return token.String(), toKind(token.Kind()), nil
-}
-
-// ReadValue ...
-func (d *JSONv2Decoder) ReadValue() ([]byte, error) {
-	return d.Decoder.ReadValue()
-}
-
-// SkipValue ...
-func (d *JSONv2Decoder) SkipValue() error {
-	return d.Decoder.SkipValue()
 }
 
 var ErrNull = errors.New("null")
@@ -187,210 +117,18 @@ func DecodeKey(d Decoder) (string, error) {
 	return key, nil
 }
 
-//////////////////////////////////// parse ////////////////////////////////////
-
-// ParseBool ...
-func ParseBool(s string, k Kind) (bool, error) {
-	if k != 'f' && k != 't' {
-		return false, errutil.Explain(nil, "invalid JSON: expected boolean")
-	}
-	return strconv.ParseBool(s)
-}
-
-// OverflowInt ...
-func OverflowInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v int64) bool {
-	var z T
-	switch any(z).(type) {
-	case int:
-		return v > math.MaxInt || v < math.MinInt
-	case int8:
-		return v > math.MaxInt8 || v < math.MinInt8
-	case int16:
-		return v > math.MaxInt16 || v < math.MinInt16
-	case int32:
-		return v > math.MaxInt32 || v < math.MinInt32
-	case int64:
-		return v > math.MaxInt64 || v < math.MinInt64
-	}
-	return false
-}
-
-// ParseInt ...
-func ParseInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
-	if k != '0' {
-		return 0, errutil.Explain(nil, "invalid JSON: expected number")
-	}
-	v, err := strconv.ParseInt(s, 10, 64)
+// DecodeAny ...
+func DecodeAny[T any](d Decoder) (T, error) {
+	var zero T
+	v, err := d.ReadValue()
 	if err != nil {
-		return 0, err
+		return zero, err
 	}
-	if OverflowInt[T](v) {
-		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
+	var i T
+	if err = d.Unmarshal(v, &i); err != nil {
+		return zero, err
 	}
-	return T(v), nil
-}
-
-// ParseIntKey ...
-func ParseIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
-	v, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	if OverflowInt[T](v) {
-		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
-	}
-	return T(v), nil
-}
-
-// OverflowUint ...
-func OverflowUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](v uint64) bool {
-	var z T
-	switch any(z).(type) {
-	case uint:
-		return v > math.MaxUint
-	case uint8:
-		return v > math.MaxUint8
-	case uint16:
-		return v > math.MaxUint16
-	case uint32:
-		return v > math.MaxUint32
-	}
-	return false
-}
-
-// ParseUint ...
-func ParseUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
-	if k != '0' {
-		return 0, errutil.Explain(nil, "invalid JSON: expected number")
-	}
-	v, err := strconv.ParseUint(s, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	if OverflowUint[T](v) {
-		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
-	}
-	return T(v), nil
-}
-
-// ParseUintKey ...
-func ParseUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
-	v, err := strconv.ParseUint(s, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	if OverflowUint[T](v) {
-		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
-	}
-	return T(v), nil
-}
-
-// OverflowFloat ...
-func OverflowFloat[T ~float32 | ~float64](v float64) bool {
-	var z T
-	switch any(z).(type) {
-	case float32:
-		return v > math.MaxFloat32 || v < -math.MaxFloat32
-	}
-	return false
-}
-
-// ParseFloat ...
-func ParseFloat[T ~float32 | ~float64](s string, k Kind) (T, error) {
-	if k != '0' {
-		return 0, errutil.Explain(nil, "invalid JSON: expected number")
-	}
-	f, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return 0, err
-	}
-	if OverflowFloat[T](f) {
-		return 0, errutil.Explain(nil, "invalid JSON: number out of range")
-	}
-	return T(f), nil
-}
-
-// ParseString ...
-func ParseString(s string, k Kind) (string, error) {
-	if k != '"' {
-		return "", errutil.Explain(nil, "invalid JSON: expected string")
-	}
-	return s, nil
-}
-
-// ParseBytes ...
-func ParseBytes(s string, k Kind) ([]byte, error) {
-	if k != '"' {
-		return nil, errutil.Explain(nil, "invalid JSON: expected string")
-	}
-	return base64.StdEncoding.DecodeString(s)
-}
-
-//////////////////////////////////// decode ////////////////////////////////////
-
-// DecodeBool ...
-func DecodeBool(d Decoder) (bool, error) {
-	return DecodeValue(ParseBool)(d)
-}
-
-// DecodeBoolPtr ...
-func DecodeBoolPtr(d Decoder) (*bool, error) {
-	return DecodeValuePtr(ParseBool)(d)
-}
-
-// DecodeInt ...
-func DecodeInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
-	return DecodeValue(ParseInt[T])(d)
-}
-
-// DecodeIntPtr ...
-func DecodeIntPtr[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (*T, error) {
-	return DecodeValuePtr(ParseInt[T])(d)
-}
-
-// DecodeIntKey ...
-func DecodeIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
-	return DecodeValue(ParseIntKey[T])(d)
-}
-
-// DecodeUint ...
-func DecodeUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (T, error) {
-	return DecodeValue(ParseUint[T])(d)
-}
-
-// DecodeUintPtr ...
-func DecodeUintPtr[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (*T, error) {
-	return DecodeValuePtr(ParseUint[T])(d)
-}
-
-// DecodeUintKey ...
-func DecodeUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (T, error) {
-	return DecodeValue(ParseUintKey[T])(d)
-}
-
-// DecodeFloat ...
-func DecodeFloat[T ~float32 | ~float64](d Decoder) (T, error) {
-	return DecodeValue(ParseFloat[T])(d)
-}
-
-// DecodeFloatPtr ...
-func DecodeFloatPtr[T ~float32 | ~float64](d Decoder) (*T, error) {
-	return DecodeValuePtr(ParseFloat[T])(d)
-}
-
-// DecodeString ...
-func DecodeString(d Decoder) (string, error) {
-	return DecodeValue(ParseString)(d)
-}
-
-// DecodeStringPtr ...
-func DecodeStringPtr(d Decoder) (*string, error) {
-	return DecodeValuePtr(ParseString)(d)
-}
-
-// DecodeBytes ...
-func DecodeBytes(d Decoder) ([]byte, error) {
-	return DecodeValue(ParseBytes)(d)
+	return i, nil
 }
 
 // DecodeValue ...
@@ -523,18 +261,4 @@ func DecodeMap[K comparable, V any](
 			return nil, errutil.Explain(nil, "invalid JSON: expected object or map")
 		}
 	}
-}
-
-// DecodeAny ...
-func DecodeAny[T any](d Decoder) (T, error) {
-	var zero T
-	v, err := d.ReadValue()
-	if err != nil {
-		return zero, err
-	}
-	var i T
-	if err = d.Unmarshal(v, &i); err != nil {
-		return zero, err
-	}
-	return i, nil
 }
