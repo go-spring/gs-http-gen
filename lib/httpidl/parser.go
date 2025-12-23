@@ -192,6 +192,7 @@ func mergeErrcode(p Project) error {
 	files := ordered.MapKeys(p.Files)
 	for _, file := range files {
 		doc := p.Files[file]
+
 		for _, e := range doc.Enums {
 			if !e.Extends {
 				continue
@@ -204,20 +205,24 @@ func mergeErrcode(p Project) error {
 				field.ExtendsFrom = &s
 				t.Fields = append(t.Fields, field)
 			}
-			p.Files[s].Enums[index] = t
+			p.Files[s].Enums[index] = t // update
 		}
+
+		p.Files[file] = doc // update
 	}
 	return nil
 }
 
 // processTypes processes the types in the project.
 func processTypes(p Project) error {
-	for _, doc := range p.Files {
+	for file, doc := range p.Files {
 		for i := range doc.Types {
 			t := doc.Types[i]
+
 			t.Fields = t.RawFields
 			if t.GenericParam != nil { // generic type, need instance
 				// do nothing ...
+
 			} else if t.InstType != nil { // generic type instance
 				srcType, ok := GetType(p.Files, t.InstType.BaseName)
 				if !ok {
@@ -229,6 +234,7 @@ func processTypes(p Project) error {
 					fields = append(fields, f)
 				}
 				t.Fields = fields
+
 			} else if t.Embedded {
 				var fields []TypeField
 				for _, f := range t.Fields {
@@ -252,6 +258,7 @@ func processTypes(p Project) error {
 			}
 			doc.Types[i] = t // update
 		}
+		p.Files[file] = doc // update
 	}
 	return nil
 }
@@ -306,7 +313,7 @@ func checkTypeValidate(files map[string]Document, t Type) (bool, error) {
 			t.Validate = true
 		}
 	}
-	fileName, index := FindType(files, t.Name)
+	_, fileName, index := FindType(files, t.Name)
 	files[fileName].Types[index] = t // update
 	return t.Validate, nil
 }
@@ -334,20 +341,22 @@ func checkUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, e
 
 // processRPCPaths processes the paths in the project.
 func processRPCPaths(p Project) error {
-	for _, doc := range p.Files {
+	for file, doc := range p.Files {
 		for i := range doc.RPCs {
 			rpc := doc.RPCs[i]
+
+			params := make(map[string]string)
 			segments, err := pathidl.Parse(rpc.Path)
 			if err != nil {
 				return errutil.Explain(err, `failed to parse path %s`, rpc.Path)
 			}
-			params := make(map[string]string)
 			for _, seg := range segments {
 				if seg.Type == pathidl.Static {
 					continue
 				}
 				params[seg.Value] = ""
 			}
+
 			srcType, ok := GetType(p.Files, rpc.Request)
 			if !ok {
 				return errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
@@ -362,16 +371,19 @@ func processRPCPaths(p Project) error {
 				}
 				params[f.Binding.Field] = f.Name
 			}
+
 			for k, s := range params {
 				if s == "" {
 					err = errutil.Explain(nil, "path parameter %s not found in request type %s", k, rpc.Request)
 					return err
 				}
 			}
+
 			rpc.PathSegments = segments
 			rpc.PathParams = params
-			doc.RPCs[i] = rpc
+			doc.RPCs[i] = rpc // update
 		}
+		p.Files[file] = doc // update
 	}
 	return nil
 }
