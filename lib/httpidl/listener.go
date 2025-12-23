@@ -708,7 +708,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 
 	r.Path = strings.Trim(*path.Value, `"`)
 	r.Method = strings.ToUpper(strings.Trim(*method.Value, `"`))
-	r.ContentType = contentType
+	r.ContentType = strings.ToLower(contentType)
 
 	r.ConnTimeout, err = strconv.Atoi(strings.Trim(*connTimeout.Value, `"`))
 	if err != nil || r.ConnTimeout < 0 {
