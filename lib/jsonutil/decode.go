@@ -53,12 +53,12 @@ type Decoder interface {
 	SkipValue() error
 }
 
-// Object ...
+// Object 实现流式解析接口的对象，一般是结构体指针类型
 type Object interface {
 	DecodeJSON(d Decoder) error
 }
 
-// DecodeObjectBegin ...
+// DecodeObjectBegin 必须读取一个 '{'
 func DecodeObjectBegin(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -70,7 +70,7 @@ func DecodeObjectBegin(d Decoder) error {
 	return nil
 }
 
-// DecodeObjectEnd ...
+// DecodeObjectEnd 必须读取一个 '}'
 func DecodeObjectEnd(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -82,7 +82,7 @@ func DecodeObjectEnd(d Decoder) error {
 	return nil
 }
 
-// DecodeArrayBegin ...
+// DecodeArrayBegin 必须读取一个 '['
 func DecodeArrayBegin(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -94,7 +94,7 @@ func DecodeArrayBegin(d Decoder) error {
 	return nil
 }
 
-// DecodeArrayEnd ...
+// DecodeArrayEnd 必须读取一个 ']'
 func DecodeArrayEnd(d Decoder) error {
 	_, tokenKind, err := d.ReadToken()
 	if err != nil {
@@ -106,7 +106,7 @@ func DecodeArrayEnd(d Decoder) error {
 	return nil
 }
 
-// DecodeAny ...
+// DecodeAny 通过 Unmarshal 进行解析
 func DecodeAny[T any](d Decoder) (T, error) {
 	var v T
 	b, err := d.ReadValue()
@@ -119,7 +119,7 @@ func DecodeAny[T any](d Decoder) (T, error) {
 	return v, nil
 }
 
-// DecodeValue ...
+// DecodeValue 解析一个基础值，如 int，string 等，不能是结构体。
 func DecodeValue[T any](
 	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (T, error) {
@@ -140,7 +140,7 @@ func DecodeValue[T any](
 	}
 }
 
-// DecodeValuePtr ...
+// DecodeValuePtr 解析一个基础值的指针，如 *int，*string 等，不能是结构体。
 func DecodeValuePtr[T any](
 	parseFn func(string, Kind) (T, error),
 ) func(d Decoder) (*T, error) {
@@ -164,7 +164,7 @@ func DecodeValuePtr[T any](
 	}
 }
 
-// DecodeObject 根据 Object 的定义，zero 一定是指针。
+// DecodeObject 解析结构体指针对象，要求实现 Object 接口。
 func DecodeObject[T Object](
 	newFn func() T,
 ) func(d Decoder) (T, error) {
@@ -186,7 +186,7 @@ func DecodeObject[T Object](
 	}
 }
 
-// DecodeArray ...
+// DecodeArray 读取一个数组，返回数组和错误。
 func DecodeArray[T any](
 	parseFn func(d Decoder) (T, error),
 ) func(d Decoder) ([]T, error) {
@@ -220,7 +220,7 @@ func DecodeArray[T any](
 	}
 }
 
-// DecodeMap ...
+// DecodeMap 读取一个 map，返回 map 和错误。
 func DecodeMap[K comparable, V any](
 	parseKeyFn func(d Decoder) (K, error),
 	parseValFn func(d Decoder) (V, error),
