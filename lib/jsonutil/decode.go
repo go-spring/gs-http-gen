@@ -137,9 +137,13 @@ func DecodeValue[T any](
 		}
 		switch tokenKind {
 		case 'n':
-			return zero, errutil.Explain(err, "invalid JSON: expected value")
+			return zero, errutil.Explain(nil, "invalid JSON: unexpected null")
 		case 'f', 't', '0', '"':
-			return parseFn(token, tokenKind)
+			v, err := parseFn(token, tokenKind)
+			if err != nil {
+				return zero, err
+			}
+			return v, nil
 		default:
 			return zero, errutil.Explain(err, "invalid JSON: expected value")
 		}
