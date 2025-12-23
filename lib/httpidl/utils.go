@@ -21,15 +21,15 @@ import (
 	"strings"
 )
 
-// IsPascal checks whether a string is in PascalCase.
-// A string is considered PascalCase if its first character is an uppercase ASCII letter.
+// IsPascal reports whether a string starts with an uppercase ASCII letter.
+// It does not validate full PascalCase formatting.
 func IsPascal(name string) bool {
 	return name[0] >= 'A' && name[0] <= 'Z'
 }
 
-// ToPascal converts a snake_case string to PascalCase.
-// For example, "hello_world" becomes "HelloWorld".
-// Empty parts (e.g., "__") are ignored.
+// ToPascal converts a snake_case identifier into a Pascal-style identifier
+// by capitalizing the first letter of each underscore-separated segment.
+// It does not normalize the case of the remaining characters.
 func ToPascal(s string) string {
 	var sb strings.Builder
 	for part := range strings.SplitSeq(s, "_") {
@@ -48,14 +48,15 @@ func ToPascal(s string) string {
 	return sb.String()
 }
 
-// EnumRef contains meta information about an enum type.
+// EnumRef represents a resolved enum definition and its location.
 type EnumRef struct {
 	Type  Enum
 	File  string
 	Index int
 }
 
-// FindEnum searches all documents for an enum type with the given name.
+// FindEnum searches all documents for a non-extended enum type
+// with the given name and returns its definition and location.
 func FindEnum(files map[string]Document, name string) (EnumRef, bool) {
 	for file, doc := range files {
 		if i, ok := doc.EnumTypes[name]; ok {
@@ -67,7 +68,7 @@ func FindEnum(files map[string]Document, name string) (EnumRef, bool) {
 	return EnumRef{}, false
 }
 
-// TypeRef contains meta information about a type.
+// TypeRef represents a resolved type definition and its location.
 type TypeRef struct {
 	Type  Type
 	File  string
