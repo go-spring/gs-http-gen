@@ -196,15 +196,15 @@ func mergeErrcode(p Project) error {
 			if !e.Extends {
 				continue
 			}
-			t, s, index := FindEnum(p.Files, e.Name)
-			if index < 0 {
+			t, ok := FindEnum(p.Files, e.Name)
+			if !ok {
 				return errutil.Explain(nil, "enum %s is used but not defined", e.Name)
 			}
 			for _, field := range e.Fields {
-				field.ExtendsFrom = &s
-				t.Fields = append(t.Fields, field)
+				field.ExtendsFrom = &t.File
+				t.Type.Fields = append(t.Type.Fields, field)
 			}
-			p.Files[s].Enums[index] = t // update
+			p.Files[t.File].Enums[t.Index] = t.Type // update
 		}
 
 		p.Files[file] = doc // update
@@ -223,13 +223,13 @@ func processTypes(p Project) error {
 				// do nothing ...
 
 			} else if t.InstType != nil { // generic type instance
-				srcType, _, index := FindType(p.Files, t.InstType.BaseName)
-				if index < 0 {
+				srcType, ok := FindType(p.Files, t.InstType.BaseName)
+				if !ok {
 					return errutil.Explain(nil, "type %s is used but not defined", t.InstType.BaseName)
 				}
 				var fields []TypeField
-				for _, f := range srcType.Fields {
-					f.Type = replaceGenericType(f.Type, *srcType.GenericParam, t.InstType.GenericType)
+				for _, f := range srcType.Type.Fields {
+					f.Type = replaceGenericType(f.Type, *srcType.Type.GenericParam, t.InstType.GenericType)
 					fields = append(fields, f)
 				}
 				t.Fields = fields
@@ -238,11 +238,11 @@ func processTypes(p Project) error {
 				var fields []TypeField
 				for _, f := range t.Fields {
 					if e, ok := f.Type.(EmbedType); ok {
-						srcType, _, index := FindType(p.Files, e.Name)
-						if index < 0 {
+						srcType, ok := FindType(p.Files, e.Name)
+						if !ok {
 							return errutil.Explain(nil, "type %s is used but not defined", e.Name)
 						}
-						fields = append(fields, srcType.Fields...)
+						fields = append(fields, srcType.Type.Fields...)
 					} else {
 						fields = append(fields, f)
 					}
@@ -312,8 +312,8 @@ func updateTypeValidate(files map[string]Document, t Type) (bool, error) {
 			t.Validate = true
 		}
 	}
-	_, fileName, index := FindType(files, t.Name)
-	files[fileName].Types[index] = t // update
+	s, _ := FindType(files, t.Name)
+	files[s.File].Types[s.Index] = t // update
 	return t.Validate, nil
 }
 
@@ -321,14 +321,14 @@ func updateTypeValidate(files map[string]Document, t Type) (bool, error) {
 func updateUserTypeValidate(files map[string]Document, t TypeDefinition) (bool, error) {
 	switch x := t.(type) {
 	case UserType:
-		srcType, _, index := FindType(files, x.Name)
-		if index < 0 {
-			if _, _, index = FindEnum(files, x.Name); index < 0 {
+		s, ok := FindType(files, x.Name)
+		if !ok {
+			if _, ok = FindEnum(files, x.Name); !ok {
 				return false, errutil.Explain(nil, "type %s is used but not defined", x.Name)
 			}
 			return false, nil
 		}
-		return updateTypeValidate(files, srcType)
+		return updateTypeValidate(files, s.Type)
 	case ListType:
 		return updateUserTypeValidate(files, x.Item)
 	case MapType:
@@ -356,11 +356,11 @@ func processRPCPaths(p Project) error {
 				params[seg.Value] = ""
 			}
 
-			srcType, _, index := FindType(p.Files, rpc.Request)
-			if index < 0 {
+			srcType, ok := FindType(p.Files, rpc.Request)
+			if !ok {
 				return errutil.Explain(nil, "type %s is used but not defined", rpc.Request)
 			}
-			for _, f := range srcType.Fields {
+			for _, f := range srcType.Type.Fields {
 				if f.Binding == nil || f.Binding.Source != "path" {
 					continue
 				}

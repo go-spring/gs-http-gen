@@ -48,26 +48,41 @@ func ToPascal(s string) string {
 	return sb.String()
 }
 
+// EnumMeta contains meta information about an enum type.
+type EnumMeta struct {
+	Type  Enum
+	File  string
+	Index int
+}
+
 // FindEnum searches all documents for an enum type with the given name.
-func FindEnum(files map[string]Document, name string) (Enum, string, int) {
-	for fileName, doc := range files {
+func FindEnum(files map[string]Document, name string) (EnumMeta, bool) {
+	for file, doc := range files {
 		if i, ok := doc.EnumTypes[name]; ok {
 			if e := doc.Enums[i]; !e.Extends {
-				return e, fileName, i
+				return EnumMeta{Type: e, File: file, Index: i}, true
 			}
 		}
 	}
-	return Enum{}, "", -1
+	return EnumMeta{}, false
+}
+
+// TypeMeta contains meta information about a type.
+type TypeMeta struct {
+	Type  Type
+	File  string
+	Index int
 }
 
 // FindType searches all documents for a type with the given name.
-func FindType(files map[string]Document, name string) (Type, string, int) {
-	for fileName, doc := range files {
+func FindType(files map[string]Document, name string) (TypeMeta, bool) {
+	for file, doc := range files {
 		if i, ok := doc.TypeTypes[name]; ok {
-			return doc.Types[i], fileName, i
+			t := doc.Types[i]
+			return TypeMeta{Type: t, File: file, Index: i}, true
 		}
 	}
-	return Type{}, "", -1
+	return TypeMeta{}, false
 }
 
 // GetAnnotation searches through a slice of annotations and returns

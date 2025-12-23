@@ -152,7 +152,7 @@ func Convert(dir string) (GoSpec, error) {
 						return GoSpec{}, err
 					}
 				case httpidl.UserType:
-					if _, _, index := httpidl.FindEnum(spec.Files, typ.Name); index > 0 {
+					if _, ok = httpidl.FindEnum(spec.Files, typ.Name); ok {
 						response = typ.Name
 					} else {
 						response = "*" + typ.Name
@@ -337,11 +337,11 @@ func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
 		return "*" + s, nil
 	case httpidl.UserType:
 		typeName := typ.Name
-		_, _, index := httpidl.FindEnum(spec.Files, typeName)
+		_, isEnumType := httpidl.FindEnum(spec.Files, typeName)
 		if f.EnumAsString {
 			typeName += "AsString"
 		}
-		if index > 0 && f.Required {
+		if isEnumType && f.Required {
 			return typeName, nil
 		}
 		return "*" + typeName, nil
@@ -356,7 +356,7 @@ func goTypeDef(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 	case httpidl.BaseType:
 		return goBaseType(typ.Name)
 	case httpidl.UserType:
-		if _, _, index := httpidl.FindEnum(spec.Files, typ.Name); index > 0 {
+		if _, ok := httpidl.FindEnum(spec.Files, typ.Name); ok {
 			return typ.Name, nil
 		}
 		return "*" + typ.Name, nil
@@ -445,7 +445,7 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 		return append([]TypeKind{TypeKindMap, keyType[0]}, itemType...), typeName, nil
 	default:
 		strType, asString := strings.CutSuffix(typeName, "AsString")
-		if _, _, index := httpidl.FindEnum(spec.Files, strType); index > 0 {
+		if _, ok := httpidl.FindEnum(spec.Files, strType); ok {
 			if asString {
 				if pointer {
 					return []TypeKind{TypeKindEnumAsStringPtr}, typeName, nil
@@ -457,7 +457,7 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
 			}
 			return []TypeKind{TypeKindEnum}, typeName, nil
 		}
-		if _, _, index := httpidl.FindType(spec.Files, typeName); index > 0 {
+		if _, ok := httpidl.FindType(spec.Files, typeName); ok {
 			if pointer {
 				return []TypeKind{TypeKindStructPtr}, typeName, nil
 			}
