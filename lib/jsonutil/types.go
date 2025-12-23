@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/lvan100/golib/errutil"
-	"golang.org/x/exp/constraints"
 )
 
 // ParseBool ...
@@ -28,7 +27,7 @@ func DecodeBoolPtr(d Decoder) (*bool, error) {
 }
 
 // OverflowInt ...
-func OverflowInt[T constraints.Signed](v int64) bool {
+func OverflowInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](v int64) bool {
 	var z T
 	switch any(z).(type) {
 	case int:
@@ -46,7 +45,7 @@ func OverflowInt[T constraints.Signed](v int64) bool {
 }
 
 // ParseInt ...
-func ParseInt[T constraints.Signed](s string, k Kind) (T, error) {
+func ParseInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
@@ -61,17 +60,17 @@ func ParseInt[T constraints.Signed](s string, k Kind) (T, error) {
 }
 
 // DecodeInt ...
-func DecodeInt[T constraints.Signed](d Decoder) (T, error) {
+func DecodeInt[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
 	return DecodeValue(ParseInt[T])(d)
 }
 
 // DecodeIntPtr ...
-func DecodeIntPtr[T constraints.Signed](d Decoder) (*T, error) {
+func DecodeIntPtr[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseInt[T])(d)
 }
 
 // ParseIntKey ...
-func ParseIntKey[T constraints.Signed](s string, k Kind) (T, error) {
+func ParseIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](s string, k Kind) (T, error) {
 	v, err := strconv.ParseInt(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -83,12 +82,12 @@ func ParseIntKey[T constraints.Signed](s string, k Kind) (T, error) {
 }
 
 // DecodeIntKey ...
-func DecodeIntKey[T constraints.Signed](d Decoder) (T, error) {
+func DecodeIntKey[T ~int | ~int8 | ~int16 | ~int32 | ~int64](d Decoder) (T, error) {
 	return DecodeValue(ParseIntKey[T])(d)
 }
 
 // OverflowUint ...
-func OverflowUint[T constraints.Unsigned](v uint64) bool {
+func OverflowUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](v uint64) bool {
 	var z T
 	switch any(z).(type) {
 	case uint:
@@ -104,7 +103,7 @@ func OverflowUint[T constraints.Unsigned](v uint64) bool {
 }
 
 // ParseUint ...
-func ParseUint[T constraints.Unsigned](s string, k Kind) (T, error) {
+func ParseUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
@@ -119,17 +118,17 @@ func ParseUint[T constraints.Unsigned](s string, k Kind) (T, error) {
 }
 
 // DecodeUint ...
-func DecodeUint[T constraints.Unsigned](d Decoder) (T, error) {
+func DecodeUint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (T, error) {
 	return DecodeValue(ParseUint[T])(d)
 }
 
 // DecodeUintPtr ...
-func DecodeUintPtr[T constraints.Unsigned](d Decoder) (*T, error) {
+func DecodeUintPtr[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseUint[T])(d)
 }
 
 // ParseUintKey ...
-func ParseUintKey[T constraints.Unsigned](s string, k Kind) (T, error) {
+func ParseUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](s string, k Kind) (T, error) {
 	v, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		return 0, err
@@ -141,12 +140,12 @@ func ParseUintKey[T constraints.Unsigned](s string, k Kind) (T, error) {
 }
 
 // DecodeUintKey ...
-func DecodeUintKey[T constraints.Unsigned](d Decoder) (T, error) {
+func DecodeUintKey[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64](d Decoder) (T, error) {
 	return DecodeValue(ParseUintKey[T])(d)
 }
 
 // OverflowFloat ...
-func OverflowFloat[T constraints.Float](v float64) bool {
+func OverflowFloat[T ~float32 | ~float64](v float64) bool {
 	var z T
 	switch any(z).(type) {
 	case float32:
@@ -156,7 +155,7 @@ func OverflowFloat[T constraints.Float](v float64) bool {
 }
 
 // ParseFloat ...
-func ParseFloat[T constraints.Float](s string, k Kind) (T, error) {
+func ParseFloat[T ~float32 | ~float64](s string, k Kind) (T, error) {
 	if k != '0' {
 		return 0, errutil.Explain(nil, "invalid JSON: expected number")
 	}
@@ -171,12 +170,12 @@ func ParseFloat[T constraints.Float](s string, k Kind) (T, error) {
 }
 
 // DecodeFloat ...
-func DecodeFloat[T constraints.Float](d Decoder) (T, error) {
+func DecodeFloat[T ~float32 | ~float64](d Decoder) (T, error) {
 	return DecodeValue(ParseFloat[T])(d)
 }
 
 // DecodeFloatPtr ...
-func DecodeFloatPtr[T constraints.Float](d Decoder) (*T, error) {
+func DecodeFloatPtr[T ~float32 | ~float64](d Decoder) (*T, error) {
 	return DecodeValuePtr(ParseFloat[T])(d)
 }
 
