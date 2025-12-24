@@ -112,13 +112,9 @@ type Enum struct {
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
-
-	// ExtendsFrom File name of the enum definition this field is
-	// inherited from.
-	ExtendsFrom *string
-
 	Name         string       // Name of the enum field
 	Value        int64        // Integer value assigned to the enum field
+	ExtendsFrom  *string      // File name of the field is inherited from
 	ErrorMessage *string      // Error message (only for error-code enums)
 	Annotations  []Annotation // Attached annotations
 	Position     Position     // Location in the source file

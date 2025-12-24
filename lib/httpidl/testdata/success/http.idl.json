@@ -136,9 +136,9 @@
       "Kind": 2,
       "Fields": [
         {
-          "ExtendsFrom": null,
           "Name": "ErrOk",
           "Value": 0,
+          "ExtendsFrom": null,
           "ErrorMessage": null,
           "Annotations": null,
           "Position": {
@@ -151,9 +151,9 @@
           }
         },
         {
-          "ExtendsFrom": null,
           "Name": "PARAM_ERROR",
           "Value": 1003,
+          "ExtendsFrom": null,
           "ErrorMessage": "param error",
           "Annotations": [
             {
@@ -204,9 +204,9 @@
       "Kind": 3,
       "Fields": [
         {
-          "ExtendsFrom": null,
           "Name": "PANIC_ERROR",
           "Value": 1005,
+          "ExtendsFrom": null,
           "ErrorMessage": "panic error",
           "Annotations": [
             {
@@ -246,9 +246,9 @@
       "Kind": 1,
       "Fields": [
         {
-          "ExtendsFrom": null,
           "Name": "User",
           "Value": 1,
+          "ExtendsFrom": null,
           "ErrorMessage": null,
           "Annotations": null,
           "Position": {
@@ -261,9 +261,9 @@
           }
         },
         {
-          "ExtendsFrom": null,
           "Name": "Address",
           "Value": 2,
+          "ExtendsFrom": null,
           "ErrorMessage": null,
           "Annotations": null,
           "Position": {
