@@ -840,7 +840,7 @@ func (g *Generator) genType(config *generator.Config, fileName string, spec GoSp
 		"Structs": spec.Types[fileName],
 	})
 	if err != nil {
-		return errutil.Explain(nil, "execute template error: %w", err)
+		return errutil.Explain(nil, "execute type template error: %w", err)
 	}
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
 	fileName = filepath.Join(config.OutputDir, fileName)

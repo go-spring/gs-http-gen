@@ -119,9 +119,8 @@ func (g *Generator) genServer(config *generator.Config, spec GoSpec) error {
 		"RPCs":    spec.RPCs,
 	})
 	if err != nil {
-		return errutil.Explain(nil, "execute template error: %w", err)
+		return errutil.Explain(nil, "execute server template error: %w", err)
 	}
-	fileName := spec.Meta.Name + "_http.go"
-	fileName = filepath.Join(config.OutputDir, fileName)
+	fileName := filepath.Join(config.OutputDir, "server.go")
 	return formatFile(fileName, buf.Bytes())
 }
