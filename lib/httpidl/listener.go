@@ -85,16 +85,37 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 	if e.Error != nil {
 		return Document{}, nil, e.Error
 	}
-	if err = checkNames(doc); err != nil {
+
+	// check document names
+	nameSet := make(map[string]struct{})
+	if err = checkNames(doc, nameSet); err != nil {
 		return Document{}, nil, err
 	}
+
 	return l.Document, l.Funcs, nil
 }
 
-// checkNames checks the validity of all names in the document.
-func checkNames(doc Document) error {
+// checkNames checks if there are duplicate names in the document.
+func checkNames(doc Document, nameSet map[string]struct{}) error {
+	for _, c := range doc.Consts {
+		if _, ok := nameSet[c.Name]; ok {
+			return errutil.Explain(nil, "duplicate const name %s in line %d", c.Name, c.Position.StartLine)
+		}
+		nameSet[c.Name] = struct{}{}
+	}
+	for _, e := range doc.Enums {
+		if _, ok := nameSet[e.Name]; ok {
+			return errutil.Explain(nil, "duplicate enum name %s in line %d", e.Name, e.Position.StartLine)
+		}
+		nameSet[e.Name] = struct{}{}
+	}
+	for _, t := range doc.Types {
+		if _, ok := nameSet[t.Name]; ok {
+			return errutil.Explain(nil, "duplicate type name %s in line %d", t.Name, t.Position.StartLine)
+		}
+		nameSet[t.Name] = struct{}{}
+	}
 	return nil
-
 }
 
 // ErrorListener implements a custom ANTLR error listener.

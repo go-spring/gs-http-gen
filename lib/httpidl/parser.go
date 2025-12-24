@@ -61,6 +61,13 @@ func ParseDir(dir string) (Project, error) {
 		return Project{}, err
 	}
 
+	nameSet := make(map[string]struct{})
+	for _, doc := range p.Files {
+		if err = checkNames(doc, nameSet); err != nil {
+			return Project{}, err
+		}
+	}
+
 	// Validate that all used types are defined
 	if err = checkUserTypes(p); err != nil {
 		return Project{}, err
@@ -201,7 +208,7 @@ func mergeErrcode(p Project) error {
 				return errutil.Explain(nil, "enum %s is used but not defined", e.Name)
 			}
 			for _, field := range e.Fields {
-				field.ExtendsFrom = &t.File
+				field.ExtendsFrom = &file
 				t.Type.Fields = append(t.Type.Fields, field)
 			}
 			p.Files[t.File].Enums[t.Index] = t.Type // update
