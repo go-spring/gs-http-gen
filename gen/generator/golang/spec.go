@@ -71,9 +71,39 @@ type Type struct {
 type TypeField struct {
 	httpidl.TypeField
 	Name     string
-	Type     string // for field
+	Type     string
 	TypeKind []TypeKind
-	FieldTag string
+}
+
+// FieldTag returns the field tag
+func (x *TypeField) FieldTag() string {
+	var tags []string
+
+	// JSON tag
+	{
+		var sb strings.Builder
+		sb.WriteString(`json:"`)
+		sb.WriteString(x.JSONTag.Name)
+		if x.JSONTag.OmitEmpty {
+			sb.WriteString(",omitempty")
+		}
+		sb.WriteString(`"`)
+		tags = append(tags, sb.String())
+	}
+
+	if x.Binding == nil {
+		s := fmt.Sprintf(`form:"%s"`, x.FormTag.Name)
+		tags = append(tags, s)
+	} else {
+		s := fmt.Sprintf(`%s:"%s"`, x.Binding.Source, x.Binding.Field)
+		tags = append(tags, s)
+	}
+
+	if x.Required {
+		tags = append(tags, `validate:"required"`)
+	}
+
+	return "`" + strings.Join(tags, " ") + "`"
 }
 
 // IsPointer returns true if the field is a pointer
@@ -284,7 +314,6 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 			Type:      typeName,
 			TypeKind:  typeKind,
 		}
-		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
 	}
 	return r, nil
@@ -462,36 +491,4 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, error) {
 		}
 		return nil, errutil.Explain(nil, "unknown type: %s", typeName)
 	}
-}
-
-// genFieldTag generates the struct tag for a Go struct field.
-// It includes JSON tags and optional binding tags (path, query).
-func genFieldTag(f TypeField) string {
-	var tags []string
-
-	// JSON tag
-	{
-		var sb strings.Builder
-		sb.WriteString(`json:"`)
-		sb.WriteString(f.JSONTag.Name)
-		if f.JSONTag.OmitEmpty {
-			sb.WriteString(",omitempty")
-		}
-		sb.WriteString(`"`)
-		tags = append(tags, sb.String())
-	}
-
-	if f.Binding == nil {
-		s := fmt.Sprintf(`form:"%s"`, f.FormTag.Name)
-		tags = append(tags, s)
-	} else {
-		s := fmt.Sprintf(`%s:"%s"`, f.Binding.Source, f.Binding.Field)
-		tags = append(tags, s)
-	}
-
-	if f.Required {
-		tags = append(tags, `validate:"required"`)
-	}
-
-	return "`" + strings.Join(tags, " ") + "`"
 }
