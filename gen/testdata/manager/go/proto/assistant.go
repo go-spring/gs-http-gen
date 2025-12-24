@@ -96,7 +96,7 @@ func (r *AssistantReq) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -158,7 +158,7 @@ func (r *AssistantReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -248,7 +248,7 @@ func (r *Item) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -307,7 +307,7 @@ func (r *AssistantResp) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -375,7 +375,7 @@ func (r *Payload) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -437,7 +437,7 @@ func (r *Payload_1) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -478,7 +478,7 @@ func (r *Payload_2) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -519,7 +519,7 @@ func (r *Payload_3) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}

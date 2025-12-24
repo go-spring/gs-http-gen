@@ -253,7 +253,7 @@ func (r *PageReq) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -319,7 +319,7 @@ func (r *Address) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -386,7 +386,7 @@ func (r *ContactInfo) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -458,7 +458,7 @@ func (r *DepartmentInfo) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -554,7 +554,7 @@ func (r *Manager) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -680,7 +680,7 @@ func (r *ManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -750,7 +750,7 @@ func (r *ManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -808,7 +808,7 @@ func (r *CreateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -884,7 +884,7 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -987,7 +987,7 @@ func (r *UpdateManagerReq) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1074,7 +1074,7 @@ func (r *UpdateManagerReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1185,7 +1185,7 @@ func (r *ListManagersByPageReq) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1381,7 +1381,7 @@ func (r *ListManagersByPageReqBody) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1448,7 +1448,7 @@ func (r *CreateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1520,7 +1520,7 @@ func (r *UpdateManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1592,7 +1592,7 @@ func (r *GetManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1664,7 +1664,7 @@ func (r *DeleteManagerResp) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1736,7 +1736,7 @@ func (r *ManagersPageData) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}
@@ -1803,7 +1803,7 @@ func (r *ListManagersByPageResp) DecodeJSON(d jsonutil.Decoder) error {
 		if d.PeekKind() == '}' {
 			break
 		}
-		key, err := jsonutil.DecodeKey(d)
+		key, err := jsonutil.DecodeString(d)
 		if err != nil {
 			return err
 		}

@@ -242,6 +242,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 			}
 			s := strings.TrimSpace(strings.Trim(*errmsg.Value, `"`))
 			enumField.ErrorMessage = &s
+			e.Error = true
 		}
 
 		e.Fields = append(e.Fields, enumField)

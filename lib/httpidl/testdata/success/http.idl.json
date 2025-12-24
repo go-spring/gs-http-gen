@@ -135,6 +135,7 @@
       "Extends": true,
       "Name": "ErrCode",
       "OneOf": false,
+      "Error": true,
       "Fields": [
         {
           "ExtendsFrom": null,
@@ -204,6 +205,7 @@
       "Extends": false,
       "Name": "PayloadType",
       "OneOf": true,
+      "Error": false,
       "Fields": [
         {
           "ExtendsFrom": null,

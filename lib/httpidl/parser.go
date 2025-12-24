@@ -207,9 +207,26 @@ func mergeErrcode(p Project) error {
 			if !ok {
 				return errutil.Explain(nil, "enum %s is used but not defined", e.Name)
 			}
+			if !t.Type.Error {
+				return errutil.Explain(nil, "enum %s is extended but not error code", e.Name)
+			}
+			nameSet := make(map[string]struct{})
+			valueSet := make(map[int64]struct{})
+			for _, field := range t.Type.Fields {
+				nameSet[field.Name] = struct{}{}
+				valueSet[field.Value] = struct{}{}
+			}
 			for _, field := range e.Fields {
+				if _, ok = nameSet[field.Name]; ok {
+					return errutil.Explain(nil, "enum %s has duplicate field %s", e.Name, field.Name)
+				}
+				if _, ok = valueSet[field.Value]; ok {
+					return errutil.Explain(nil, "enum %s has duplicate value %d", e.Name, field.Value)
+				}
 				field.ExtendsFrom = &file
 				t.Type.Fields = append(t.Type.Fields, field)
+				nameSet[field.Name] = struct{}{}
+				valueSet[field.Value] = struct{}{}
 			}
 			p.Files[t.File].Enums[t.Index] = t.Type // update
 		}

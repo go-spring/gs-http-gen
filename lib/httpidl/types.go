@@ -101,6 +101,7 @@ type Enum struct {
 
 	Name     string      // Name of the enum
 	OneOf    bool        // Whether this enum is derived from a oneof type
+	Error    bool        // Whether this enum is an error-code enum
 	Fields   []EnumField // List of fields
 	Position Position    // Location in the source file
 	Comments Comments    // Associated comments

@@ -576,7 +576,7 @@ var _ = strconv.FormatInt
 			if d.PeekKind() == '}' {
 				break
 			}
-			key, err := jsonutil.DecodeKey(d)
+			key, err := jsonutil.DecodeString(d)
 			if err != nil {
 				return err
 			}
@@ -727,7 +727,7 @@ var _ = strconv.FormatInt
 				if d.PeekKind() == '}' {
 					break
 				}
-				key, err := jsonutil.DecodeKey(d)
+				key, err := jsonutil.DecodeString(d)
 				if err != nil {
 					return err
 				}
