@@ -542,7 +542,7 @@ func (l *ParseTreeListener) collectValidateFuncs(fieldType string, expr validate
 		l.collectValidateFuncs(fieldType, x.Left)
 		l.collectValidateFuncs(fieldType, x.Right)
 	case *validate.FuncCall:
-		if _, ok := builtinFuncs[x.Name]; !ok {
+		if _, ok := BuiltinFuncs[x.Name]; !ok {
 			if v, ok := l.Funcs[x.Name]; !ok {
 				l.Funcs[x.Name] = ValidateFunc{
 					FuncName:  x.Name,
