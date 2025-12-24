@@ -236,7 +236,10 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 				Above: l.aboveComment(f.GetStart()),
 				Right: l.rightComment(f.GetStop()),
 			},
-			Annotations: l.parseFieldAnnotations(f.Field_annotations()),
+		}
+
+		if f.Field_annotations() != nil {
+			parseAnnotations(f.Field_annotations().AllAnnotation())
 		}
 
 		// Error message
@@ -386,7 +389,10 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	typeField.Type = l.parseValueType(f.Value_type(), t)
 	typeField.Name = f.IDENTIFIER().GetText()
 	typeField.Required = f.KW_REQUIRED() != nil
-	typeField.Annotations = l.parseFieldAnnotations(f.Field_annotations())
+
+	if f.Field_annotations() != nil {
+		typeField.Annotations = parseAnnotations(f.Field_annotations().AllAnnotation())
+	}
 
 	_, typeField.Deprecated = FindAnnotation(typeField.Annotations, "deprecated")
 	_, typeField.EnumAsString = FindAnnotation(typeField.Annotations, "enum_as_string")
@@ -503,14 +509,11 @@ func (l *ParseTreeListener) parseCommonTypeField(f ICommon_type_fieldContext, ty
 	}
 }
 
-// parseFieldAnnotations parses field annotations.
-func (l *ParseTreeListener) parseFieldAnnotations(ctx IField_annotationsContext) []Annotation {
-	if ctx == nil {
-		return nil
-	}
+// parseAnnotations parses field annotations.
+func parseAnnotations(arr []IAnnotationContext) []Annotation {
 	var result []Annotation
 	keySet := map[string]struct{}{}
-	for _, aCtx := range ctx.AllAnnotation() {
+	for _, aCtx := range arr {
 		key := aCtx.IDENTIFIER().GetText()
 		if _, ok := keySet[key]; ok {
 			panic(errutil.Explain(nil, "duplicated annotation %s in line %d", key, aCtx.GetStart().GetLine()))
