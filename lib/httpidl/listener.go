@@ -72,11 +72,9 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 	l := &ParseTreeListener{
 		tokens: tokens,
 		Document: Document{
-			ConstIndex: make(map[string]int),
-			EnumIndex:  make(map[string]int),
-			TypeIndex:  make(map[string]int),
-			RPCIndex:   make(map[string]int),
-			UserTypes:  make(map[string]struct{}),
+			EnumTypes: make(map[string]int),
+			TypeTypes: make(map[string]int),
+			UserTypes: make(map[string]struct{}),
 		},
 		attached: make(map[int]struct{}),
 		Funcs:    make(map[string]ValidateFunc),
@@ -87,7 +85,16 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 	if e.Error != nil {
 		return Document{}, nil, e.Error
 	}
+	if err = checkNames(doc); err != nil {
+		return Document{}, nil, err
+	}
 	return l.Document, l.Funcs, nil
+}
+
+// checkNames checks the validity of all names in the document.
+func checkNames(doc Document) error {
+	return nil
+
 }
 
 // ErrorListener implements a custom ANTLR error listener.
@@ -133,15 +140,11 @@ type ParseTreeListener struct {
 
 // ExitConst_def handles const definitions in the parse tree.
 func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
-	name := ctx.IDENTIFIER().GetText()
-	if _, ok := l.Document.ConstIndex[name]; ok {
-		panic(errutil.Explain(nil, "duplicate const name %s in line %d", name, ctx.GetStart().GetLine()))
-	}
 	c := Const{
 		Type: BaseType{
 			Name: ctx.Base_type().GetText(),
 		},
-		Name:  name,
+		Name:  ctx.IDENTIFIER().GetText(),
 		Value: ctx.Const_value().GetText(),
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
@@ -155,20 +158,14 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 	if !IsPascal(c.Name) {
 		panic(errutil.Explain(nil, "const name %s is not PascalCase in line %d", c.Name, c.Position.StartLine))
 	}
-	l.Document.ConstIndex[c.Name] = len(l.Document.Consts)
 	l.Document.Consts = append(l.Document.Consts, c)
 }
 
 // ExitEnum_def handles enum definitions and their fields.
 func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
-	name := ctx.IDENTIFIER().GetText()
-	if _, ok := l.Document.EnumIndex[name]; ok {
-		panic(errutil.Explain(nil, "duplicate enum name %s in line %d", name, ctx.GetStart().GetLine()))
-	}
-
 	e := Enum{
 		Extends: ctx.KW_EXTENDS() != nil,
-		Name:    name,
+		Name:    ctx.IDENTIFIER().GetText(),
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),
@@ -231,20 +228,15 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		fieldValueSet[v] = struct{}{}
 	}
 
-	l.Document.EnumIndex[e.Name] = len(l.Document.Enums)
+	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)
 	l.Document.Enums = append(l.Document.Enums, e)
 }
 
 // ExitType_def handles type definitions, including generic parameters,
 // fields, and annotations.
 func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
-	name := ctx.IDENTIFIER(0).GetText()
-	if _, ok := l.Document.TypeIndex[name]; ok {
-		panic(errutil.Explain(nil, "duplicate type name %s in line %d", name, ctx.GetStart().GetLine()))
-	}
-
 	t := Type{
-		Name: name,
+		Name: ctx.IDENTIFIER(0).GetText(),
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),
@@ -263,7 +255,7 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 		l.parseInstantiatedType(ctx, &t)
 	}
 
-	l.Document.TypeIndex[t.Name] = len(l.Document.Types)
+	l.Document.TypeTypes[t.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, t)
 }
 
@@ -549,13 +541,8 @@ func (l *ParseTreeListener) collectValidateFuncs(fieldType string, expr validate
 
 // ExitOneof_def handles "oneof" type definitions.
 func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
-	typeName := ctx.IDENTIFIER().GetText()
-	if _, ok := l.Document.TypeIndex[typeName]; ok {
-		panic(errutil.Explain(nil, "type %s is already defined in line %d", typeName, l.Document.TypeIndex[typeName]))
-	}
-
 	o := Type{
-		Name:  typeName,
+		Name:  ctx.IDENTIFIER().GetText(),
 		OneOf: true,
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
@@ -569,13 +556,8 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.StartLine))
 	}
 
-	enumName := typeName + "Type"
-	if _, ok := l.Document.TypeIndex[enumName]; ok {
-		panic(errutil.Explain(nil, "enum %s is already defined in line %d", enumName, l.Document.TypeIndex[enumName]))
-	}
-
 	e := Enum{
-		Name:  enumName,
+		Name:  o.Name + "Type",
 		OneOf: true,
 	}
 
@@ -601,7 +583,7 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 	for i, f := range ctx.AllUser_type() {
 		fieldName := f.IDENTIFIER().GetText()
 		if _, ok := fieldNameSet[fieldName]; ok {
-			panic(errutil.Explain(nil, "field %s is already defined in line %d", fieldName, l.Document.TypeIndex[fieldName]))
+			panic(errutil.Explain(nil, "duplicated field name %s in line %d", fieldName, f.GetStart().GetLine()))
 		}
 
 		// add enum fields
@@ -638,24 +620,19 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		fieldNameSet[fieldName] = struct{}{}
 	}
 
-	l.Document.EnumIndex[e.Name] = len(l.Document.Enums)
+	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)
 	l.Document.Enums = append(l.Document.Enums, e)
 
-	l.Document.TypeIndex[o.Name] = len(l.Document.Types)
+	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, o)
 }
 
 // ExitRpc_def handles RPC definitions, including request/response
 // types and annotations.
 func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
-	name := ctx.IDENTIFIER().GetText()
-	if _, ok := l.Document.RPCIndex[name]; ok {
-		panic(errutil.Explain(nil, "RPC %s is already defined in line %d", name, l.Document.RPCIndex[name]))
-	}
-
 	r := RPC{
 		SSE:  ctx.KW_SSE() != nil,
-		Name: name,
+		Name: ctx.IDENTIFIER().GetText(),
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),

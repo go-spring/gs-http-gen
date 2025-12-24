@@ -170,10 +170,10 @@ func checkUserTypes(p Project) error {
 	userTypes := map[string]struct{}{}
 	definedTypes := make(map[string]struct{})
 	for _, doc := range p.Files {
-		for k := range doc.EnumIndex {
+		for k := range doc.EnumTypes {
 			definedTypes[k] = struct{}{}
 		}
-		for k := range doc.TypeIndex {
+		for k := range doc.TypeTypes {
 			definedTypes[k] = struct{}{}
 		}
 		maps.Copy(userTypes, doc.UserTypes)

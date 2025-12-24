@@ -69,11 +69,9 @@ type Document struct {
 	Types    []Type    // Type definitions (structs, generics, instantiations, etc.)
 	RPCs     []RPC     // Function definitions (HTTP request/response RPCs)
 
-	ConstIndex map[string]int      // Lookup: const name → index in Consts
-	EnumIndex  map[string]int      // Lookup: enum name → index in Enums
-	TypeIndex  map[string]int      // Lookup: type name → index in Types
-	RPCIndex   map[string]int      // Lookup: RPC name → index in RPCs
-	UserTypes  map[string]struct{} // User-defined types referenced in this file
+	EnumTypes map[string]int      // Lookup: enum name → index in Enums
+	TypeTypes map[string]int      // Lookup: type name → index in Types
+	UserTypes map[string]struct{} // User-defined types referenced in this file
 }
 
 // Annotation represents a key-value metadata entry attached to a type,
