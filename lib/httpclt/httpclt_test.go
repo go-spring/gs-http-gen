@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package httputil_test
+package httpclt_test
 
 import (
 	"context"
@@ -29,13 +29,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/httpclt"
 	"github.com/lvan100/golib/testing/assert"
 )
 
 func init() {
-	httputil.DefaultClient = &LogHTTPClient{
-		HTTPClient: httputil.DefaultClient,
+	httpclt.DefaultClient = &LogHTTPClient{
+		HTTPClient: httpclt.DefaultClient,
 	}
 }
 
@@ -46,11 +46,11 @@ func ptr[T any](v T) *T {
 
 // LogHTTPClient is a HTTPClient implementation that logs all requests and responses.
 type LogHTTPClient struct {
-	httputil.HTTPClient
+	httpclt.HTTPClient
 }
 
 // JSON executes the given HTTP request using the provided Client.
-func (c *LogHTTPClient) JSON(req *http.Request, meta httputil.RequestMeta) (*http.Response, []byte, error) {
+func (c *LogHTTPClient) JSON(req *http.Request, meta httpclt.RequestMeta) (*http.Response, []byte, error) {
 	fmt.Printf("%#v\n", meta)
 	return c.HTTPClient.JSON(req, meta)
 }
@@ -157,7 +157,7 @@ type HelloResponse struct {
 }
 
 // Hello sends a GET request to the /v1/hello endpoint with the given request body.
-func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...httputil.RequestOption) (*http.Response, *HelloResponse, error) {
+func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...httpclt.RequestOption) (*http.Response, *HelloResponse, error) {
 
 	path := "/v1/hello"
 	if s, err := req.QueryString(); err != nil {
@@ -173,10 +173,10 @@ func (c *HelloClient) Hello(ctx context.Context, req *HelloRequest, opts ...http
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Set("Accept", "application/json")
 
-	opts = append(opts, httputil.WithTarget(c.ServiceName))
-	opts = append(opts, httputil.WithPath("/v1/hello"))
-	opts = append(opts, httputil.WithSchema("http"))
-	return httputil.JSONResponse[*HelloResponse](r, opts...)
+	opts = append(opts, httpclt.WithTarget(c.ServiceName))
+	opts = append(opts, httpclt.WithPath("/v1/hello"))
+	opts = append(opts, httpclt.WithSchema("http"))
+	return httpclt.JSONResponse[*HelloResponse](r, opts...)
 }
 
 func TestHello(t *testing.T) {
@@ -235,7 +235,7 @@ func TestHello(t *testing.T) {
 				Text: "message",
 			},
 		},
-	}, httputil.WithHeader(h))
+	}, httpclt.WithHeader(h))
 	assert.Error(t, err).Nil()
 	assert.That(t, data).Equal(&HelloResponse{Message: "hello world"})
 

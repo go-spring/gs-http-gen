@@ -18,17 +18,12 @@ package golang
 
 import (
 	"bytes"
-	"embed"
-	"os"
 	"path/filepath"
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/lvan100/golib/errutil"
 )
-
-//go:embed proto
-var protoDir embed.FS
 
 // serverTmpl for generating the HTTP server wrapper based on RPC definitions.
 var serverTmpl = template.Must(template.New("server").
@@ -91,29 +86,8 @@ func Routers(server {{.Service}}Server) []Router {
 // genServer generates the HTTP handler and router initialization code
 // for the given service context and RPC definitions.
 func (g *Generator) genServer(config *generator.Config, spec GoSpec) error {
-
-	// Copy proto template files to output directory
-	entries, err := protoDir.ReadDir("proto")
-	if err != nil {
-		return errutil.Explain(nil, "read proto directory error: %w", err)
-	}
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		b, err := protoDir.ReadFile(filepath.Join("proto", e.Name()))
-		if err != nil {
-			return errutil.Explain(nil, "read proto file %s error: %w", e.Name(), err)
-		}
-		b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(config.GoPackage))
-		fileName := filepath.Join(config.OutputDir, e.Name())
-		if err = os.WriteFile(fileName, b, os.ModePerm); err != nil {
-			return errutil.Explain(nil, "write proto file %s error: %w", fileName, err)
-		}
-	}
-
 	buf := &bytes.Buffer{}
-	err = serverTmpl.Execute(buf, map[string]any{
+	err := serverTmpl.Execute(buf, map[string]any{
 		"Package": config.GoPackage,
 		"Service": spec.Meta.Name,
 		"RPCs":    spec.RPCs,

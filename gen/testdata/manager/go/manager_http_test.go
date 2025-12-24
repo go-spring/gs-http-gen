@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
-	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/httpclt"
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
 )
 
@@ -97,8 +97,8 @@ var _ proto.ManagerServer = (*MyManagerServer)(nil)
 func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
 	return &proto.GetManagerResp{
 		Data: &proto.Manager{
-			Name:  httputil.Ptr("Jim"),
-			Level: httputil.Ptr(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
+			Name:  httpclt.Ptr("Jim"),
+			Level: httpclt.Ptr(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
 		},
 	}
 }
@@ -123,10 +123,10 @@ func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq
 	for i := 0; i < 5; i++ {
 		event := proto.NewSSEEvent[*proto.AssistantResp]().ID(strconv.Itoa(i)).Event("message").Data(
 			&proto.AssistantResp{
-				Id: httputil.Ptr(strconv.Itoa(i)),
-				Payload: httputil.Ptr(proto.Payload{
+				Id: httpclt.Ptr(strconv.Itoa(i)),
+				Payload: httpclt.Ptr(proto.Payload{
 					FieldType: proto.PayloadTypeAsString(proto.PayloadType_Payload_1),
-					Payload1:  httputil.Ptr(proto.Payload_1{}),
+					Payload1:  httpclt.Ptr(proto.Payload_1{}),
 				}),
 				Image: []byte("000111222333444555666777888999000"),
 			})
