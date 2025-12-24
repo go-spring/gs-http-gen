@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
 	"github.com/go-spring/gs-http-gen/lib/httpclt"
+	"github.com/go-spring/gs-http-gen/lib/httpsvr"
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
 )
 
@@ -119,9 +120,9 @@ func (m *MyManagerServer) ListManagersByPage(ctx context.Context, req *proto.Lis
 	return nil
 }
 
-func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[*proto.AssistantResp]) {
+func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *httpsvr.SSEEvent[*proto.AssistantResp]) {
 	for i := 0; i < 5; i++ {
-		event := proto.NewSSEEvent[*proto.AssistantResp]().ID(strconv.Itoa(i)).Event("message").Data(
+		event := httpsvr.NewSSEEvent[*proto.AssistantResp]().ID(strconv.Itoa(i)).Event("message").Data(
 			&proto.AssistantResp{
 				Id: httpclt.Ptr(strconv.Itoa(i)),
 				Payload: httpclt.Ptr(proto.Payload{
@@ -135,9 +136,9 @@ func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq
 	}
 }
 
-func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[string]) {
+func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantReq, resp chan<- *httpsvr.SSEEvent[string]) {
 	for i := 0; i < 5; i++ {
-		resp <- proto.NewSSEEvent[string]().ID(strconv.Itoa(i)).Data("123456")
+		resp <- httpsvr.NewSSEEvent[string]().ID(strconv.Itoa(i)).Data("123456")
 		time.Sleep(time.Second)
 	}
 }

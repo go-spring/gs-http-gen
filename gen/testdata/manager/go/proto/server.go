@@ -5,14 +5,16 @@ package proto
 import (
 	"context"
 	"net/http"
+
+	"github.com/go-spring/gs-http-gen/lib/httpsvr"
 )
 
 // ManagerServer defines the interface that service must implement.
 type ManagerServer interface {
 	// Assistant ...
-	Assistant(context.Context, *AssistantReq, chan<- *SSEEvent[*AssistantResp])
+	Assistant(context.Context, *AssistantReq, chan<- *httpsvr.SSEEvent[*AssistantResp])
 	// AssistantV2 ...
-	AssistantV2(context.Context, *AssistantReq, chan<- *SSEEvent[string])
+	AssistantV2(context.Context, *AssistantReq, chan<- *httpsvr.SSEEvent[string])
 	// Create a new manager
 	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
 	// Delete a manager
@@ -39,7 +41,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/assistant",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &AssistantReq{}
-				HandleStream(w, r, req, server.Assistant)
+				httpsvr.HandleStream(w, r, req, server.Assistant)
 			},
 		},
 		{
@@ -47,7 +49,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/assistantV2",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &AssistantReq{}
-				HandleStream(w, r, req, server.AssistantV2)
+				httpsvr.HandleStream(w, r, req, server.AssistantV2)
 			},
 		},
 		{
@@ -55,7 +57,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/managers",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &CreateManagerReq{}
-				HandleJSON(w, r, req, server.CreateManager)
+				httpsvr.HandleJSON(w, r, req, server.CreateManager)
 			},
 		},
 		{
@@ -63,7 +65,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &ManagerReq{}
-				HandleJSON(w, r, req, server.DeleteManager)
+				httpsvr.HandleJSON(w, r, req, server.DeleteManager)
 			},
 		},
 		{
@@ -71,7 +73,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &ManagerReq{}
-				HandleJSON(w, r, req, server.GetManager)
+				httpsvr.HandleJSON(w, r, req, server.GetManager)
 			},
 		},
 		{
@@ -79,7 +81,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/managers/page",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &ListManagersByPageReq{}
-				HandleJSON(w, r, req, server.ListManagersByPage)
+				httpsvr.HandleJSON(w, r, req, server.ListManagersByPage)
 			},
 		},
 		{
@@ -87,7 +89,7 @@ func Routers(server ManagerServer) []Router {
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				req := &UpdateManagerReq{}
-				HandleJSON(w, r, req, server.UpdateManager)
+				httpsvr.HandleJSON(w, r, req, server.UpdateManager)
 			},
 		},
 	}

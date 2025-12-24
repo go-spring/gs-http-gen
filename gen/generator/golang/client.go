@@ -42,7 +42,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/httpclt"
 	"github.com/go-spring/gs-mock/gsmock"
 )
 
@@ -59,7 +59,7 @@ type Client struct {
 		{{- if $r.Comments.Exists }}
 			{{formatComments $r.Comments}}
 		{{- end}}
-	func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httputil.RequestOption) (*http.Response, {{$r.Response}}, error) {
+	func (c *Client) {{$r.Name}}(ctx context.Context, req *{{$r.Request}}, opts ...httpclt.RequestOption) (*http.Response, {{$r.Response}}, error) {
 		if ret, ok := gsmock.InvokeContext(ctx, clientType, "{{$r.Name}}", ctx, req, opts); ok {
 			return gsmock.Unbox3[*http.Response, {{$r.Response}}, error](ret)
 		}
@@ -92,11 +92,11 @@ type Client struct {
 	
 		r.Header.Set("Content-Type", "{{$r.ContentType}}")
 	
-		opts = append(opts, httputil.WithTarget(c.Target))
-		opts = append(opts, httputil.WithPath("{{$r.Path}}"))
-		opts = append(opts, httputil.WithSchema("http"))
+		opts = append(opts, httpclt.WithTarget(c.Target))
+		opts = append(opts, httpclt.WithPath("{{$r.Path}}"))
+		opts = append(opts, httpclt.WithSchema("http"))
 	
-		return httputil.JSONResponse[{{$r.Response}}](r, opts...)
+		return httpclt.JSONResponse[{{$r.Response}}](r, opts...)
 	}
 	{{- end}}
 {{end}}

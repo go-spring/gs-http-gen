@@ -37,6 +37,8 @@ package {{.Package}}
 import (
 	"context"
 	"net/http"
+
+	"github.com/go-spring/gs-http-gen/lib/httpsvr"
 )
 
 // {{.Service}}Server defines the interface that service must implement.
@@ -46,7 +48,7 @@ type {{.Service}}Server interface {
 			{{formatComments $r.Comments}}
 		{{- end}}
 		{{- if $r.SSE}}
-			{{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[{{$r.Response}}])
+			{{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *httpsvr.SSEEvent[{{$r.Response}}])
 		{{- else}}
 			{{$r.Name}}(context.Context, *{{$r.Request}}) {{$r.Response}}
 		{{- end}}
@@ -69,12 +71,12 @@ func Routers(server {{.Service}}Server) []Router {
 				{{- if $r.SSE}}
 					Handler: func(w http.ResponseWriter, r *http.Request) {
 						req := &{{$r.Request}}{}
-						HandleStream(w, r, req, server.{{$r.Name}})
+						httpsvr.HandleStream(w, r, req, server.{{$r.Name}})
 					},
 				{{- else}}
 					Handler: func(w http.ResponseWriter, r *http.Request) {
-							req := &{{$r.Request}}{}
-							HandleJSON(w, r, req, server.{{$r.Name}})
+						req := &{{$r.Request}}{}
+						httpsvr.HandleJSON(w, r, req, server.{{$r.Name}})
 					},
 				{{- end}}
 			},

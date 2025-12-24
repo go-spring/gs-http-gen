@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/httpclt"
 	"github.com/go-spring/gs-mock/gsmock"
 )
 
@@ -23,7 +23,7 @@ type Client struct {
 }
 
 // Create a new manager
-func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts ...httputil.RequestOption) (*http.Response, *CreateManagerResp, error) {
+func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts ...httpclt.RequestOption) (*http.Response, *CreateManagerResp, error) {
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "CreateManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *CreateManagerResp, error](ret)
 	}
@@ -47,15 +47,15 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 
 	r.Header.Set("Content-Type", "application/json")
 
-	opts = append(opts, httputil.WithTarget(c.Target))
-	opts = append(opts, httputil.WithPath("/managers"))
-	opts = append(opts, httputil.WithSchema("http"))
+	opts = append(opts, httpclt.WithTarget(c.Target))
+	opts = append(opts, httpclt.WithPath("/managers"))
+	opts = append(opts, httpclt.WithSchema("http"))
 
-	return httputil.JSONResponse[*CreateManagerResp](r, opts...)
+	return httpclt.JSONResponse[*CreateManagerResp](r, opts...)
 }
 
 // Delete a manager
-func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *DeleteManagerResp, error) {
+func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...httpclt.RequestOption) (*http.Response, *DeleteManagerResp, error) {
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "DeleteManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *DeleteManagerResp, error](ret)
 	}
@@ -81,15 +81,15 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	opts = append(opts, httputil.WithTarget(c.Target))
-	opts = append(opts, httputil.WithPath("/managers/{id}"))
-	opts = append(opts, httputil.WithSchema("http"))
+	opts = append(opts, httpclt.WithTarget(c.Target))
+	opts = append(opts, httpclt.WithPath("/managers/{id}"))
+	opts = append(opts, httpclt.WithSchema("http"))
 
-	return httputil.JSONResponse[*DeleteManagerResp](r, opts...)
+	return httpclt.JSONResponse[*DeleteManagerResp](r, opts...)
 }
 
 // Get manager by ID
-func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httputil.RequestOption) (*http.Response, *GetManagerResp, error) {
+func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httpclt.RequestOption) (*http.Response, *GetManagerResp, error) {
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "GetManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *GetManagerResp, error](ret)
 	}
@@ -115,15 +115,15 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httput
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	opts = append(opts, httputil.WithTarget(c.Target))
-	opts = append(opts, httputil.WithPath("/managers/{id}"))
-	opts = append(opts, httputil.WithSchema("http"))
+	opts = append(opts, httpclt.WithTarget(c.Target))
+	opts = append(opts, httpclt.WithPath("/managers/{id}"))
+	opts = append(opts, httpclt.WithSchema("http"))
 
-	return httputil.JSONResponse[*GetManagerResp](r, opts...)
+	return httpclt.JSONResponse[*GetManagerResp](r, opts...)
 }
 
 // List managers with pagination
-func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPageReq, opts ...httputil.RequestOption) (*http.Response, *ListManagersByPageResp, error) {
+func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPageReq, opts ...httpclt.RequestOption) (*http.Response, *ListManagersByPageResp, error) {
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "ListManagersByPage", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, *ListManagersByPageResp, error](ret)
 	}
@@ -149,15 +149,15 @@ func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPage
 
 	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	opts = append(opts, httputil.WithTarget(c.Target))
-	opts = append(opts, httputil.WithPath("/managers/page"))
-	opts = append(opts, httputil.WithSchema("http"))
+	opts = append(opts, httpclt.WithTarget(c.Target))
+	opts = append(opts, httpclt.WithPath("/managers/page"))
+	opts = append(opts, httpclt.WithSchema("http"))
 
-	return httputil.JSONResponse[*ListManagersByPageResp](r, opts...)
+	return httpclt.JSONResponse[*ListManagersByPageResp](r, opts...)
 }
 
 // Update manager info
-func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httputil.RequestOption) (*http.Response, map[string]any, error) {
+func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httpclt.RequestOption) (*http.Response, map[string]any, error) {
 	if ret, ok := gsmock.InvokeContext(ctx, clientType, "UpdateManager", ctx, req, opts); ok {
 		return gsmock.Unbox3[*http.Response, map[string]any, error](ret)
 	}
@@ -181,9 +181,9 @@ func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts 
 
 	r.Header.Set("Content-Type", "application/json")
 
-	opts = append(opts, httputil.WithTarget(c.Target))
-	opts = append(opts, httputil.WithPath("/managers/{id}"))
-	opts = append(opts, httputil.WithSchema("http"))
+	opts = append(opts, httpclt.WithTarget(c.Target))
+	opts = append(opts, httpclt.WithPath("/managers/{id}"))
+	opts = append(opts, httpclt.WithSchema("http"))
 
-	return httputil.JSONResponse[map[string]any](r, opts...)
+	return httpclt.JSONResponse[map[string]any](r, opts...)
 }
