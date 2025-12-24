@@ -134,8 +134,7 @@
     {
       "Extends": true,
       "Name": "ErrCode",
-      "OneOf": false,
-      "Error": true,
+      "Kind": 2,
       "Fields": [
         {
           "ExtendsFrom": null,
@@ -204,8 +203,7 @@
     {
       "Extends": false,
       "Name": "PayloadType",
-      "OneOf": true,
-      "Error": false,
+      "Kind": 1,
       "Fields": [
         {
           "ExtendsFrom": null,

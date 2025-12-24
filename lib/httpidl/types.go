@@ -92,6 +92,14 @@ type Const struct {
 	Comments Comments // Associated comments
 }
 
+type EnumKind int
+
+const (
+	EnumKindNormal EnumKind = iota
+	EnumKindOneof
+	EnumKindError
+)
+
 // Enum represents an enum type definition.
 type Enum struct {
 
@@ -100,8 +108,7 @@ type Enum struct {
 	Extends bool
 
 	Name     string      // Name of the enum
-	OneOf    bool        // Whether this enum is derived from a oneof type
-	Error    bool        // Whether this enum is an error-code enum
+	Kind     EnumKind    // Enum kind
 	Fields   []EnumField // List of fields
 	Position Position    // Location in the source file
 	Comments Comments    // Associated comments

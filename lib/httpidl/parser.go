@@ -207,7 +207,7 @@ func mergeErrcode(p Project) error {
 			if !ok {
 				return errutil.Explain(nil, "enum %s is used but not defined", e.Name)
 			}
-			if !t.Type.Error {
+			if t.Type.Kind != EnumKindError {
 				return errutil.Explain(nil, "enum %s is extended but not error code", e.Name)
 			}
 			nameSet := make(map[string]struct{})

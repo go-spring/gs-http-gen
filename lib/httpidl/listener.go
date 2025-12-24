@@ -242,7 +242,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 			}
 			s := strings.TrimSpace(strings.Trim(*errmsg.Value, `"`))
 			enumField.ErrorMessage = &s
-			e.Error = true
+			e.Kind = EnumKindError
 		}
 
 		e.Fields = append(e.Fields, enumField)
@@ -579,8 +579,8 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 	}
 
 	e := Enum{
-		Name:  o.Name + "Type",
-		OneOf: true,
+		Name: o.Name + "Type",
+		Kind: EnumKindOneof,
 	}
 
 	o.RawFields = append(o.RawFields, TypeField{

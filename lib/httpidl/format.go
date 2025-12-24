@@ -86,7 +86,7 @@ func Format(doc Document) string {
 
 	// Collect enum declarations
 	for _, e := range doc.Enums {
-		if e.OneOf {
+		if e.Kind == EnumKindOneof {
 			continue
 		}
 		items = append(items, docItem{
