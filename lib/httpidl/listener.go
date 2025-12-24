@@ -72,9 +72,11 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 	l := &ParseTreeListener{
 		tokens: tokens,
 		Document: Document{
-			EnumIndex: make(map[string]int),
-			TypeIndex: make(map[string]int),
-			UserTypes: make(map[string]struct{}),
+			ConstIndex: make(map[string]int),
+			EnumIndex:  make(map[string]int),
+			TypeIndex:  make(map[string]int),
+			RPCIndex:   make(map[string]int),
+			UserTypes:  make(map[string]struct{}),
 		},
 		attached: make(map[int]struct{}),
 		Funcs:    make(map[string]ValidateFunc),
@@ -131,11 +133,15 @@ type ParseTreeListener struct {
 
 // ExitConst_def handles const definitions in the parse tree.
 func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
+	name := ctx.IDENTIFIER().GetText()
+	if _, ok := l.Document.ConstIndex[name]; ok {
+		panic(errutil.Explain(nil, "duplicate const name %s in line %d", name, ctx.GetStart().GetLine()))
+	}
 	c := Const{
 		Type: BaseType{
 			Name: ctx.Base_type().GetText(),
 		},
-		Name:  ctx.IDENTIFIER().GetText(),
+		Name:  name,
 		Value: ctx.Const_value().GetText(),
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
@@ -149,14 +155,20 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 	if !IsPascal(c.Name) {
 		panic(errutil.Explain(nil, "const name %s is not PascalCase in line %d", c.Name, c.Position.StartLine))
 	}
+	l.Document.ConstIndex[c.Name] = len(l.Document.Consts)
 	l.Document.Consts = append(l.Document.Consts, c)
 }
 
 // ExitEnum_def handles enum definitions and their fields.
 func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
+	name := ctx.IDENTIFIER().GetText()
+	if _, ok := l.Document.EnumIndex[name]; ok {
+		panic(errutil.Explain(nil, "duplicate enum name %s in line %d", name, ctx.GetStart().GetLine()))
+	}
+
 	e := Enum{
 		Extends: ctx.KW_EXTENDS() != nil,
-		Name:    ctx.IDENTIFIER().GetText(),
+		Name:    name,
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),
@@ -169,10 +181,16 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		panic(errutil.Explain(nil, "enum name %s is not PascalCase in line %d", e.Name, e.Position.StartLine))
 	}
 
+	fieldNameSet := make(map[string]struct{})
+	fieldValueSet := make(map[int64]struct{})
+
 	for _, f := range ctx.AllEnum_field() {
 		fieldName := f.IDENTIFIER().GetText()
 		if !IsPascal(fieldName) {
 			panic(errutil.Explain(nil, "enum field name %s is not PascalCase in line %d", fieldName, f.GetStart().GetLine()))
+		}
+		if _, ok := fieldNameSet[fieldName]; ok {
+			panic(errutil.Explain(nil, "duplicate enum field name %s in line %d", fieldName, f.GetStart().GetLine()))
 		}
 
 		// Parse and validate integer value
@@ -180,6 +198,9 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		v, err := strconv.ParseInt(fieldValue, 0, 64)
 		if err != nil {
 			panic(errutil.Explain(nil, "enum field value %s is not a valid integer in line %d", fieldValue, f.GetStart().GetLine()))
+		}
+		if _, ok := fieldValueSet[v]; ok {
+			panic(errutil.Explain(nil, "duplicate enum field value %d in line %d", v, f.GetStart().GetLine()))
 		}
 
 		enumField := EnumField{
@@ -206,6 +227,8 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		}
 
 		e.Fields = append(e.Fields, enumField)
+		fieldNameSet[fieldName] = struct{}{}
+		fieldValueSet[v] = struct{}{}
 	}
 
 	l.Document.EnumIndex[e.Name] = len(l.Document.Enums)
@@ -215,8 +238,13 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 // ExitType_def handles type definitions, including generic parameters,
 // fields, and annotations.
 func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
+	name := ctx.IDENTIFIER(0).GetText()
+	if _, ok := l.Document.TypeIndex[name]; ok {
+		panic(errutil.Explain(nil, "duplicate type name %s in line %d", name, ctx.GetStart().GetLine()))
+	}
+
 	t := Type{
-		Name: ctx.IDENTIFIER(0).GetText(),
+		Name: name,
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),
@@ -278,7 +306,7 @@ func (l *ParseTreeListener) parseValueType(ctx IValue_typeContext, t *Type) Type
 // parseInstantiatedType handles instantiated types.
 func (l *ParseTreeListener) parseInstantiatedType(ctx *Type_defContext, t *Type) {
 	t.InstType = &InstType{
-		BaseName: ctx.IDENTIFIER(1).GetText(),
+		BaseName: ctx.IDENTIFIER(1).GetText(), // todo user type?
 	}
 	if !IsPascal(t.InstType.BaseName) {
 		panic(errutil.Explain(nil, "type name %s is not PascalCase in line %d", t.InstType.BaseName, t.Position.StartLine))
@@ -296,6 +324,7 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 		t.GenericParam = &s
 	}
 
+	fieldNameSet := make(map[string]struct{})
 	for _, f := range ctx.AllType_field() {
 		typeField := TypeField{
 			Position: Position{
@@ -322,6 +351,10 @@ func (l *ParseTreeListener) parseCompleteType(ctx *Type_defContext, t *Type) {
 
 		} else if f.Common_type_field() != nil {
 			l.parseCommonTypeField(f.Common_type_field(), &typeField, t)
+			if _, ok := fieldNameSet[typeField.Name]; ok {
+				panic(errutil.Explain(nil, "duplicate field name %s in line %d", typeField.Name, typeField.Position.StartLine))
+			}
+			fieldNameSet[typeField.Name] = struct{}{}
 		}
 
 		t.RawFields = append(t.RawFields, typeField)
@@ -455,10 +488,15 @@ func (l *ParseTreeListener) parseFieldAnnotations(ctx IField_annotationsContext)
 	if ctx == nil {
 		return nil
 	}
-	var ret []Annotation
+	var result []Annotation
+	keySet := map[string]struct{}{}
 	for _, aCtx := range ctx.AllAnnotation() {
+		key := aCtx.IDENTIFIER().GetText()
+		if _, ok := keySet[key]; ok {
+			panic(errutil.Explain(nil, "duplicated annotation %s in line %d", key, aCtx.GetStart().GetLine()))
+		}
 		a := Annotation{
-			Key: aCtx.IDENTIFIER().GetText(),
+			Key: key,
 			Position: Position{
 				StartLine: aCtx.GetStart().GetLine(),
 				EndLine:   aCtx.GetStop().GetLine(),
@@ -468,9 +506,10 @@ func (l *ParseTreeListener) parseFieldAnnotations(ctx IField_annotationsContext)
 			s := aCtx.Const_value().GetText()
 			a.Value = &s
 		}
-		ret = append(ret, a)
+		result = append(result, a)
+		keySet[key] = struct{}{}
 	}
-	return ret
+	return result
 }
 
 // collectValidateFuncs collects validate functions from the given expression.
@@ -510,8 +549,13 @@ func (l *ParseTreeListener) collectValidateFuncs(fieldType string, expr validate
 
 // ExitOneof_def handles "oneof" type definitions.
 func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
+	typeName := ctx.IDENTIFIER().GetText()
+	if _, ok := l.Document.TypeIndex[typeName]; ok {
+		panic(errutil.Explain(nil, "type %s is already defined in line %d", typeName, l.Document.TypeIndex[typeName]))
+	}
+
 	o := Type{
-		Name:  ctx.IDENTIFIER().GetText(),
+		Name:  typeName,
 		OneOf: true,
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
@@ -525,8 +569,13 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		panic(errutil.Explain(nil, "oneof name %s is not PascalCase in line %d", o.Name, o.Position.StartLine))
 	}
 
+	enumName := typeName + "Type"
+	if _, ok := l.Document.TypeIndex[enumName]; ok {
+		panic(errutil.Explain(nil, "enum %s is already defined in line %d", enumName, l.Document.TypeIndex[enumName]))
+	}
+
 	e := Enum{
-		Name:  o.Name + "Type",
+		Name:  enumName,
 		OneOf: true,
 	}
 
@@ -548,18 +597,23 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		EnumAsString: true,
 	})
 
+	fieldNameSet := map[string]struct{}{}
 	for i, f := range ctx.AllUser_type() {
+		fieldName := f.IDENTIFIER().GetText()
+		if _, ok := fieldNameSet[fieldName]; ok {
+			panic(errutil.Explain(nil, "field %s is already defined in line %d", fieldName, l.Document.TypeIndex[fieldName]))
+		}
 
 		// add enum fields
 		e.Fields = append(e.Fields, EnumField{
-			Name:  f.IDENTIFIER().GetText(),
+			Name:  fieldName,
 			Value: int64(i + 1),
 		})
 
 		typeField := TypeField{
-			Name: f.IDENTIFIER().GetText(),
+			Name: fieldName,
 			Type: UserType{
-				Name: f.IDENTIFIER().GetText(),
+				Name: fieldName,
 			},
 			Position: Position{
 				StartLine: f.GetStart().GetLine(),
@@ -570,17 +624,18 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 				Right: l.rightComment(f.GetStop()),
 			},
 			JSONTag: JSONTag{
-				Name:      f.IDENTIFIER().GetText(),
-				HashKey:   fmt.Sprintf("0x%x", jsonutil.HashKey(f.IDENTIFIER().GetText())),
+				Name:      fieldName,
+				HashKey:   fmt.Sprintf("0x%x", jsonutil.HashKey(fieldName)),
 				OmitEmpty: true,
 			},
 			FormTag: FormTag{
-				Name:    f.IDENTIFIER().GetText(),
-				HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey(f.IDENTIFIER().GetText())),
+				Name:    fieldName,
+				HashKey: fmt.Sprintf("0x%x", jsonutil.HashKey(fieldName)),
 			},
 		}
 
 		o.RawFields = append(o.RawFields, typeField)
+		fieldNameSet[fieldName] = struct{}{}
 	}
 
 	l.Document.EnumIndex[e.Name] = len(l.Document.Enums)
@@ -593,16 +648,14 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 // ExitRpc_def handles RPC definitions, including request/response
 // types and annotations.
 func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
-	var err error
-
-	sse := false
-	if ctx.KW_SSE() != nil {
-		sse = true
+	name := ctx.IDENTIFIER().GetText()
+	if _, ok := l.Document.RPCIndex[name]; ok {
+		panic(errutil.Explain(nil, "RPC %s is already defined in line %d", name, l.Document.RPCIndex[name]))
 	}
 
 	r := RPC{
-		SSE:  sse,
-		Name: ctx.IDENTIFIER().GetText(),
+		SSE:  ctx.KW_SSE() != nil,
+		Name: name,
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),
@@ -623,9 +676,14 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	r.Response = l.parseValueType(ctx.Rpc_resp().Value_type(), nil)
 
 	// Annotations
+	keySet := map[string]struct{}{}
 	for _, aCtx := range ctx.Rpc_annotations().AllAnnotation() {
+		key := aCtx.IDENTIFIER().GetText()
+		if _, ok := keySet[key]; ok {
+			panic(errutil.Explain(nil, "duplicated annotation %s in line %d", key, aCtx.GetStart().GetLine()))
+		}
 		a := Annotation{
-			Key: aCtx.IDENTIFIER().GetText(),
+			Key: key,
 			Position: Position{
 				StartLine: aCtx.GetStart().GetLine(),
 				EndLine:   aCtx.GetStop().GetLine(),
@@ -640,6 +698,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 			a.Value = &s
 		}
 		r.Annotations = append(r.Annotations, a)
+		keySet[key] = struct{}{}
 	}
 
 	// Retrieve the "path" annotation
@@ -710,6 +769,7 @@ func (l *ParseTreeListener) ExitRpc_def(ctx *Rpc_defContext) {
 	r.Method = strings.ToUpper(strings.Trim(*method.Value, `"`))
 	r.ContentType = strings.ToLower(contentType)
 
+	var err error
 	r.ConnTimeout, err = strconv.Atoi(strings.Trim(*connTimeout.Value, `"`))
 	if err != nil || r.ConnTimeout < 0 {
 		panic(errutil.Explain(nil, "invalid connTimeout value in rpc %s", r.Name))

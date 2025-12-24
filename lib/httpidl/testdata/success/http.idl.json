@@ -1193,6 +1193,11 @@
       "PathParams": null
     }
   ],
+  "ConstIndex": {
+    "DEFAULT_NAME": 2,
+    "ENABLE_FEATURE": 1,
+    "MAX_COUNT": 0
+  },
   "EnumIndex": {
     "ErrCode": 0,
     "PayloadType": 1
@@ -1205,6 +1210,7 @@
     "UserReq": 0,
     "UserResp": 5
   },
+  "RPCIndex": {},
   "UserTypes": {
     "Address": {},
     "ErrCode": {},
