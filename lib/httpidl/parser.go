@@ -28,8 +28,8 @@ import (
 	"github.com/lvan100/golib/ordered"
 )
 
-// BuiltinFuncs is a set of built-in validation functions
-var BuiltinFuncs = map[string]struct{}{
+// builtinFuncs is a set of built-in validation functions
+var builtinFuncs = map[string]struct{}{
 	"len": {},
 }
 
