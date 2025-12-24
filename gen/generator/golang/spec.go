@@ -70,11 +70,10 @@ type Type struct {
 // TypeField represents a field in a Go struct
 type TypeField struct {
 	httpidl.TypeField
-	Name      string
-	Type      string // for field
-	TypeKind  []TypeKind
-	ValueType string // for getter/setter
-	FieldTag  string
+	Name     string
+	Type     string // for field
+	TypeKind []TypeKind
+	FieldTag string
 }
 
 // IsPointer returns true if the field is a pointer
@@ -270,7 +269,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
-		typeKind, valueType, err := getTypeKind(spec, typeName)
+		typeKind, err := getTypeKind(spec, typeName)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
 		}
@@ -284,7 +283,6 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 			Name:      fieldName,
 			Type:      typeName,
 			TypeKind:  typeKind,
-			ValueType: valueType,
 		}
 		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
@@ -382,87 +380,87 @@ func goTypeDef(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 }
 
 // getTypeKind categorizes a Go type for code generation purposes.
-func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
+func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, error) {
 	typeName, pointer := strings.CutPrefix(typeName, "*")
 
 	switch typeName {
 	case "[]byte":
 		if pointer {
-			return nil, "", errutil.Explain(nil, "binary type can not be pointer")
+			return nil, errutil.Explain(nil, "binary type can not be pointer")
 		}
-		return []TypeKind{TypeKindBytes}, typeName, nil
+		return []TypeKind{TypeKindBytes}, nil
 	case "bool":
 		if pointer {
-			return []TypeKind{TypeKindBoolPtr}, typeName, nil
+			return []TypeKind{TypeKindBoolPtr}, nil
 		}
-		return []TypeKind{TypeKindBool}, typeName, nil
+		return []TypeKind{TypeKindBool}, nil
 	case "int", "int8", "int16", "int32", "int64":
 		if pointer {
-			return []TypeKind{TypeKindIntPtr}, typeName, nil
+			return []TypeKind{TypeKindIntPtr}, nil
 		}
-		return []TypeKind{TypeKindInt}, typeName, nil
+		return []TypeKind{TypeKindInt}, nil
 	case "uint", "uint8", "uint16", "uint32", "uint64":
 		if pointer {
-			return []TypeKind{TypeKindUintPtr}, typeName, nil
+			return []TypeKind{TypeKindUintPtr}, nil
 		}
-		return []TypeKind{TypeKindUint}, typeName, nil
+		return []TypeKind{TypeKindUint}, nil
 	case "float32", "float64":
 		if pointer {
-			return []TypeKind{TypeKindFloatPtr}, typeName, nil
+			return []TypeKind{TypeKindFloatPtr}, nil
 		}
-		return []TypeKind{TypeKindFloat}, typeName, nil
+		return []TypeKind{TypeKindFloat}, nil
 	case "string":
 		if pointer {
-			return []TypeKind{TypeKindStringPtr}, typeName, nil
+			return []TypeKind{TypeKindStringPtr}, nil
 		}
-		return []TypeKind{TypeKindString}, typeName, nil
+		return []TypeKind{TypeKindString}, nil
 	default: // for linter
 	}
 
 	switch {
 	case strings.HasPrefix(typeName, "[]"):
 		if pointer {
-			return nil, "", errutil.Explain(nil, "list type can not be pointer")
+			return nil, errutil.Explain(nil, "list type can not be pointer")
 		}
-		itemType, _, err := getTypeKind(spec, typeName[2:])
+		itemType, err := getTypeKind(spec, typeName[2:])
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
-		return append([]TypeKind{TypeKindList}, itemType...), typeName, nil
+		return append([]TypeKind{TypeKindList}, itemType...), nil
 	case strings.HasPrefix(typeName, "map["):
 		if pointer {
-			return nil, "", errutil.Explain(nil, "map type can not be pointer")
+			return nil, errutil.Explain(nil, "map type can not be pointer")
 		}
 		itemInex := strings.Index(typeName, "]")
-		keyType, _, err := getTypeKind(spec, typeName[4:itemInex])
+		keyType, err := getTypeKind(spec, typeName[4:itemInex])
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
-		itemType, _, err := getTypeKind(spec, typeName[itemInex+1:])
+		itemType, err := getTypeKind(spec, typeName[itemInex+1:])
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
-		return append([]TypeKind{TypeKindMap, keyType[0]}, itemType...), typeName, nil
+		return append([]TypeKind{TypeKindMap, keyType[0]}, itemType...), nil
 	default:
 		strType, asString := strings.CutSuffix(typeName, "AsString")
 		if _, ok := httpidl.FindEnum(spec.Files, strType); ok {
 			if asString {
 				if pointer {
-					return []TypeKind{TypeKindEnumAsStringPtr}, typeName, nil
+					return []TypeKind{TypeKindEnumAsStringPtr}, nil
 				}
-				return []TypeKind{TypeKindEnumAsString}, typeName, nil
+				return []TypeKind{TypeKindEnumAsString}, nil
 			}
 			if pointer {
-				return []TypeKind{TypeKindEnumPtr}, typeName, nil
+				return []TypeKind{TypeKindEnumPtr}, nil
 			}
-			return []TypeKind{TypeKindEnum}, typeName, nil
+			return []TypeKind{TypeKindEnum}, nil
 		}
 		if _, ok := httpidl.FindType(spec.Files, typeName); ok {
 			if pointer {
-				return []TypeKind{TypeKindStructPtr}, typeName, nil
+				return []TypeKind{TypeKindStructPtr}, nil
 			}
 		}
-		return nil, "", errutil.Explain(nil, "unknown type: %s", typeName)
+		return nil, errutil.Explain(nil, "unknown type: %s", typeName)
 	}
 }
 

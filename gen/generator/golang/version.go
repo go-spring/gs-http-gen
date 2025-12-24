@@ -34,8 +34,8 @@ package {{.Package}}
 const ToolVersion = "{{.ToolVersion}}"
 `))
 
-// genVersion generates a Go source file corresponding to the tool version.
-func (g *Generator) genVersion(config *generator.Config, spec GoSpec) error {
+// genToolVersion generates a Go source file corresponding to the tool version.
+func (g *Generator) genToolVersion(config *generator.Config, spec GoSpec) error {
 	buf := &bytes.Buffer{}
 	err := toolVersionTmpl.Execute(buf, map[string]any{
 		"Package":     config.GoPackage,
