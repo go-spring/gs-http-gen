@@ -132,7 +132,6 @@
   ],
   "Enums": [
     {
-      "Extends": true,
       "Name": "ErrCode",
       "Kind": 2,
       "Fields": [
@@ -201,7 +200,48 @@
       }
     },
     {
-      "Extends": false,
+      "Name": "ErrCode",
+      "Kind": 3,
+      "Fields": [
+        {
+          "ExtendsFrom": null,
+          "Name": "PANIC_ERROR",
+          "Value": 1005,
+          "ErrorMessage": "panic error",
+          "Annotations": [
+            {
+              "Key": "errmsg",
+              "Value": "\"panic error\"",
+              "Position": {
+                "StartLine": 22,
+                "EndLine": 22
+              },
+              "Comments": {
+                "Above": null,
+                "Right": null
+              }
+            }
+          ],
+          "Position": {
+            "StartLine": 22,
+            "EndLine": 22
+          },
+          "Comments": {
+            "Above": null,
+            "Right": null
+          }
+        }
+      ],
+      "Position": {
+        "StartLine": 21,
+        "EndLine": 23
+      },
+      "Comments": {
+        "Above": null,
+        "Right": null
+      }
+    },
+    {
       "Name": "PayloadType",
       "Kind": 1,
       "Fields": [
@@ -260,8 +300,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 23,
-            "EndLine": 23
+            "StartLine": 27,
+            "EndLine": 27
           },
           "Comments": {
             "Above": null,
@@ -287,8 +327,8 @@
       ],
       "Fields": null,
       "Position": {
-        "StartLine": 22,
-        "EndLine": 24
+        "StartLine": 26,
+        "EndLine": 28
       },
       "Comments": {
         "Above": [
@@ -298,8 +338,8 @@
             ],
             "Single": true,
             "Position": {
-              "StartLine": 21,
-              "EndLine": 21
+              "StartLine": 25,
+              "EndLine": 25
             }
           }
         ],
@@ -327,8 +367,8 @@
               "Key": "go.type",
               "Value": "\"*string\"",
               "Position": {
-                "StartLine": 32,
-                "EndLine": 32
+                "StartLine": 36,
+                "EndLine": 36
               },
               "Comments": {
                 "Above": null,
@@ -339,8 +379,8 @@
               "Key": "a",
               "Value": "\"123\"",
               "Position": {
-                "StartLine": 32,
-                "EndLine": 32
+                "StartLine": 36,
+                "EndLine": 36
               },
               "Comments": {
                 "Above": null,
@@ -349,8 +389,8 @@
             }
           ],
           "Position": {
-            "StartLine": 32,
-            "EndLine": 32
+            "StartLine": 36,
+            "EndLine": 36
           },
           "Comments": {
             "Above": null,
@@ -383,8 +423,8 @@
               "Key": "validate",
               "Value": "\"$\u003c18\"",
               "Position": {
-                "StartLine": 33,
-                "EndLine": 33
+                "StartLine": 37,
+                "EndLine": 37
               },
               "Comments": {
                 "Above": null,
@@ -393,8 +433,8 @@
             }
           ],
           "Position": {
-            "StartLine": 33,
-            "EndLine": 33
+            "StartLine": 37,
+            "EndLine": 37
           },
           "Comments": {
             "Above": null,
@@ -437,8 +477,8 @@
               "Key": "deprecated",
               "Value": null,
               "Position": {
-                "StartLine": 34,
-                "EndLine": 34
+                "StartLine": 38,
+                "EndLine": 38
               },
               "Comments": {
                 "Above": null,
@@ -447,8 +487,8 @@
             }
           ],
           "Position": {
-            "StartLine": 34,
-            "EndLine": 34
+            "StartLine": 38,
+            "EndLine": 38
           },
           "Comments": {
             "Above": null,
@@ -478,8 +518,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 36,
-            "EndLine": 36
+            "StartLine": 40,
+            "EndLine": 40
           },
           "Comments": {
             "Above": [
@@ -489,8 +529,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "StartLine": 35,
-                  "EndLine": 35
+                  "StartLine": 39,
+                  "EndLine": 39
                 }
               }
             ],
@@ -500,8 +540,8 @@
               ],
               "Single": false,
               "Position": {
-                "StartLine": 36,
-                "EndLine": 36
+                "StartLine": 40,
+                "EndLine": 40
               }
             }
           },
@@ -529,8 +569,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 37,
-            "EndLine": 37
+            "StartLine": 41,
+            "EndLine": 41
           },
           "Comments": {
             "Above": null,
@@ -556,8 +596,8 @@
       ],
       "Fields": null,
       "Position": {
-        "StartLine": 31,
-        "EndLine": 38
+        "StartLine": 35,
+        "EndLine": 42
       },
       "Comments": {
         "Above": [
@@ -567,8 +607,8 @@
             ],
             "Single": true,
             "Position": {
-              "StartLine": 26,
-              "EndLine": 26
+              "StartLine": 30,
+              "EndLine": 30
             }
           },
           {
@@ -579,8 +619,8 @@
             ],
             "Single": false,
             "Position": {
-              "StartLine": 27,
-              "EndLine": 29
+              "StartLine": 31,
+              "EndLine": 33
             }
           },
           {
@@ -589,8 +629,8 @@
             ],
             "Single": true,
             "Position": {
-              "StartLine": 30,
-              "EndLine": 30
+              "StartLine": 34,
+              "EndLine": 34
             }
           }
         ],
@@ -615,8 +655,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 41,
-            "EndLine": 41
+            "StartLine": 45,
+            "EndLine": 45
           },
           "Comments": {
             "Above": null,
@@ -649,8 +689,8 @@
               "Key": "compat_default",
               "Value": "\"\"",
               "Position": {
-                "StartLine": 42,
-                "EndLine": 42
+                "StartLine": 46,
+                "EndLine": 46
               },
               "Comments": {
                 "Above": null,
@@ -659,8 +699,8 @@
             }
           ],
           "Position": {
-            "StartLine": 42,
-            "EndLine": 42
+            "StartLine": 46,
+            "EndLine": 46
           },
           "Comments": {
             "Above": null,
@@ -690,8 +730,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 43,
-            "EndLine": 43
+            "StartLine": 47,
+            "EndLine": 47
           },
           "Comments": {
             "Above": null,
@@ -717,8 +757,8 @@
       ],
       "Fields": null,
       "Position": {
-        "StartLine": 40,
-        "EndLine": 44
+        "StartLine": 44,
+        "EndLine": 48
       },
       "Comments": {
         "Above": null,
@@ -787,8 +827,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 47,
-            "EndLine": 47
+            "StartLine": 51,
+            "EndLine": 51
           },
           "Comments": {
             "Above": null,
@@ -818,8 +858,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 48,
-            "EndLine": 48
+            "StartLine": 52,
+            "EndLine": 52
           },
           "Comments": {
             "Above": null,
@@ -845,8 +885,8 @@
       ],
       "Fields": null,
       "Position": {
-        "StartLine": 46,
-        "EndLine": 49
+        "StartLine": 50,
+        "EndLine": 53
       },
       "Comments": {
         "Above": null,
@@ -874,8 +914,8 @@
               "Key": "enum_as_string",
               "Value": null,
               "Position": {
-                "StartLine": 53,
-                "EndLine": 53
+                "StartLine": 57,
+                "EndLine": 57
               },
               "Comments": {
                 "Above": null,
@@ -884,8 +924,8 @@
             }
           ],
           "Position": {
-            "StartLine": 53,
-            "EndLine": 53
+            "StartLine": 57,
+            "EndLine": 57
           },
           "Comments": {
             "Above": null,
@@ -915,8 +955,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 54,
-            "EndLine": 54
+            "StartLine": 58,
+            "EndLine": 58
           },
           "Comments": {
             "Above": null,
@@ -946,8 +986,8 @@
           },
           "Annotations": null,
           "Position": {
-            "StartLine": 55,
-            "EndLine": 55
+            "StartLine": 59,
+            "EndLine": 59
           },
           "Comments": {
             "Above": null,
@@ -973,8 +1013,8 @@
       ],
       "Fields": null,
       "Position": {
-        "StartLine": 52,
-        "EndLine": 56
+        "StartLine": 56,
+        "EndLine": 60
       },
       "Comments": {
         "Above": [
@@ -984,8 +1024,8 @@
             ],
             "Single": true,
             "Position": {
-              "StartLine": 51,
-              "EndLine": 51
+              "StartLine": 55,
+              "EndLine": 55
             }
           }
         ],
@@ -1012,8 +1052,8 @@
       "RawFields": null,
       "Fields": null,
       "Position": {
-        "StartLine": 75,
-        "EndLine": 75
+        "StartLine": 79,
+        "EndLine": 79
       },
       "Comments": {
         "Above": [
@@ -1023,8 +1063,8 @@
             ],
             "Single": true,
             "Position": {
-              "StartLine": 74,
-              "EndLine": 74
+              "StartLine": 78,
+              "EndLine": 78
             }
           }
         ],
@@ -1050,8 +1090,8 @@
           "Key": "path",
           "Value": "\"/user\"",
           "Position": {
-            "StartLine": 61,
-            "EndLine": 61
+            "StartLine": 65,
+            "EndLine": 65
           },
           "Comments": {
             "Above": [
@@ -1061,8 +1101,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "StartLine": 60,
-                  "EndLine": 60
+                  "StartLine": 64,
+                  "EndLine": 64
                 }
               }
             ],
@@ -1073,8 +1113,8 @@
           "Key": "method",
           "Value": "\"GET\"",
           "Position": {
-            "StartLine": 62,
-            "EndLine": 62
+            "StartLine": 66,
+            "EndLine": 66
           },
           "Comments": {
             "Above": null,
@@ -1085,8 +1125,8 @@
           "Key": "contentType",
           "Value": "\"form\"",
           "Position": {
-            "StartLine": 63,
-            "EndLine": 63
+            "StartLine": 67,
+            "EndLine": 67
           },
           "Comments": {
             "Above": null,
@@ -1097,8 +1137,8 @@
           "Key": "connTimeout",
           "Value": "100",
           "Position": {
-            "StartLine": 66,
-            "EndLine": 66
+            "StartLine": 70,
+            "EndLine": 70
           },
           "Comments": {
             "Above": [
@@ -1108,8 +1148,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "StartLine": 65,
-                  "EndLine": 65
+                  "StartLine": 69,
+                  "EndLine": 69
                 }
               }
             ],
@@ -1120,8 +1160,8 @@
           "Key": "readTimeout",
           "Value": "100",
           "Position": {
-            "StartLine": 67,
-            "EndLine": 67
+            "StartLine": 71,
+            "EndLine": 71
           },
           "Comments": {
             "Above": null,
@@ -1132,8 +1172,8 @@
           "Key": "writeTimeout",
           "Value": "100",
           "Position": {
-            "StartLine": 68,
-            "EndLine": 68
+            "StartLine": 72,
+            "EndLine": 72
           },
           "Comments": {
             "Above": null,
@@ -1144,8 +1184,8 @@
           "Key": "resp.go.type",
           "Value": "\"*string\"",
           "Position": {
-            "StartLine": 71,
-            "EndLine": 71
+            "StartLine": 75,
+            "EndLine": 75
           },
           "Comments": {
             "Above": [
@@ -1155,8 +1195,8 @@
                 ],
                 "Single": true,
                 "Position": {
-                  "StartLine": 70,
-                  "EndLine": 70
+                  "StartLine": 74,
+                  "EndLine": 74
                 }
               }
             ],
@@ -1165,8 +1205,8 @@
         }
       ],
       "Position": {
-        "StartLine": 59,
-        "EndLine": 72
+        "StartLine": 63,
+        "EndLine": 76
       },
       "Comments": {
         "Above": [
@@ -1176,8 +1216,8 @@
             ],
             "Single": true,
             "Position": {
-              "StartLine": 58,
-              "EndLine": 58
+              "StartLine": 62,
+              "EndLine": 62
             }
           }
         ],
@@ -1194,8 +1234,8 @@
     }
   ],
   "EnumTypes": {
-    "ErrCode": 0,
-    "PayloadType": 1
+    "ErrCode": 1,
+    "PayloadType": 2
   },
   "TypeTypes": {
     "Address": 2,
