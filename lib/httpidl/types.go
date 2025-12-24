@@ -98,15 +98,11 @@ const (
 	EnumKindNormal EnumKind = iota
 	EnumKindOneof
 	EnumKindError
+	EnumKindExtends
 )
 
 // Enum represents an enum type definition.
 type Enum struct {
-
-	// Extends Indicates this enum extends another enum definition.
-	// Typically used for error-code enums.
-	Extends bool
-
 	Name     string      // Name of the enum
 	Kind     EnumKind    // Enum kind
 	Fields   []EnumField // List of fields

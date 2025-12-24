@@ -60,7 +60,7 @@ type EnumRef struct {
 func FindEnum(files map[string]Document, name string) (EnumRef, bool) {
 	for file, doc := range files {
 		if i, ok := doc.EnumTypes[name]; ok {
-			if e := doc.Enums[i]; !e.Extends {
+			if e := doc.Enums[i]; e.Kind != EnumKindExtends {
 				return EnumRef{Type: e, File: file, Index: i}, true
 			}
 		}

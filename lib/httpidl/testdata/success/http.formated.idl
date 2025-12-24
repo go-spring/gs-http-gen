@@ -14,9 +14,13 @@ const string DEFAULT_NAME = "guest" /*
  */
 
 // ---- Enum definition ----
-enum extends ErrCode {
+enum ErrCode {
     ErrOk = 0
     PARAM_ERROR = 1003 ( errmsg="param error" )
+}
+
+enum extends ErrCode {
+    PANIC_ERROR = 1005 ( errmsg="panic error" )
 }
 
 // ---- Type definition ----

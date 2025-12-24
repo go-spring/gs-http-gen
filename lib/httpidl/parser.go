@@ -200,7 +200,7 @@ func mergeErrcode(p Project) error {
 		doc := p.Files[file]
 
 		for _, e := range doc.Enums {
-			if !e.Extends {
+			if e.Kind != EnumKindExtends {
 				continue
 			}
 			t, ok := FindEnum(p.Files, e.Name)

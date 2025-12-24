@@ -184,9 +184,13 @@ func (l *ParseTreeListener) ExitConst_def(ctx *Const_defContext) {
 
 // ExitEnum_def handles enum definitions and their fields.
 func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
+	enumKind := EnumKindNormal
+	if ctx.KW_EXTENDS() != nil {
+		enumKind = EnumKindExtends
+	}
 	e := Enum{
-		Extends: ctx.KW_EXTENDS() != nil,
-		Name:    ctx.IDENTIFIER().GetText(),
+		Name: ctx.IDENTIFIER().GetText(),
+		Kind: enumKind,
 		Position: Position{
 			StartLine: ctx.GetStart().GetLine(),
 			EndLine:   ctx.GetStop().GetLine(),
