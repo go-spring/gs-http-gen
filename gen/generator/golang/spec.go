@@ -50,6 +50,18 @@ const (
 	TypeKindMap
 )
 
+// IsPointer returns true if the field is a pointer
+func IsPointer(x TypeKind) bool {
+	switch x {
+	case TypeKindBoolPtr, TypeKindIntPtr, TypeKindUintPtr,
+		TypeKindFloatPtr, TypeKindStringPtr, TypeKindEnumPtr,
+		TypeKindEnumAsStringPtr, TypeKindStructPtr:
+		return true
+	default:
+		return false
+	}
+}
+
 // Const represents a Go constant
 type Const struct {
 	httpidl.Const
@@ -75,6 +87,11 @@ type TypeField struct {
 	TypeKind []TypeKind
 }
 
+// IsPointer returns true if the field is a pointer
+func (x *TypeField) IsPointer() bool {
+	return IsPointer(x.TypeKind[0])
+}
+
 // FieldTag returns the field tag
 func (x *TypeField) FieldTag() string {
 	var tags []string
@@ -91,6 +108,7 @@ func (x *TypeField) FieldTag() string {
 		tags = append(tags, sb.String())
 	}
 
+	// Form tag
 	if x.Binding == nil {
 		s := fmt.Sprintf(`form:"%s"`, x.FormTag.Name)
 		tags = append(tags, s)
@@ -99,28 +117,12 @@ func (x *TypeField) FieldTag() string {
 		tags = append(tags, s)
 	}
 
+	// Validate tag
 	if x.Required {
 		tags = append(tags, `validate:"required"`)
 	}
 
 	return "`" + strings.Join(tags, " ") + "`"
-}
-
-// IsPointer returns true if the field is a pointer
-func (x *TypeField) IsPointer() bool {
-	return IsPointer(x.TypeKind[0])
-}
-
-// IsPointer returns true if the field is a pointer
-func IsPointer(x TypeKind) bool {
-	switch x {
-	case TypeKindBoolPtr, TypeKindIntPtr, TypeKindUintPtr,
-		TypeKindFloatPtr, TypeKindStringPtr, TypeKindEnumPtr,
-		TypeKindEnumAsStringPtr, TypeKindStructPtr:
-		return true
-	default:
-		return false
-	}
 }
 
 // RPC represents a single remote procedure call with HTTP metadata.
