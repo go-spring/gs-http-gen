@@ -59,7 +59,7 @@ type EnumRef struct {
 // with the given name and returns its definition and location.
 func FindEnum(files map[string]Document, name string) (EnumRef, bool) {
 	for file, doc := range files {
-		if i, ok := doc.EnumTypes[name]; ok {
+		if i, ok := doc.EnumIndex[name]; ok {
 			if e := doc.Enums[i]; !e.Extends {
 				return EnumRef{Type: e, File: file, Index: i}, true
 			}
@@ -78,7 +78,7 @@ type TypeRef struct {
 // FindType searches all documents for a type with the given name.
 func FindType(files map[string]Document, name string) (TypeRef, bool) {
 	for file, doc := range files {
-		if i, ok := doc.TypeTypes[name]; ok {
+		if i, ok := doc.TypeIndex[name]; ok {
 			t := doc.Types[i]
 			return TypeRef{Type: t, File: file, Index: i}, true
 		}

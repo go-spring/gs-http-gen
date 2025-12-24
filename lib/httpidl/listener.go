@@ -72,8 +72,8 @@ func ParseIDL(data []byte) (doc Document, funcs map[string]ValidateFunc, err err
 	l := &ParseTreeListener{
 		tokens: tokens,
 		Document: Document{
-			EnumTypes: make(map[string]int),
-			TypeTypes: make(map[string]int),
+			EnumIndex: make(map[string]int),
+			TypeIndex: make(map[string]int),
 			UserTypes: make(map[string]struct{}),
 		},
 		attached: make(map[int]struct{}),
@@ -208,7 +208,7 @@ func (l *ParseTreeListener) ExitEnum_def(ctx *Enum_defContext) {
 		e.Fields = append(e.Fields, enumField)
 	}
 
-	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)
+	l.Document.EnumIndex[e.Name] = len(l.Document.Enums)
 	l.Document.Enums = append(l.Document.Enums, e)
 }
 
@@ -235,7 +235,7 @@ func (l *ParseTreeListener) ExitType_def(ctx *Type_defContext) {
 		l.parseInstantiatedType(ctx, &t)
 	}
 
-	l.Document.TypeTypes[t.Name] = len(l.Document.Types)
+	l.Document.TypeIndex[t.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, t)
 }
 
@@ -583,10 +583,10 @@ func (l *ParseTreeListener) ExitOneof_def(ctx *Oneof_defContext) {
 		o.RawFields = append(o.RawFields, typeField)
 	}
 
-	l.Document.EnumTypes[e.Name] = len(l.Document.Enums)
+	l.Document.EnumIndex[e.Name] = len(l.Document.Enums)
 	l.Document.Enums = append(l.Document.Enums, e)
 
-	l.Document.TypeTypes[o.Name] = len(l.Document.Types)
+	l.Document.TypeIndex[o.Name] = len(l.Document.Types)
 	l.Document.Types = append(l.Document.Types, o)
 }
 

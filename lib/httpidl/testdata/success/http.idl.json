@@ -1193,11 +1193,11 @@
       "PathParams": null
     }
   ],
-  "EnumTypes": {
+  "EnumIndex": {
     "ErrCode": 0,
     "PayloadType": 1
   },
-  "TypeTypes": {
+  "TypeIndex": {
     "Address": 2,
     "Payload": 3,
     "Response": 4,
