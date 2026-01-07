@@ -22,8 +22,8 @@ import (
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/lvan100/golib/errutil"
-	"github.com/lvan100/golib/jsonflow"
+	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/jsonflow"
 )
 
 // configTmpl is the Go source code template for generating the configuration.

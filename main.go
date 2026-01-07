@@ -22,11 +22,9 @@ import (
 
 	"github.com/go-spring/gs-http-gen/gen"
 	"github.com/go-spring/gs-http-gen/gen/generator"
+	"github.com/go-spring/gs-http-gen/lib/version"
 	"github.com/spf13/cobra"
 )
-
-// ToolVersion defines the current version of gs-http-gen tool.
-const ToolVersion = "v0.0.3"
 
 func main() {
 	var (
@@ -57,7 +55,7 @@ PHP, Java, or other supported languages.`,
 	root.RunE = func(cmd *cobra.Command, args []string) error {
 		if showVersion {
 			fmt.Println(root.Short)
-			fmt.Println(ToolVersion)
+			fmt.Println(version.ToolVersion)
 			return nil
 		}
 
@@ -67,7 +65,7 @@ PHP, Java, or other supported languages.`,
 			EnableServer: enableServer,
 			EnableClient: enableClient,
 			GoPackage:    goPackage,
-			ToolVersion:  ToolVersion,
+			ToolVersion:  version.ToolVersion,
 		}
 		return gen.Gen(language, config)
 	}

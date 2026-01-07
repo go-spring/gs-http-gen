@@ -346,10 +346,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false,
       "Request": false,
-      "OnRequest": false,
-      "OnForm": false
+      "Validate": false,
+      "Encoding": 0
     },
     {
       "Name": "User",
@@ -637,10 +636,9 @@
         "Right": null
       },
       "Embedded": true,
-      "Validate": false,
       "Request": false,
-      "OnRequest": false,
-      "OnForm": false
+      "Validate": false,
+      "Encoding": 0
     },
     {
       "Name": "Address",
@@ -765,10 +763,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false,
       "Request": false,
-      "OnRequest": false,
-      "OnForm": false
+      "Validate": false,
+      "Encoding": 0
     },
     {
       "Name": "Payload",
@@ -893,10 +890,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false,
       "Request": false,
-      "OnRequest": false,
-      "OnForm": false
+      "Validate": false,
+      "Encoding": 0
     },
     {
       "Name": "Response",
@@ -1032,10 +1028,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false,
       "Request": false,
-      "OnRequest": false,
-      "OnForm": false
+      "Validate": false,
+      "Encoding": 0
     },
     {
       "Name": "UserResp",
@@ -1071,10 +1066,9 @@
         "Right": null
       },
       "Embedded": false,
-      "Validate": false,
       "Request": false,
-      "OnRequest": false,
-      "OnForm": false
+      "Validate": false,
+      "Encoding": 0
     }
   ],
   "RPCs": [

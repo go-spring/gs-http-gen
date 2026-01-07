@@ -23,7 +23,7 @@ import (
 
 	"github.com/go-spring/gs-http-gen/lib/httpidl"
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
-	"github.com/lvan100/golib/errutil"
+	"github.com/go-spring/stdlib/errutil"
 )
 
 // TypeKind represents kind of a Go field type

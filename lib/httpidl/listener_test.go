@@ -21,7 +21,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/lvan100/golib/jsonflow"
+	"github.com/go-spring/stdlib/jsonflow"
 )
 
 func TestListener(t *testing.T) {

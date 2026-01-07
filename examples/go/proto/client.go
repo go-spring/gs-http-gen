@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-spring/gs-http-gen/lib/httpclt"
+	"github.com/go-spring/stdlib/httpclt"
 )
 
 // Client represents an HTTP client bound to a specific service endpoint.

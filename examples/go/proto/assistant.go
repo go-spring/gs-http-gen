@@ -9,14 +9,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lvan100/golib/errutil"
-	"github.com/lvan100/golib/hashutil"
-	"github.com/lvan100/golib/jsonflow"
+	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/hashutil"
+	"github.com/go-spring/stdlib/httpsvr"
+	"github.com/go-spring/stdlib/jsonflow"
 )
 
-var _ = strings.Trim
-var _ = strconv.Itoa
-var _ = http.StatusOK
+var _ = strings.Index
+var _ = strconv.FormatInt
+var _ = http.StatusNotFound
+var _ = (*httpsvr.Router)(nil)
 
 type PayloadType int32
 

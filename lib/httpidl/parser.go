@@ -23,9 +23,9 @@ import (
 	"strings"
 
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
-	"github.com/lvan100/golib/errutil"
-	"github.com/lvan100/golib/jsonflow"
-	"github.com/lvan100/golib/ordered"
+	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/jsonflow"
+	"github.com/go-spring/stdlib/ordered"
 )
 
 // BuiltinFuncs is a set of built-in validation functions

@@ -1,138 +1,68 @@
-package go_test
+/*
+ * Copyright 2025 The Go-Spring Authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package main
 
 import (
 	"context"
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
-	"strings"
-	"testing"
+	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
-	"github.com/go-spring/gs-http-gen/lib/httpsvr"
-	"github.com/go-spring/gs-http-gen/lib/pathidl"
-	"github.com/lvan100/golib/ptrutil"
+	"examples/ginsvr"
+	"examples/proto"
+	"examples/server"
+
+	"github.com/go-spring/stdlib/httpsvr"
 )
 
+// init sets the working directory of the program to the directory
+// where this source file resides. This ensures that relative paths
+// used later in the program (e.g., for output) are resolved correctly.
 func init() {
-	gin.SetMode(gin.ReleaseMode)
-}
-
-// GinServer defines the interface that service must implement.
-type GinServer struct {
-	*http.Server
-	engine *gin.Engine
-}
-
-// NewGinServer creates a new GinServer instance.
-func NewGinServer(addr string) *GinServer {
-	engine := gin.New()
-	svr := &http.Server{Addr: addr, Handler: engine.Handler()}
-	return &GinServer{Server: svr, engine: engine}
-}
-
-// ToGinPath converts a pathidl.Path to a Gin compatible path.
-func ToGinPath(pattern string) string {
-	path, _ := pathidl.Parse(pattern)
-	var sb strings.Builder
-	for _, s := range path {
-		sb.WriteString("/")
-		switch s.Type {
-		case pathidl.Static:
-			sb.WriteString(s.Value)
-		case pathidl.Param:
-			sb.WriteString(":")
-			sb.WriteString(s.Value)
-		case pathidl.Wildcard:
-			sb.WriteString("*")
-			sb.WriteString(s.Value)
-		}
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("cannot determine caller directory")
 	}
-	return sb.String()
-}
-
-// HandleFunc registers a new route for the given HTTP method and pattern.
-func (s *GinServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
-	pattern = ToGinPath(pattern)
-	switch method {
-	case "GET":
-		s.engine.GET(pattern, gin.WrapF(handler))
-	case "POST":
-		s.engine.POST(pattern, gin.WrapF(handler))
-	case "PUT":
-		s.engine.PUT(pattern, gin.WrapF(handler))
-	case "DELETE":
-		s.engine.DELETE(pattern, gin.WrapF(handler))
-	case "HEAD":
-		s.engine.HEAD(pattern, gin.WrapF(handler))
-	default:
-		panic(fmt.Sprintf("unsupported method: %s", method))
+	execDir := filepath.Dir(filename)
+	err := os.Chdir(execDir)
+	if err != nil {
+		panic(err)
 	}
-}
-
-type MyManagerServer struct{}
-
-var _ proto.ManagerService = (*MyManagerServer)(nil)
-
-func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
-	return &proto.GetManagerResp{
-		Data: &proto.Manager{
-			Name:  ptrutil.New("Jim"),
-			Level: ptrutil.New(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
-		},
+	workDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
 	}
+	fmt.Println("working directory:", workDir)
 }
 
-func (m *MyManagerServer) CreateManager(ctx context.Context, req *proto.CreateManagerReq) *proto.CreateManagerResp {
-	return nil
+func main() {
+	TestManager()
+	//TestStream()
+	//TestStreamV2()
 }
 
-func (m *MyManagerServer) UpdateManager(ctx context.Context, req *proto.UpdateManagerReq) map[string]any {
-	return nil
-}
-
-func (m *MyManagerServer) DeleteManager(ctx context.Context, req *proto.ManagerReq) *proto.DeleteManagerResp {
-	return nil
-}
-
-func (m *MyManagerServer) ListManagersByPage(ctx context.Context, req *proto.ListManagersByPageReq) *proto.ListManagersByPageResp {
-	return nil
-}
-
-func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *httpsvr.Event[*proto.AssistantResp]) {
-	for i := 0; i < 5; i++ {
-		event := httpsvr.NewEvent[*proto.AssistantResp]().
-			ID(strconv.Itoa(i)).
-			Event("message").
-			Data(&proto.AssistantResp{
-				Id: ptrutil.New(strconv.Itoa(i)),
-				Payload: ptrutil.New(proto.Payload{
-					FieldType: proto.PayloadTypeAsString(proto.PayloadType_Payload_1),
-					Payload1:  ptrutil.New(proto.Payload_1{}),
-				}),
-				Image: []byte("000111222333444555666777888999000"),
-			})
-		resp <- event
-		time.Sleep(time.Second)
-	}
-}
-
-func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantReq, resp chan<- *httpsvr.Event[string]) {
-	for i := 0; i < 5; i++ {
-		resp <- httpsvr.NewEvent[string]().
-			ID(strconv.Itoa(i)).
-			Data("123456")
-		time.Sleep(time.Second)
-	}
-}
-
-func TestManager(t *testing.T) {
-	svr := NewGinServer(":9191")
-	for _, r := range proto.Routers(&MyManagerServer{}) {
-		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+func TestManager() {
+	svr := ginsvr.NewGinServer(":9191")
+	for _, r := range proto.Routers(&server.ManagerServer{}, ginsvr.NewGinRequestContext) {
+		svr.HandleFunc(r)
 	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
@@ -149,12 +79,12 @@ func TestManager(t *testing.T) {
 	}
 	resp.Body.Close()
 	fmt.Println(string(b))
-	svr.Shutdown(t.Context())
+	svr.Shutdown(context.Background())
 }
 
-func TestStream(t *testing.T) {
+func TestStream() {
 	svr := httpsvr.NewSimpleServer(":9191")
-	for _, r := range proto.Routers(&MyManagerServer{}) {
+	for _, r := range proto.Routers(&server.ManagerServer{}, ginsvr.NewGinRequestContext) {
 		svr.Route(r)
 	}
 	go func() {
@@ -172,12 +102,12 @@ func TestStream(t *testing.T) {
 	}
 	resp.Body.Close()
 	fmt.Print(string(b))
-	svr.Shutdown(t.Context())
+	svr.Shutdown(context.Background())
 }
 
-func TestStreamV2(t *testing.T) {
+func TestStreamV2() {
 	svr := httpsvr.NewSimpleServer(":9191")
-	for _, r := range proto.Routers(&MyManagerServer{}) {
+	for _, r := range proto.Routers(&server.ManagerServer{}, ginsvr.NewGinRequestContext) {
 		svr.Route(r)
 	}
 	go func() {
@@ -195,7 +125,7 @@ func TestStreamV2(t *testing.T) {
 	}
 	resp.Body.Close()
 	fmt.Print(string(b))
-	svr.Shutdown(t.Context())
+	svr.Shutdown(context.Background())
 }
 
 /*

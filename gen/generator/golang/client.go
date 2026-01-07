@@ -24,7 +24,7 @@ import (
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/lvan100/golib/errutil"
+	"github.com/go-spring/stdlib/errutil"
 )
 
 // clientTmpl is the template for the HTTP client code.
@@ -48,7 +48,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-spring/gs-http-gen/lib/httpclt"
+	"github.com/go-spring/stdlib/httpclt"
 )
 
 // Client represents an HTTP client bound to a specific service endpoint.

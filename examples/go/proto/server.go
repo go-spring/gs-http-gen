@@ -6,7 +6,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-spring/gs-http-gen/lib/httpsvr"
+	"github.com/go-spring/stdlib/httpsvr"
 )
 
 // ManagerService defines the interface that service must implement.
@@ -28,55 +28,62 @@ type ManagerService interface {
 }
 
 // Routers returns a list of HTTP routers for the service.
-func Routers(server ManagerService) []httpsvr.Router {
+func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Router {
 	return []httpsvr.Router{
 		{
 			Method:  "GET",
 			Pattern: "/assistant",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleStream(w, r, NewAssistantReq(), server.Assistant)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleStream(w, r.WithContext(ctx), NewAssistantReq(), server.Assistant)
 			},
 		},
 		{
 			Method:  "GET",
 			Pattern: "/assistantV2",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleStream(w, r, NewAssistantReq(), server.AssistantV2)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleStream(w, r.WithContext(ctx), NewAssistantReq(), server.AssistantV2)
 			},
 		},
 		{
 			Method:  "POST",
 			Pattern: "/managers",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleJSON(w, r, NewCreateManagerReq(), server.CreateManager)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewCreateManagerReq(), server.CreateManager)
 			},
 		},
 		{
 			Method:  "DELETE",
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleJSON(w, r, NewManagerReq(), server.DeleteManager)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewManagerReq(), server.DeleteManager)
 			},
 		},
 		{
 			Method:  "GET",
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleJSON(w, r, NewManagerReq(), server.GetManager)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewManagerReq(), server.GetManager)
 			},
 		},
 		{
 			Method:  "GET",
 			Pattern: "/managers/page",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleJSON(w, r, NewListManagersByPageReq(), server.ListManagersByPage)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewListManagersByPageReq(), server.ListManagersByPage)
 			},
 		},
 		{
 			Method:  "PUT",
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
-				httpsvr.HandleJSON(w, r, NewUpdateManagerReq(), server.UpdateManager)
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewUpdateManagerReq(), server.UpdateManager)
 			},
 		},
 	}

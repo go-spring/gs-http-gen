@@ -14,23 +14,7 @@
  * limitations under the License.
  */
 
-package gen
+package version
 
-import (
-	"github.com/go-spring/gs-http-gen/gen/generator"
-	"github.com/go-spring/gs-http-gen/gen/generator/golang"
-	"github.com/go-spring/stdlib/errutil"
-)
-
-func init() {
-	generator.RegisterGenerator("go", &golang.Generator{})
-}
-
-// Gen is the entry point for generating code for the given language.
-func Gen(language string, config *generator.Config) error {
-	g, ok := generator.GetGenerator(language)
-	if !ok {
-		return errutil.Explain(nil, "unsupported language: %s", language)
-	}
-	return g.Gen(config)
-}
+// ToolVersion defines the current version of gs-http-gen tool.
+const ToolVersion = "v0.0.3"

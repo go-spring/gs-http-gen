@@ -216,6 +216,18 @@ func (t *Type) BindingCount() int {
 	return count
 }
 
+// PathCount returns the number of fields that are explicitly bound
+// to HTTP path parameters (i.e., Binding.Source == "path").
+func (t *Type) PathCount() int {
+	var count int
+	for _, f := range t.Fields {
+		if f.Binding != nil && f.Binding.Source == "path" {
+			count++
+		}
+	}
+	return count
+}
+
 // QueryCount returns the number of fields that are explicitly bound
 // to HTTP query parameters (i.e., Binding.Source == "query").
 func (t *Type) QueryCount() int {

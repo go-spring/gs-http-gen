@@ -9,14 +9,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lvan100/golib/errutil"
-	"github.com/lvan100/golib/hashutil"
-	"github.com/lvan100/golib/jsonflow"
+	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/hashutil"
+	"github.com/go-spring/stdlib/httpsvr"
+	"github.com/go-spring/stdlib/jsonflow"
 )
 
-var _ = strings.Trim
-var _ = strconv.Itoa
-var _ = http.StatusOK
+var _ = strings.Index
+var _ = strconv.FormatInt
+var _ = http.StatusNotFound
+var _ = (*httpsvr.Router)(nil)
 
 // years
 const MAX_AGE int64 = 150
@@ -709,7 +711,8 @@ func (x *ManagerReq) QueryForm() (string, error) {
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
 func (x *ManagerReq) Bind(r *http.Request) (err error) {
-	if s := r.PathValue("id"); s == "" {
+	c := httpsvr.GetRequestContext(r.Context())
+	if s := c.PathValue("id"); s == "" {
 		err = errutil.Stack(err, "required field \"id\" is missing")
 	} else {
 		x.Id = s
@@ -921,7 +924,8 @@ func (x *UpdateManagerReq) QueryForm() (string, error) {
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
 func (x *UpdateManagerReq) Bind(r *http.Request) (err error) {
-	if s := r.PathValue("id"); s == "" {
+	c := httpsvr.GetRequestContext(r.Context())
+	if s := c.PathValue("id"); s == "" {
 		err = errutil.Stack(err, "required field \"id\" is missing")
 	} else {
 		x.ID = s

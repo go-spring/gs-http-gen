@@ -29,7 +29,7 @@ import (
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/go-spring/gs-http-gen/lib/httpidl"
 	"github.com/go-spring/gs-http-gen/lib/validate"
-	"github.com/lvan100/golib/errutil"
+	"github.com/go-spring/stdlib/errutil"
 )
 
 // formatFile formats Go source code using `go format`
@@ -83,7 +83,7 @@ func genDefaultValue(typeKind []TypeKind, defaultValue string) string {
 // decodePathValue generates Go code to decode a field value from path parameter.
 func decodePathValue(fieldName string, typeKind []TypeKind, pathName string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf(`if s := r.PathValue("%s"); s == "" {
+	sb.WriteString(fmt.Sprintf(`if s := c.PathValue("%s"); s == "" {
 		err = errutil.Stack(err, "required field \"%s\" is missing")
 	} else {
 	`, pathName, pathName))
@@ -485,14 +485,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lvan100/golib/errutil"
-	"github.com/lvan100/golib/hashutil"
-	"github.com/lvan100/golib/jsonflow"
+	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/hashutil"
+	"github.com/go-spring/stdlib/httpsvr"
+	"github.com/go-spring/stdlib/jsonflow"
 )
 
-var _ = strings.Trim
-var _ = strconv.Itoa
-var _ = http.StatusOK
+var _ = strings.Index
+var _ = strconv.FormatInt
+var _ = http.StatusNotFound
+var _ = (*httpsvr.Router)(nil)
 
 {{ range $c := .Consts }}
 	{{- if $c.Comments.Exists }}
@@ -755,10 +757,13 @@ var _ = http.StatusOK
 		// and assigns them to the corresponding struct fields.
 		func (x *{{$s.Name}}) Bind(r *http.Request) (err error) {
 			{{- if $s.BindingCount }}
-				{{- range $f := $s.Fields }}
-					{{- if and $f.Binding (eq $f.Binding.Source "path") }}
-						{{- $fieldName := printf "x.%s" $f.Name}}
-						{{decodePathValue $fieldName $f.TypeKind $f.Binding.Field}}
+				{{- if $s.PathCount }}
+					c := httpsvr.GetRequestContext(r.Context())
+					{{- range $f := $s.Fields }}
+						{{- if and $f.Binding (eq $f.Binding.Source "path") }}
+							{{- $fieldName := printf "x.%s" $f.Name}}
+							{{decodePathValue $fieldName $f.TypeKind $f.Binding.Field}}
+						{{- end}}
 					{{- end}}
 				{{- end}}
 
