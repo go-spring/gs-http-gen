@@ -72,7 +72,7 @@ type Address {
 
 type ContactInfo {
     required string email (validate="Email($)")
-    string phone
+    required string phone ( compat_default="" )
     Address address
 }
 
@@ -112,7 +112,7 @@ type Manager {
 
 // Single manager by ID
 type ManagerReq {
-    string id (path="id")
+    required string id (path="id")
 }
 
 // Create new manager
@@ -129,7 +129,7 @@ type CreateManagerReq {
 
 // Update existing manager
 type UpdateManagerReq {
-    string ID (json="id", path="id")
+    required string ID (json="id", path="id")
     string name
     int age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
     bool vip (json=",non-omitempty")

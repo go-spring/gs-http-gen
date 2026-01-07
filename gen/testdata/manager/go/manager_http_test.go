@@ -12,8 +12,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/testdata/manager/go/proto"
-	"github.com/go-spring/gs-http-gen/lib/httputil"
+	"github.com/go-spring/gs-http-gen/lib/httpsvr"
 	"github.com/go-spring/gs-http-gen/lib/pathidl"
+	"github.com/lvan100/golib/ptrutil"
 )
 
 func init() {
@@ -72,33 +73,15 @@ func (s *GinServer) HandleFunc(method string, pattern string, handler http.Handl
 	}
 }
 
-// HttpServer defines the interface that service must implement.
-type HttpServer struct {
-	*http.Server
-	mux *http.ServeMux
-}
-
-// NewHttpServer creates a new HttpServer instance.
-func NewHttpServer(addr string) *HttpServer {
-	mux := http.NewServeMux()
-	svr := &http.Server{Addr: addr, Handler: mux}
-	return &HttpServer{Server: svr, mux: mux}
-}
-
-// HandleFunc registers a new route for the given HTTP method and pattern.
-func (s *HttpServer) HandleFunc(method string, pattern string, handler http.HandlerFunc) {
-	s.mux.HandleFunc(strings.TrimSpace(method+" "+pattern), handler)
-}
-
 type MyManagerServer struct{}
 
-var _ proto.ManagerServer = (*MyManagerServer)(nil)
+var _ proto.ManagerService = (*MyManagerServer)(nil)
 
 func (m *MyManagerServer) GetManager(ctx context.Context, req *proto.ManagerReq) *proto.GetManagerResp {
 	return &proto.GetManagerResp{
 		Data: &proto.Manager{
-			Name:  httputil.Ptr("Jim"),
-			Level: httputil.Ptr(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
+			Name:  ptrutil.New("Jim"),
+			Level: ptrutil.New(proto.ManagerLevelAsString(proto.ManagerLevel_JUNIOR)),
 		},
 	}
 }
@@ -119,14 +102,16 @@ func (m *MyManagerServer) ListManagersByPage(ctx context.Context, req *proto.Lis
 	return nil
 }
 
-func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[*proto.AssistantResp]) {
+func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq, resp chan<- *httpsvr.Event[*proto.AssistantResp]) {
 	for i := 0; i < 5; i++ {
-		event := proto.NewSSEEvent[*proto.AssistantResp]().ID(strconv.Itoa(i)).Event("message").Data(
-			&proto.AssistantResp{
-				Id: httputil.Ptr(strconv.Itoa(i)),
-				Payload: httputil.Ptr(proto.Payload{
-					FieldType: httputil.Ptr(proto.PayloadTypeAsString(proto.PayloadType_Payload_1)),
-					Payload1:  httputil.Ptr(proto.Payload_1{}),
+		event := httpsvr.NewEvent[*proto.AssistantResp]().
+			ID(strconv.Itoa(i)).
+			Event("message").
+			Data(&proto.AssistantResp{
+				Id: ptrutil.New(strconv.Itoa(i)),
+				Payload: ptrutil.New(proto.Payload{
+					FieldType: proto.PayloadTypeAsString(proto.PayloadType_Payload_1),
+					Payload1:  ptrutil.New(proto.Payload_1{}),
 				}),
 				Image: []byte("000111222333444555666777888999000"),
 			})
@@ -135,9 +120,11 @@ func (m *MyManagerServer) Assistant(ctx context.Context, req *proto.AssistantReq
 	}
 }
 
-func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantReq, resp chan<- *proto.SSEEvent[string]) {
+func (m *MyManagerServer) AssistantV2(ctx context.Context, req *proto.AssistantReq, resp chan<- *httpsvr.Event[string]) {
 	for i := 0; i < 5; i++ {
-		resp <- proto.NewSSEEvent[string]().ID(strconv.Itoa(i)).Data("123456")
+		resp <- httpsvr.NewEvent[string]().
+			ID(strconv.Itoa(i)).
+			Data("123456")
 		time.Sleep(time.Second)
 	}
 }
@@ -166,9 +153,9 @@ func TestManager(t *testing.T) {
 }
 
 func TestStream(t *testing.T) {
-	svr := NewHttpServer(":9191")
+	svr := httpsvr.NewSimpleServer(":9191")
 	for _, r := range proto.Routers(&MyManagerServer{}) {
-		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+		svr.Route(r)
 	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
@@ -189,9 +176,9 @@ func TestStream(t *testing.T) {
 }
 
 func TestStreamV2(t *testing.T) {
-	svr := NewHttpServer(":9191")
+	svr := httpsvr.NewSimpleServer(":9191")
 	for _, r := range proto.Routers(&MyManagerServer{}) {
-		svr.HandleFunc(r.Method, r.Pattern, r.Handler)
+		svr.Route(r)
 	}
 	go func() {
 		fmt.Println(svr.ListenAndServe())
@@ -210,3 +197,100 @@ func TestStreamV2(t *testing.T) {
 	fmt.Print(string(b))
 	svr.Shutdown(t.Context())
 }
+
+/*
+
+type Item struct {
+	ID int64 `json:"id"`
+}
+
+type Object struct {
+	Item *Item  `json:"item"`
+	Text string `json:"text"`
+}
+
+type HelloRequest struct {
+	HelloRequestBody
+	Int             int               `json:"int" query:"int"`
+	String          string            `json:"string" query:"string"`
+	IntPtr          *int              `json:"int_ptr" query:"int_ptr"`
+	StringPtr       *string           `json:"string_ptr" query:"string_ptr"`
+	IntSlice        []int             `json:"int_slice" query:"int_slice"`
+	StringSlice     []string          `json:"string_slice" query:"string_slice"`
+	ByteSlice       []byte            `json:"byte_slice" query:"byte_slice"`
+	Object          *Object           `json:"object" query:"object"`
+	ObjectSlice     []Object          `json:"object_slice" query:"object_slice"`
+	IntStringMap    map[int]string    `json:"int_string_map" query:"int_string_map"`
+	StringObjectMap map[string]Object `json:"string_object_map" query:"string_object_map"`
+}
+
+func (req *HelloRequest) QueryString() (string, error) {
+	m := url.Values{}
+
+	// Encode scalar values using the key format (e.g. a=1)
+	m.Add("int", strconv.FormatInt(int64(req.Int), 10))
+	m.Add("string", req.String)
+	if req.IntPtr != nil {
+		m.Add("int_ptr", strconv.FormatInt(int64(*req.IntPtr), 10))
+	}
+	if req.StringPtr != nil {
+		m.Add("string_ptr", *req.StringPtr)
+	}
+
+	// Encode arrays using the repeated key format (e.g. a=1&a=2)
+	for _, v := range req.IntSlice {
+		m.Add("int_slice", strconv.FormatInt(int64(v), 10))
+	}
+	// Encode arrays using the repeated key format (e.g. a=1&a=2)
+	for _, v := range req.StringSlice {
+		m.Add("string_slice", v)
+	}
+
+	// Encode byte slices using base64 encoding (e.g., a=YWJj)
+	if req.ByteSlice != nil {
+		m.Add("byte_slice", base64.StdEncoding.EncodeToString(req.ByteSlice))
+	}
+
+	// Encode an array of objects using repeated keys with JSON values
+	// e.g. items={"id":1,"name":"A"}&items={"id":2,"name":"B"}
+	for _, v := range req.ObjectSlice {
+		b, err := jsonflow.Marshal(v)
+		if err != nil {
+			return "", err
+		}
+		m.Add("object_slice", string(b))
+	}
+
+	// Encode maps or structs as JSON strings (e.g. data={"id":1,"name":"Alice"})
+	if req.Object != nil {
+		b, err := jsonflow.Marshal(req.Object)
+		if err != nil {
+			return "", err
+		}
+		m.Add("object", string(b))
+	}
+
+	// Encode maps or structs as JSON strings (e.g. data={"id":1,"name":"Alice"})
+	if req.StringObjectMap != nil {
+		b, err := jsonflow.Marshal(req.StringObjectMap)
+		if err != nil {
+			return "", err
+		}
+		m.Add("string_object_map", string(b))
+	}
+
+	// Encode maps or structs as JSON strings (e.g. data={"id":1,"name":"Alice"})
+	if req.IntStringMap != nil {
+		b, err := jsonflow.Marshal(req.IntStringMap)
+		if err != nil {
+			return "", err
+		}
+		m.Add("int_string_map", string(b))
+	}
+
+	return m.Encode(), nil
+}
+
+type HelloRequestBody struct{}
+
+*/

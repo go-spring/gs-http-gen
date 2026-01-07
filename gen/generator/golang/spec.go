@@ -31,18 +31,37 @@ type TypeKind int
 
 const (
 	TypeKindBool = TypeKind(iota)
+	TypeKindBoolPtr
 	TypeKindInt
+	TypeKindIntPtr
 	TypeKindUint
+	TypeKindUintPtr
 	TypeKindFloat
+	TypeKindFloatPtr
 	TypeKindString
-	TypeKindStruct
+	TypeKindStringPtr
+	TypeKindBytes
+	TypeKindAny
 	TypeKindEnum
+	TypeKindEnumPtr
 	TypeKindEnumAsString
+	TypeKindEnumAsStringPtr
+	TypeKindStructPtr
 	TypeKindList
 	TypeKindMap
-	TypeKindBytes
-	TypeKindPointer
 )
+
+// IsPointer returns true if the field is a pointer
+func IsPointer(x TypeKind) bool {
+	switch x {
+	case TypeKindBoolPtr, TypeKindIntPtr, TypeKindUintPtr,
+		TypeKindFloatPtr, TypeKindStringPtr, TypeKindEnumPtr,
+		TypeKindEnumAsStringPtr, TypeKindStructPtr:
+		return true
+	default:
+		return false
+	}
+}
 
 // Const represents a Go constant
 type Const struct {
@@ -64,22 +83,59 @@ type Type struct {
 // TypeField represents a field in a Go struct
 type TypeField struct {
 	httpidl.TypeField
-	Name      string
-	Type      string // for field
-	TypeKind  []TypeKind
-	ValueType string // for getter/setter
-	FieldTag  string
+	Name     string
+	Type     string
+	TypeKind []TypeKind
 }
 
 // IsPointer returns true if the field is a pointer
 func (x *TypeField) IsPointer() bool {
-	return x.TypeKind[0] == TypeKindPointer
+	return IsPointer(x.TypeKind[0])
+}
+
+// FieldTag returns the field tag
+func (x *TypeField) FieldTag() string {
+	var tags []string
+
+	// JSON tag
+	{
+		var sb strings.Builder
+		sb.WriteString(`json:"`)
+		sb.WriteString(x.JSONTag.Name)
+		if x.JSONTag.OmitEmpty {
+			sb.WriteString(",omitempty")
+		}
+		sb.WriteString(`"`)
+		tags = append(tags, sb.String())
+	}
+
+	// Form tag
+	if x.Binding == nil {
+		s := fmt.Sprintf(`form:"%s"`, x.FormTag.Name)
+		tags = append(tags, s)
+	} else {
+		s := fmt.Sprintf(`%s:"%s"`, x.Binding.Source, x.Binding.Field)
+		tags = append(tags, s)
+	}
+
+	// Validate tag
+	if x.Required {
+		tags = append(tags, `validate:"required"`)
+	}
+
+	// Default tag
+	if x.CompatDefault != nil {
+		tags = append(tags, fmt.Sprintf(`default:"%s"`, *x.CompatDefault))
+	}
+
+	return "`" + strings.Join(tags, " ") + "`"
 }
 
 // RPC represents a single remote procedure call with HTTP metadata.
 type RPC struct {
 	httpidl.RPC
-	Response string // Response type
+	Response     string     // Response type
+	RespTypeKind []TypeKind // Response type kind
 
 	FormatPath   string            // Formatted HTTP path
 	PathParams   map[string]string // HTTP path parameters
@@ -115,8 +171,9 @@ func Convert(dir string) (GoSpec, error) {
 	// Collect all RPC definitions
 	for _, doc := range project.Files {
 		for _, r := range doc.RPCs {
+
 			var response string
-			if a, ok := httpidl.GetAnnotation(r.Annotations, "resp.go.type"); ok {
+			if a, ok := httpidl.FindAnnotation(r.Annotations, "resp.go.type"); ok {
 				if a.Value == nil {
 					return GoSpec{}, errutil.Explain(nil, `annotation "resp.go.type" must have a value`)
 				}
@@ -134,7 +191,7 @@ func Convert(dir string) (GoSpec, error) {
 						return GoSpec{}, err
 					}
 				case httpidl.UserType:
-					if _, ok = httpidl.GetEnum(spec.Files, typ.Name); ok {
+					if _, ok = httpidl.FindEnum(spec.Files, typ.Name); ok {
 						response = typ.Name
 					} else {
 						response = "*" + typ.Name
@@ -145,9 +202,16 @@ func Convert(dir string) (GoSpec, error) {
 					}
 				}
 			}
+
+			typeKind, err := getTypeKind(spec, response)
+			if err != nil {
+				return GoSpec{}, err
+			}
+
 			rpc := RPC{
 				RPC:          r,
 				Response:     response,
+				RespTypeKind: typeKind,
 				FormatPath:   r.Path, // 假设是普通路径
 				PathParams:   r.PathParams,
 				PathSegments: r.PathSegments,
@@ -155,6 +219,7 @@ func Convert(dir string) (GoSpec, error) {
 			spec.RPCs = append(spec.RPCs, rpc)
 		}
 	}
+
 	sort.Slice(spec.RPCs, func(i, j int) bool {
 		return spec.RPCs[i].Name < spec.RPCs[j].Name
 	})
@@ -252,9 +317,12 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		}
 
 		// Determine the category of the field (base, enum, struct, list, map)
-		typeKind, valueType, err := getTypeKind(spec, typeName)
+		typeKind, err := getTypeKind(spec, typeName)
 		if err != nil {
 			return Type{}, errutil.Explain(nil, "get type kind for field %s in type %s error: %w", f.Name, r.Name, err)
+		}
+		if f.Required && IsPointer(typeKind[0]) {
+			return Type{}, errutil.Explain(nil, "field %s in type %s is required but has pointer type", f.Name, r.Name)
 		}
 
 		// Add the field to the struct
@@ -263,9 +331,7 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 			Name:      fieldName,
 			Type:      typeName,
 			TypeKind:  typeKind,
-			ValueType: valueType,
 		}
-		field.FieldTag = genFieldTag(field)
 		r.Fields = append(r.Fields, field)
 	}
 	return r, nil
@@ -291,7 +357,7 @@ func goBaseType(typeName string) (string, error) {
 
 // goType returns the Go type name for a given IDL type
 func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
-	if a, ok := httpidl.GetAnnotation(f.Annotations, "go.type"); ok {
+	if a, ok := httpidl.FindAnnotation(f.Annotations, "go.type"); ok {
 		if a.Value == nil {
 			return "", errutil.Explain(nil, `annotation "go.type" must have a value`)
 		}
@@ -310,11 +376,18 @@ func goType(spec GoSpec, f httpidl.TypeField) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if f.Required {
+			return s, nil
+		}
 		return "*" + s, nil
 	case httpidl.UserType:
 		typeName := typ.Name
+		_, isEnumType := httpidl.FindEnum(spec.Files, typeName)
 		if f.EnumAsString {
 			typeName += "AsString"
+		}
+		if isEnumType && f.Required {
+			return typeName, nil
 		}
 		return "*" + typeName, nil
 	default:
@@ -328,7 +401,7 @@ func goTypeDef(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 	case httpidl.BaseType:
 		return goBaseType(typ.Name)
 	case httpidl.UserType:
-		if _, ok := httpidl.GetEnum(spec.Files, typ.Name); ok {
+		if _, ok := httpidl.FindEnum(spec.Files, typ.Name); ok {
 			return typ.Name, nil
 		}
 		return "*" + typ.Name, nil
@@ -354,113 +427,91 @@ func goTypeDef(spec GoSpec, t httpidl.TypeDefinition) (string, error) {
 }
 
 // getTypeKind categorizes a Go type for code generation purposes.
-func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, string, error) {
-	typeName, optional := strings.CutPrefix(typeName, "*")
+func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, error) {
+	typeName, pointer := strings.CutPrefix(typeName, "*")
 
 	switch typeName {
 	case "[]byte":
-		if optional {
-			return nil, "", errutil.Explain(nil, "binary type can not be optional")
+		if pointer {
+			return nil, errutil.Explain(nil, "binary type can not be pointer")
 		}
-		return []TypeKind{TypeKindBytes}, typeName, nil
+		return []TypeKind{TypeKindBytes}, nil
 	case "bool":
-		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindBool}, typeName, nil
+		if pointer {
+			return []TypeKind{TypeKindBoolPtr}, nil
 		}
-		return []TypeKind{TypeKindBool}, typeName, nil
+		return []TypeKind{TypeKindBool}, nil
 	case "int", "int8", "int16", "int32", "int64":
-		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindInt}, typeName, nil
+		if pointer {
+			return []TypeKind{TypeKindIntPtr}, nil
 		}
-		return []TypeKind{TypeKindInt}, typeName, nil
+		return []TypeKind{TypeKindInt}, nil
 	case "uint", "uint8", "uint16", "uint32", "uint64":
-		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindUint}, typeName, nil
+		if pointer {
+			return []TypeKind{TypeKindUintPtr}, nil
 		}
-		return []TypeKind{TypeKindUint}, typeName, nil
+		return []TypeKind{TypeKindUint}, nil
 	case "float32", "float64":
-		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindFloat}, typeName, nil
+		if pointer {
+			return []TypeKind{TypeKindFloatPtr}, nil
 		}
-		return []TypeKind{TypeKindFloat}, typeName, nil
+		return []TypeKind{TypeKindFloat}, nil
 	case "string":
-		if optional {
-			return []TypeKind{TypeKindPointer, TypeKindString}, typeName, nil
+		if pointer {
+			return []TypeKind{TypeKindStringPtr}, nil
 		}
-		return []TypeKind{TypeKindString}, typeName, nil
+		return []TypeKind{TypeKindString}, nil
+	case "interface{}", "any":
+		if pointer {
+			return nil, errutil.Explain(nil, "any type can not be pointer")
+		}
+		return []TypeKind{TypeKindAny}, nil
 	default: // for linter
 	}
 
 	switch {
 	case strings.HasPrefix(typeName, "[]"):
-		if optional {
-			return nil, "", errutil.Explain(nil, "list type can not be optional")
+		if pointer {
+			return nil, errutil.Explain(nil, "list type can not be pointer")
 		}
-		itemType, _, err := getTypeKind(spec, typeName[2:])
+		itemType, err := getTypeKind(spec, typeName[2:])
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
-		return append([]TypeKind{TypeKindList}, itemType...), typeName, nil
+		return append([]TypeKind{TypeKindList}, itemType...), nil
 	case strings.HasPrefix(typeName, "map["):
-		if optional {
-			return nil, "", errutil.Explain(nil, "map type can not be optional")
+		if pointer {
+			return nil, errutil.Explain(nil, "map type can not be pointer")
 		}
 		itemInex := strings.Index(typeName, "]")
-		itemType, _, err := getTypeKind(spec, typeName[itemInex+1:])
+		keyType, err := getTypeKind(spec, typeName[4:itemInex])
 		if err != nil {
-			return nil, "", err
+			return nil, err
 		}
-		return append([]TypeKind{TypeKindMap}, itemType...), typeName, nil
+		itemType, err := getTypeKind(spec, typeName[itemInex+1:])
+		if err != nil {
+			return nil, err
+		}
+		return append([]TypeKind{TypeKindMap, keyType[0]}, itemType...), nil
 	default:
 		strType, asString := strings.CutSuffix(typeName, "AsString")
-		if _, ok := httpidl.GetEnum(spec.Files, strType); ok {
-			k := TypeKindEnum
+		if _, ok := httpidl.FindEnum(spec.Files, strType); ok {
 			if asString {
-				k = TypeKindEnumAsString
+				if pointer {
+					return []TypeKind{TypeKindEnumAsStringPtr}, nil
+				}
+				return []TypeKind{TypeKindEnumAsString}, nil
 			}
-			if optional {
-				return []TypeKind{TypeKindPointer, k}, typeName, nil
+			if pointer {
+				return []TypeKind{TypeKindEnumPtr}, nil
 			}
-			return []TypeKind{k}, typeName, nil
+			return []TypeKind{TypeKindEnum}, nil
 		}
-		if _, ok := httpidl.GetType(spec.Files, typeName); ok {
-			if optional {
-				return []TypeKind{TypeKindPointer, TypeKindStruct}, typeName, nil
+		if _, ok := httpidl.FindType(spec.Files, typeName); ok {
+			if pointer {
+				return []TypeKind{TypeKindStructPtr}, nil
 			}
-			return []TypeKind{TypeKindStruct}, typeName, nil
 		}
-		return nil, "", errutil.Explain(nil, "unknown type: %s", typeName)
+		return nil, errutil.Explain(nil, "unknown type: %s", typeName)
 	}
-}
-
-// genFieldTag generates the struct tag for a Go struct field.
-// It includes JSON tags and optional binding tags (path, query).
-func genFieldTag(f TypeField) string {
-	var tags []string
-
-	// JSON tag
-	{
-		var sb strings.Builder
-		sb.WriteString(`json:"`)
-		sb.WriteString(f.JSONTag.Name)
-		if f.JSONTag.OmitEmpty {
-			sb.WriteString(",omitempty")
-		}
-		sb.WriteString(`"`)
-		tags = append(tags, sb.String())
-	}
-
-	if f.Binding == nil {
-		s := fmt.Sprintf(`form:"%s"`, f.FormTag.Name)
-		tags = append(tags, s)
-	} else {
-		s := fmt.Sprintf(`%s:"%s"`, f.Binding.Source, f.Binding.Field)
-		tags = append(tags, s)
-	}
-
-	if f.Required {
-		tags = append(tags, `validate:"required"`)
-	}
-
-	return "`" + strings.Join(tags, " ") + "`"
 }

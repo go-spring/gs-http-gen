@@ -57,9 +57,9 @@ func (g *Generator) Gen(config *generator.Config) error {
 		}
 	}
 
-	// Generate a Go file containing the tool version constant
-	if err = g.genVersion(config, spec); err != nil {
-		return errutil.Explain(err, "write tool version file error")
+	// ...
+	if err = g.genConfig(config, spec); err != nil {
+		return errutil.Explain(err, "generate config file error")
 	}
 
 	return nil

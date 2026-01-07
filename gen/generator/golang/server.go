@@ -18,17 +18,12 @@ package golang
 
 import (
 	"bytes"
-	"embed"
-	"os"
 	"path/filepath"
 	"text/template"
 
 	"github.com/go-spring/gs-http-gen/gen/generator"
 	"github.com/lvan100/golib/errutil"
 )
-
-//go:embed proto
-var protoDir embed.FS
 
 // serverTmpl for generating the HTTP server wrapper based on RPC definitions.
 var serverTmpl = template.Must(template.New("server").
@@ -42,44 +37,38 @@ package {{.Package}}
 import (
 	"context"
 	"net/http"
+
+	"github.com/go-spring/gs-http-gen/lib/httpsvr"
 )
 
-// {{.Service}}Server defines the interface that service must implement.
-type {{.Service}}Server interface {
-    {{- range $r := .RPCs}}
+// {{.Service}}Service defines the interface that service must implement.
+type {{.Service}}Service interface {
+    {{- range $r := .RPCs }}
 		{{- if $r.Comments.Exists }}
 			{{formatComments $r.Comments}}
 		{{- end}}
-		{{- if $r.SSE}}
-			{{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *SSEEvent[{{$r.Response}}])
+		{{- if $r.SSE }}
+			{{$r.Name}}(context.Context, *{{$r.Request}}, chan<- *httpsvr.Event[{{$r.Response}}])
 		{{- else}}
 			{{$r.Name}}(context.Context, *{{$r.Request}}) {{$r.Response}}
 		{{- end}}
     {{- end}}
 }
 
-type Router struct {
-	Method  string
-	Pattern string
-	Handler http.HandlerFunc
-}
-
 // Routers returns a list of HTTP routers for the service.
-func Routers(server {{.Service}}Server) []Router {
-	return []Router{
-		{{- range $r := .RPCs}}
+func Routers(server {{.Service}}Service) []httpsvr.Router {
+	return []httpsvr.Router{
+		{{- range $r := .RPCs }}
 			{
 				Method:  "{{$r.Method}}",
 				Pattern: "{{$r.Path}}",
-				{{- if $r.SSE}}
+				{{- if $r.SSE }}
 					Handler: func(w http.ResponseWriter, r *http.Request) {
-						req := &{{$r.Request}}{}
-						HandleStream(w, r, req, server.{{$r.Name}})
+						httpsvr.HandleStream(w, r, New{{$r.Request}}(), server.{{$r.Name}})
 					},
 				{{- else}}
 					Handler: func(w http.ResponseWriter, r *http.Request) {
-							req := &{{$r.Request}}{}
-							HandleJSON(w, r, req, server.{{$r.Name}})
+						httpsvr.HandleJSON(w, r, New{{$r.Request}}(), server.{{$r.Name}})
 					},
 				{{- end}}
 			},
@@ -91,37 +80,15 @@ func Routers(server {{.Service}}Server) []Router {
 // genServer generates the HTTP handler and router initialization code
 // for the given service context and RPC definitions.
 func (g *Generator) genServer(config *generator.Config, spec GoSpec) error {
-
-	// Copy proto template files to output directory
-	entries, err := protoDir.ReadDir("proto")
-	if err != nil {
-		return errutil.Explain(nil, "read proto directory error: %w", err)
-	}
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		b, err := protoDir.ReadFile(filepath.Join("proto", e.Name()))
-		if err != nil {
-			return errutil.Explain(nil, "read proto file %s error: %w", e.Name(), err)
-		}
-		b = bytes.ReplaceAll(b, []byte("PACKAGE_NAME"), []byte(config.GoPackage))
-		fileName := filepath.Join(config.OutputDir, e.Name())
-		if err = os.WriteFile(fileName, b, os.ModePerm); err != nil {
-			return errutil.Explain(nil, "write proto file %s error: %w", fileName, err)
-		}
-	}
-
 	buf := &bytes.Buffer{}
-	err = serverTmpl.Execute(buf, map[string]any{
+	err := serverTmpl.Execute(buf, map[string]any{
 		"Package": config.GoPackage,
 		"Service": spec.Meta.Name,
 		"RPCs":    spec.RPCs,
 	})
 	if err != nil {
-		return errutil.Explain(nil, "execute template error: %w", err)
+		return errutil.Explain(nil, "execute server template error: %w", err)
 	}
-	fileName := spec.Meta.Name + "_http.go"
-	fileName = filepath.Join(config.OutputDir, fileName)
+	fileName := filepath.Join(config.OutputDir, "server.go")
 	return formatFile(fileName, buf.Bytes())
 }

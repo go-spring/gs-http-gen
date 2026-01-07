@@ -3,7 +3,6 @@
 package proto
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -11,41 +10,42 @@ import (
 	"strings"
 
 	"github.com/lvan100/golib/errutil"
+	"github.com/lvan100/golib/hashutil"
+	"github.com/lvan100/golib/jsonflow"
 )
 
-var _ = json.Marshal
-var _ = strings.Contains
-var _ = http.NewServeMux
-var _ = strconv.FormatInt
+var _ = strings.Trim
+var _ = strconv.Itoa
+var _ = http.StatusOK
 
 type PayloadType int32
 
 const (
-	PayloadType_Payload_1 PayloadType = 0
-	PayloadType_Payload_2 PayloadType = 1
-	PayloadType_Payload_3 PayloadType = 2
+	PayloadType_PayloadOf1 PayloadType = 1
+	PayloadType_PayloadOf2 PayloadType = 2
+	PayloadType_PayloadOf3 PayloadType = 3
 )
 
 var (
 	PayloadType_name = map[PayloadType]string{
-		0: "Payload_1",
-		1: "Payload_2",
-		2: "Payload_3",
+		1: "PayloadOf1",
+		2: "PayloadOf2",
+		3: "PayloadOf3",
 	}
 	PayloadType_value = map[string]PayloadType{
-		"Payload_1": 0,
-		"Payload_2": 1,
-		"Payload_3": 2,
+		"PayloadOf1": 1,
+		"PayloadOf2": 2,
+		"PayloadOf3": 3,
 	}
 )
 
-// OneOfPayloadType is usually used for validation.
+// OneOfPayloadType reports whether it's a valid PayloadType.
 func OneOfPayloadType(i PayloadType) bool {
 	_, ok := PayloadType_name[i]
 	return ok
 }
 
-// OneOfPayloadTypeAsString is usually used for validation.
+// OneOfPayloadTypeAsString reports whether it's a valid PayloadTypeAsString.
 func OneOfPayloadTypeAsString(i PayloadTypeAsString) bool {
 	_, ok := PayloadType_name[PayloadType(i)]
 	return ok
@@ -54,39 +54,46 @@ func OneOfPayloadTypeAsString(i PayloadTypeAsString) bool {
 // PayloadTypeAsString wraps PayloadType to encode/decode as a JSON string.
 type PayloadTypeAsString PayloadType
 
-// MarshalJSON implements custom JSON encoding for the enum as a string.
+// MarshalJSON encodes the enum value as its string name.
 func (x PayloadTypeAsString) MarshalJSON() ([]byte, error) {
 	if s, ok := PayloadType_name[PayloadType(x)]; ok {
 		return []byte(fmt.Sprintf("\"%s\"", s)), nil
 	}
-	return nil, errutil.Explain(nil, "invalid PayloadType: %d", x)
+	return nil, errutil.Explain(nil, "invalid PayloadTypeAsString: %d", x)
 }
 
-// UnmarshalJSON implements custom JSON decoding for the enum from a string.
+// UnmarshalJSON decodes the enum value from its string name.
 func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
 	if v, ok := PayloadType_value[str]; ok {
 		*x = PayloadTypeAsString(v)
 		return nil
 	}
-	return errutil.Explain(nil, "invalid PayloadType value: %q", str)
+	return errutil.Explain(nil, "invalid PayloadTypeAsString value: %q", str)
 }
 
 type AssistantReq struct {
 	AssistantReqBody
 }
 
-// QueryForm returns the form values of the object.
+// NewAssistantReq creates a new AssistantReq instance
+// and initializes fields with default values.
+func NewAssistantReq() *AssistantReq {
+	return &AssistantReq{}
+}
+
+// QueryForm encodes query-bound fields into URL-encoded form data.
 func (x *AssistantReq) QueryForm() (string, error) {
 	return "", nil
 }
 
-// Binding extracts non-body values (path, query) from *http.Request.
-func (x *AssistantReq) Bind(r *http.Request) error {
-	return nil
+// Bind extracts path and query parameters from the HTTP request
+// and assigns them to the corresponding struct fields.
+func (x *AssistantReq) Bind(r *http.Request) (err error) {
+	return
 }
 
-// Validate checks field values using generated validation expressions.
+// Validate validates both bound parameters and request body fields.
 func (x *AssistantReq) Validate() (err error) {
 	if validateErr := x.AssistantReqBody.Validate(); validateErr != nil {
 		err = errutil.Stack(err, "validate failed on \"AssistantReq\": %w", validateErr)
@@ -94,16 +101,24 @@ func (x *AssistantReq) Validate() (err error) {
 	return
 }
 
+// AssistantReqBody represents the request body payload,
+// excluding path and query parameters.
 type AssistantReqBody struct {
 	Items []*Item `json:"items,omitempty" form:"items"`
 }
 
-// EncodeForm encodes the object to form data.
+// NewAssistantReqBody creates a new AssistantReqBody instance
+// and initializes fields with default values.
+func NewAssistantReqBody() *AssistantReqBody {
+	return &AssistantReqBody{}
+}
+
+// EncodeForm encodes the request body as application/x-www-form-urlencoded data.
 func (x *AssistantReqBody) EncodeForm() (string, error) {
 	m := make(url.Values)
 	for i := range len(x.Items) {
 		if x.Items[i] != nil {
-			b, err := json.Marshal(*x.Items[i])
+			b, err := jsonflow.Marshal(*x.Items[i])
 			if err != nil {
 				return "", err
 			}
@@ -113,26 +128,26 @@ func (x *AssistantReqBody) EncodeForm() (string, error) {
 	return m.Encode(), nil
 }
 
-// DecodeForm decodes the object from form data.
-func (x *AssistantReqBody) DecodeForm(b []byte) error {
-	values, err := url.ParseQuery(string(b))
-	if err != nil {
-		return errutil.Explain(err, "parse query error")
+// DecodeForm decodes application/x-www-form-urlencoded data into the request body.
+func (x *AssistantReqBody) DecodeForm(b []byte) (err error) {
+	values, parseErr := url.ParseQuery(string(b))
+	if parseErr != nil {
+		err = errutil.Explain(err, "parse query error: %w", parseErr)
+		return
 	}
-	if len(values) == 0 {
-		return nil
-	}
+
 	if v, ok := values["items"]; ok {
 		for _, s := range v {
 			var i *Item
-			parseErr := json.Unmarshal([]byte(s), &i)
-			if parseErr != nil {
+			if parseErr = jsonflow.Unmarshal([]byte(s), &i); parseErr != nil {
 				err = errutil.Stack(err, "json decode error: %w", parseErr)
+			} else {
+				x.Items = append(x.Items, i)
 			}
-			x.Items = append(x.Items, i)
 		}
 	}
-	return err
+
+	return
 }
 
 // Validate checks field values using generated validation expressions.
@@ -144,8 +159,49 @@ type Item struct {
 	Id *string `json:"id,omitempty" form:"id"`
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *Item) Validate() (err error) {
+// NewItem creates a new Item instance
+// and initializes fields with default values.
+func NewItem() *Item {
+	return &Item{}
+}
+
+// DecodeJSON decodes a JSON object into Item using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *Item) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashId = 0x8b72e07b55c3ac0 // HashKey("id")
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashId:
+			if r.Id, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
 	return
 }
 
@@ -156,18 +212,266 @@ type AssistantResp struct {
 	Image   []byte   `json:"image,omitempty" form:"image"`
 }
 
+// NewAssistantResp creates a new AssistantResp instance
+// and initializes fields with default values.
+func NewAssistantResp() *AssistantResp {
+	return &AssistantResp{}
+}
+
+// DecodeJSON decodes a JSON object into AssistantResp using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *AssistantResp) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashId      = 0x8b72e07b55c3ac0  // HashKey("id")
+		hashData    = 0x855b556730a34a05 // HashKey("data")
+		hashPayload = 0xcfb8a9d063b5e9e5 // HashKey("payload")
+		hashImage   = 0x2ab612888528489a // HashKey("image")
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashId:
+			if r.Id, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashPayload:
+			if r.Payload, err = jsonflow.DecodeObject(NewPayload)(d); err != nil {
+				return err
+			}
+		case hashImage:
+			if r.Image, err = jsonflow.DecodeBytes(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
 type Payload struct {
-	FieldType *PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
-	Payload1  *Payload_1           `json:"Payload_1,omitempty" form:"Payload_1"`
-	Payload2  *Payload_2           `json:"Payload_2,omitempty" form:"Payload_2"`
-	Payload3  *Payload_3           `json:"Payload_3,omitempty" form:"Payload_3"`
+	FieldType  PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
+	PayloadOf1 *PayloadOf1         `json:"PayloadOf1,omitempty" form:"PayloadOf1"`
+	PayloadOf2 *PayloadOf2         `json:"PayloadOf2,omitempty" form:"PayloadOf2"`
+	PayloadOf3 *PayloadOf3         `json:"PayloadOf3,omitempty" form:"PayloadOf3"`
 }
 
-type Payload_1 struct {
+// NewPayload creates a new Payload instance
+// and initializes fields with default values.
+func NewPayload() *Payload {
+	return &Payload{}
 }
 
-type Payload_2 struct {
+// DecodeJSON decodes a JSON object into Payload using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *Payload) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashFieldType  = 0x924fb655ccf9c75f // HashKey("FieldType")
+		hashPayloadOf1 = 0xbf1a330ab6dde99b // HashKey("PayloadOf1")
+		hashPayloadOf2 = 0xbf1a340ab6ddeb4e // HashKey("PayloadOf2")
+		hashPayloadOf3 = 0xbf1a350ab6dded01 // HashKey("PayloadOf3")
+	)
+
+	var (
+		hasFieldType bool
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashFieldType:
+			hasFieldType = true
+			if r.FieldType, err = jsonflow.DecodeAny[PayloadTypeAsString](d); err != nil {
+				return err
+			}
+		case hashPayloadOf1:
+			if r.PayloadOf1, err = jsonflow.DecodeObject(NewPayloadOf1)(d); err != nil {
+				return err
+			}
+		case hashPayloadOf2:
+			if r.PayloadOf2, err = jsonflow.DecodeObject(NewPayloadOf2)(d); err != nil {
+				return err
+			}
+		case hashPayloadOf3:
+			if r.PayloadOf3, err = jsonflow.DecodeObject(NewPayloadOf3)(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasFieldType {
+		err = errutil.Stack(err, "missing required field \"FieldType\"")
+	}
+	return
 }
 
-type Payload_3 struct {
+type PayloadOf1 struct {
+}
+
+// NewPayloadOf1 creates a new PayloadOf1 instance
+// and initializes fields with default values.
+func NewPayloadOf1() *PayloadOf1 {
+	return &PayloadOf1{}
+}
+
+// DecodeJSON decodes a JSON object into PayloadOf1 using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *PayloadOf1) DecodeJSON(d jsonflow.Decoder) (err error) {
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
+type PayloadOf2 struct {
+}
+
+// NewPayloadOf2 creates a new PayloadOf2 instance
+// and initializes fields with default values.
+func NewPayloadOf2() *PayloadOf2 {
+	return &PayloadOf2{}
+}
+
+// DecodeJSON decodes a JSON object into PayloadOf2 using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *PayloadOf2) DecodeJSON(d jsonflow.Decoder) (err error) {
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
+type PayloadOf3 struct {
+}
+
+// NewPayloadOf3 creates a new PayloadOf3 instance
+// and initializes fields with default values.
+func NewPayloadOf3() *PayloadOf3 {
+	return &PayloadOf3{}
+}
+
+// DecodeJSON decodes a JSON object into PayloadOf3 using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *PayloadOf3) DecodeJSON(d jsonflow.Decoder) (err error) {
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
 }

@@ -16,14 +16,14 @@ type AssistantResp {
 }
 
 oneof Payload {
-    Payload_1
-    Payload_2
-    Payload_3
+    PayloadOf1
+    PayloadOf2
+    PayloadOf3
 }
 
-type Payload_1 {}
-type Payload_2 {}
-type Payload_3 {}
+type PayloadOf1 {}
+type PayloadOf2 {}
+type PayloadOf3 {}
 
 // Assistant ...
 sse Assistant(AssistantReq) AssistantResp {

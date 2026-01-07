@@ -21,15 +21,15 @@ import (
 	"strings"
 )
 
-// IsPascal checks whether a string is in PascalCase.
-// A string is considered PascalCase if its first character is an uppercase ASCII letter.
+// IsPascal reports whether a string starts with an uppercase ASCII letter.
+// It does not validate full PascalCase formatting.
 func IsPascal(name string) bool {
 	return name[0] >= 'A' && name[0] <= 'Z'
 }
 
-// ToPascal converts a snake_case string to PascalCase.
-// For example, "hello_world" becomes "HelloWorld".
-// Empty parts (e.g., "__") are ignored.
+// ToPascal converts a snake_case identifier into a Pascal-style identifier
+// by capitalizing the first letter of each underscore-separated segment.
+// It does not normalize the case of the remaining characters.
 func ToPascal(s string) string {
 	var sb strings.Builder
 	for part := range strings.SplitSeq(s, "_") {
@@ -48,39 +48,47 @@ func ToPascal(s string) string {
 	return sb.String()
 }
 
-// GetEnum searches all documents for an enum type with the given name.
-func GetEnum(files map[string]Document, name string) (Enum, bool) {
-	for _, doc := range files {
+// EnumRef represents a resolved enum definition and its location.
+type EnumRef struct {
+	Type  Enum
+	File  string
+	Index int
+}
+
+// FindEnum searches all documents for a non-extended enum type
+// with the given name and returns its definition and location.
+func FindEnum(files map[string]Document, name string) (EnumRef, bool) {
+	for file, doc := range files {
 		if i, ok := doc.EnumTypes[name]; ok {
-			return doc.Enums[i], true
+			if e := doc.Enums[i]; e.Kind != EnumKindExtends {
+				return EnumRef{Type: e, File: file, Index: i}, true
+			}
 		}
 	}
-	return Enum{}, false
+	return EnumRef{}, false
+}
+
+// TypeRef represents a resolved type definition and its location.
+type TypeRef struct {
+	Type  Type
+	File  string
+	Index int
 }
 
 // FindType searches all documents for a type with the given name.
-func FindType(files map[string]Document, name string) (string, int) {
-	for fileName, doc := range files {
+func FindType(files map[string]Document, name string) (TypeRef, bool) {
+	for file, doc := range files {
 		if i, ok := doc.TypeTypes[name]; ok {
-			return fileName, i
+			t := doc.Types[i]
+			return TypeRef{Type: t, File: file, Index: i}, true
 		}
 	}
-	return "", -1
+	return TypeRef{}, false
 }
 
-// GetType searches all documents for a type with the given name.
-func GetType(files map[string]Document, name string) (Type, bool) {
-	for _, doc := range files {
-		if i, ok := doc.TypeTypes[name]; ok {
-			return doc.Types[i], true
-		}
-	}
-	return Type{}, false
-}
-
-// GetAnnotation searches through a slice of annotations and returns
+// FindAnnotation searches through a slice of annotations and returns
 // the first annotation whose key matches any of the provided names.
-func GetAnnotation(arr []Annotation, names ...string) (Annotation, bool) {
+func FindAnnotation(arr []Annotation, names ...string) (Annotation, bool) {
 	for _, a := range arr {
 		if slices.Contains(names, a.Key) {
 			return a, true

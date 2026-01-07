@@ -86,7 +86,7 @@ func Format(doc Document) string {
 
 	// Collect enum declarations
 	for _, e := range doc.Enums {
-		if e.OneOf {
+		if e.Kind == EnumKindOneOf {
 			continue
 		}
 		items = append(items, docItem{
@@ -210,10 +210,16 @@ func formatEnum(e Enum) string {
 	formatAboveComments(e.Comments.Above, &sb, "")
 
 	sb.WriteString("enum ")
+	if e.Kind == EnumKindExtends {
+		sb.WriteString("extends ")
+	}
 	sb.WriteString(e.Name)
 	sb.WriteString(" {")
 
 	for _, f := range e.Fields {
+		if f.ExtendsFrom != nil {
+			continue
+		}
 		sb.WriteString("\n")
 		formatAboveComments(f.Comments.Above, &sb, indent)
 
@@ -328,7 +334,6 @@ func formatRPC(r RPC) string {
 	sb.WriteString(r.Response.Text())
 	sb.WriteString(" {")
 
-	// TODO: group annotations
 	for _, a := range r.Annotations {
 		sb.WriteString("\n")
 		formatAboveComments(a.Comments.Above, &sb, indent)

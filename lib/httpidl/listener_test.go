@@ -18,18 +18,19 @@ package httpidl
 
 import (
 	"bytes"
-	"encoding/json"
 	"os"
 	"testing"
+
+	"github.com/lvan100/golib/jsonflow"
 )
 
-func TestParser(t *testing.T) {
+func TestListener(t *testing.T) {
 	fileName := "testdata/success/http.idl"
 	b, err := os.ReadFile(fileName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	doc, _, err := Parse(b)
+	doc, _, err := ParseIDL(b)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +46,7 @@ func TestParser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := json.MarshalIndent(doc, "", "  ")
+	v, err := jsonflow.MarshalIndent(doc, "", "  ")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -36,9 +36,10 @@ const_def
 //   RED = 1
 //   GREEN = 2
 // }
+// extends is used only for error code inheritance
 // --------------------
 enum_def
-    : KW_ENUM IDENTIFIER LEFT_BRACE terminator? (enum_field terminator)* terminator? RIGHT_BRACE
+    : KW_ENUM KW_EXTENDS? IDENTIFIER LEFT_BRACE terminator? (enum_field terminator)* terminator? RIGHT_BRACE
     ;
 
 // --------------------
@@ -58,18 +59,20 @@ enum_field
 //   string field = "1" (go.type="string")
 // }
 // Example 2:
+// type A B<int>
+// type A B<map<string,int>>
 // type UserResp Response<User>
 // --------------------
 type_def
     // Structured type with optional generic parameter
     : KW_TYPE IDENTIFIER (LESS_THAN IDENTIFIER GREATER_THAN)? LEFT_BRACE terminator? (type_field terminator)* terminator? RIGHT_BRACE
-    // Generic type instantiation
+    // Generic type instantiation or aliasing
     | KW_TYPE IDENTIFIER IDENTIFIER LESS_THAN value_type GREATER_THAN
     ;
 
 // --------------------
 // Type field
-// A field can be either an embedded type (anonymous inclusion)
+// A field can be either an embedded user-defined type
 // or a normal named field with optional modifiers and annotations.
 // --------------------
 type_field
@@ -121,7 +124,8 @@ oneof_def
 // --------------------
 // RPC definition
 // Example:
-//   rpc GetUser (ReqType) RespType { method="GET" }
+//   rpc GetUser (ReqType) RespType { method="GET" } // standard HTTP request
+//   sse GetUser (ReqType) RespType { method="GET" } // streaming HTTP request
 // --------------------
 rpc_def
     : (KW_RPC | KW_SSE) IDENTIFIER LEFT_PAREN rpc_req RIGHT_PAREN rpc_resp rpc_annotations

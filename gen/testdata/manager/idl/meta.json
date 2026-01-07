@@ -5,5 +5,7 @@
   "import": [
     "http://127.0.0.1/common.idl"
   ],
-  "config": {}
+  "config": {
+    "debug": true
+  }
 }

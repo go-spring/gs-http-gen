@@ -17,14 +17,13 @@
 package gen
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
 	_ "github.com/gin-gonic/gin"
 	"github.com/go-spring/gs-http-gen/gen/generator"
-	_ "github.com/go-spring/gs-mock/gsmock"
+	"github.com/lvan100/golib/jsonflow"
 )
 
 func TestGen(t *testing.T) {
@@ -52,7 +51,7 @@ func testProject(t *testing.T, dir string) {
 		Server bool
 		Client bool
 	}
-	if err = json.Unmarshal(b, &m); err != nil {
+	if err = jsonflow.Unmarshal(b, &m); err != nil {
 		t.Fatal(err)
 	}
 

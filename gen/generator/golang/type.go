@@ -22,6 +22,7 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -57,136 +58,243 @@ func formatComments(c httpidl.Comments) string {
 	return strings.Join(lines, "\n")
 }
 
-// encodeFormValue generates Go code to encode a field value to form data.
-func encodeFormValue(fieldName string, typeKind []TypeKind, formName string) string {
-	var sb strings.Builder
-
-	// pointer
-	if typeKind[0] == TypeKindPointer {
-		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
-		sb.WriteString(encodeFormValue("*"+fieldName, typeKind[1:], formName))
-		sb.WriteString(fmt.Sprintf("\n}"))
-		return sb.String()
-	}
-
+// genDefaultValue generates Go code to generate a default value for a field.
+func genDefaultValue(typeKind []TypeKind, defaultValue string) string {
 	switch typeKind[0] {
-	case TypeKindBool:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, fieldName))
 	case TypeKindInt:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+		_, err := strconv.ParseInt(defaultValue, 10, 64)
+		if err != nil {
+			panic("parse error")
+		}
+		return defaultValue
 	case TypeKindUint:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, fieldName))
-	case TypeKindFloat:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, fieldName))
+		_, err := strconv.ParseUint(defaultValue, 10, 64)
+		if err != nil {
+			panic("parse error")
+		}
+		return defaultValue
 	case TypeKindString:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, fieldName))
-	case TypeKindEnum:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
-	case TypeKindEnumAsString:
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, fieldName))
-	case TypeKindStruct, TypeKindMap:
-		sb.WriteString(fmt.Sprintf("b, err := json.Marshal(%s)", fieldName))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf(`if err != nil {
-			return "", err
-		}`))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf(`m.Add("%s", string(b))`, formName))
-	case TypeKindList:
-		sb.WriteString(fmt.Sprintf("for i := range len(%s) {", fieldName))
-		sb.WriteString("\n")
-		sb.WriteString(encodeFormValue(fieldName+"[i]", typeKind[1:], formName))
-		sb.WriteString("\n")
-		sb.WriteString(fmt.Sprintf("}"))
+		return strconv.Quote(defaultValue)
 	default:
 		panic("unsupported type")
 	}
+}
 
+// decodePathValue generates Go code to decode a field value from path parameter.
+func decodePathValue(fieldName string, typeKind []TypeKind, pathName string) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf(`if s := r.PathValue("%s"); s == "" {
+		err = errutil.Stack(err, "required field \"%s\" is missing")
+	} else {
+	`, pathName, pathName))
+
+	switch typeKind[0] {
+	case TypeKindInt:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(s, 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = i
+			}`, pathName, fieldName))
+	case TypeKindUint:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseUint(s, 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = i
+			}`, pathName, fieldName))
+	case TypeKindString:
+		sb.WriteString(fmt.Sprintf(`%s = s`, fieldName))
+	default:
+		panic("unsupported type")
+	}
+	sb.WriteString(fmt.Sprintf("\n}"))
+	return sb.String()
+}
+
+// encodeFormValue generates Go code to encode a field value to form data.
+func encodeFormValue(fieldName string, typeKind []TypeKind, formName string) string {
+	var sb strings.Builder
+	if IsPointer(typeKind[0]) {
+		sb.WriteString(fmt.Sprintf("if %s != nil {\n", fieldName))
+		switch typeKind[0] {
+		case TypeKindBoolPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, "*"+fieldName))
+		case TypeKindIntPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, "*"+fieldName))
+		case TypeKindUintPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, "*"+fieldName))
+		case TypeKindFloatPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, "*"+fieldName))
+		case TypeKindStringPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, "*"+fieldName))
+		case TypeKindBytes:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, "*"+fieldName)) // todo
+		case TypeKindEnumPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, "*"+fieldName))
+		case TypeKindEnumAsStringPtr:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, "*"+fieldName))
+		case TypeKindStructPtr:
+			sb.WriteString(fmt.Sprintf(`b, err := jsonflow.Marshal(%s)
+				if err != nil {
+					return "", err
+				}
+				m.Add("%s", string(b))`, "*"+fieldName, formName))
+		default:
+			panic("unsupported type")
+		}
+		sb.WriteString(fmt.Sprintf("\n}"))
+	} else {
+		switch typeKind[0] {
+		case TypeKindBool:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatBool(%s))`, formName, fieldName))
+		case TypeKindInt:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+		case TypeKindUint:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatUint(uint64(%s), 10))`, formName, fieldName))
+		case TypeKindFloat:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatFloat(float64(%s), 'f', -1, 64))`, formName, fieldName))
+		case TypeKindString:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", %s)`, formName, fieldName))
+		case TypeKindEnum:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", strconv.FormatInt(int64(%s), 10))`, formName, fieldName))
+		case TypeKindEnumAsString:
+			sb.WriteString(fmt.Sprintf(`m.Add("%s", string(%s))`, formName, fieldName))
+		case TypeKindMap:
+			sb.WriteString(fmt.Sprintf(`b, err := jsonflow.Marshal(%s)
+				if err != nil {
+					return "", err
+				}
+				m.Add("%s", string(b))`, fieldName, formName))
+		case TypeKindList:
+			sb.WriteString(fmt.Sprintf("for i := range len(%s) {\n", fieldName))
+			sb.WriteString(encodeFormValue(fieldName+"[i]", typeKind[1:], formName))
+			sb.WriteString(fmt.Sprintf("\n}"))
+		default:
+			panic("unsupported type")
+		}
+	}
 	return sb.String()
 }
 
 // decodeFormValue generates Go code to decode a field value from form data.
 func decodeFormValue(fieldName string, typeName string, typeKind []TypeKind, formName string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf(`if v, ok := values["%s"]; ok {`, formName))
 
 	switch typeKind[0] {
 	case TypeKindList:
 		valueType := strings.TrimPrefix(typeName, "[]")
 		sb.WriteString(fmt.Sprintf(`for _, s := range v {
 				var i %s
-				parseErr := json.Unmarshal([]byte(s), &i)
+				if parseErr = jsonflow.Unmarshal([]byte(s), &i); parseErr != nil {
+					err = errutil.Stack(err, "json decode error: %%w", parseErr)
+				} else {
+					%s = append(%s, i)
+				}
+			}`, valueType, fieldName, fieldName))
+		return sb.String()
+	case TypeKindMap:
+		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {
+				parseErr := jsonflow.Unmarshal([]byte(v[0]), &%s)
 				if parseErr != nil {
 					err = errutil.Stack(err, "json decode error: %%w", parseErr)
 				}
-				%s = append(%s, i)
-			}`, valueType, fieldName, fieldName))
-	case TypeKindMap:
-		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
-		sb.WriteString(fmt.Sprintf(`parseErr := json.Unmarshal([]byte(v[0]), &%s)
-			if parseErr != nil {
+			} else {
+				err = errutil.Stack(err, "invalid value for \"%s\"")
+			}
+		`, fieldName, formName))
+		return sb.String()
+	default: // for linter
+	}
+
+	sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
+	switch typeKind[0] {
+	case TypeKindBool:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = i
+			}`, formName, fieldName))
+	case TypeKindBoolPtr:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = &i
+			}`, formName, fieldName))
+	case TypeKindInt:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = i
+			}`, formName, fieldName))
+	case TypeKindIntPtr:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = &i
+			}`, formName, fieldName))
+	case TypeKindUint:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseUint(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = i
+			}`, formName, fieldName))
+	case TypeKindUintPtr:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseUint(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = &i
+			}`, formName, fieldName))
+	case TypeKindFloat:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseFloat(v[0], 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = i
+			}`, formName, fieldName))
+	case TypeKindFloatPtr:
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseFloat(v[0], 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				%s = &i
+			}`, formName, fieldName))
+	case TypeKindString:
+		sb.WriteString(fmt.Sprintf(`%s = v[0]`, fieldName))
+	case TypeKindStringPtr:
+		sb.WriteString(fmt.Sprintf(`%s = &v[0]`, fieldName))
+	case TypeKindStructPtr:
+		sb.WriteString(fmt.Sprintf(`if parseErr := jsonflow.Unmarshal([]byte(v[0]), &%s); parseErr != nil {
 				err = errutil.Stack(err, "json decode error: %%w", parseErr)
 			}`, fieldName))
-		sb.WriteString(fmt.Sprintf(`} else {
-				err = errutil.Stack(err, "invalid value for \"%s\"")
-			}`, formName))
-	case TypeKindPointer:
-		sb.WriteString(fmt.Sprintf(`if len(v) == 1 {`))
-		{
-			switch typeKind[1] {
-			case TypeKindBool:
-				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
-						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
-					} else {
-						%s = &i
-					}`, formName, fieldName))
-			case TypeKindInt:
-				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
-						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
-					} else {
-						%s = &i
-					}`, formName, fieldName))
-			case TypeKindUint:
-				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseUint(v[0], 10, 64); parseErr != nil {
-						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
-					} else {
-						%s = &i
-					}`, formName, fieldName))
-			case TypeKindFloat:
-				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseFloat(v[0], 64); parseErr != nil {
-						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
-					} else {
-						%s = &i
-					}`, formName, fieldName))
-			case TypeKindString:
-				sb.WriteString(fmt.Sprintf(`%s = &v[0]`, fieldName))
-			case TypeKindEnum, TypeKindEnumAsString:
-				valueType := strings.TrimPrefix(typeName, "*")
-				sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
-						err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
-					} else {
-						if e := %s(i); !OneOf%s(e) {
-							err = errutil.Stack(err, "invalid value for \"%s\"")
-						} else{
-							%s = &e
-						}
-					}`, formName, valueType, valueType, formName, fieldName))
-			case TypeKindStruct:
-				sb.WriteString(fmt.Sprintf(`if parseErr := json.Unmarshal([]byte(v[0]), &%s); parseErr != nil {
-						err = errutil.Stack(err, "json decode error: %%w", parseErr)
-					}`, fieldName))
-			default:
-				panic("unsupported type")
-			}
-		}
-		sb.WriteString(fmt.Sprintf(`} else {
-				err = errutil.Stack(err, "invalid value for \"%s\"")
-			}`, formName))
+	case TypeKindBytes: // todo
+	case TypeKindEnum:
+		valueType := strings.TrimPrefix(typeName, "*")
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				if e := %s(i); !OneOf%s(e) {
+					err = errutil.Stack(err, "invalid value for \"%s\"")
+				} else{
+					%s = e
+				}
+			}`, formName, valueType, valueType, formName, fieldName))
+	case TypeKindEnumPtr:
+		valueType := strings.TrimPrefix(typeName, "*")
+		sb.WriteString(fmt.Sprintf(`if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
+				err = errutil.Stack(err, "parse \"%s\" error: %%w", parseErr)
+			} else {
+				if e := %s(i); !OneOf%s(e) {
+					err = errutil.Stack(err, "invalid value for \"%s\"")
+				} else{
+					%s = &e
+				}
+			}`, formName, valueType, valueType, formName, fieldName))
+	case TypeKindEnumAsString:
+	case TypeKindEnumAsStringPtr:
 	default:
 		panic("unsupported type")
 	}
 
-	sb.WriteString("}")
+	sb.WriteString(fmt.Sprintf(`} else {
+			err = errutil.Stack(err, "invalid value for \"%s\"")
+		}`, formName))
 	return sb.String()
 }
 
@@ -195,9 +303,9 @@ func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Ex
 	receiverType = strings.TrimSuffix(receiverType, "Body") // todo
 
 	// 对于结构体而言，只应当验证字段非空，其内部字段的验证应当由自己完成
-	fieldType, optional := strings.CutPrefix(fieldType, "*")
+	fieldType, pointer := strings.CutPrefix(fieldType, "*")
 	dollar := "x." + fieldName
-	if optional {
+	if pointer {
 		dollar = "*" + dollar
 	}
 
@@ -212,7 +320,7 @@ func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Ex
 		err = errutil.Stack(err,"validate failed on \"%s.%s\"")
 	}`, str, receiverType, fieldName)
 
-	if optional {
+	if pointer {
 		str = fmt.Sprintf(`if x.%s != nil { %s }`, fieldName, str)
 	}
 	return str, nil
@@ -291,10 +399,7 @@ func genValidateNested(receiverType, fieldName string, itemName string, typeKind
 				%s
 			}`, childName, itemName, str)
 		return str
-	case TypeKindPointer:
-		if typeKind[1] != TypeKindStruct {
-			return ""
-		}
+	case TypeKindStructPtr:
 		str := fmt.Sprintf(`if %s != nil {
 				if validateErr := %s.Validate(); validateErr != nil {
 					err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
@@ -306,14 +411,67 @@ func genValidateNested(receiverType, fieldName string, itemName string, typeKind
 	}
 }
 
+// genDecodeJSON generates the JSON decoding code for a Go struct field.
+func genDecodeJSON(typeName string, typeKind []TypeKind) string {
+	switch typeKind[0] {
+	case TypeKindBool:
+		return "jsonflow.DecodeBool"
+	case TypeKindBoolPtr:
+		return "jsonflow.DecodeBoolPtr"
+	case TypeKindInt:
+		return "jsonflow.DecodeInt[" + typeName + "]"
+	case TypeKindIntPtr:
+		return "jsonflow.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindUint:
+		return "jsonflow.DecodeUint[" + typeName + "]"
+	case TypeKindUintPtr:
+		return "jsonflow.DecodeUintPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindFloat:
+		return "jsonflow.DecodeFloat[" + typeName + "]"
+	case TypeKindFloatPtr:
+		return "jsonflow.DecodeFloatPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindString:
+		return "jsonflow.DecodeString"
+	case TypeKindStringPtr:
+		return "jsonflow.DecodeStringPtr"
+	case TypeKindBytes:
+		return "jsonflow.DecodeBytes"
+	case TypeKindEnum:
+		return "jsonflow.DecodeInt[" + typeName + "]"
+	case TypeKindEnumPtr:
+		return "jsonflow.DecodeIntPtr[" + strings.TrimPrefix(typeName, "*") + "]"
+	case TypeKindEnumAsString:
+		return "jsonflow.DecodeAny[" + typeName + "]"
+	case TypeKindEnumAsStringPtr:
+		return "jsonflow.DecodeAny[" + typeName + "]"
+	case TypeKindStructPtr:
+		return "jsonflow.DecodeObject(New" + strings.TrimPrefix(typeName, "*") + ")"
+	case TypeKindList:
+		e := genDecodeJSON(strings.TrimPrefix(typeName, "[]"), typeKind[1:])
+		return "jsonflow.DecodeArray(" + e + ")"
+	case TypeKindMap:
+		s := strings.TrimPrefix(typeName, "map[")
+		i := strings.Index(s, "]")
+		k, v := s[:i], s[i+1:]
+		ks := genDecodeJSON(k, typeKind[1:2])
+		vs := genDecodeJSON(v, typeKind[2:])
+		return "jsonflow.DecodeMap(" + ks + "," + vs + ")"
+	default:
+		panic("unsupported type")
+	}
+}
+
 // typeTmpl is a Go template used to generate Go source code from IDL definitions.
 var typeTmpl = template.Must(template.New("type").
 	Funcs(map[string]any{
 		"formatComments":    formatComments,
+		"genDefaultValue":   genDefaultValue,
+		"decodePathValue":   decodePathValue,
 		"encodeFormValue":   encodeFormValue,
 		"decodeFormValue":   decodeFormValue,
 		"genValidateExpr":   genValidateExpr,
 		"genValidateNested": genValidateNested,
+		"genDecodeJSON":     genDecodeJSON,
 	}).
 	Parse(`
 // Code generated by gs-http-gen compiler. DO NOT EDIT.
@@ -321,7 +479,6 @@ var typeTmpl = template.Must(template.New("type").
 package {{.Package}}
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -329,12 +486,13 @@ import (
 	"strings"
 
 	"github.com/lvan100/golib/errutil"
+	"github.com/lvan100/golib/hashutil"
+	"github.com/lvan100/golib/jsonflow"
 )
 
-var _ = json.Marshal
-var _ = strings.Contains
-var _ = http.NewServeMux
-var _ = strconv.FormatInt
+var _ = strings.Trim
+var _ = strconv.Itoa
+var _ = http.StatusOK
 
 {{ range $c := .Consts }}
 	{{- if $c.Comments.Exists }}
@@ -350,7 +508,7 @@ var _ = strconv.FormatInt
 	type {{$e.Name}} int32
 
 	const (
-		{{range $f := $e.Fields}}
+		{{ range $f := $e.Fields }}
 			{{- if $f.Comments.Exists }}
 				{{formatComments $f.Comments}}
 			{{- end}}
@@ -360,19 +518,19 @@ var _ = strconv.FormatInt
 
 	var (
 		{{$e.Name}}_name = map[{{$e.Name}}]string{
-			{{- range $f := $e.Fields}}
+			{{- range $f := $e.Fields }}
 				{{$f.Value}} : "{{$f.Name}}",
 			{{- end}}
 		}
 		{{$e.Name}}_value = map[string]{{$e.Name}}{
-			{{- range $f := $e.Fields}}
+			{{- range $f := $e.Fields }}
 				"{{$f.Name}}" : {{$f.Value}},
 			{{- end}}
 		}
-		{{- if eq $e.Name "ErrCode"}}
+		{{- if $e.KindError }} {{- /* only for error */}}
 			{{$e.Name}}_message = map[{{$e.Name}}]string{
-				{{- range $f := $e.Fields}}
-					{{- if $f.ErrorMessage}}
+				{{- range $f := $e.Fields }}
+					{{- if $f.ErrorMessage }}
 						{{$f.Value}} : "{{$f.ErrorMessage}}",
 					{{- else}}
 						{{$f.Value}} : "{{$f.Name}}",
@@ -382,13 +540,13 @@ var _ = strconv.FormatInt
 		{{- end}}
 	)
 
-	// OneOf{{$e.Name}} is usually used for validation.
+	// OneOf{{$e.Name}} reports whether it's a valid {{$e.Name}}.
 	func OneOf{{$e.Name}}(i {{$e.Name}}) bool {
 		_, ok := {{$e.Name}}_name[i]
 		return ok
 	}
 
-	// OneOf{{$e.Name}}AsString is usually used for validation.
+	// OneOf{{$e.Name}}AsString reports whether it's a valid {{$e.Name}}AsString.
 	func OneOf{{$e.Name}}AsString(i {{$e.Name}}AsString) bool {
 		_, ok := {{$e.Name}}_name[{{$e.Name}}(i)]
 		return ok
@@ -397,51 +555,191 @@ var _ = strconv.FormatInt
 	// {{$e.Name}}AsString wraps {{$e.Name}} to encode/decode as a JSON string.
 	type {{$e.Name}}AsString {{$e.Name}}
 
-	// MarshalJSON implements custom JSON encoding for the enum as a string.
+	// MarshalJSON encodes the enum value as its string name.
 	func (x {{$e.Name}}AsString) MarshalJSON() ([]byte, error) {
 		if s, ok := {{$e.Name}}_name[{{$e.Name}}(x)]; ok {
 			return []byte(fmt.Sprintf("\"%s\"", s)), nil
 		}
-		return nil, errutil.Explain(nil,"invalid {{$e.Name}}: %d", x)
+		return nil, errutil.Explain(nil,"invalid {{$e.Name}}AsString: %d", x)
 	}
 
-	// UnmarshalJSON implements custom JSON decoding for the enum from a string.
+	// UnmarshalJSON decodes the enum value from its string name.
 	func (x *{{$e.Name}}AsString) UnmarshalJSON(data []byte) error {
 		str := strings.Trim(string(data), "\"")
 		if v, ok := {{$e.Name}}_value[str]; ok {
 			*x = {{$e.Name}}AsString(v)
 			return nil
 		}
-		return errutil.Explain(nil,"invalid {{$e.Name}} value: %q", str)
+		return errutil.Explain(nil,"invalid {{$e.Name}}AsString value: %q", str)
 	}
 {{end}}
 
-{{range $s := .Structs}}
-	{{- if $s.Comments.Exists }}
-		{{formatComments $s.Comments}}
-	{{- end}}
-	type {{$s.Name}} struct {
-		{{- if $s.Request}}
-			{{$s.Name}}Body
+{{ range $s := .Structs }}
+	{{- if not $s.Request }}
+		{{- if $s.Comments.Exists }}
+			{{formatComments $s.Comments}}
 		{{- end}}
-		{{- range $f := $s.Fields}}
-			{{- if or $f.Binding (not $s.Request) }}
+		type {{$s.Name}} struct {
+			{{- range $f := $s.Fields }}
 				{{- if $f.Comments.Exists }}
 					{{formatComments $f.Comments}}
 				{{- end}}
 				{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
 			{{- end}}
-		{{- end}}
-	}
+		}
 
-	{{if $s.Request}}
-		// QueryForm returns the form values of the object.
+		// New{{$s.Name}} creates a new {{$s.Name}} instance
+		// and initializes fields with default values.
+		func New{{$s.Name}}() *{{$s.Name}} {
+			return &{{$s.Name}}{
+				{{- range $f := $s.Fields }}
+					{{- if $f.CompatDefault}}
+						{{$f.Name}}: {{genDefaultValue $f.TypeKind $f.CompatDefault}},
+					{{- end}}
+				{{- end}}
+			}
+		}
+
+		// DecodeJSON decodes a JSON object into {{$s.Name}} using a hash-based
+		// field dispatch mechanism for high-performance parsing.
+		func (r *{{$s.Name}}) DecodeJSON(d jsonflow.Decoder) (err error) {
+			{{- if $s.FieldCount }}
+				const (
+					{{- range $f := $s.Fields }}
+						hash{{$f.Name}} = {{$f.JSONTag.HashKey}} // HashKey("{{$f.JSONTag.Name}}")
+					{{- end}}
+				)
+			{{- end}}
+
+			{{- $HasRequired := false }}
+			{{- range $f := $s.Fields }}
+				{{- if and $f.Required (not $f.CompatDefault) }}
+					{{ $HasRequired = true }}
+				{{- end}}
+			{{- end}}
+
+			{{- if $HasRequired }}
+				var (
+					{{- range $f := $s.Fields }}
+						{{- if and $f.Required (not $f.CompatDefault) }}
+							has{{$f.Name}} bool
+						{{- end}}
+					{{- end}}
+				)
+			{{- end}}
+
+			if err = jsonflow.DecodeObjectBegin(d); err != nil {
+				return err
+			}
+
+			for {
+				if d.PeekKind() == '}' {
+					break
+				}
+
+				var key string
+				key, err = jsonflow.DecodeString(d)
+				if err != nil {
+					return err
+				}
+
+				switch hashutil.FNV1a64(key) {
+				{{- range $f := $s.Fields }}
+					case hash{{$f.Name}}:
+						{{- if and $f.Required (not $f.CompatDefault) }}
+							has{{$f.Name}} = true
+						{{- end}}
+						if r.{{$f.Name}}, err = {{genDecodeJSON $f.Type $f.TypeKind}}(d); err != nil {
+							return err
+						}
+				{{- end}}
+				default:
+					if err = d.SkipValue(); err != nil {
+						return err
+					}
+				}
+			}
+
+			if err = jsonflow.DecodeObjectEnd(d); err != nil {
+				return err
+			}
+
+			{{- if $HasRequired }}
+				{{ range $f := $s.Fields }}
+					{{- if and $f.Required (not $f.CompatDefault) }}
+						if !has{{$f.Name}} {
+							err = errutil.Stack(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+						}
+					{{- end}}
+				{{- end}}
+			{{- end}}
+			return 
+		}
+
+		{{- $Validate := false}}
+		{{- range $f := $s.Fields }}
+			{{- if $f.ValidateExpr }}
+				{{- $Validate = true}}
+			{{- end}}
+			{{- if $f.ValidateNested }}
+				{{- $Validate = true}}
+			{{- end}}
+		{{- end}}
+
+		{{- if $Validate}}
+			// Validate checks field values using generated validation expressions.
+			func (x *{{$s.Name}}) Validate() (err error) {
+				{{- range $f := $s.Fields }}
+					{{- if $f.ValidateExpr }}
+						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
+					{{- end}}
+					{{- if $f.ValidateNested }}
+						{{- $fieldName := printf "x.%s" $f.Name}}
+						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
+					{{- end}}
+				{{- end}}
+				return
+			}
+		{{- end}}
+	{{- end}} {{- /* end of struct (not request) */}}
+
+	{{- if $s.Request }}
+		{{- if $s.Comments.Exists }}
+			{{formatComments $s.Comments}}
+		{{- end}}
+		type {{$s.Name}} struct {
+			{{$s.Name}}Body
+			{{- range $f := $s.Fields }}
+				{{- if $f.Binding }}
+					{{- if $f.Comments.Exists }}
+						{{formatComments $f.Comments}}
+					{{- end}}
+					{{$f.Name}} {{$f.Type}} {{$f.FieldTag}}
+				{{- end}}
+			{{- end}}
+		}
+
+		// New{{$s.Name}} creates a new {{$s.Name}} instance
+		// and initializes fields with default values.
+		func New{{$s.Name}}() *{{$s.Name}} {
+			return &{{$s.Name}}{
+				{{- range $f := $s.Fields }}
+					{{- if $f.Binding }}
+						{{- if $f.CompatDefault}}
+							{{$f.Name}}: {{genDefaultValue $f.TypeKind $f.CompatDefault}},
+						{{- end}}
+					{{- end}}
+				{{- end}}
+			}
+		}
+
+		// QueryForm encodes query-bound fields into URL-encoded form data.
 		func (x *{{$s.Name}}) QueryForm() (string, error) {
-			{{- if $s.QueryCount}}
+			{{- if $s.QueryCount }}
 				m := make(url.Values)
-				{{- range $f := $s.Fields}}
-					{{- if $f.Binding}}
-						{{- if eq $f.Binding.Source "query"}}
+				{{- range $f := $s.Fields }}
+					{{- if $f.Binding }}
+						{{- if eq $f.Binding.Source "query" }}
 							{{$fieldName := printf "x.%s" $f.Name}}
 							{{- encodeFormValue $fieldName $f.TypeKind $f.Binding.Field}}
 						{{- end}}
@@ -452,62 +750,98 @@ var _ = strconv.FormatInt
 				return "", nil
 			{{- end}}
 		}
-	
-		// Binding extracts non-body values (path, query) from *http.Request.
-		func (x *{{$s.Name}}) Bind(r *http.Request) error {
-			{{- if $s.BindingCount}}
-				values, err := url.ParseQuery(r.URL.RawQuery)
-				if err != nil {
-					return errutil.Explain(err, "parse query error")
-				}
-				if len(values) == 0 {
-					return nil
-				}
-				{{- range $f := $s.Fields}}
-					{{- if and $f.Binding (eq $f.Binding.Source "query")}}
-						{{$fieldName := printf "x.%s" $f.Name}}
-						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
+
+		// Bind extracts path and query parameters from the HTTP request
+		// and assigns them to the corresponding struct fields.
+		func (x *{{$s.Name}}) Bind(r *http.Request) (err error) {
+			{{- if $s.BindingCount }}
+				{{- range $f := $s.Fields }}
+					{{- if and $f.Binding (eq $f.Binding.Source "path") }}
+						{{- $fieldName := printf "x.%s" $f.Name}}
+						{{decodePathValue $fieldName $f.TypeKind $f.Binding.Field}}
 					{{- end}}
 				{{- end}}
-				return err
-			{{- else}}
-				return nil
-			{{- end}}
-		}
-	{{end}}
 
-	{{if $s.OnRequest}}
-		// Validate checks field values using generated validation expressions.
-		func (x *{{$s.Name}}) Validate() (err error) {
-			{{- range $f := $s.Fields}}
-				{{- if or $f.Binding (not $s.Request) }}
-					{{- if $f.Required}}
-						if x.{{$f.Name}} == nil {
-							err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
-						}
+				{{- if $s.QueryCount }}
+					values, parseErr := url.ParseQuery(r.URL.RawQuery)
+					if parseErr != nil {
+						err = errutil.Explain(err, "parse query error: %w", parseErr)
+						return
+					}
+
+					{{- $HasRequired := false }}
+					{{- range $f := $s.Fields }}
+						{{- if and $f.Binding (eq $f.Binding.Source "query") }}
+							{{- if and $f.Required (not $f.CompatDefault) }}
+								{{ $HasRequired = true }}
+							{{- end}}
+						{{- end}}
 					{{- end}}
-					{{- if $f.ValidateExpr}}
+
+					{{- if $HasRequired }}
+						var (
+							{{- range $f := $s.Fields }}
+								{{- if and $f.Binding (eq $f.Binding.Source "query") }}
+									{{- if and $f.Required (not $f.CompatDefault) }}
+										has{{$f.Name}} bool
+									{{- end}}
+								{{- end}}
+							{{- end}}
+						)
+					{{end}}
+
+					{{range $f := $s.Fields }}
+						{{- if and $f.Binding (eq $f.Binding.Source "query") }}
+							if v, ok := values["{{$f.Binding.Field}}"]; ok {
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									has{{$f.Name}} = true
+								{{- end}}
+								{{- $fieldName := printf "x.%s" $f.Name}}
+								{{decodeFormValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
+							}
+						{{- end}}
+					{{- end}}
+
+					{{- if $HasRequired }}
+						{{- range $f := $s.Fields }}
+							{{- if and $f.Binding (eq $f.Binding.Source "query") }}
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									if !has{{$f.Name}} {
+										err = errutil.Explain(err, "missing required field \"{{$f.Binding.Field}}\"")
+									}
+								{{- end}}
+							{{- end}}
+						{{- end}}
+					{{- end}}
+				{{- end}}
+			{{- end}}
+			return
+		}
+
+		// Validate validates both bound parameters and request body fields.
+		func (x *{{$s.Name}}) Validate() (err error) {
+			{{- range $f := $s.Fields }}
+				{{- if $f.Binding }}
+					{{- if $f.ValidateExpr }}
 						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
 					{{- end}}
-					{{- if $f.ValidateNested}}
+					{{- if $f.ValidateNested }}
 						{{- $fieldName := printf "x.%s" $f.Name}}
 						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
 					{{- end}}
 				{{- end}}
 			{{- end}}
-			{{- if $s.Request}}
-				if validateErr := x.{{$s.Name}}Body.Validate(); validateErr != nil {
-					err = errutil.Stack(err, "validate failed on \"{{$s.Name}}\": %w", validateErr)
-				}
-			{{- end}}
+			if validateErr := x.{{$s.Name}}Body.Validate(); validateErr != nil {
+				err = errutil.Stack(err, "validate failed on \"{{$s.Name}}\": %w", validateErr)
+			}
 			return
 		}
-	{{end}}
 
-	{{if $s.Request}}
+		// {{$s.Name}}Body represents the request body payload,
+		// excluding path and query parameters.
 		type {{$s.Name}}Body struct {
-			{{- range $f := $s.Fields}}
-				{{- if not $f.Binding}}
+			{{- range $f := $s.Fields }}
+				{{- if not $f.Binding }}
 					{{- if $f.Comments.Exists }}
 						{{formatComments $f.Comments}}
 					{{- end}}
@@ -515,62 +849,193 @@ var _ = strconv.FormatInt
 				{{- end}}
 			{{- end}}
 		}
-	{{- end}}
 
-	{{if $s.OnForm}}
-		// EncodeForm encodes the object to form data.
-		func (x *{{$s.Name}}Body) EncodeForm() (string, error) {
-			{{- if $s.BodyCount}}
-				m := make(url.Values)
-				{{- range $f := $s.Fields}}
-					{{- if not $f.Binding}}
-						{{$fieldName := printf "x.%s" $f.Name}}
-						{{- encodeFormValue $fieldName $f.TypeKind $f.FormTag.Name}}
+		// New{{$s.Name}}Body creates a new {{$s.Name}}Body instance
+		// and initializes fields with default values.
+		func New{{$s.Name}}Body() *{{$s.Name}}Body {
+			return &{{$s.Name}}Body{
+				{{- range $f := $s.Fields }}
+					{{- if not $f.Binding }}
+						{{- if $f.CompatDefault}}
+							{{$f.Name}}: {{genDefaultValue $f.TypeKind $f.CompatDefault}},
+						{{- end}}
 					{{- end}}
 				{{- end}}
-				return m.Encode(), nil
-			{{- else}}
-				return "", nil
-			{{- end}}
+			}
 		}
 
-		// DecodeForm decodes the object from form data.
-		func (x *{{$s.Name}}Body) DecodeForm(b []byte) error {
-			{{- if $s.BodyCount}}
-				values, err := url.ParseQuery(string(b))
-				if err != nil {
-					return errutil.Explain(err, "parse query error")
-				}
-				if len(values) == 0 {
-					return nil
-				}
-				{{- range $f := $s.Fields}}
-					{{- if not $f.Binding}}
-						{{$fieldName := printf "x.%s" $f.Name}}
-						{{- decodeFormValue $fieldName $f.Type $f.TypeKind $f.FormTag.Name}}
+		{{- if $s.FormEncoded }}
+			// EncodeForm encodes the request body as application/x-www-form-urlencoded data.
+			func (x *{{$s.Name}}Body) EncodeForm() (string, error) {
+				{{- if $s.BodyCount }}
+					m := make(url.Values)
+					{{- range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							{{$fieldName := printf "x.%s" $f.Name}}
+							{{- encodeFormValue $fieldName $f.TypeKind $f.FormTag.Name}}
+						{{- end}}
+					{{- end}}
+					return m.Encode(), nil
+				{{- else}}
+					return "", nil
+				{{- end}}
+			}
+
+			// DecodeForm decodes application/x-www-form-urlencoded data into the request body.
+			func (x *{{$s.Name}}Body) DecodeForm(b []byte) (err error) {
+				{{- if $s.BodyCount }}
+					values, parseErr := url.ParseQuery(string(b))
+					if parseErr != nil {
+						err = errutil.Explain(err, "parse query error: %w", parseErr)
+						return
+					}
+
+					{{- $HasRequired := false }}
+					{{- range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							{{- if and $f.Required (not $f.CompatDefault) }}
+								{{ $HasRequired = true }}
+							{{- end}}
+						{{- end}}
+					{{- end}}
+
+					{{- if $HasRequired }}
+						var (
+							{{- range $f := $s.Fields }}
+								{{- if not $f.Binding }}
+									{{- if and $f.Required (not $f.CompatDefault) }}
+										has{{$f.Name}} bool
+									{{- end}}
+								{{- end}}
+							{{- end}}
+						)
+					{{end}}
+
+					{{range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							if v, ok := values["{{$f.FormTag.Name}}"]; ok {
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									has{{$f.Name}} = true
+								{{- end}}
+								{{- $fieldName := printf "x.%s" $f.Name}}
+								{{decodeFormValue $fieldName $f.Type $f.TypeKind $f.FormTag.Name}}
+							}
+						{{- end}}
+					{{- end}}
+
+					{{- if $HasRequired }}
+						{{- range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									if !has{{$f.Name}} {
+										err = errutil.Explain(err, "missing required field \"{{$f.FormTag.Name}}\"")
+									}
+								{{- end}}
+							{{- end}}
+						{{- end}}
 					{{- end}}
 				{{- end}}
-				return err
-			{{- else}}
-				return nil
-			{{- end}}
-		}
-	{{end}}
 
-	{{if $s.Request}}
+				return
+			}
+		{{- end}} {{- /* end of form encoded */}}
+
+		{{- if $s.JSONEncoded }}
+			// DecodeJSON decodes a JSON object into {{$s.Name}}Body using a hash-based
+			// field dispatch mechanism for high-performance parsing.
+			func (r *{{$s.Name}}Body) DecodeJSON(d jsonflow.Decoder) (err error) {
+				{{- if $s.BodyCount }}
+					const (
+						{{- range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								hash{{$f.Name}} = {{$f.JSONTag.HashKey}} // HashKey("{{$f.JSONTag.Name}}")
+							{{- end}}
+						{{- end}}
+					)
+				{{- end}}
+
+				{{- $HasRequired := false }}
+				{{- range $f := $s.Fields }}
+					{{- if not $f.Binding }}
+						{{- if and $f.Required (not $f.CompatDefault) }}
+							{{ $HasRequired = true }}
+						{{- end}}
+					{{- end}}
+				{{- end}}
+
+				{{- if $HasRequired }}
+					var (
+						{{- range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									has{{$f.Name}} bool
+								{{- end}}
+							{{- end}}
+						{{- end}}
+					)
+				{{- end}}
+
+				if err = jsonflow.DecodeObjectBegin(d); err != nil {
+					return err
+				}
+
+				for {
+					if d.PeekKind() == '}' {
+						break
+					}
+
+					var key string
+					key, err = jsonflow.DecodeString(d)
+					if err != nil {
+						return err
+					}
+
+					switch hashutil.FNV1a64(key) {
+					{{- range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							case hash{{$f.Name}}:
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									has{{$f.Name}} = true
+								{{- end}}
+								if r.{{$f.Name}}, err = {{genDecodeJSON $f.Type $f.TypeKind}}(d); err != nil {
+									return err
+								}
+						{{- end}}
+					{{- end}}
+					default:
+						if err = d.SkipValue(); err != nil {
+							return err
+						}
+					}
+				}
+
+				if err = jsonflow.DecodeObjectEnd(d); err != nil {
+					return err
+				}
+
+				{{- if $HasRequired }}
+					{{ range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							{{- if and $f.Required (not $f.CompatDefault) }}
+								if !has{{$f.Name}} {
+									return errutil.Stack(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+								}
+							{{- end}}
+						{{- end}}
+					{{- end}}
+				{{- end}}
+				return 
+			}
+		{{end}} {{- /* end of json encoded */}}
+
 		// Validate checks field values using generated validation expressions.
 		func (x *{{$s.Name}}Body) Validate() (err error) {
-			{{- range $f := $s.Fields}}
-				{{- if not $f.Binding}}
-					{{- if $f.Required}}
-						if x.{{$f.Name}} == nil {
-							err = errutil.Stack(err, "\"{{$s.Name}}.{{$f.Name}}\" is required")
-						}
-					{{- end}}
-					{{- if $f.ValidateExpr}}
+			{{- range $f := $s.Fields }}
+				{{- if not $f.Binding }}
+					{{- if $f.ValidateExpr }}
 						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
 					{{- end}}
-					{{- if $f.ValidateNested}}
+					{{- if $f.ValidateNested }}
 						{{- $fieldName := printf "x.%s" $f.Name}}
 						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
 					{{- end}}
@@ -578,8 +1043,8 @@ var _ = strconv.FormatInt
 			{{- end}}
 			return
 		}
-	{{- end}}
 
+	{{end}} {{- /* end of struct (request) */}}
 {{end}}
 `))
 
@@ -594,7 +1059,7 @@ func (g *Generator) genType(config *generator.Config, fileName string, spec GoSp
 		"Structs": spec.Types[fileName],
 	})
 	if err != nil {
-		return errutil.Explain(nil, "execute template error: %w", err)
+		return errutil.Explain(nil, "execute type template error: %w", err)
 	}
 	fileName = fileName[:strings.LastIndex(fileName, ".")] + ".go"
 	fileName = filepath.Join(config.OutputDir, fileName)

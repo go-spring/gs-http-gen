@@ -23,14 +23,14 @@ import (
 
 // MetaInfo represents metadata about the parsed document.
 type MetaInfo struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Version     string         `json:"version"`
-	Import      []string       `json:"import"`
-	Config      map[string]any `json:"config"`
+	Name        string         `json:"name"`        // Project name
+	Description string         `json:"description"` // Project description
+	Version     string         `json:"version"`     // Version
+	Import      []string       `json:"import"`      // External projects or IDL files
+	Config      map[string]any `json:"config"`      // Other custom metadata
 }
 
-// Position represents the start and stop line numbers of a parsed element.
+// Position represents the source line range of a parsed element.
 // This allows tracing back to the original source code location.
 type Position struct {
 	StartLine int
@@ -63,21 +63,21 @@ func (c Comments) Exists() bool {
 // It contains all top-level definitions such as constants, enums, types, and RPCs.
 // Additionally, it stores any global comments that are not attached to specific nodes.
 type Document struct {
-	Comments []Comment
-	Consts   []Const
-	Enums    []Enum
-	Types    []Type
-	RPCs     []RPC
+	Comments []Comment // Top-level comments (not associated with any element)
+	Consts   []Const   // Constant definitions
+	Enums    []Enum    // Enum definitions
+	Types    []Type    // Type definitions (structs, generics, instantiations, etc.)
+	RPCs     []RPC     // Function definitions (HTTP request/response RPCs)
 
 	EnumTypes map[string]int      // Lookup: enum name → index in Enums
 	TypeTypes map[string]int      // Lookup: type name → index in Types
-	UserTypes map[string]struct{} // Set of names representing user-defined types
+	UserTypes map[string]struct{} // User-defined types referenced in this file
 }
 
 // Annotation represents a key-value metadata entry attached to a type,
-// field, or RPC. The value is optional.
+// field, or RPC. The value is optional and represented as raw text.
 type Annotation struct {
-	Key      string   // Annotation key (e.g., "deprecated", "route")
+	Key      string   // Annotation key (e.g., "deprecated")
 	Value    *string  // Optional annotation value
 	Position Position // Location in the source file
 	Comments Comments // Associated comments
@@ -85,27 +85,42 @@ type Annotation struct {
 
 // Const represents a constant definition in the parsed document.
 type Const struct {
-	Type     BaseType // Data type of the constant
+	Type     BaseType // Data type of the constant (base types only)
 	Name     string   // Name of the constant
 	Value    string   // Literal value
 	Position Position // Location in the source file
 	Comments Comments // Associated comments
 }
 
+type EnumKind int
+
+const (
+	EnumKindNormal EnumKind = iota
+	EnumKindOneOf
+	EnumKindError
+	EnumKindExtends
+)
+
 // Enum represents an enum type definition.
 type Enum struct {
 	Name     string      // Name of the enum
-	OneOf    bool        // True if produced from a oneof declaration
+	Kind     EnumKind    // Enum kind
 	Fields   []EnumField // List of fields
 	Position Position    // Location in the source file
 	Comments Comments    // Associated comments
+}
+
+// KindError returns true if the enum is an error-code enum.
+func (e Enum) KindError() bool {
+	return e.Kind == EnumKindError
 }
 
 // EnumField represents a single field inside an enum definition.
 type EnumField struct {
 	Name         string       // Name of the enum field
 	Value        int64        // Integer value assigned to the enum field
-	ErrorMessage *string      // Error message (only for `ErrCode`)
+	ExtendsFrom  *string      // File name of the field is inherited from
+	ErrorMessage *string      // Error message (only for error-code enums)
 	Annotations  []Annotation // Attached annotations
 	Position     Position     // Location in the source file
 	Comments     Comments     // Associated comments
@@ -120,20 +135,29 @@ type TypeDefinition interface {
 // JSONTag represents metadata for a JSON field tag.
 type JSONTag struct {
 	Name      string // JSON field name
-	OmitEmpty bool   // Whether the json:"...,omitempty" modifier is applied
+	HashKey   string // Hash key used for field matching during decoding
+	OmitEmpty bool   // Do not serialize this field when it is null
 }
 
 // FormTag represents metadata for a form field binding.
 type FormTag struct {
-	Name string // Key used in form submissions
+	Name    string // Key used in form submissions
+	HashKey string // Hash key used for field matching during decoding
 }
 
 // Binding represents a binding between a struct field and an HTTP input
 // (e.g., from a query string or from a path segment).
 type Binding struct {
-	Source string // "path" or "query"
+	Source string // Binding source ("path" or "query")
 	Field  string // Field name from the source
 }
+
+type Encoding int8
+
+const (
+	EncodingJSON = Encoding(iota) // JSON encoding
+	EncodingForm                  // Form encoding
+)
 
 // Type represents a user-defined type. It may function like a struct,
 // a oneof union, or an alias to another instanced type.
@@ -141,17 +165,26 @@ type Type struct {
 	Name         string      // Name of the type
 	OneOf        bool        // True if representing a oneof type
 	InstType     *InstType   // Represents a generic instantiation
-	GenericParam *string     // Optional generic type parameter
+	GenericParam *string     // Optional generic parameter
 	RawFields    []TypeField // Original, unmodified fields
 	Fields       []TypeField // Actual fields after processing
 	Position     Position    // Location in the source file
 	Comments     Comments    // Associated comments
 
-	Embedded  bool // True if contains anonymous embedded fields.
-	Validate  bool // Enable validation
-	Request   bool // True if used as an HTTP request type
-	OnRequest bool // True if used specifically on request side
-	OnForm    bool // True if representing form data
+	Embedded bool     // True if contains anonymous embedded fields
+	Request  bool     // Indicates this type is used as an HTTP request (root) type
+	Validate bool     // Indicates validation code should be generated for this type
+	Encoding Encoding // Indicates this request type represents form-encoded data
+}
+
+// JSONEncoded returns true if this type represents JSON-encoded data.
+func (t *Type) JSONEncoded() bool {
+	return t.Encoding == EncodingJSON
+}
+
+// FormEncoded returns true if this type represents form-encoded data.
+func (t *Type) FormEncoded() bool {
+	return t.Encoding == EncodingForm
 }
 
 // FieldCount returns the total number of fields after all processing.
@@ -159,16 +192,16 @@ func (t *Type) FieldCount() int {
 	return len(t.Fields)
 }
 
-// BodyCount reports whether the type contains any fields that are not
-// bound to a specific HTTP input source (e.g., not from path or query).
-// Such fields are typically treated as request body fields.
-func (t *Type) BodyCount() bool {
+// BodyCount returns the number of fields that are not bound to
+// a specific HTTP input source (e.g., path or query).
+func (t *Type) BodyCount() int {
+	var count int
 	for _, f := range t.Fields {
 		if f.Binding == nil {
-			return true
+			count++
 		}
 	}
-	return false
+	return count
 }
 
 // BindingCount returns the number of fields that have explicit HTTP
@@ -184,7 +217,7 @@ func (t *Type) BindingCount() int {
 }
 
 // QueryCount returns the number of fields that are explicitly bound
-// to HTTP query parameters (i.e., Binding.From == "query").
+// to HTTP query parameters (i.e., Binding.Source == "query").
 func (t *Type) QueryCount() int {
 	var count int
 	for _, f := range t.Fields {
@@ -206,13 +239,12 @@ type TypeField struct {
 	Deprecated     bool          // True if marked as deprecated
 	Required       bool          // Whether the field is required
 	CompatDefault  *string       // Default value for compatibility
-	ZeroIfNull     bool          // True if null value should be zero
 	JSONTag        JSONTag       // JSON serialization tag info
 	FormTag        FormTag       // Form tag info
 	Binding        *Binding      // Path/query parameter binding
 	ValidateExpr   validate.Expr // Validation expression
-	ValidateNested bool          // Whether nested validation applies
-	EnumAsString   bool          // Whether enum should be marshaled as a string
+	ValidateNested bool          // Whether recursive validation is required
+	EnumAsString   bool          // Whether the enum should be marshaled as a string
 }
 
 // InstType represents an instantiation of a generic type.
@@ -266,7 +298,7 @@ func (t BytesType) MarshalText() ([]byte, error) {
 
 // MapType represents a key-value container type (map<K,V>).
 type MapType struct {
-	Key   string         // Key type
+	Key   string         // Key type (int or string only)
 	Value TypeDefinition // Value type
 }
 
@@ -283,12 +315,12 @@ func (t ListType) Text() string {
 	return "list<" + t.Item.Text() + ">"
 }
 
-// RPC represents a remote procedure call definition, including HTTP metadata.
+// RPC represents an HTTP-based remote procedure call definition.
 type RPC struct {
 	SSE bool // True if this RPC uses Server-Sent Events
 
 	Name        string         // Name of the RPC
-	Request     string         // Request type
+	Request     string         // Request type (user-defined types only)
 	Response    TypeDefinition // Response type
 	Annotations []Annotation   // Attached annotations
 	Position    Position       // Location in the source file

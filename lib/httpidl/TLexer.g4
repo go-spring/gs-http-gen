@@ -9,6 +9,7 @@ channels {WS_CHAN, SL_COMMENT_CHAN, ML_COMMENT_CHAN}
 // --------------------
 // Keywords
 // --------------------
+KW_EXTENDS  : 'extends';
 KW_CONST    : 'const';
 KW_ENUM     : 'enum';
 KW_TYPE     : 'type';
@@ -67,7 +68,7 @@ IDENTIFIER
 
 // --------------------
 // Integer literal
-// Supports decimal (optionally signed) and hexadecimal forms.
+// Supports signed decimal and unsigned hexadecimal integers.
 // Examples: 42, -17, +8, 0x1A2B.
 // --------------------
 INTEGER
@@ -77,7 +78,7 @@ INTEGER
 // --------------------
 // Floating-point number
 // Supports integer+fraction parts and scientific notation.
-// Examples: 1.23, .5, 10., -3.14e+10.
+// Examples: 1.23, .5, -3.14e+10.
 // --------------------
 FLOAT
     : ('+' | '-')? ( DIGIT+ ('.' DIGIT+)? | '.' DIGIT+ ) (('E' | 'e') ('+'|'-')? DIGIT+ )?

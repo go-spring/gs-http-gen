@@ -35,10 +35,10 @@ var validateTmpl = template.Must(template.New("validate").Parse(`
 
 package {{.Package}}
 
-{{- range $f := .Funcs}}
-	// {{$f.Name}} is a default validation function for fields of type {{$f.Type}}.
+{{- range $f := .Funcs }}
+	// {{$f.FuncName}} is a default validation function for fields of type {{$f.ParamType}}.
 	// This serves as a placeholder that can be overridden or extended.
-	var {{$f.Name}} = func ({{$f.Type}}) bool { return true }
+	var {{$f.FuncName}} = func ({{$f.ParamType}}) bool { return true }
 {{- end}}
 `))
 
@@ -60,7 +60,7 @@ func (g *Generator) genValidate(config *generator.Config, spec GoSpec) error {
 		"Funcs":   funcs,
 	})
 	if err != nil {
-		return errutil.Explain(nil, "execute template error: %w", err)
+		return errutil.Explain(nil, "execute validate template error: %w", err)
 	}
 	fileName := filepath.Join(config.OutputDir, "validate.go")
 	return formatFile(fileName, buf.Bytes())
