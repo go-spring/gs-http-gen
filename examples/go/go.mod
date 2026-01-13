@@ -5,7 +5,7 @@ go 1.25
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-spring/gs-http-gen v0.0.0
-	github.com/go-spring/stdlib v0.0.3
+	github.com/go-spring/stdlib v0.0.4
 )
 
 require (

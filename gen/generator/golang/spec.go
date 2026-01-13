@@ -51,6 +51,18 @@ const (
 	TypeKindMap
 )
 
+// IsNotNullable returns true if the field is not nullable
+func IsNotNullable(x TypeKind) bool {
+	switch x {
+	case TypeKindBool, TypeKindInt, TypeKindUint,
+		TypeKindFloat, TypeKindString, TypeKindEnum,
+		TypeKindEnumAsString:
+		return true
+	default:
+		return false
+	}
+}
+
 // IsPointer returns true if the field is a pointer
 func IsPointer(x TypeKind) bool {
 	switch x {
@@ -323,6 +335,9 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 		}
 		if f.Required && IsPointer(typeKind[0]) {
 			return Type{}, errutil.Explain(nil, "field %s in type %s is required but has pointer type", f.Name, r.Name)
+		}
+		if !f.Required && IsNotNullable(typeKind[0]) {
+			return Type{}, errutil.Explain(nil, "field %s in type %s is not required but has nullable type", f.Name, r.Name)
 		}
 
 		// Add the field to the struct

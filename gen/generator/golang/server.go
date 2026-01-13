@@ -56,7 +56,7 @@ type {{.Service}}Service interface {
 }
 
 // Routers returns a list of HTTP routers for the service.
-func Routers(server {{.Service}}Service) []httpsvr.Router {
+func Routers(server {{.Service}}Service, fn httpsvr.NewRequestContext) []httpsvr.Router {
 	return []httpsvr.Router{
 		{{- range $r := .RPCs }}
 			{
@@ -64,11 +64,13 @@ func Routers(server {{.Service}}Service) []httpsvr.Router {
 				Pattern: "{{$r.Path}}",
 				{{- if $r.SSE }}
 					Handler: func(w http.ResponseWriter, r *http.Request) {
-						httpsvr.HandleStream(w, r, New{{$r.Request}}(), server.{{$r.Name}})
+						ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+						httpsvr.HandleStream(w, r.WithContext(ctx), New{{$r.Request}}(), server.{{$r.Name}})
 					},
 				{{- else}}
 					Handler: func(w http.ResponseWriter, r *http.Request) {
-						httpsvr.HandleJSON(w, r, New{{$r.Request}}(), server.{{$r.Name}})
+						ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+						httpsvr.HandleJSON(w, r.WithContext(ctx), New{{$r.Request}}(), server.{{$r.Name}})
 					},
 				{{- end}}
 			},

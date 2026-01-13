@@ -3,6 +3,7 @@
 package proto
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/formutil"
 	"github.com/go-spring/stdlib/hashutil"
 	"github.com/go-spring/stdlib/httpsvr"
 	"github.com/go-spring/stdlib/jsonflow"
@@ -17,6 +19,8 @@ import (
 
 var _ = strings.Index
 var _ = strconv.FormatInt
+var _ = formutil.EncodeInt
+var _ = base64.StdEncoding
 var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
 
@@ -710,14 +714,14 @@ func (x *ManagerReq) QueryForm() (string, error) {
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *ManagerReq) Bind(r *http.Request) (err error) {
+func (x *ManagerReq) Bind(r *http.Request) error {
 	c := httpsvr.GetRequestContext(r.Context())
 	if s := c.PathValue("id"); s == "" {
-		err = errutil.Stack(err, "required field \"id\" is missing")
+		return errutil.Explain(nil, "required path parameter \"id\" is missing")
 	} else {
 		x.Id = s
 	}
-	return
+	return nil
 }
 
 // Validate validates both bound parameters and request body fields.
@@ -745,9 +749,8 @@ func (x *ManagerReqBody) EncodeForm() (string, error) {
 }
 
 // DecodeForm decodes application/x-www-form-urlencoded data into the request body.
-func (x *ManagerReqBody) DecodeForm(b []byte) (err error) {
-
-	return
+func (x *ManagerReqBody) DecodeForm(b []byte) error {
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.
@@ -773,8 +776,8 @@ func (x *CreateManagerReq) QueryForm() (string, error) {
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *CreateManagerReq) Bind(r *http.Request) (err error) {
-	return
+func (x *CreateManagerReq) Bind(r *http.Request) error {
+	return nil
 }
 
 // Validate validates both bound parameters and request body fields.
@@ -923,14 +926,14 @@ func (x *UpdateManagerReq) QueryForm() (string, error) {
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *UpdateManagerReq) Bind(r *http.Request) (err error) {
+func (x *UpdateManagerReq) Bind(r *http.Request) error {
 	c := httpsvr.GetRequestContext(r.Context())
 	if s := c.PathValue("id"); s == "" {
-		err = errutil.Stack(err, "required field \"id\" is missing")
+		return errutil.Explain(nil, "required path parameter \"id\" is missing")
 	} else {
 		x.ID = s
 	}
-	return
+	return nil
 }
 
 // Validate validates both bound parameters and request body fields.
@@ -1074,31 +1077,34 @@ func NewListManagersByPageReq() *ListManagersByPageReq {
 
 // QueryForm encodes query-bound fields into URL-encoded form data.
 func (x *ListManagersByPageReq) QueryForm() (string, error) {
-	m := make(url.Values)
-	m.Add("page", strconv.FormatInt(int64(x.Page), 10))
-	m.Add("size", strconv.FormatInt(int64(x.Size), 10))
-	for i := range len(x.Keyword) {
-		m.Add("keyword", x.Keyword[i])
+	form := make(url.Values)
+	if err := formutil.EncodeInt(form, "page", x.Page); err != nil {
+		return "", errutil.Explain(err, "encode form field \"page\" error")
 	}
-	if x.Dept != nil {
-		m.Add("dept", strconv.FormatInt(int64(*x.Dept), 10))
+	if err := formutil.EncodeInt(form, "size", x.Size); err != nil {
+		return "", errutil.Explain(err, "encode form field \"size\" error")
 	}
-	if x.MinLevel != nil {
-		m.Add("minLevel", strconv.FormatInt(int64(*x.MinLevel), 10))
+	if err := formutil.EncodeList(form, "keyword", x.Keyword, formutil.EncodeString); err != nil {
+		return "", errutil.Explain(err, "encode form field \"keyword\" error")
 	}
-	if x.Vip != nil {
-		m.Add("vip", strconv.FormatBool(*x.Vip))
+	if err := formutil.EncodeIntPtr(form, "dept", x.Dept); err != nil {
+		return "", errutil.Explain(err, "encode form field \"dept\" error")
 	}
-	return m.Encode(), nil
+	if err := formutil.EncodeIntPtr(form, "minLevel", x.MinLevel); err != nil {
+		return "", errutil.Explain(err, "encode form field \"minLevel\" error")
+	}
+	if err := formutil.EncodeBoolPtr(form, "vip", x.Vip); err != nil {
+		return "", errutil.Explain(err, "encode form field \"vip\" error")
+	}
+	return form.Encode(), nil
 }
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *ListManagersByPageReq) Bind(r *http.Request) (err error) {
-	values, parseErr := url.ParseQuery(r.URL.RawQuery)
-	if parseErr != nil {
-		err = errutil.Explain(err, "parse query error: %w", parseErr)
-		return
+func (x *ListManagersByPageReq) Bind(r *http.Request) error {
+	form, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		return errutil.Explain(err, "parse query error")
 	}
 
 	var (
@@ -1106,88 +1112,47 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) (err error) {
 		hasSize bool
 	)
 
-	if v, ok := values["page"]; ok {
-		hasPage = true
-		if len(v) == 1 {
-			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
-				err = errutil.Stack(err, "parse \"page\" error: %w", parseErr)
-			} else {
-				x.Page = i
+	for key, values := range form {
+		if len(values) == 0 {
+			continue
+		}
+		switch key {
+		case "page":
+			hasPage = true
+			if x.Page, err = formutil.DecodeInt[int64](key, values); err != nil {
+				return errutil.Explain(err, "decode form field \"page\" error")
 			}
-		} else {
-			err = errutil.Stack(err, "invalid value for \"page\"")
+		case "size":
+			hasSize = true
+			if x.Size, err = formutil.DecodeInt[int64](key, values); err != nil {
+				return errutil.Explain(err, "decode form field \"size\" error")
+			}
+		case "keyword":
+			if x.Keyword, err = formutil.DecodeList(key, values, formutil.DecodeString); err != nil {
+				return errutil.Explain(err, "decode form field \"keyword\" error")
+			}
+		case "dept":
+			if x.Dept, err = formutil.DecodeIntPtr[Department](key, values); err != nil {
+				return errutil.Explain(err, "decode form field \"dept\" error")
+			}
+		case "minLevel":
+			if x.MinLevel, err = formutil.DecodeIntPtr[ManagerLevel](key, values); err != nil {
+				return errutil.Explain(err, "decode form field \"minLevel\" error")
+			}
+		case "vip":
+			if x.Vip, err = formutil.DecodeBoolPtr(key, values); err != nil {
+				return errutil.Explain(err, "decode form field \"vip\" error")
+			}
 		}
 	}
-	if v, ok := values["size"]; ok {
-		hasSize = true
-		if len(v) == 1 {
-			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
-				err = errutil.Stack(err, "parse \"size\" error: %w", parseErr)
-			} else {
-				x.Size = i
-			}
-		} else {
-			err = errutil.Stack(err, "invalid value for \"size\"")
-		}
-	}
-	if v, ok := values["keyword"]; ok {
-		for _, s := range v {
-			var i string
-			if parseErr = jsonflow.Unmarshal([]byte(s), &i); parseErr != nil {
-				err = errutil.Stack(err, "json decode error: %w", parseErr)
-			} else {
-				x.Keyword = append(x.Keyword, i)
-			}
-		}
-	}
-	if v, ok := values["dept"]; ok {
-		if len(v) == 1 {
-			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
-				err = errutil.Stack(err, "parse \"dept\" error: %w", parseErr)
-			} else {
-				if e := Department(i); !OneOfDepartment(e) {
-					err = errutil.Stack(err, "invalid value for \"dept\"")
-				} else {
-					x.Dept = &e
-				}
-			}
-		} else {
-			err = errutil.Stack(err, "invalid value for \"dept\"")
-		}
-	}
-	if v, ok := values["minLevel"]; ok {
-		if len(v) == 1 {
-			if i, parseErr := strconv.ParseInt(v[0], 10, 64); parseErr != nil {
-				err = errutil.Stack(err, "parse \"minLevel\" error: %w", parseErr)
-			} else {
-				if e := ManagerLevel(i); !OneOfManagerLevel(e) {
-					err = errutil.Stack(err, "invalid value for \"minLevel\"")
-				} else {
-					x.MinLevel = &e
-				}
-			}
-		} else {
-			err = errutil.Stack(err, "invalid value for \"minLevel\"")
-		}
-	}
-	if v, ok := values["vip"]; ok {
-		if len(v) == 1 {
-			if i, parseErr := strconv.ParseBool(v[0]); parseErr != nil {
-				err = errutil.Stack(err, "parse \"vip\" error: %w", parseErr)
-			} else {
-				x.Vip = &i
-			}
-		} else {
-			err = errutil.Stack(err, "invalid value for \"vip\"")
-		}
-	}
+
 	if !hasPage {
 		err = errutil.Explain(err, "missing required field \"page\"")
 	}
 	if !hasSize {
 		err = errutil.Explain(err, "missing required field \"size\"")
 	}
-	return
+	return nil
 }
 
 // Validate validates both bound parameters and request body fields.
@@ -1224,9 +1189,8 @@ func (x *ListManagersByPageReqBody) EncodeForm() (string, error) {
 }
 
 // DecodeForm decodes application/x-www-form-urlencoded data into the request body.
-func (x *ListManagersByPageReqBody) DecodeForm(b []byte) (err error) {
-
-	return
+func (x *ListManagersByPageReqBody) DecodeForm(b []byte) error {
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.

@@ -3,6 +3,7 @@
 package proto
 
 import (
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-spring/stdlib/errutil"
+	"github.com/go-spring/stdlib/formutil"
 	"github.com/go-spring/stdlib/hashutil"
 	"github.com/go-spring/stdlib/httpsvr"
 	"github.com/go-spring/stdlib/jsonflow"
@@ -17,6 +19,8 @@ import (
 
 var _ = strings.Index
 var _ = strconv.FormatInt
+var _ = formutil.EncodeInt
+var _ = base64.StdEncoding
 var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
 
@@ -91,8 +95,8 @@ func (x *AssistantReq) QueryForm() (string, error) {
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *AssistantReq) Bind(r *http.Request) (err error) {
-	return
+func (x *AssistantReq) Bind(r *http.Request) error {
+	return nil
 }
 
 // Validate validates both bound parameters and request body fields.
@@ -117,39 +121,33 @@ func NewAssistantReqBody() *AssistantReqBody {
 
 // EncodeForm encodes the request body as application/x-www-form-urlencoded data.
 func (x *AssistantReqBody) EncodeForm() (string, error) {
-	m := make(url.Values)
-	for i := range len(x.Items) {
-		if x.Items[i] != nil {
-			b, err := jsonflow.Marshal(*x.Items[i])
-			if err != nil {
-				return "", err
-			}
-			m.Add("items", string(b))
-		}
+	form := make(url.Values)
+	if err := formutil.EncodeList(form, "items", x.Items, formutil.EncodeJSON); err != nil {
+		return "", errutil.Explain(err, "encode form field \"items\" error")
 	}
-	return m.Encode(), nil
+	return form.Encode(), nil
 }
 
 // DecodeForm decodes application/x-www-form-urlencoded data into the request body.
-func (x *AssistantReqBody) DecodeForm(b []byte) (err error) {
-	values, parseErr := url.ParseQuery(string(b))
-	if parseErr != nil {
-		err = errutil.Explain(err, "parse query error: %w", parseErr)
-		return
+func (x *AssistantReqBody) DecodeForm(b []byte) error {
+	form, err := url.ParseQuery(string(b))
+	if err != nil {
+		return errutil.Explain(err, "parse query error")
 	}
 
-	if v, ok := values["items"]; ok {
-		for _, s := range v {
-			var i *Item
-			if parseErr = jsonflow.Unmarshal([]byte(s), &i); parseErr != nil {
-				err = errutil.Stack(err, "json decode error: %w", parseErr)
-			} else {
-				x.Items = append(x.Items, i)
+	for key, values := range form {
+		if len(values) == 0 {
+			continue
+		}
+		switch key {
+		case "items":
+			if x.Items, err = formutil.DecodeList(key, values, formutil.DecodeJSON[*Item]); err != nil {
+				return errutil.Explain(err, "decode form field \"items\" error")
 			}
 		}
 	}
 
-	return
+	return nil
 }
 
 // Validate checks field values using generated validation expressions.
