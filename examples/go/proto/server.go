@@ -47,11 +47,11 @@ func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Rout
 			},
 		},
 		{
-			Method:  "POST",
-			Pattern: "/managers",
+			Method:  "GET",
+			Pattern: "/managers/page",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleJSON(w, r.WithContext(ctx), NewCreateManagerReq(), server.CreateManager)
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewListManagersByPageReq(), server.ListManagersByPage)
 			},
 		},
 		{
@@ -71,19 +71,19 @@ func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Rout
 			},
 		},
 		{
-			Method:  "GET",
-			Pattern: "/managers/page",
-			Handler: func(w http.ResponseWriter, r *http.Request) {
-				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleJSON(w, r.WithContext(ctx), NewListManagersByPageReq(), server.ListManagersByPage)
-			},
-		},
-		{
 			Method:  "PUT",
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
 				httpsvr.HandleJSON(w, r.WithContext(ctx), NewUpdateManagerReq(), server.UpdateManager)
+			},
+		},
+		{
+			Method:  "POST",
+			Pattern: "/managers",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewCreateManagerReq(), server.CreateManager)
 			},
 		},
 	}
