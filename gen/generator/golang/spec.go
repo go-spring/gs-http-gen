@@ -148,10 +148,7 @@ type RPC struct {
 	httpidl.RPC
 	Response     string     // Response type
 	RespTypeKind []TypeKind // Response type kind
-
-	FormatPath string // Formatted HTTP path
-	//PathParams   map[string]string // HTTP path parameters
-	//PathSegments []pathidl.Segment // HTTP path segments
+	FormatPath   string     // Formatted HTTP path
 }
 
 type GoSpec struct {
@@ -224,9 +221,6 @@ func Convert(dir string) (GoSpec, error) {
 				RPC:          r,
 				Response:     response,
 				RespTypeKind: typeKind,
-				//FormatPath:   r.Path, // 假设是普通路径
-				//PathParams:   r.PathParams,
-				//PathSegments: r.PathSegments,
 			}
 			spec.RPCs = append(spec.RPCs, rpc)
 		}
