@@ -884,74 +884,74 @@ var _ = formutil.EncodeInt[int]
 							{{- end}}
 						{{- end}}
 					)
-				{{- end}}
 
-				{{- $HasRequired := false }}
-				{{- range $f := $s.Fields }}
-					{{- if not $f.Binding }}
-						{{- if and $f.Required (not $f.CompatDefault) }}
-							{{ $HasRequired = true }}
-						{{- end}}
-					{{- end}}
-				{{- end}}
-
-				{{- if $HasRequired }}
-					var (
-						{{- range $f := $s.Fields }}
-							{{- if not $f.Binding }}
-								{{- if and $f.Required (not $f.CompatDefault) }}
-									has{{$f.Name}} bool
-								{{- end}}
+					{{- $HasRequired := false }}
+					{{- range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							{{- if and $f.Required (not $f.CompatDefault) }}
+								{{ $HasRequired = true }}
 							{{- end}}
 						{{- end}}
-					)
-				{{- end}}
+					{{- end}}
 
-				if err = jsonflow.DecodeObjectBegin(d); err != nil {
-					return err
-				}
+					{{- if $HasRequired }}
+						var (
+							{{- range $f := $s.Fields }}
+								{{- if not $f.Binding }}
+									{{- if and $f.Required (not $f.CompatDefault) }}
+										has{{$f.Name}} bool
+									{{- end}}
+								{{- end}}
+							{{- end}}
+						)
+					{{- end}}
 
-				for {
-					if d.PeekKind() == '}' {
-						break
-					}
-
-					var key string
-					key, err = jsonflow.DecodeString(d)
-					if err != nil {
+					if err = jsonflow.DecodeObjectBegin(d); err != nil {
 						return err
 					}
 
-					switch hashutil.FNV1a64(key) {
-					{{- range $f := $s.Fields }}
-						{{- if not $f.Binding }}
-							case hash{{$f.Name}}:
-								{{- if and $f.Required (not $f.CompatDefault) }}
-									has{{$f.Name}} = true
-								{{- end}}
-								if r.{{$f.Name}}, err = {{genDecodeJSON $f.Type $f.TypeKind}}(d); err != nil {
-									return err
-								}
-						{{- end}}
-					{{- end}}
-					default:
-						if err = d.SkipValue(); err != nil {
+					for {
+						if d.PeekKind() == '}' {
+							break
+						}
+	
+						var key string
+						key, err = jsonflow.DecodeString(d)
+						if err != nil {
 							return err
 						}
+	
+						switch hashutil.FNV1a64(key) {
+						{{- range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								case hash{{$f.Name}}:
+									{{- if and $f.Required (not $f.CompatDefault) }}
+										has{{$f.Name}} = true
+									{{- end}}
+									if r.{{$f.Name}}, err = {{genDecodeJSON $f.Type $f.TypeKind}}(d); err != nil {
+										return err
+									}
+							{{- end}}
+						{{- end}}
+						default:
+							if err = d.SkipValue(); err != nil {
+								return err
+							}
+						}
 					}
-				}
 
-				if err = jsonflow.DecodeObjectEnd(d); err != nil {
-					return err
-				}
-
-				{{- if $HasRequired }}
-					{{ range $f := $s.Fields }}
-						{{- if not $f.Binding }}
-							{{- if and $f.Required (not $f.CompatDefault) }}
-								if !has{{$f.Name}} {
-									return errutil.Explain(err, "missing required field \"{{$f.JSONTag.Name}}\"")
-								}
+					if err = jsonflow.DecodeObjectEnd(d); err != nil {
+						return err
+					}
+	
+					{{- if $HasRequired }}
+						{{ range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									if !has{{$f.Name}} {
+										return errutil.Explain(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+									}
+								{{- end}}
 							{{- end}}
 						{{- end}}
 					{{- end}}
