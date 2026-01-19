@@ -60,11 +60,6 @@ func formatComments(c httpidl.Comments) string {
 // decodePathValue generates Go code to decode a field value from path parameter.
 func decodePathValue(fieldName string, typeName string, typeKind []TypeKind, pathName string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf(`if s := c.PathValue("%s"); s == "" {
-		return errutil.Explain(nil, "required path parameter \"%s\" is missing")
-	} else {
-	`, pathName, pathName))
-
 	switch typeKind[0] {
 	case TypeKindInt:
 		sb.WriteString(fmt.Sprintf(`if i, err := strconv.ParseInt(s, 10, 64); err != nil {
@@ -86,7 +81,6 @@ func decodePathValue(fieldName string, typeName string, typeKind []TypeKind, pat
 			typeName, fieldName, pathName,
 		))
 	}
-	sb.WriteString(fmt.Sprintf("\n}"))
 	return sb.String()
 }
 
@@ -675,8 +669,12 @@ var _ = formutil.EncodeInt[int]
 					c := httpsvr.GetRequestContext(r.Context())
 					{{- range $f := $s.Fields }}
 						{{- if and $f.Binding (eq $f.Binding.Source "path") }}
-							{{- $fieldName := printf "x.%s" $f.Name}}
-							{{decodePathValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
+							if s := c.PathValue("{{$f.Binding.Field}}"); s == "" {
+								return errutil.Explain(nil, "required path parameter \"{{$f.Binding.Field}}\" is missing")
+							} else {
+								{{- $fieldName := printf "x.%s" $f.Name}}
+								{{decodePathValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
+							}
 						{{- end}}
 					{{- end}}
 				{{- end}}

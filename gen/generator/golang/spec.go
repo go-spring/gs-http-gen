@@ -102,11 +102,6 @@ type TypeField struct {
 	Default  any
 }
 
-// IsPointer returns true if the field is a pointer
-func (x *TypeField) IsPointer() bool {
-	return IsPointer(x.TypeKind[0])
-}
-
 // FieldTag returns the field tag
 func (x *TypeField) FieldTag() string {
 	var tags []string

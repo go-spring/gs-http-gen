@@ -31,7 +31,7 @@ import (
 var serverTmpl = template.Must(template.New("server").
 	Funcs(map[string]any{
 		"formatComments": formatComments,
-		"sortRPCs": func(inRPCs []RPC) []RPC {
+		"sortRPCsByPath": func(inRPCs []RPC) []RPC {
 			retRPCs := append([]RPC{}, inRPCs...)
 			sort.Slice(retRPCs, func(i, j int) bool {
 				a := retRPCs[i].PathSegments
@@ -90,7 +90,7 @@ type {{.Service}}Service interface {
 // Routers returns a list of HTTP routers for the service.
 func Routers(server {{.Service}}Service, fn httpsvr.NewRequestContext) []httpsvr.Router {
 	return []httpsvr.Router{
-		{{- $tmpRPCs := sortRPCs .RPCs}}
+		{{- $tmpRPCs := sortRPCsByPath .RPCs}}
 		{{- range $r := $tmpRPCs }}
 			{
 				Method:  "{{$r.Method}}",
