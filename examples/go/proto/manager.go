@@ -19,10 +19,10 @@ import (
 
 var _ = strings.Index
 var _ = strconv.FormatInt
-var _ = formutil.EncodeInt
 var _ = base64.StdEncoding
 var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
+var _ = formutil.EncodeInt[int]
 
 // years
 const MAX_AGE int64 = 150
