@@ -290,23 +290,23 @@ func (r *PageReq) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasPage {
-		err = errutil.Stack(err, "missing required field \"page\"")
+		return errutil.Explain(err, "missing required field \"page\"")
 	}
 	if !hasSize {
-		err = errutil.Stack(err, "missing required field \"size\"")
+		return errutil.Explain(err, "missing required field \"size\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *PageReq) Validate() (err error) {
+func (x *PageReq) Validate() error {
 	if !(x.Page >= 1) {
-		err = errutil.Stack(err, "validate failed on \"PageReq.Page\"")
+		return errutil.Explain(nil, "validate failed on \"PageReq.Page\"")
 	}
 	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		err = errutil.Stack(err, "validate failed on \"PageReq.Size\"")
+		return errutil.Explain(nil, "validate failed on \"PageReq.Size\"")
 	}
-	return
+	return nil
 }
 
 // Address & Contact info
@@ -440,17 +440,17 @@ func (r *ContactInfo) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasEmail {
-		err = errutil.Stack(err, "missing required field \"email\"")
+		return errutil.Explain(err, "missing required field \"email\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ContactInfo) Validate() (err error) {
+func (x *ContactInfo) Validate() error {
 	if !(Email(x.Email)) {
-		err = errutil.Stack(err, "validate failed on \"ContactInfo.Email\"")
+		return errutil.Explain(nil, "validate failed on \"ContactInfo.Email\"")
 	}
-	return
+	return nil
 }
 
 // Department info
@@ -676,23 +676,23 @@ func (r *Manager) DecodeJSON(d jsonflow.Decoder) (err error) {
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *Manager) Validate() (err error) {
+func (x *Manager) Validate() error {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			err = errutil.Stack(err, "validate failed on \"Manager.Name\"")
+			return errutil.Explain(nil, "validate failed on \"Manager.Name\"")
 		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Stack(err, "validate failed on \"Manager.Age\"")
+			return errutil.Explain(nil, "validate failed on \"Manager.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Stack(err, "validate failed on \"Manager.Salary\"")
+			return errutil.Explain(nil, "validate failed on \"Manager.Salary\"")
 		}
 	}
-	return
+	return nil
 }
 
 // Single manager by ID
@@ -725,11 +725,11 @@ func (x *ManagerReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *ManagerReq) Validate() (err error) {
-	if validateErr := x.ManagerReqBody.Validate(); validateErr != nil {
-		err = errutil.Stack(err, "validate failed on \"ManagerReq\": %w", validateErr)
+func (x *ManagerReq) Validate() error {
+	if err := x.ManagerReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"ManagerReq\"")
 	}
-	return
+	return nil
 }
 
 // ManagerReqBody represents the request body payload,
@@ -754,8 +754,8 @@ func (x *ManagerReqBody) DecodeForm(b []byte) error {
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ManagerReqBody) Validate() (err error) {
-	return
+func (x *ManagerReqBody) Validate() error {
+	return nil
 }
 
 // Create new manager
@@ -781,11 +781,11 @@ func (x *CreateManagerReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *CreateManagerReq) Validate() (err error) {
-	if validateErr := x.CreateManagerReqBody.Validate(); validateErr != nil {
-		err = errutil.Stack(err, "validate failed on \"CreateManagerReq\": %w", validateErr)
+func (x *CreateManagerReq) Validate() error {
+	if err := x.CreateManagerReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"CreateManagerReq\"")
 	}
-	return
+	return nil
 }
 
 // CreateManagerReqBody represents the request body payload,
@@ -883,28 +883,28 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *CreateManagerReqBody) Validate() (err error) {
+func (x *CreateManagerReqBody) Validate() error {
 	if x.Name != nil {
 		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Name\"")
+			return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Name\"")
 		}
 	}
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Age\"")
+			return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Salary\"")
+			return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Salary\"")
 		}
 	}
 	if x.Contact != nil {
-		if validateErr := x.Contact.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"CreateManagerReq.Contact\": %w", validateErr)
+		if err := x.Contact.Validate(); err != nil {
+			return errutil.Explain(err, "validate failed on \"CreateManagerReq.Contact\"")
 		}
 	}
-	return
+	return nil
 }
 
 // Update existing manager
@@ -937,11 +937,11 @@ func (x *UpdateManagerReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *UpdateManagerReq) Validate() (err error) {
-	if validateErr := x.UpdateManagerReqBody.Validate(); validateErr != nil {
-		err = errutil.Stack(err, "validate failed on \"UpdateManagerReq\": %w", validateErr)
+func (x *UpdateManagerReq) Validate() error {
+	if err := x.UpdateManagerReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"UpdateManagerReq\"")
 	}
-	return
+	return nil
 }
 
 // UpdateManagerReqBody represents the request body payload,
@@ -1039,23 +1039,23 @@ func (r *UpdateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *UpdateManagerReqBody) Validate() (err error) {
+func (x *UpdateManagerReqBody) Validate() error {
 	if x.Age != nil {
 		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Age\"")
+			return errutil.Explain(nil, "validate failed on \"UpdateManagerReq.Age\"")
 		}
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {
-			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Salary\"")
+			return errutil.Explain(nil, "validate failed on \"UpdateManagerReq.Salary\"")
 		}
 	}
 	if x.Contact != nil {
-		if validateErr := x.Contact.Validate(); validateErr != nil {
-			err = errutil.Stack(err, "validate failed on \"UpdateManagerReq.Contact\": %w", validateErr)
+		if err := x.Contact.Validate(); err != nil {
+			return errutil.Explain(err, "validate failed on \"UpdateManagerReq.Contact\"")
 		}
 	}
-	return
+	return nil
 }
 
 // Paginated manager query
@@ -1156,20 +1156,20 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *ListManagersByPageReq) Validate() (err error) {
+func (x *ListManagersByPageReq) Validate() error {
 	if !(x.Page >= 1) {
-		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Page\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersByPageReq.Page\"")
 	}
 	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Size\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersByPageReq.Size\"")
 	}
 	if !(len(x.Keyword) <= 5) {
-		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq.Keyword\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersByPageReq.Keyword\"")
 	}
-	if validateErr := x.ListManagersByPageReqBody.Validate(); validateErr != nil {
-		err = errutil.Stack(err, "validate failed on \"ListManagersByPageReq\": %w", validateErr)
+	if err := x.ListManagersByPageReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"ListManagersByPageReq\"")
 	}
-	return
+	return nil
 }
 
 // ListManagersByPageReqBody represents the request body payload,
@@ -1194,8 +1194,8 @@ func (x *ListManagersByPageReqBody) DecodeForm(b []byte) error {
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageReqBody) Validate() (err error) {
-	return
+func (x *ListManagersByPageReqBody) Validate() error {
+	return nil
 }
 
 // Create / Update / Get responses
@@ -1267,20 +1267,20 @@ func (r *CreateManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasErrno {
-		err = errutil.Stack(err, "missing required field \"errno\"")
+		return errutil.Explain(err, "missing required field \"errno\"")
 	}
 	if !hasErrmsg {
-		err = errutil.Stack(err, "missing required field \"errmsg\"")
+		return errutil.Explain(err, "missing required field \"errmsg\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *CreateManagerResp) Validate() (err error) {
+func (x *CreateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		err = errutil.Stack(err, "validate failed on \"CreateManagerResp.Errno\"")
+		return errutil.Explain(nil, "validate failed on \"CreateManagerResp.Errno\"")
 	}
-	return
+	return nil
 }
 
 type UpdateManagerResp struct {
@@ -1351,20 +1351,20 @@ func (r *UpdateManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasErrno {
-		err = errutil.Stack(err, "missing required field \"errno\"")
+		return errutil.Explain(err, "missing required field \"errno\"")
 	}
 	if !hasErrmsg {
-		err = errutil.Stack(err, "missing required field \"errmsg\"")
+		return errutil.Explain(err, "missing required field \"errmsg\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *UpdateManagerResp) Validate() (err error) {
+func (x *UpdateManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		err = errutil.Stack(err, "validate failed on \"UpdateManagerResp.Errno\"")
+		return errutil.Explain(nil, "validate failed on \"UpdateManagerResp.Errno\"")
 	}
-	return
+	return nil
 }
 
 type GetManagerResp struct {
@@ -1435,20 +1435,20 @@ func (r *GetManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasErrno {
-		err = errutil.Stack(err, "missing required field \"errno\"")
+		return errutil.Explain(err, "missing required field \"errno\"")
 	}
 	if !hasErrmsg {
-		err = errutil.Stack(err, "missing required field \"errmsg\"")
+		return errutil.Explain(err, "missing required field \"errmsg\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *GetManagerResp) Validate() (err error) {
+func (x *GetManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		err = errutil.Stack(err, "validate failed on \"GetManagerResp.Errno\"")
+		return errutil.Explain(nil, "validate failed on \"GetManagerResp.Errno\"")
 	}
-	return
+	return nil
 }
 
 type DeleteManagerResp struct {
@@ -1519,20 +1519,20 @@ func (r *DeleteManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasErrno {
-		err = errutil.Stack(err, "missing required field \"errno\"")
+		return errutil.Explain(err, "missing required field \"errno\"")
 	}
 	if !hasErrmsg {
-		err = errutil.Stack(err, "missing required field \"errmsg\"")
+		return errutil.Explain(err, "missing required field \"errmsg\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *DeleteManagerResp) Validate() (err error) {
+func (x *DeleteManagerResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		err = errutil.Stack(err, "validate failed on \"DeleteManagerResp.Errno\"")
+		return errutil.Explain(nil, "validate failed on \"DeleteManagerResp.Errno\"")
 	}
-	return
+	return nil
 }
 
 // Paginated response
@@ -1672,18 +1672,18 @@ func (r *ListManagersByPageResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasErrno {
-		err = errutil.Stack(err, "missing required field \"errno\"")
+		return errutil.Explain(err, "missing required field \"errno\"")
 	}
 	if !hasErrmsg {
-		err = errutil.Stack(err, "missing required field \"errmsg\"")
+		return errutil.Explain(err, "missing required field \"errmsg\"")
 	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageResp) Validate() (err error) {
+func (x *ListManagersByPageResp) Validate() error {
 	if !(OneOfErrCode(x.Errno)) {
-		err = errutil.Stack(err, "validate failed on \"ListManagersByPageResp.Errno\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersByPageResp.Errno\"")
 	}
-	return
+	return nil
 }

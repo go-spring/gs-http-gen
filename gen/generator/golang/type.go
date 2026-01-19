@@ -228,7 +228,7 @@ func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Ex
 
 	// Wrap in an if statement returning an error on failure
 	str = fmt.Sprintf(`if !(%s) {
-		err = errutil.Stack(err,"validate failed on \"%s.%s\"")
+		return errutil.Explain(nil, "validate failed on \"%s.%s\"")
 	}`, str, receiverType, fieldName)
 
 	if pointer {
@@ -584,7 +584,7 @@ var _ = (*httpsvr.Router)(nil)
 				{{ range $f := $s.Fields }}
 					{{- if and $f.Required (not $f.CompatDefault) }}
 						if !has{{$f.Name}} {
-							err = errutil.Stack(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+							return errutil.Explain(err, "missing required field \"{{$f.JSONTag.Name}}\"")
 						}
 					{{- end}}
 				{{- end}}
@@ -759,9 +759,9 @@ var _ = (*httpsvr.Router)(nil)
 				{{- end}}
 			{{- end}}
 			if err := x.{{$s.Name}}Body.Validate(); err != nil {
-				return errutil.Stack(err, "validate failed on \"{{$s.Name}}\"")
+				return errutil.Explain(err, "validate failed on \"{{$s.Name}}\"")
 			}
-			return
+			return nil
 		}
 
 		// {{$s.Name}}Body represents the request body payload,
@@ -952,7 +952,7 @@ var _ = (*httpsvr.Router)(nil)
 						{{- if not $f.Binding }}
 							{{- if and $f.Required (not $f.CompatDefault) }}
 								if !has{{$f.Name}} {
-									return errutil.Stack(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+									return errutil.Explain(err, "missing required field \"{{$f.JSONTag.Name}}\"")
 								}
 							{{- end}}
 						{{- end}}

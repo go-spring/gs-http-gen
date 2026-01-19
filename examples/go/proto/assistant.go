@@ -100,11 +100,11 @@ func (x *AssistantReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *AssistantReq) Validate() (err error) {
-	if validateErr := x.AssistantReqBody.Validate(); validateErr != nil {
-		err = errutil.Stack(err, "validate failed on \"AssistantReq\": %w", validateErr)
+func (x *AssistantReq) Validate() error {
+	if err := x.AssistantReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"AssistantReq\"")
 	}
-	return
+	return nil
 }
 
 // AssistantReqBody represents the request body payload,
@@ -151,8 +151,8 @@ func (x *AssistantReqBody) DecodeForm(b []byte) error {
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *AssistantReqBody) Validate() (err error) {
-	return
+func (x *AssistantReqBody) Validate() error {
+	return nil
 }
 
 type Item struct {
@@ -345,7 +345,7 @@ func (r *Payload) DecodeJSON(d jsonflow.Decoder) (err error) {
 	}
 
 	if !hasFieldType {
-		err = errutil.Stack(err, "missing required field \"FieldType\"")
+		return errutil.Explain(err, "missing required field \"FieldType\"")
 	}
 	return
 }
