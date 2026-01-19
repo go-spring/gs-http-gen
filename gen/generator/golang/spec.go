@@ -19,6 +19,7 @@ package golang
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/go-spring/gs-http-gen/lib/httpidl"
@@ -98,6 +99,7 @@ type TypeField struct {
 	Name     string
 	Type     string
 	TypeKind []TypeKind
+	Default  any
 }
 
 // IsPointer returns true if the field is a pointer
@@ -334,12 +336,20 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 			return Type{}, errutil.Explain(nil, "field %s in type %s is not required but has nullable type", f.Name, r.Name)
 		}
 
+		var defaultValue any
+		if f.CompatDefault != nil {
+			if defaultValue, err = goDefaultValue(typeKind, *f.CompatDefault); err != nil {
+				return Type{}, errutil.Explain(nil, "convert default value for field %s in type %s error: %w", f.Name, r.Name, err)
+			}
+		}
+
 		// Add the field to the struct
 		field := TypeField{
 			TypeField: f,
 			Name:      fieldName,
 			Type:      typeName,
 			TypeKind:  typeKind,
+			Default:   defaultValue,
 		}
 		r.Fields = append(r.Fields, field)
 	}
@@ -522,5 +532,39 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, error) {
 			}
 		}
 		return nil, errutil.Explain(nil, "unknown type: %s", typeName)
+	}
+}
+
+// goDefaultValue returns the default value for a given type.
+func goDefaultValue(typeKind []TypeKind, s string) (any, error) {
+	switch typeKind[0] {
+	case TypeKindBool:
+		v, err := strconv.ParseBool(s)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindInt:
+		v, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindUint:
+		v, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindFloat:
+		v, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindString:
+		return strconv.Quote(s), nil
+	default:
+		return nil, errutil.Explain(nil, "unsupported type for default value")
 	}
 }

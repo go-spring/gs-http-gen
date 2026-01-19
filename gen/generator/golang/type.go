@@ -22,7 +22,6 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -56,40 +55,6 @@ func formatComments(c httpidl.Comments) string {
 		lines = append(lines, c.Right.Text...)
 	}
 	return strings.Join(lines, "\n")
-}
-
-// genDefaultValue generates Go code to generate a default value for a field.
-func genDefaultValue(fieldName string, typeName string, typeKind []TypeKind, defaultValue string) string {
-	switch typeKind[0] {
-	case TypeKindBool:
-		_, err := strconv.ParseBool(defaultValue)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindInt:
-		_, err := strconv.ParseInt(defaultValue, 10, 64)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindUint:
-		_, err := strconv.ParseUint(defaultValue, 10, 64)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindFloat:
-		_, err := strconv.ParseFloat(defaultValue, 64)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindString:
-		return strconv.Quote(defaultValue)
-	default:
-		panic(errutil.Explain(nil, "unsupported type %s for field %s", typeName, fieldName))
-	}
 }
 
 // decodePathValue generates Go code to decode a field value from path parameter.
@@ -411,7 +376,6 @@ func genDecodeJSON(typeName string, typeKind []TypeKind) string {
 var typeTmpl = template.Must(template.New("type").
 	Funcs(map[string]any{
 		"formatComments":    formatComments,
-		"genDefaultValue":   genDefaultValue,
 		"decodePathValue":   decodePathValue,
 		"encodeFormValue":   encodeFormValue,
 		"decodeFormValue":   decodeFormValue,
@@ -546,8 +510,7 @@ var _ = (*httpsvr.Router)(nil)
 			return &{{$s.Name}}{
 				{{- range $f := $s.Fields }}
 					{{- if $f.CompatDefault}}
-						{{- $fieldName := printf "%s.%s" $s.Name $f.Name}}
-						{{$f.Name}}: {{genDefaultValue $fieldName $f.Type $f.TypeKind $f.CompatDefault}},
+						{{$f.Name}}: {{$f.Default}},
 					{{- end}}
 				{{- end}}
 			}
@@ -679,8 +642,7 @@ var _ = (*httpsvr.Router)(nil)
 				{{- range $f := $s.Fields }}
 					{{- if $f.Binding }}
 						{{- if $f.CompatDefault}}
-							{{- $fieldName := printf "%s.%s" $s.Name $f.Name}}
-							{{$f.Name}}: {{genDefaultValue $fieldName $f.Type $f.TypeKind $f.CompatDefault}},
+							{{$f.Name}}: {{$f.Default}},
 						{{- end}}
 					{{- end}}
 				{{- end}}
@@ -822,8 +784,7 @@ var _ = (*httpsvr.Router)(nil)
 				{{- range $f := $s.Fields }}
 					{{- if not $f.Binding }}
 						{{- if $f.CompatDefault}}
-							{{- $fieldName := printf "%s.%s" $s.Name $f.Name}}
-							{{$f.Name}}: {{genDefaultValue $fieldName $f.Type $f.TypeKind $f.CompatDefault}},
+							{{$f.Name}}: {{$f.Default}},
 						{{- end}}
 					{{- end}}
 				{{- end}}
