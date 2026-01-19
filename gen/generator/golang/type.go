@@ -312,8 +312,8 @@ func genValidateNested(receiverType, fieldName string, itemName string, typeKind
 		return str
 	case TypeKindStructPtr:
 		str := fmt.Sprintf(`if %s != nil {
-				if validateErr := %s.Validate(); validateErr != nil {
-					err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
+				if err := %s.Validate(); err != nil {
+					return errutil.Explain(err, "validate failed on \"%s.%s\"")
 				}
 			}`, itemName, itemName, receiverType, fieldName)
 		return str
@@ -604,7 +604,7 @@ var _ = (*httpsvr.Router)(nil)
 
 		{{- if $Validate}}
 			// Validate checks field values using generated validation expressions.
-			func (x *{{$s.Name}}) Validate() (err error) {
+			func (x *{{$s.Name}}) Validate() error {
 				{{- range $f := $s.Fields }}
 					{{- if $f.ValidateExpr }}
 						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
@@ -614,7 +614,7 @@ var _ = (*httpsvr.Router)(nil)
 						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
 					{{- end}}
 				{{- end}}
-				return
+				return nil
 			}
 		{{- end}}
 	{{- end}} {{- /* end of struct (not request) */}}
@@ -746,7 +746,7 @@ var _ = (*httpsvr.Router)(nil)
 		}
 
 		// Validate validates both bound parameters and request body fields.
-		func (x *{{$s.Name}}) Validate() (err error) {
+		func (x *{{$s.Name}}) Validate() error {
 			{{- range $f := $s.Fields }}
 				{{- if $f.Binding }}
 					{{- if $f.ValidateExpr }}
@@ -758,8 +758,8 @@ var _ = (*httpsvr.Router)(nil)
 					{{- end}}
 				{{- end}}
 			{{- end}}
-			if validateErr := x.{{$s.Name}}Body.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"{{$s.Name}}\": %w", validateErr)
+			if err := x.{{$s.Name}}Body.Validate(); err != nil {
+				return errutil.Stack(err, "validate failed on \"{{$s.Name}}\"")
 			}
 			return
 		}
@@ -963,7 +963,7 @@ var _ = (*httpsvr.Router)(nil)
 		{{end}} {{- /* end of json encoded */}}
 
 		// Validate checks field values using generated validation expressions.
-		func (x *{{$s.Name}}Body) Validate() (err error) {
+		func (x *{{$s.Name}}Body) Validate() error {
 			{{- range $f := $s.Fields }}
 				{{- if not $f.Binding }}
 					{{- if $f.ValidateExpr }}
@@ -975,7 +975,7 @@ var _ = (*httpsvr.Router)(nil)
 					{{- end}}
 				{{- end}}
 			{{- end}}
-			return
+			return nil
 		}
 
 	{{end}} {{- /* end of struct (request) */}}
