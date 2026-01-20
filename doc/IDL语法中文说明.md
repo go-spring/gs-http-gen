@@ -30,21 +30,22 @@ gs-http-gen 使用一种专门设计的接口定义语言（IDL）来描述数�
 ### 基础类型
 
 - `bool` - 布尔类型
-- `int` - 整数类型
+- `int` - 整数类型（note：注意没有无符号整型）
 - `float` - 浮点数类型
-- `string` - 字符串类型
-- `bytes` - 字节数组类型
+- `string` - 字符串类型（note：只能使用双引号，单引号不行）
+- `bytes` - 字节数组类型（note：传输时使用 base64 编码成字符串）
 
 ### 容器类型
 
 - `map<K, V>` - 映射类型，键类型只能是 `int` 或 `string`
 - `list<T>` - 列表类型
+- map 和 list 都支持嵌套，例如：`list<list<int>>` 等
 
 ## 语法详细说明
 
 ### 1. 常量定义
 
-使用 `const` 关键字定义常量：
+使用 `const` 关键字定义常量，常量的类型只能是 bool、int、float、string 四种：
 
 ```
 const string APP_NAME = "MyApp"
@@ -53,7 +54,7 @@ const float PI = 3.14159
 const bool DEBUG = true
 ```
 
-语法格式：
+语法格式，标识符名称要求大写字母开头：
 
 ```
 const <基础类型> <标识符名称> = <常量值>
@@ -71,21 +72,31 @@ enum Color {
 }
 ```
 
-支持继承的枚举定义（主要用于错误码继承）：
+有一种特殊的 enum 类型，叫错误码，标识一个 enum 类型是错误码的关键是在字段后面添加
+errmsg 注解，例如：
 
 ```
 enum extends ErrorCode {
-    SUCCESS = 0
+    SUCCESS = 0 (errmsg="success")
+}
+```
+ 
+然后我们还可以对错误码进行扩展，代码生成的时候基础错误码和扩展错误码会进行合并：
+
+```
+enum extends ErrorCode {
     ERROR_PARAM = 1
     ERROR_SERVER = 2
 }
 ```
 
+note: 枚举类型的值不能重复，而且最好保持单调递增。todo（好像缺少格式说明）
+
 ### 3. 类型定义
 
 #### 3.1 结构体类型
 
-定义复合数据结构：
+用 type 关键字定义结构体，字段支持 optional（可选）和 required（必需）：
 
 ```
 type User {
@@ -96,9 +107,11 @@ type User {
 }
 ```
 
+todo（其实字段上可以添加很多注解，也可以介绍一下）
+
 #### 3.2 泛型类型
 
-支持简单的泛型定义：
+支持简单的泛型定义，一般用于对返回值进行定义的场景，这时候一般只需要对 data 进行泛型定义：
 
 ```
 type Response<T> {
@@ -108,13 +121,12 @@ type Response<T> {
 }
 ```
 
-#### 3.3 类型别名
+#### 3.3 泛型实例化
 
-可以创建类型别名：
+对泛型进行实例化，注意语法格式，只能对 user_type 泛型进行实例化：
 
 ```
-type UserList list<User>
-type UserMap map<string, User>
+type UserResponse Response<User>
 ```
 
 ### 4. 字段定义
@@ -132,7 +144,7 @@ type UserMap map<string, User>
 
 #### 4.2 嵌入类型
 
-可以在结构体中嵌入其他类型：
+可以在结构体中嵌入其他类型，代码生成的时候是把嵌入的类型进行展开：
 
 ```
 type Address {
@@ -148,13 +160,12 @@ type Person {
 
 ### 5. 联合类型定义
 
-使用 `oneof` 定义联合类型（类似枚举但存储不同类型的数据）：
+使用 `oneof` 定义联合类型，todo（需要补充编码格式）：
 
 ```
 oneof Value {
-    string
-    int
     User
+    Manager
 }
 ```
 
@@ -178,6 +189,8 @@ sse StreamEvents (StreamRequest) Event {
 }
 ```
 
+todo（缺少很多注解，还是要参考语法和golang实现）
+
 ### 7. 注解（Annotations）
 
 字段和接口可以使用注解来添加元数据：
@@ -197,7 +210,7 @@ type User {
 
 ### 8. 常量值类型
 
-支持以下类型的常量值：
+支持以下类型的常量值，todo（这里应该说明是注解中的常量值吧）：
 
 - 整数字面量：`42`, `-17`, `0x1A2B`
 - 浮点数字面量：`3.14`, `.5`, `-2.7e10`
@@ -205,7 +218,7 @@ type User {
 - 布尔值：`true`, `false`
 - 标识符：通常用于引用枚举成员
 
-### 9. 标识符规则
+### 9. 标识符规则 todo（9和10是不是应该放在前面部分）
 
 - 以字母开头
 - 可以包含字母、数字、下划线 `_` 和点号 `.`
