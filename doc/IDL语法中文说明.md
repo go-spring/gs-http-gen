@@ -46,11 +46,11 @@ gs-http-gen 使用一种专门设计的接口定义语言（IDL）来描述数�
 - 可以包含字母、数字、下划线 `_` 和点号 `.`
 - 区分大小写
 - **首字母必须大写**，推荐在以下场景使用大写：
-    - 常量名：必须使用帕斯卡命名法（PascalCase），如 `MAX_SIZE`
-    - 枚举名：必须使用帕斯卡命名法（PascalCase），如 `Status`
-    - 枚举字段：必须使用帕斯卡命名法（PascalCase），如 `ACTIVE`
-    - 类型名：必须使用帕斯卡命名法（PascalCase），如 `User`
-    - 方法名：必须使用帕斯卡命名法（PascalCase），如 `GetUser`
+  - 常量名：必须使用帕斯卡命名法（PascalCase），如 `MAX_SIZE`
+  - 枚举名：必须使用帕斯卡命名法（PascalCase），如 `Status`
+  - 枚举字段：必须使用帕斯卡命名法（PascalCase），如 `ACTIVE`
+  - 类型名：必须使用帕斯卡命名法（PascalCase），如 `User`
+  - 方法名：必须使用帕斯卡命名法（PascalCase），如 `GetUser`
 
 ### 基础类型
 
@@ -68,9 +68,9 @@ gs-http-gen 使用一种专门设计的接口定义语言（IDL）来描述数�
 
 ## 语法详细说明
 
-### 1. 常量与常量值
+### 1. 常量
 
-#### 1.1 常量定义
+#### 1.1 常量
 
 使用 `const` 关键字定义常量，常量的类型只能是 bool、int、float、string 四种：
 
@@ -419,7 +419,7 @@ type Value struct {
 
 其中 FieldType 是一个枚举类型，用于标识当前值的类型。
 
-### 5. Validate 注解详解
+### 5. Validate 注解
 
 Validate 注解用于对字段值进行验证，支持多种内置验证函数和复杂的表达式。
 
