@@ -162,6 +162,9 @@ IDL 文件以 `.idl` 扩展名命名，用于定义数据结构、接口和服�
 
 `map` 和 `list` 都支持嵌套，例如：`list<list<int>>`，`map<string,map<string,int>>` 等。
 
+**重要限制**：字段类型不能直接使用泛型，只能使用预先定义好的泛型类型实例化后的具体类型。
+只有容器类型（`list<T>` 和 `map<K,V>`）可以直接在字段中使用泛型参数。
+
 ### 示例
 
 ```idl
@@ -396,6 +399,9 @@ type <类型名><<泛型参数>> {
     <字段定义>
 }
 ```
+
+**注意**：字段类型不能直接使用泛型，只能使用预先定义好的泛型类型实例化后的具体类型。
+只有容器类型（`list<T>` 和 `map<K,V>`）可以直接在字段中使用泛型参数。
 
 #### 4.3 泛型实例化
 
@@ -908,22 +914,23 @@ enum extends ErrCode {
     PAYMENT_FAILED = 500 (errmsg="payment failed")
 }
 
-// 通用响应结构
-type CommonResponse<T> {
-    int code (json="code")
-    string message (json="message")
-    T data (json="data")
-}
-
 // 分页请求参数
 type Pagination {
     int page (query="page", validate="$ >= 1")
     int size (query="size", validate="$ >= 1 && $ <= 100")
 }
 
-// 分页响应结构
-type PageResult<T> {
-    list<T> items
+// 分页响应结构 - 产品分页结果
+type ProductPageResult {
+    list<Product> items
+    int total
+    int page
+    int size
+}
+
+// 分页响应结构 - 用户分页结果
+type UserPageResult {
+    list<User> items
     int total
     int page
     int size
@@ -1154,11 +1161,19 @@ rpc GetProducts (GetProductsRequest) GetProductsResponse {
     summary = "获取商品列表"
 }
 
+// 商品分页结果类型
+type ProductPageResult {
+    list<Product> items
+    int total
+    int page
+    int size
+}
+
 // 获取商品列表响应
 type GetProductsResponse {
     int code (json="code")
     string message (json="message")
-    PageResult<Product> data (json="data")
+    ProductPageResult data (json="data")
 }
 
 rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
