@@ -593,10 +593,13 @@ type Value struct {
 
 验证表达式遵循标准的运算符优先级规则，用户可以使用括号来明确指定运算顺序。
 
+**重要提示**：在validate表达式中，字符串字面量必须使用单引号（`'`）包围，而不是双引号（`"`
+）。注意：这仅适用于validate表达式内部的字符串，注解值（如json="name"）仍然使用双引号。
+
 验证表达式的语法结构包括：
 
 1. **原子表达式**：包括标识符、字面量（如整数、浮点数、字符串）以及特殊值 `$`（代表当前字段）和 `nil`
-2. **函数调用**：支持带参数的函数调用，如 `len($)`、`email($)`、`regexp($, "pattern")` 等
+2. **函数调用**：支持带参数的函数调用，如 `len($)`、`email($)`、`regexp($, 'pattern')` 等
 3. **一元操作符**：支持逻辑非操作符 `!`，例如 `!expr`（表示“非”）
 4. **关系操作符**：包括 `<`、`<=`、`>`、`>=`，用于比较大小
 5. **相等性操作符**：包括 `==` 和 `!=`，用于比较是否相等或不等
@@ -634,7 +637,7 @@ type User {
     string email (validate="email($)")                          // 邮箱格式验证
     list<string> tags (validate="len($) <= 10")                 // 标签数量不超过10个
     string phone (validate="phone($)")                          // 手机号格式验证
-    string username (validate="regexp($, \"^[a-zA-Z][a-zA-Z0-9_]{2,19}$\")")  // 用户名格式验证
+    string username (validate="regexp($, '^[a-zA-Z][a-zA-Z0-9_]{2,19}$')")  // 用户名格式验证
 }
 ```
 
@@ -644,7 +647,7 @@ type User {
 
 ```idl
 type Product {
-    string code (validate="len($) >= 3 && len($) <= 20 && regexp($, \"^\\w+$\")")  // 3-20位字母、数字或下划线
+    string code (validate="len($) >= 3 && len($) <= 20 && regexp($, '^\\w+$')")  // 3-20位字母、数字或下划线
     int price (validate="$ > 0 && $ <= 999999")                                  // 价格范围验证
     list<string> images (validate="len($) >= 1 && len($) <= 10")                 // 图片数量限制在1-10个之间
 }
