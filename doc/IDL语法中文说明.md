@@ -957,23 +957,23 @@ type UserPageResult {
 
 // 用户信息结构
 type User {
-    required string id (json="id")
-    required string username (json="username", validate="$ != '' && len($) >= 3 && len($) <= 32")
-    required string email (json="email", validate="email($)")
-    optional string phone (json="phone", validate="phone($)")
-    string nickname (json="nickname", validate="len($) <= 50")
+    required string id
+    required string username (validate="$ != '' && len($) >= 3 && len($) <= 32")
+    required string email (validate="email($)")
+    optional string phone (validate="phone($)")
+    string nickname (validate="len($) <= 50")
     int createdTime (json="created_time")
     bool isActive (json="is_active")
 }
 
 // 地址信息结构
 type Address {
-    string id (json="id")
+    string id
     string receiverName (json="receiver_name")
-    string phone (json="phone", validate="phone($)")
-    string province (json="province")
-    string city (json="city")
-    string district (json="district")
+    string phone (validate="phone($)")
+    string province
+    string city
+    string district
     string detailAddress (json="detail_address")
     bool isDefault (json="is_default")
 }
@@ -996,8 +996,8 @@ type Product {
 type CartItem {
     string productId (json="product_id")
     string productName (json="product_name")
-    float price (json="price")
-    int quantity (json="quantity", validate="$ > 0")
+    float price
+    int quantity (validate="$ > 0")
     list<string> productImages (json="product_images")
 }
 
@@ -1020,15 +1020,15 @@ type OrderItem {
 
 // 订单信息结构
 type Order {
-    required string id (json="id")
+    required string id
     string userId (json="user_id")
-    list<OrderItem> items (json="items")
+    list<OrderItem> items
     float totalPrice (json="total_price")
-    string currency (json="currency", validate="$ == 'CNY' || $ == 'USD'")
-    OrderStatus status (json="status")
+    string currency (validate="$ == 'CNY' || $ == 'USD'")
+    OrderStatus status
     string shippingAddressId (json="shipping_address_id")
-    Address shippingAddress (json="shipping_address")
-    string notes (json="notes", validate="len($) <= 200")
+    Address shippingAddress
+    string notes (validate="len($) <= 200")
     int createdTime (json="created_time")
     int updatedTime (json="updated_time")
 }
@@ -1055,9 +1055,9 @@ type LoginResponse {
 
 // 用户登录响应包装
 type LoginResponseWrapper {
-    int code (json="code")
-    string message (json="message")
-    LoginResponse data (json="data")
+    int code
+    string message
+    LoginResponse data
 }
 
 // 获取用户信息请求
@@ -1129,9 +1129,9 @@ type CreateOrderResponse {
 
 // 创建订单响应包装
 type CreateOrderResponseWrapper {
-    int code (json="code")
-    string message (json="message")
-    CreateOrderResponse data (json="data")
+    int code
+    string message
+    CreateOrderResponse data
 }
 
 // 获取订单详情请求
