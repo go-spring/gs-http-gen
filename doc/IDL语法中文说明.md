@@ -1066,7 +1066,7 @@ type GetProductsRequest {
     optional string keyword (query="keyword", validate="len($) <= 50")
     optional CategoryType category (query="category")
     optional float minPrice (query="min_price", validate="$ >= 0")
-    optional float maxPrice (query="max_price", validate="$ >= 0 && $ >= $.minPrice")
+    optional float maxPrice (query="max_price", validate="$ >= 0")
     Pagination pagination
 }
 
