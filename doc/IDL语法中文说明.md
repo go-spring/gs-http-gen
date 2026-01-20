@@ -917,6 +917,13 @@ enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
+// 通用响应结构
+type BaseResponse<T> {
+    int code
+    string message
+    T data
+}
+
 // 用户信息结构
 type User {
     required string id
@@ -970,33 +977,22 @@ type GetProductDetailRequest {
     required string productId (path="id", validate="$ != ''")
 }
 
-// 用户注册响应包装
-type RegisterResponse {
-    int code
-    string message
-    User data
+// 获取订单详情请求
+type GetOrderDetailRequest {
+    required string orderId (path="id", validate="$ != ''")
 }
 
-// 用户登录响应包装
-type LoginResponse {
-    int code
-    string message
-    User data
-}
+// 用户注册响应
+type RegisterResponse = BaseResponse<User>
 
-// 获取用户信息响应包装
-type GetUserInfoResponse {
-    int code
-    string message
-    User data
-}
+// 用户登录响应
+type LoginResponse = BaseResponse<User>
 
-// 获取商品详情响应包装
-type GetProductDetailResponse {
-    int code
-    string message
-    Product data
-}
+// 获取用户信息响应
+type GetUserInfoResponse = BaseResponse<User>
+
+// 获取商品详情响应
+type GetProductDetailResponse = BaseResponse<Product>
 
 // 用户服务接口
 rpc Register (RegisterRequest) RegisterResponse {
