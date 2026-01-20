@@ -138,6 +138,38 @@ enum Status {
 }
 ```
 
+#### 2.4 enum_as_string 特性
+
+当在结构体字段中使用枚举类型时，可以使用 `enum_as_string` 注解将枚举值作为字符串进行序列化和反序列化。
+
+使用 `enum_as_string` 注解的字段在生成代码时会创建两个类型：原始枚举类型和字符串形式的枚举类型（AsString类型），并在序列化/反序列化时自动处理类型转换。
+
+示例：
+
+```
+enum Department {
+    ENGINEERING = 1
+    MARKETING = 2
+    SALES = 3
+}
+
+type Manager {
+    string name
+    Department dept (enum_as_string)  // 枚举将以字符串形式序列化
+}
+```
+
+在这个例子中，`dept` 字段在JSON序列化时将输出字符串形式（如 "ENGINEERING"），而不是整数值（如 1）。
+
+生成的Go代码将包含：
+
+1. 原始枚举类型定义
+2. AsString 类型定义（用于字符串序列化）
+3. MarshalJSON 方法（将枚举值序列化为字符串）
+4. UnmarshalJSON 方法（将字符串反序列化为枚举值）
+
+这种特性特别适用于需要与前端交互或外部API集成的场景，因为字符串形式的枚举更容易理解和调试。
+
 ### 3. 注解（Annotations）
 
 字段和接口可以使用注解来添加元数据。注解语法支持多行定义：
@@ -453,6 +485,13 @@ enum extends ErrCode {
     PERMISSION_DENIED = 403 (errmsg="permission denied")
 }
 
+// 部门枚举
+enum Department {
+    ENGINEERING = 1
+    MARKETING = 2
+    SALES = 3
+}
+
 // 用户信息结构
 type User {
     required string id
@@ -460,6 +499,7 @@ type User {
     optional string email (validate="email($)")
     int age (validate="$ >= 0 && $ <= 150")
     UserStatus status
+    Department dept (enum_as_string)  // 使用 enum_as_string 特性
     list<string> roles
     map<string, string> metadata
 }
