@@ -415,7 +415,19 @@ type Value struct {
 
 ### 9. RPC 接口定义
 
-定义服务接口：
+RPC接口定义有两种形式：普通接口和SSE（Server-Sent Events）流式接口。
+
+#### 9.1 普通接口定义
+
+普通接口定义格式：
+
+```
+rpc <接口名> (<请求类型>) <响应类型> {
+    <注解定义>
+}
+```
+
+示例：
 
 ```
 rpc GetUser (GetUserRequest) GetUserResponse {
@@ -424,7 +436,18 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 }
 ```
 
-对于流式接口，使用 `sse` 关键字：
+#### 9.2 SSE流式接口定义
+
+SSE（Server-Sent Events）流式接口是现代AI编程中必须的一种能力，用于实现实时数据推送和长连接通信。
+SSE接口定义使用 `sse` 关键字：
+
+```
+sse <接口名> (<请求类型>) <响应类型> {
+    <注解定义>
+}
+```
+
+示例：
 
 ```
 sse StreamEvents (StreamRequest) Event {
@@ -433,16 +456,24 @@ sse StreamEvents (StreamRequest) Event {
 }
 ```
 
-#### 9.1 RPC 注解
+SSE接口特别适用于以下场景：
 
-RPC接口可以使用注解来指定HTTP方法、路径、超时时间等路由信息，常见的RPC注解包括：
+1. 实时数据推送（如股票价格、聊天消息）
+2. AI模型结果流式返回（逐步返回AI生成的内容）
+3. 日志实时监控
+4. 事件通知系统
 
-- `method` - HTTP方法
-- `path` - 请求路径
+#### 9.3 HTTP相关注解
+
+RPC接口可以使用注解来指定HTTP方法、路径、超时时间等路由信息，常见的HTTP相关注解包括：
+
+- `method` - HTTP方法（GET、POST、PUT、DELETE等）
+- `path` - 请求路径，支持RESTful路径参数
 - `content-type` - 内容类型
 - `connTimeout` - 连接超时
 - `readTimeout` - 读取超时
 - `writeTimeout` - 写入超时
+- `summary` - 接口摘要说明
 
 例如：
 
@@ -452,10 +483,11 @@ rpc GetUser (GetUserRequest) GetUserResponse {
     path = "/user/:id"
     connTimeout = "5s"
     readTimeout = "10s"
+    summary = "获取用户信息"
 }
 ```
 
-#### 9.2 RESTful Path 参数
+### 10. RESTful Path 规则
 
 RESTful路径参数用于定义动态路径，支持两种风格：
 
@@ -499,6 +531,10 @@ rpc ComplexPath (ComplexPathRequest) ComplexPathResponse {
 }
 ```
 
+### 11. 参数绑定
+
+#### 11.1 Path参数绑定
+
 在请求类型中使用 path 绑定注解将字段与路径参数关联：
 
 ```
@@ -514,9 +550,25 @@ type GetUserRequest {
 - 支持的参数类型包括：int、string 等基本类型
 - 参数名必须与路径中定义的参数名匹配
 
-todo（缺少很多注解，还是要参考语法和golang实现）
+#### 11.2 Query参数绑定
 
-### 10. 常量值类型
+使用 query 绑定注解将字段与查询参数关联：
+
+```
+type ListUsersRequest {
+    int page (query="page")  // 将 page 字段绑定到查询参数 ?page=xxx
+    int pageSize (query="size")  // 将 pageSize 字段绑定到查询参数 ?size=xxx
+    string keyword (query="keyword")  // 搜索关键词
+}
+```
+
+Query参数绑定的特点：
+
+- 查询参数通常是可选的
+- 可以设置默认值
+- 适合传递过滤条件、分页参数等
+
+### 12. 常量值类型
 
 支持以下类型的常量值，todo（这里应该说明是注解中的常量值吧）：
 
@@ -526,7 +578,7 @@ todo（缺少很多注解，还是要参考语法和golang实现）
 - 布尔值：`true`, `false`
 - 标识符：通常用于引用枚举成员
 
-### 11. 语句分隔
+### 13. 语句分隔
 
 - 使用换行符作为语句分隔符
 - 空行会被忽略
@@ -601,6 +653,20 @@ type GetUserResponse {
     string message
 }
 
+// 流式事件请求
+type StreamRequest {
+    required string clientId (path="id")
+    optional string eventType (query="type")
+}
+
+// 流式事件响应
+type StreamResponse {
+    string eventId
+    string eventType
+    string data
+    int timestamp
+}
+
 // 通用响应包装
 type Response<T> {
     int code
@@ -612,12 +678,21 @@ type Response<T> {
 rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id"  // RESTful路径参数
+    summary = "获取用户信息"
 }
 
 // 批量获取用户
 rpc BatchGetUser (BatchGetUserRequest) Response<list<User>> {
     method = "POST"
     path = "/user/batch"
+    summary = "批量获取用户信息"
+}
+
+// SSE流式事件接口
+sse StreamEvents (StreamRequest) StreamResponse {
+    method = "GET"
+    path = "/events/:id"
+    summary = "流式事件推送，适用于实时数据更新"
 }
 ```
 
