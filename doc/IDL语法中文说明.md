@@ -256,9 +256,9 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 
 ### 3. 枚举定义
 
-使用 `enum` 关键字定义枚举类型。枚举的每个字段必须赋一个整数值。
+使用 `enum` 关键字定义枚举类型。每个枚举项都必须赋予一个整数值。
 
-基本定义格式：
+基本定义格式如下：
 
 ```
 enum <枚举名> {
@@ -280,54 +280,61 @@ enum Color {
 
 #### 3.1 错误码枚举
 
-有一种特殊的 enum 类型，叫错误码。
-标识一个 enum 类型是错误码的关键是在字段后面添加 `errmsg` 注解，例如：
+一种特殊类型的枚举是错误码枚举。要定义一个错误码枚举，必须在枚举字段后添加 `errmsg` 注解，该注解为每个错误码提供可读的错误消息描述。
+
+例如：
 
 ```
 enum ErrCode {
-    ERR_OK = 0 (errmsg="success")
-    PARAM_ERROR = 1003 (errmsg="parameter error")
-    NOT_FOUND = 404 (errmsg="resource not found")
+    ERR_OK = 0 (errmsg="成功")
+    PARAM_ERROR = 1003 (errmsg="参数错误")
+    NOT_FOUND = 404 (errmsg="资源未找到")
 }
 ```
 
-错误码注解（errmsg）用于为错误码提供人类可读的消息描述，在生成代码时会创建相应的错误消息映射。
+`errmsg` 注解会在代码生成时为每个错误码生成相应的可读错误消息映射。
 
 #### 3.2 错误码扩展
 
-错误码可以通过 `extends` 关键字进行扩展，扩展后的错误码会与基础错误码合并：
-
-```
-// 基础错误码定义
-enum ErrCode {
-    ERR_OK = 0 (errmsg="success")
-    PARAM_ERROR = 1003 (errmsg="parameter error")
-}
-
-// 扩展错误码定义
-enum extends ErrCode {
-    USER_NOT_FOUND = 404
-    PERMISSION_DENIED = 403
-}
-```
-
-在代码生成过程中，扩展的错误码会与基础错误码合并，形成一个完整的错误码集合。扩展错误码需要注意：
-
-1. 扩展的错误码类型必须已经定义
-2. 扩展的错误码不能与已有错误码重复（字段名和值都不能重复）
-3. 扩展错误码的值也建议保持单调递增
-4. 合并后，基础错误码和扩展错误码会一起生成对应的Go代码
-
-#### 3.3 enum_as_string 特性
-
-当在结构体字段中使用枚举类型时，可以使用 `enum_as_string` 注解将枚举值作为字符串进行序列化和反序列化。
-
-使用 `enum_as_string` 注解的字段在生成代码时会创建两个类型：
-原始枚举类型和字符串形式的枚举类型（AsString类型），并在序列化/反序列化时自动处理类型转换。
+错误码可以通过 `extends` 关键字进行扩展。扩展的错误码将与基础错误码合并，形成完整的错误码集合。
 
 示例：
 
 ```
+// 基础错误码定义
+enum ErrCode {
+    ERR_OK = 0 (errmsg="成功")
+    PARAM_ERROR = 1003 (errmsg="参数错误")
+}
+
+// 扩展错误码定义
+enum extends ErrCode {
+    USER_NOT_FOUND = 404 (errmsg="用户未找到")
+    PERMISSION_DENIED = 403 (errmsg="权限不足")
+}
+```
+
+在代码生成过程中，扩展的错误码将与基础错误码合并，形成一个完整的错误码集。扩展错误码时需要注意以下几点：
+
+1. 扩展的错误码类型必须事先定义。
+2. 扩展的错误码字段名和值不能与已有的错误码重复。
+3. 扩展错误码的值应保持单调递增，避免重复或回退的值。
+4. 在代码生成时，基础错误码和扩展错误码会被一起处理，生成对应的Go代码。
+
+#### 3.3 `enum_as_string` 特性
+
+当结构体字段使用枚举类型时，可以通过 `enum_as_string` 注解将枚举值以字符串形式进行序列化和反序列化。
+
+使用 `enum_as_string` 注解的字段，在生成代码时会生成两个版本的枚举类型：
+
+1. 原始的枚举类型
+2. 字符串形式的枚举类型（即 `AsString` 类型）
+
+在序列化和反序列化过程中，这两个类型会自动处理转换，从而确保枚举值以字符串的形式存储和传输。
+
+**示例：**
+
+```idl
 enum Department {
     ENGINEERING = 1
     MARKETING = 2
@@ -336,20 +343,20 @@ enum Department {
 
 type Manager {
     string name
-    Department dept (enum_as_string)  // 枚举将以字符串形式序列化
+    Department dept (enum_as_string)  // 将枚举字段以字符串形式序列化
 }
 ```
 
-在这个例子中，`dept` 字段在JSON序列化时将输出字符串形式（如 "ENGINEERING"），而不是整数值（如 1）。
+在上述示例中，`dept` 字段在 JSON 序列化时将输出字符串表示（例如 `"ENGINEERING"`），而不是枚举的整数值（如 `1`）。
 
-生成的Go代码将包含：
+生成的 Go 代码将包括：
 
-1. 原始枚举类型定义
-2. AsString 类型定义（用于字符串序列化）
-3. MarshalJSON 方法（将枚举值序列化为字符串）
-4. UnmarshalJSON 方法（将字符串反序列化为枚举值）
+1. 原始的枚举类型定义
+2. `AsString` 类型定义（用于字符串序列化）
+3. `MarshalJSON` 方法（将枚举值序列化为字符串）
+4. `UnmarshalJSON` 方法（将字符串反序列化为枚举值）
 
-这种特性特别适用于需要与前端交互或外部API集成的场景，因为字符串形式的枚举更容易理解和调试。
+该特性非常适用于与前端进行数据交互或与外部 API 集成的场景，因为字符串形式的枚举值更加直观、易于理解和调试。
 
 ### 4. 类型定义
 
