@@ -257,6 +257,20 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 - **标识符形式**：注解可以仅包含标识符，不必是键值对的形式，例如：`(some_flag)`；
 - **完整语法**：注解的完整语法为：`<标识符>(=<常量值>)?`。
 
+#### RPC接口常用注解：
+
+- **路由相关**：
+    - `method` - 指定HTTP方法（例如：GET、POST、PUT、DELETE等）
+    - `path` - 请求路径，支持RESTful路径参数
+- **内容类型**：
+    - `contentType` - 请求内容类型，支持 "form"（表单编码）或 "json"（JSON编码）
+- **超时设置**：
+    - `connTimeout` - 连接超时，单位毫秒
+    - `readTimeout` - 读取超时，单位毫秒
+    - `writeTimeout` - 写入超时，单位毫秒
+- **接口文档**：
+    - `resp.go.type` - 指定RPC响应的Go类型
+
 ### 3. 枚举定义
 
 使用 `enum` 关键字定义枚举类型。每个枚举项都必须赋予一个整数值。
@@ -771,8 +785,10 @@ SSE接口特别适用于以下场景：
 rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id"
-    connTimeout = "5s"
-    readTimeout = "10s"
+    contentType = "json"
+    connTimeout = "5"
+    readTimeout = "10"
+    writeTimeout = "10"
     summary = "获取用户信息"
 }
 ```
@@ -1142,18 +1158,29 @@ type RegisterResponse {
 rpc Register (RegisterRequest) RegisterResponse {
     method = "POST"
     path = "/auth/register"
+    contentType = "json"
+    connTimeout = "5"
+    readTimeout = "10"
+    writeTimeout = "10"
     summary = "用户注册"
 }
 
 rpc Login (LoginRequest) LoginResponseWrapper {
     method = "POST"
     path = "/auth/login"
+    contentType = "json"
+    connTimeout = "5"
+    readTimeout = "10"
+    writeTimeout = "10"
     summary = "用户登录"
 }
 
 rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
     method = "GET"
     path = "/user/:id"
+    connTimeout = "5"
+    readTimeout = "10"
+    writeTimeout = "10"
     summary = "获取用户信息"
 }
 
@@ -1189,6 +1216,10 @@ rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
 rpc AddToCart (AddToCartRequest) AddToCartResponse {
     method = "POST"
     path = "/cart/add"
+    contentType = "json"
+    connTimeout = "5"
+    readTimeout = "10"
+    writeTimeout = "10"
     summary = "添加商品到购物车"
 }
 
@@ -1224,6 +1255,9 @@ rpc PaymentNotify (PaymentNotifyRequest) PaymentNotifyResponse {
     method = "POST"
     path = "/payment/notify"
     contentType = "form"
+    connTimeout = "5"
+    readTimeout = "10"
+    writeTimeout = "10"
     summary = "支付结果通知回调"
 }
 
