@@ -1027,6 +1027,13 @@ type LoginResponse {
     User userInfo (json="user_info")
 }
 
+// 用户登录响应包装
+type LoginResponseWrapper {
+    int code (json="code")
+    string message (json="message")
+    LoginResponse data (json="data")
+}
+
 // 获取用户信息请求
 type GetUserInfoRequest {
     required string userId (path="id", validate="$ != ''")
@@ -1035,6 +1042,13 @@ type GetUserInfoRequest {
 // 获取用户信息响应
 type GetUserInfoResponse {
     User user (json="user")
+}
+
+// 获取用户信息响应包装
+type GetUserInfoResponseWrapper {
+    int code (json="code")
+    string message (json="message")
+    User data (json="data")
 }
 
 // 获取商品列表请求
@@ -1051,11 +1065,25 @@ type GetProductDetailRequest {
     required string productId (path="id", validate="$ != ''")
 }
 
+// 获取商品详情响应包装
+type GetProductDetailResponse {
+    int code (json="code")
+    string message (json="message")
+    Product data (json="data")
+}
+
 // 添加购物车请求
 type AddToCartRequest {
     required string userId (json="user_id")
     required string productId (json="product_id", validate="$ != ''")
     required int quantity (json="quantity", validate="$ > 0 && $ <= 99")
+}
+
+// 添加购物车响应包装
+type AddToCartResponse {
+    int code (json="code")
+    string message (json="message")
+    // 空数据或成功信息
 }
 
 // 创建订单请求
@@ -1073,6 +1101,13 @@ type CreateOrderResponse {
     string paymentUrl (json="payment_url")
 }
 
+// 创建订单响应包装
+type CreateOrderResponseWrapper {
+    int code (json="code")
+    string message (json="message")
+    CreateOrderResponse data (json="data")
+}
+
 // 获取订单详情请求
 type GetOrderDetailRequest {
     required string orderId (path="id", validate="$ != ''")
@@ -1086,60 +1121,88 @@ type PaymentNotifyRequest {
     required string status (form="status", validate="$ == 'SUCCESS' || $ == 'FAILED'")
 }
 
+// 用户注册响应包装
+type RegisterResponse {
+    int code (json="code")
+    string message (json="message")
+    User data (json="data")
+}
+
 // 用户服务接口
-rpc Register (RegisterRequest) CommonResponse<User> {
+rpc Register (RegisterRequest) RegisterResponse {
     method = "POST"
     path = "/auth/register"
     summary = "用户注册"
 }
 
-rpc Login (LoginRequest) CommonResponse<LoginResponse> {
+rpc Login (LoginRequest) LoginResponseWrapper {
     method = "POST"
     path = "/auth/login"
     summary = "用户登录"
 }
 
-rpc GetUserInfo (GetUserInfoRequest) CommonResponse<User> {
+rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
     method = "GET"
     path = "/user/:id"
     summary = "获取用户信息"
 }
 
 // 商品服务接口
-rpc GetProducts (GetProductsRequest) CommonResponse<PageResult<Product>> {
+rpc GetProducts (GetProductsRequest) GetProductsResponse {
     method = "GET"
     path = "/products"
     summary = "获取商品列表"
 }
 
-rpc GetProductDetail (GetProductDetailRequest) CommonResponse<Product> {
+// 获取商品列表响应
+type GetProductsResponse {
+    int code (json="code")
+    string message (json="message")
+    PageResult<Product> data (json="data")
+}
+
+rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
     method = "GET"
     path = "/product/:id"
     summary = "获取商品详情"
 }
 
 // 购物车服务接口
-rpc AddToCart (AddToCartRequest) CommonResponse {
+rpc AddToCart (AddToCartRequest) AddToCartResponse {
     method = "POST"
     path = "/cart/add"
     summary = "添加商品到购物车"
 }
 
 // 订单服务接口
-rpc CreateOrder (CreateOrderRequest) CommonResponse<CreateOrderResponse> {
+rpc CreateOrder (CreateOrderRequest) CreateOrderResponseWrapper {
     method = "POST"
     path = "/order/create"
     summary = "创建订单"
 }
 
-rpc GetOrderDetail (GetOrderDetailRequest) CommonResponse<Order> {
+// 获取订单详情响应包装
+type GetOrderDetailResponse {
+    int code (json="code")
+    string message (json="message")
+    Order data (json="data")
+}
+
+rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
     method = "GET"
     path = "/order/:id"
     summary = "获取订单详情"
 }
 
+// 支付回调响应包装
+type PaymentNotifyResponse {
+    int code (json="code")
+    string message (json="message")
+    // 空数据或成功信息
+}
+
 // 支付回调接口
-rpc PaymentNotify (PaymentNotifyRequest) CommonResponse {
+rpc PaymentNotify (PaymentNotifyRequest) PaymentNotifyResponse {
     method = "POST"
     path = "/payment/notify"
     contentType = "form"
@@ -1147,7 +1210,14 @@ rpc PaymentNotify (PaymentNotifyRequest) CommonResponse {
 }
 
 // SSE流式接口 - 订单状态变更通知
-sse OrderStatusChange (GetOrderDetailRequest) CommonResponse<Order> {
+// SSE流式响应包装
+type OrderStatusChangeResponse {
+    int code (json="code")
+    string message (json="message")
+    Order data (json="data")
+}
+
+sse OrderStatusChange (GetOrderDetailRequest) OrderStatusChangeResponse {
     method = "GET"
     path = "/order/:id/stream"
     summary = "订单状态变更实时推送"
