@@ -687,8 +687,14 @@ RESTful路径参数用于定义动态路径，支持两种风格：
 
 路径参数类型：
 
+- 静态段：固定的路径段，如 `users`, `books` 等
 - 普通参数：`:id` 或 `{id}` - 匹配单个路径段
 - 通配符参数：`:path*` 或 `{path...}` - 匹配多个路径段
+
+路径参数命名规则：
+
+- 参数名必须以字母开头，不能以数字开头
+- 支持字母、数字、下划线和连字符，如 `:user_id`, `:user-name`
 
 示例：
 
@@ -715,10 +721,16 @@ rpc GetFile (GetFileRequest) GetFileResponse {
     path = "/files/{path...}"  // 通配符参数 {path...}
 }
 
-// 复杂路径示例
+// 混合路径示例
 rpc ComplexPath (ComplexPathRequest) ComplexPathResponse {
     method = "GET"
     path = "/org/{orgId}/repos/:repoId/branches/{branch...}"  // 混合参数
+}
+
+// 静态路径段示例
+rpc StaticPath (StaticPathRequest) StaticPathResponse {
+    method = "GET"
+    path = "/api/v1/users/:id/settings"  // 包含多个静态段
 }
 ```
 
