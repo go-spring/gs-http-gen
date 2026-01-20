@@ -655,51 +655,51 @@ type Product {
 
 ### 6. RPC 接口定义
 
-RPC接口定义有两种形式：普通接口和SSE（Server-Sent Events）流式接口。
+RPC 接口定义分为两种形式：普通接口和 SSE（Server-Sent Events）流式接口。
 
 #### 6.1 多文件项目结构
 
-在一个项目中，可以有多个IDL文件（.idl扩展名）和一个meta.json配置文件。
-系统通过 `ParseDir` 函数扫描整个目录，加载所有IDL文件并构建统一的项目结构。
-每个IDL文件可以定义自己的常量、枚举、类型和RPC接口，这些定义可以在其他IDL文件中被引用。
+一个项目通常包含多个 IDL 文件（扩展名为 `.idl`）和一个 `meta.json` 配置文件。
+系统通过 `ParseDir` 函数扫描整个目录，加载所有的 IDL 文件，并构建统一的项目结构。
+每个 IDL 文件可以定义自己的常量、枚举、类型以及 RPC 接口，并且这些定义可以在其他 IDL 文件中引用。
 
 #### 6.2 跨文件类型引用
 
-系统支持在任一IDL文件中引用其他文件中定义的类型。
-当解析器遇到未在当前文件中定义的类型时，会搜索项目中的其他文件寻找相应定义。
-如果找不到，则会报错："type X is used but not defined"。
+系统支持在一个 IDL 文件中引用其他文件中定义的类型。
+当解析器遇到当前文件中未定义的类型时，它会在项目中的其他文件中查找该类型的定义。如果无法找到该类型，系统会抛出错误，提示
+`"type X is used but not defined"`。
 
 #### 6.3 错误码扩展机制
 
-错误码扩展（enum extends）功能支持跨文件操作。
-当一个文件中的enum定义使用 `extends` 关键字扩展另一个文件中定义的enum时，
-系统会将扩展的字段合并到原enum定义中。合并过程中会检查字段名和值的唯一性，防止冲突。
+错误码扩展（`enum extends`）功能允许跨文件进行操作。
+当一个文件中的 `enum` 定义使用 `extends` 关键字扩展另一个文件中的 `enum` 时，系统会将扩展的字段与原 `enum` 定义合并。
+在合并过程中，系统会检查字段名和值的唯一性，防止冲突。
 
 #### 6.4 项目解析流程
 
-系统按以下步骤解析多文件项目：
+项目的解析过程遵循以下步骤：
 
-1. **加载阶段**：扫描目录中的所有 `.idl` 文件和 `meta.json` 文件
-2. **解析阶段**：逐个解析IDL文件为Document结构
-3. **验证阶段**：检查所有类型引用是否有效
-4. **合并阶段**：处理错误码扩展，将扩展的枚举字段合并到基枚举
-5. **处理阶段**：处理泛型实例化、嵌入类型、验证表达式等
-6. **路径处理阶段**：验证RPC路径参数与请求类型绑定的一致性
+1. **加载阶段**：扫描目录中的所有 `.idl` 文件和 `meta.json` 配置文件。
+2. **解析阶段**：逐一解析每个 IDL 文件，并将其转化为 `Document` 结构。
+3. **验证阶段**：检查项目中所有类型的引用是否有效。
+4. **合并阶段**：处理错误码扩展，将扩展的字段合并到基础的 `enum` 中。
+5. **处理阶段**：处理泛型实例化、嵌入类型以及验证表达式等。
+6. **路径处理阶段**：验证 RPC 路径参数是否与请求类型正确绑定。
 
 #### 6.5 验证函数跨文件处理
 
-系统会收集所有IDL文件中定义的自定义验证函数，并确保相同名称的验证函数应用于相同类型的字段。
-验证函数会在生成的 `validate.go` 文件中创建占位符，供开发者实现具体的验证逻辑。
+系统会收集项目中所有 IDL 文件中定义的自定义验证函数，确保同名的验证函数在相同类型的字段上被正确应用。
+这些验证函数会在生成的 `validate.go` 文件中创建占位符，供开发者实现具体的验证逻辑。
 
 #### 6.6 项目配置文件
 
-项目根目录需要包含 `meta.json` 配置文件，用于存储项目的元信息。
-此文件是必需的，没有此文件的项目将无法正确解析。
-配置文件通常包含项目名称、版本和其他元数据信息。
+项目的根目录必须包含一个 `meta.json` 配置文件，该文件用于存储项目的元数据。
+如果缺少此文件，项目将无法被正确解析。
+`meta.json` 配置文件通常包含项目名称、版本号以及其他必要的元数据信息。
 
-#### 6.7 普通接口定义
+### 6.7 普通接口定义
 
-普通接口定义格式：
+普通接口的定义格式如下：
 
 ```
 rpc <接口名> (<请求类型>) <响应类型> {
@@ -716,10 +716,10 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 }
 ```
 
-#### 6.8 SSE流式接口定义
+### 6.8 SSE流式接口定义
 
-SSE（Server-Sent Events）流式接口是现代AI编程中必须的一种能力，用于实现实时数据推送和长连接通信。
-SSE接口定义使用 `sse` 关键字：
+SSE（Server-Sent Events）流式接口是现代应用开发中不可或缺的一项功能，广泛用于实时数据推送和长连接通信。SSE接口的定义使用
+`sse` 关键字，如下所示：
 
 ```
 sse <接口名> (<请求类型>) <响应类型> {
@@ -738,23 +738,23 @@ sse StreamEvents (StreamRequest) Event {
 
 SSE接口特别适用于以下场景：
 
-1. 实时数据推送（如股票价格、聊天消息）
-2. AI模型结果流式返回（逐步返回AI生成的内容）
+1. **实时数据推送**：如股票价格的变动、聊天消息的实时传输等。
+2. **AI模型结果流式返回**：逐步返回AI生成的内容，特别是在需要长时间计算的场景中，例如生成图片、文本内容等。
 
 #### 6.9 HTTP相关注解
 
-RPC接口可以使用注解来指定HTTP方法、路径、超时时间等路由信息，常见的HTTP相关注解包括：
+在RPC接口中，可以使用注解来指定HTTP方法、路径、超时时间等路由信息。常见的HTTP相关注解包括：
 
-- `method` - HTTP方法（GET、POST、PUT、DELETE等）
-- `path` - 请求路径，支持RESTful路径参数
-- `contentType` - 内容类型，支持 "form"（表单编码）或 "json"（JSON编码）
-- `connTimeout` - 连接超时
-- `readTimeout` - 读取超时
-- `writeTimeout` - 写入超时
-- `summary` - 接口摘要说明
-- `resp.go.type` - 指定RPC响应的Go类型
+* `method` - 指定HTTP方法（例如：GET、POST、PUT、DELETE等）
+* `path` - 请求路径，支持RESTful路径参数
+* `contentType` - 请求内容类型，支持 "form"（表单编码）或 "json"（JSON编码）
+* `connTimeout` - 连接超时
+* `readTimeout` - 读取超时
+* `writeTimeout` - 写入超时
+* `summary` - 接口的简要说明
+* `resp.go.type` - 指定RPC响应的Go类型
 
-例如：
+示例：
 
 ```
 rpc GetUser (GetUserRequest) GetUserResponse {
@@ -766,44 +766,50 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 }
 ```
 
-#### 6.10 RESTful Path 规则和参数绑定
+#### 6.10 RESTful 路径规则与参数绑定
 
 RESTful路径参数用于定义动态路径，支持两种风格：
 
-1. 冒号风格（Colon Style）：`:paramName` 或 `:paramName*`
-2. 大括号风格（Brace Style）：`{paramName}` 或 `{paramName...}`
+1. **冒号风格（Colon Style）**：`:paramName` 或 `:paramName*`
+2. **大括号风格（Brace Style）**：`{paramName}` 或 `{paramName...}`
 
-路径参数类型：
+路径参数的类型包括：
 
-- 静态段（Static）：固定的路径段，如 `users`, `books` 等
-- 普通参数（Param）：`:id` 或 `{id}` - 匹配单个路径段
-- 通配符参数（Wildcard）：`:path*` 或 `{path...}` - 匹配多个路径段
+* **静态段（Static）**：固定的路径段，如 `users`、`books` 等
+* **普通参数（Param）**：`:id` 或 `{id}` - 匹配单个路径段
+* **通配符参数（Wildcard）**：`:path*` 或 `{path...}` - 匹配多个路径段
 
-路径排序机制：服务器端会自动对路由路径进行排序，确保更具体的路径优先匹配。排序规则如下：
+**路径排序规则**：
 
-- 静态段优先于参数段，参数段优先于通配符段（Static(0) < Param(1) < Wildcard(2)）
-- 静态段按字典序排序
-- 路径长度较长的优先于较短的
-- 相同长度的路径按路径字符串排序
+服务器会自动对路由路径进行排序，确保更具体的路径优先匹配。排序规则如下：
 
-示例：
+* 静态路径段优先于参数路径段，参数路径段优先于通配符路径段（静态段 < 参数段 < 通配符段）
+* 静态段按字典顺序排序
+* 路径长度较长的优先于较短的
+* 在相同长度的情况下，路径按字典顺序排序
+
+### 路径匹配优先级
+
+路径匹配规则决定了在多个匹配项中，哪个路径会首先被匹配。以下是不同路径匹配类型的优先级顺序：
 
 ```
 // 排序后的匹配优先级：
 GET /user/profile     # 最具体，优先级最高
-GET /user/:id         # 参数路径，优先级中等
+GET /user/:id         # 参数化路径，优先级中等
 GET /files/:path*     # 通配符路径，优先级最低
 ```
 
-路径参数命名规则：
+### 路径参数命名规则
 
-- 参数名必须以字母开头，不能以数字开头
-- 支持字母、数字、下划线和连字符，如 `:user_id`, `:user-name`
+在路径中使用的参数必须遵循以下命名规则：
 
-示例：
+* 参数名必须以字母开头，不能以数字开头。
+* 支持字母、数字、下划线 (`_`) 和连字符 (`-`) 的组合，例如：`:user_id`, `:user-name`。
+
+#### 示例：
 
 ```
-// 冒号风格
+// 冒号风格路径参数
 rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id"  // 路径参数 :id
@@ -811,10 +817,10 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 
 rpc GetFile (GetFileRequest) GetFileResponse {
     method = "GET"
-    path = "/files/:path*"  // 通配符参数 :path*
+    path = "/files/:path*"  // 通配符路径参数 :path*
 }
 
-// 大括号风格
+// 大括号风格路径参数
 rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
     path = "/user/{id}"  // 路径参数 {id}
@@ -822,7 +828,7 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 
 rpc GetFile (GetFileRequest) GetFileResponse {
     method = "GET"
-    path = "/files/{path...}"  // 通配符参数 {path...}
+    path = "/files/{path...}"  // 通配符路径参数 {path...}
 }
 
 // 混合路径示例
@@ -834,32 +840,32 @@ rpc ComplexPath (ComplexPathRequest) ComplexPathResponse {
 // 静态路径段示例
 rpc StaticPath (StaticPathRequest) StaticPathResponse {
     method = "GET"
-    path = "/api/v1/users/:id/settings"  // 包含多个静态段
+    path = "/api/v1/users/:id/settings"  // 包含多个静态路径段
 }
 ```
 
-**参数绑定**：
+### 参数绑定
 
-在请求类型中可以使用注解将字段与路径或查询参数关联：
+在定义请求类型时，可以使用注解将字段与路径参数或查询参数进行关联：
 
 ```
+// 请求类型示例
 type GetUserRequest {
     string userId (path="id")  // 将 userId 字段绑定到路径参数 :id 或 {id}
     string locale (query="locale")  // 将 locale 字段绑定到查询参数 ?locale=value
 }
 ```
 
-注意：
+#### 注意事项：
 
-- 路径参数对应的字段必须是必需的（required）
-- 支持的参数类型包括：int、string 等基本类型
-- 参数名必须与路径中定义的参数名匹配
+* **路径参数**：绑定到路径中的参数必须是必需的 (`required`)，且其类型通常为基本类型，如 `int` 或 `string`。
+* **查询参数**：查询参数通常是可选的 (`optional`)，可以为字段设置默认值。它们非常适合用于传递过滤条件、分页信息等。
 
-Query参数绑定的特点：
+### 路径参数命名规则总结
 
-- 查询参数通常是可选的
-- 可以设置默认值
-- 适合传递过滤条件、分页参数等
+* 路径参数必须与路径中的参数名保持一致。
+* 在路径中，**静态段**优先于**参数化路径段**，而**通配符参数**的优先级最低。
+* 参数命名必须遵循字母开头、支持字母、数字、下划线和连字符的规则。
 
 ## 示例
 
