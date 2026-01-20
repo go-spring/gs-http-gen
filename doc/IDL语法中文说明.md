@@ -389,7 +389,7 @@ type Person {
 2. 如果嵌入类型中有同名字段，会导致编译错误
 3. 嵌入类型本身不会作为一个独立字段存在
 
-### 5. 序列化和反序列化
+#### 4.5 序列化和反序列化
 
 为了支持可选和必选字段，以及默认值填充，生成的代码必须支持流式解析。
 这允许在解析过程中校验必选字段是否存在，以及为字段设置默认值。
@@ -397,6 +397,30 @@ type Person {
 - 必选字段（`required`）：在解析和验证阶段必须存在且非空
 - 可选字段（`optional`）：可以不存在，通常表示为指针类型
 - 默认值（`compat_default`）：为字段提供兼容性默认值
+
+### 4.6 联合类型定义
+
+使用 `oneof` 定义联合类型。联合类型在内部实现上会生成一个特殊结构，包含一个类型标识字段和多个可能的数据字段。
+在序列化时，只有被选择的那个字段会被包含在输出中，同时通过类型标识字段指示当前激活的选项：
+
+```
+oneof Value {
+    User
+    Manager
+}
+```
+
+生成的结构通常类似：
+
+```
+type Value struct {
+    FieldType ValueType `json:"FieldType" form:"FieldType"`  // 类型标识字段
+    User      *User     `json:"User,omitempty" form:"User"`  // 可能的选项1
+    Manager   *Manager  `json:"Manager,omitempty" form:"Manager"`  // 可能的选项2
+}
+```
+
+其中 FieldType 是一个枚举类型，用于标识当前值的类型。
 
 ### 6. Validate 注解详解
 
@@ -428,30 +452,6 @@ type User {
 ```
 
 如果字段是可选的（optional），验证仅在字段值存在时执行。
-
-### 7. 联合类型定义
-
-使用 `oneof` 定义联合类型。联合类型在内部实现上会生成一个特殊结构，包含一个类型标识字段和多个可能的数据字段。
-在序列化时，只有被选择的那个字段会被包含在输出中，同时通过类型标识字段指示当前激活的选项：
-
-```
-oneof Value {
-    User
-    Manager
-}
-```
-
-生成的结构通常类似：
-
-```
-type Value struct {
-    FieldType ValueType `json:"FieldType" form:"FieldType"`  // 类型标识字段
-    User      *User     `json:"User,omitempty" form:"User"`  // 可能的选项1
-    Manager   *Manager  `json:"Manager,omitempty" form:"Manager"`  // 可能的选项2
-}
-```
-
-其中 FieldType 是一个枚举类型，用于标识当前值的类型。
 
 ### 8. RPC 接口定义
 
