@@ -139,38 +139,38 @@ IDL 文件以 `.idl` 扩展名命名，用于定义数据结构、接口和服�
 
 ### 基础类型
 
-- `bool` - 布尔类型
-- `int` - 整数类型（映射到Go的int64，默认使用此类型，若需自定义可使用`go.type`注解）
-- `float` - 浮点数类型（映射到Go的float64，默认使用此类型，若需自定义可使用`go.type`注解）
-- `string` - 字符串类型（只能使用双引号，单引号不行）
-- `bytes` - 字节数组类型（传输时使用 base64 编码成字符串）
+* **`bool`**：布尔类型
+* **`int`**：整数类型，映射为 Go 的 `int64`（默认使用此类型）。如果需要自定义类型，可以使用 `go.type` 注解。
+* **`float`**：浮点数类型，映射为 Go 的 `float64`（默认使用此类型）。同样，可以通过 `go.type` 注解进行自定义。
+* **`string`**：字符串类型，仅支持双引号（单引号不合法）。
+* **`bytes`**：字节数组类型，传输时使用 Base64 编码为字符串。
 
 ### 字面量格式
 
-- 整数字面量：`42`, `-17`, `0x1A2B`
-- 浮点数字面量：`3.14`, `.5`, `-2.7e10`
-- 字符串字面量：`"hello"`, `"escaped \" quote"`（只支持双引号）
-- 布尔字面量：`true`, `false`
+* **整数**：`42`，`-17`，`0x1A2B`
+* **浮点数**：`3.14`，`.5`，`-2.7e10`
+* **字符串**：`"hello"`，`"escaped \" quote"`（仅支持双引号）
+* **布尔值**：`true`，`false`
 
 ### 容器类型
 
-- `map<K, V>` - 映射类型，键类型只能是 `int` 或 `string`，值类型可以是任意类型
-- `list<T>` - 列表类型，元素类型可以是任意类型
-- `bytes` - 字节数组类型（传输时使用 base64 编码成字符串）
+* **`map<K, V>`**：映射类型，键类型必须是 `int` 或 `string`，值类型可以是任意类型。
+* **`list<T>`**：列表类型，元素类型可以是任意类型。
+* **`bytes`**：字节数组类型（传输时以 Base64 编码为字符串）。
 
-**注意**：map 的键类型只能是 `int` 或 `string`，否则会在解析时抛出错误。
+**注意**：`map` 的键类型仅支持 `int` 或 `string`，其他类型会在解析时抛出错误。
 
-map 和 list 都支持嵌套，例如：`list<list<int>>`、`map<string,map<string,int>>` 等
+`map` 和 `list` 都支持嵌套，例如：`list<list<int>>`，`map<string,map<string,int>>` 等。
 
-示例：
+### 示例
 
-```
-list<string> tags                    // 字符串列表
-list<User> users                     // 用户对象列表
-map<string, int> scores             // 字符串到整数的映射
-map<int, User> userById             // 整数ID到用户的映射
-list<map<string, User>> groups      // 用户组列表（每个组是用户映射）
-map<string, list<User>> usersByDept // 按部门分组的用户映射
+```idl
+list<string> tags                     // 字符串列表
+list<User> users                      // 用户对象列表
+map<string, int> scores               // 字符串到整数的映射
+map<int, User> userById               // 整数ID到用户的映射
+list<map<string, User>> groups        // 用户组列表（每个组是用户映射）
+map<string, list<User>> usersByDept  // 按部门分组的用户映射
 ```
 
 ## 语法详细说明
