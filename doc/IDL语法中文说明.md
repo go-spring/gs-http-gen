@@ -234,7 +234,7 @@ type User {
       json="name"
       go.type="string"
     )
-    int age (json="age,omitempty")
+    int age (json="age,non-omitempty")
 }
 
 # 接口定义中的注解
@@ -504,8 +504,8 @@ type Result<T> {
 
 ```
 type User {
-    string name (json="name", go.type="string")  // 指定JSON字段名为 name，并在Go中使用 string 类型
-    int age (json="age,omitempty", go.type="int32")  // JSON序列化时，如果值为空则不序列化，并显式指定Go类型为 int32
+    string name (go.type="string")  // 指定JSON字段名为 name，并在Go中使用 string 类型
+    int age (json="age", go.type="int32")  // JSON序列化时，如果值为空则不序列化，并显式指定Go类型为 int32
     string description (json="desc,non-omitempty")  // 禁用omitempty行为，确保空字符串也会被序列化
     string email (validate="email($)", deprecated="true")  // 对邮箱字段进行格式验证，并标记为已弃用
     string userId (path="id")  // 将字段与路径参数 id 绑定
@@ -980,14 +980,14 @@ type Address {
 
 // 商品信息结构
 type Product {
-    required string id (json="id")
-    required string name (json="name", validate="$ != '' && len($) <= 100")
-    string description (json="description", validate="len($) <= 500")
-    float price (json="price", validate="$ > 0")
-    CategoryType category (json="category")
-    int stock (json="stock", validate="$ >= 0")
-    list<string> images (json="images")
-    float rating (json="rating", validate="$ >= 0 && $ <= 5")
+    required string id
+    required string name (validate="$ != '' && len($) <= 100")
+    string description (validate="len($) <= 500")
+    float price (validate="$ > 0")
+    CategoryType category
+    int stock (validate="$ >= 0")
+    list<string> images
+    float rating (validate="$ >= 0 && $ <= 5")
     int salesCount (json="sales_count")
     bool isActive (json="is_active")
 }
@@ -1004,7 +1004,7 @@ type CartItem {
 // 购物车信息
 type Cart {
     string userId (json="user_id")
-    list<CartItem> items (json="items")
+    list<CartItem> items
     float totalPrice (json="total_price")
     int itemCount (json="item_count")
 }
@@ -1013,9 +1013,9 @@ type Cart {
 type OrderItem {
     string productId (json="product_id")
     string productName (json="product_name")
-    float price (json="price")
-    int quantity (json="quantity")
-    float subtotal (json="subtotal")
+    float price
+    int quantity
+    float subtotal
 }
 
 // 订单信息结构
@@ -1035,21 +1035,21 @@ type Order {
 
 // 用户注册请求
 type RegisterRequest {
-    required string username (json="username", validate="$ != '' && len($) >= 3 && len($) <= 32")
-    required string email (json="email", validate="email($)")
-    required string password (json="password", validate="len($) >= 6 && len($) <= 128")
-    optional string phone (json="phone", validate="phone($)")
+    required string username (validate="$ != '' && len($) >= 3 && len($) <= 32")
+    required string email (validate="email($)")
+    required string password (validate="len($) >= 6 && len($) <= 128")
+    optional string phone (validate="phone($)")
 }
 
 // 用户登录请求
 type LoginRequest {
-    required string email (json="email", validate="email($)")
-    required string password (json="password", validate="len($) >= 6")
+    required string email (validate="email($)")
+    required string password (validate="len($) >= 6")
 }
 
 // 用户登录响应
 type LoginResponse {
-    string token (json="token")
+    string token
     User userInfo (json="user_info")
 }
 
@@ -1067,14 +1067,14 @@ type GetUserInfoRequest {
 
 // 获取用户信息响应
 type GetUserInfoResponse {
-    User user (json="user")
+    User user
 }
 
 // 获取用户信息响应包装
 type GetUserInfoResponseWrapper {
-    int code (json="code")
-    string message (json="message")
-    User data (json="data")
+    int code
+    string message
+    User data
 }
 
 // 获取商品列表请求
@@ -1093,31 +1093,31 @@ type GetProductDetailRequest {
 
 // 获取商品详情响应包装
 type GetProductDetailResponse {
-    int code (json="code")
-    string message (json="message")
-    Product data (json="data")
+    int code
+    string message
+    Product data
 }
 
 // 添加购物车请求
 type AddToCartRequest {
     required string userId (json="user_id")
     required string productId (json="product_id", validate="$ != ''")
-    required int quantity (json="quantity", validate="$ > 0 && $ <= 99")
+    required int quantity (validate="$ > 0 && $ <= 99")
 }
 
 // 添加购物车响应包装
 type AddToCartResponse {
-    int code (json="code")
-    string message (json="message")
+    int code
+    string message
     // 空数据或成功信息
 }
 
 // 创建订单请求
 type CreateOrderRequest {
     required string userId (json="user_id")
-    required list<OrderItem> items (json="items")
+    required list<OrderItem> items
     required string shippingAddressId (json="shipping_address_id")
-    optional string notes (json="notes", validate="len($) <= 200")
+    optional string notes (validate="len($) <= 200")
 }
 
 // 创建订单响应
@@ -1149,9 +1149,9 @@ type PaymentNotifyRequest {
 
 // 用户注册响应包装
 type RegisterResponse {
-    int code (json="code")
-    string message (json="message")
-    User data (json="data")
+    int code
+    string message
+    User data
 }
 
 // 用户服务接口
@@ -1204,9 +1204,9 @@ type ProductPageResult {
 
 // 获取商品列表响应
 type GetProductsResponse {
-    int code (json="code")
-    string message (json="message")
-    ProductPageResult data (json="data")
+    int code
+    string message
+    ProductPageResult data
 }
 
 rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
@@ -1241,9 +1241,9 @@ rpc CreateOrder (CreateOrderRequest) CreateOrderResponseWrapper {
 
 // 获取订单详情响应包装
 type GetOrderDetailResponse {
-    int code (json="code")
-    string message (json="message")
-    Order data (json="data")
+    int code
+    string message
+    Order data
 }
 
 rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
@@ -1257,8 +1257,8 @@ rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
 
 // 支付回调响应包装
 type PaymentNotifyResponse {
-    int code (json="code")
-    string message (json="message")
+    int code
+    string message
     // 空数据或成功信息
 }
 
@@ -1276,9 +1276,9 @@ rpc PaymentNotify (PaymentNotifyRequest) PaymentNotifyResponse {
 // SSE流式接口 - 订单状态变更通知
 // SSE流式响应包装
 type OrderStatusChangeResponse {
-    int code (json="code")
-    string message (json="message")
-    Order data (json="data")
+    int code
+    string message
+    Order data
 }
 
 sse OrderStatusChange (GetOrderDetailRequest) OrderStatusChangeResponse {
