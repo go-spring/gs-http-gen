@@ -92,9 +92,28 @@ enum extends ErrorCode {
 
 note: 枚举类型的值不能重复，而且最好保持单调递增。todo（好像缺少格式说明）
 
-### 3. 类型定义
+### 3. 注解（Annotations）
 
-#### 3.1 结构体类型
+字段和接口可以使用注解来添加元数据。注解语法支持多行定义：
+
+```
+type User {
+    string name (json="name", go.type="string")
+    int age (json="age,omitempty")
+}
+```
+
+注解语法：todo(需要补充支持多行)
+
+```
+(注解名 = 注解值, 注解名 = 注解值, ...)
+```
+
+注解提供了灵活的元数据机制，用于控制生成代码的行为，可以指定序列化方式、验证规则、API路由等信息。
+
+### 4. 类型定义
+
+#### 4.1 结构体类型
 
 用 type 关键字定义结构体，字段支持 optional（可选）和 required（必需）：
 
@@ -107,9 +126,32 @@ type User {
 }
 ```
 
+#### 4.2 字段注解
+
+在字段定义中可以使用注解来指定额外的元数据，常见的字段注解包括：
+
+- `json` - 指定JSON序列化字段名和选项
+- `form` - 指定表单绑定字段名
+- `path` - 指定路径参数绑定
+- `query` - 指定查询参数绑定
+- `validate` - 指定验证表达式
+- `deprecated` - 标记字段已弃用
+- `enum_as_string` - 枚举作为字符串处理
+- `compat_default` - 兼容性默认值
+
+例如：
+
+```
+type User {
+    string name (json="name", go.type="string")
+    int age (json="age,omitempty")
+    string email (validate="email", deprecated="true")
+}
+```
+
 todo（其实字段上可以添加很多注解，也可以介绍一下）
 
-#### 3.2 泛型类型
+#### 4.3 泛型类型
 
 支持简单的泛型定义，一般用于对返回值进行定义的场景，这时候一般只需要对 data 进行泛型定义：
 
@@ -121,7 +163,7 @@ type Response<T> {
 }
 ```
 
-#### 3.3 泛型实例化
+#### 4.4 泛型实例化
 
 对泛型进行实例化，注意语法格式，只能对 user_type 泛型进行实例化：
 
@@ -129,9 +171,9 @@ type Response<T> {
 type UserResponse Response<User>
 ```
 
-### 4. 字段定义
+### 5. 字段定义
 
-#### 4.1 普通字段
+#### 5.1 普通字段
 
 ```
 <可选修饰符> <类型> <字段名>
@@ -142,7 +184,7 @@ type UserResponse Response<User>
 - `required` - 表示必需字段
 - `optional` - 表示可选字段（默认）
 
-#### 4.2 嵌入类型
+#### 5.2 嵌入类型
 
 可以在结构体中嵌入其他类型，代码生成的时候是把嵌入的类型进行展开：
 
@@ -158,7 +200,7 @@ type Person {
 }
 ```
 
-### 5. 联合类型定义
+### 6. 联合类型定义
 
 使用 `oneof` 定义联合类型。联合类型在内部实现上会生成一个特殊结构，包含一个类型标识字段和多个可能的数据字段。
 在序列化时，只有被选择的那个字段会被包含在输出中，同时通过类型标识字段指示当前激活的选项：
@@ -182,7 +224,7 @@ type Value struct {
 
 其中 FieldType 是一个枚举类型，用于标识当前值的类型。
 
-### 6. RPC 接口定义
+### 7. RPC 接口定义
 
 定义服务接口：
 
@@ -202,37 +244,9 @@ sse StreamEvents (StreamRequest) Event {
 }
 ```
 
-todo（缺少很多注解，还是要参考语法和golang实现）
+#### 7.1 RPC 注解
 
-### 7. 注解（Annotations）
-
-字段和接口可以使用注解来添加元数据。注解语法支持多行定义：
-
-```
-type User {
-    string name (json="name", go.type="string")
-    int age (json="age,omitempty")
-}
-```
-
-注解语法：todo(需要补充支持多行)
-
-```
-(注解名 = 注解值, 注解名 = 注解值, ...)
-```
-
-常见的字段注解包括：
-
-- `json` - 指定JSON序列化字段名和选项
-- `form` - 指定表单绑定字段名
-- `path` - 指定路径参数绑定
-- `query` - 指定查询参数绑定
-- `validate` - 指定验证表达式
-- `deprecated` - 标记字段已弃用
-- `enum_as_string` - 枚举作为字符串处理
-- `compat_default` - 兼容性默认值
-
-常见的RPC注解包括：
+RPC接口可以使用注解来指定HTTP方法、路径、超时时间等路由信息，常见的RPC注解包括：
 
 - `method` - HTTP方法
 - `path` - 请求路径
@@ -240,6 +254,19 @@ type User {
 - `connTimeout` - 连接超时
 - `readTimeout` - 读取超时
 - `writeTimeout` - 写入超时
+
+例如：
+
+```
+rpc GetUser (GetUserRequest) GetUserResponse {
+    method = "GET"
+    path = "/user/:id"
+    connTimeout = "5s"
+    readTimeout = "10s"
+}
+```
+
+todo（缺少很多注解，还是要参考语法和golang实现）
 
 ### 8. 常量值类型
 
@@ -280,7 +307,7 @@ enum UserStatus {
 type User {
     required string id
     required string name
-    optional string email
+    optional string email (validate="email")
     int age
     UserStatus status
     list<string> roles
@@ -289,7 +316,7 @@ type User {
 
 // 获取用户请求
 type GetUserRequest {
-    required string userId (json="userId")
+    required string userId (json="userId", path="id")
 }
 
 // 获取用户响应
@@ -309,7 +336,7 @@ type Response<T> {
 // 用户服务接口
 rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
-    path = "/user/:userId"
+    path = "/user/:id"
 }
 
 // 批量获取用户
