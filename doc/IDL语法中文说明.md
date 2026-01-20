@@ -921,10 +921,6 @@ enum CategoryType {
 enum ErrCode {
     ERR_OK = 0 (errmsg="success")
     PARAM_ERROR = 1003 (errmsg="parameter error")
-}
-
-// 扩展错误码
-enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
     PRODUCT_NOT_FOUND = 405 (errmsg="product not found")
     ORDER_NOT_FOUND = 406 (errmsg="order not found")
