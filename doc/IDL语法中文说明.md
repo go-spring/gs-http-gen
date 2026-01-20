@@ -360,34 +360,34 @@ type Manager {
 
 ### 4. 类型定义
 
-类型定义使用 `type` 关键字，有三种定义方式：
+类型定义使用 `type` 关键字，并支持三种主要定义方式：
 
 #### 4.1 普通结构体定义
 
-最常见的是普通结构体，定义方式如下：
+普通结构体是最常见的类型定义方式，格式如下：
 
 ```
 type User {
-    required string name
-    int age
-    optional string email
-    list<string> tags
+    required string name       // 必填字段
+    int age                    // 可选字段
+    optional string email      // 显式声明可选字段
+    list<string> tags          // 字符串列表
 }
 ```
 
 #### 4.2 泛型结构体定义
 
-支持简单的泛型定义，一般用于对返回值进行定义的场景：
+IDL 语言支持简单的泛型定义，通常用于定义返回值的结构体。其语法格式如下：
 
 ```
 type Response<T> {
-    int code
-    string message
-    T data
+    int code                    // 返回码
+    string message               // 返回消息
+    T data                       // 泛型数据
 }
 ```
 
-语法格式，尖括号内定义泛型参数：
+在定义泛型类型时，通过尖括号 `< >` 来指定泛型参数：
 
 ```
 type <类型名><<泛型参数>> {
@@ -397,13 +397,13 @@ type <类型名><<泛型参数>> {
 
 #### 4.3 泛型实例化
 
-对已定义的泛型进行实例化，注意语法格式：
+对于已定义的泛型类型，可以进行实例化。实例化时，需要将泛型类型参数替换为具体的类型。例如：
 
 ```
-type UserResponse Response<User>
+type UserResponse Response<User>  // 实例化泛型类型，指定泛型为 User 类型
 ```
 
-语法格式：
+语法格式为：
 
 ```
 type <新类型名> <已定义的类型名><<具体类型>>
@@ -411,89 +411,93 @@ type <新类型名> <已定义的类型名><<具体类型>>
 
 #### 4.4 结构体字段
 
-结构体字段包括普通字段、泛型字段和带有注解的字段：
+结构体字段可以分为普通字段、泛型字段和带有注解的字段。每种类型的字段都有其特定的用途和语法。
 
 **4.4.1 普通字段**
 
-普通字段定义格式：
+普通字段的定义格式如下：
 
 ```
-<可选修饰符> <类型> <字段名>
+<修饰符> <类型> <字段名>
 ```
 
-修饰符：
+**修饰符**：
 
-- `required` - 表示必需字段
-- `optional` - 表示可选字段（默认）
+* `required`：表示该字段是必需的，不能省略。
+* `optional`：表示该字段是可选的，如果未提供值，系统可以将其视为缺省值（默认为可选）。
 
-示例：
+**示例**：
 
 ```
 type User {
     required string name  // 必填字段
-    int age              // 可选字段（默认）
+    int age              // 可选字段（默认为可选）
     optional string email // 显式声明可选字段
 }
 ```
 
 **4.4.2 泛型字段**
 
-在结构体中可以使用泛型参数作为字段类型：
+在结构体中，可以使用泛型作为字段类型，允许更加灵活和可复用的定义。定义泛型字段时，可以指定具体的类型参数。
+
+**示例**：
 
 ```
 type Result<T> {
-    bool success
-    T data
-    string message
+    bool success       // 泛型字段 success
+    T data             // 泛型字段 data，类型为T
+    string message     // 字段 message
 }
 ```
 
 **4.4.3 字段注解**
 
-在字段定义中可以使用注解来指定额外的元数据。以下是常用注解的分类：
+字段注解是用于为字段添加元数据信息，控制生成代码时的行为。注解可以指定如何序列化、如何验证字段值，或提供额外的元数据。常用的字段注解包括以下几类：
 
 **自定义类型注解**：
 
-- `go.type` - 指定Go语言的具体类型，例如 `go.type="int32"` 将int类型映射到Go的int32
+* `go.type`：指定该字段在Go语言中的具体类型。例如，`go.type="int32"` 将该字段的类型映射为Go中的 `int32`。
 
 **序列化注解**：
 
-- `json` - 指定JSON序列化字段名和选项，支持 `non-omitempty` 选项禁用omitempty行为
-- `enum_as_string` - 枚举作为字符串处理
-- `form` - 指定表单序列化字段名和选项
+* `json`：指定字段在JSON序列化时的字段名和选项，例如 `json="name"` 会将该字段在JSON中的名称设为 `name`。
+* `enum_as_string`：将枚举类型的字段序列化为字符串形式而非其整数值。
+* `form`：指定该字段在表单数据序列化时的字段名及相关选项。
 
 **参数绑定注解**：
 
-- `path` - 指定路径参数绑定
-- `query` - 指定查询参数绑定
+* `path`：用于指定字段与路径参数的绑定关系。例如，`path="id"` 将字段与路径参数 `:id` 绑定。
+* `query`：用于指定字段与查询参数的绑定关系。例如，`query="locale"` 将字段与查询参数 `locale` 绑定。
 
 **验证注解**：
 
-- `validate` - 指定验证表达式
+* `validate`：为字段指定验证规则。该规则可以是任意逻辑表达式，用于确保字段值的合法性。
 
 **其他注解**：
 
-- `deprecated` - 标记字段已弃用
-- `compat_default` - 兼容性默认值
+* `deprecated`：标记该字段已弃用，通常在版本升级中使用，以提示开发者该字段不再推荐使用。
+* `compat_default`：为字段提供兼容性默认值，即使在没有传递值的情况下，字段也会使用默认值。
 
-示例：
+**示例**：
 
 ```
 type User {
-    string name (json="name", go.type="string")
-    int age (json="age,omitempty", go.type="int32")  // 显式指定Go类型为int32
-    string description (json="desc,non-omitempty")  // 禁用omitempty行为，即使为空也会序列化
-    string email (validate="email($)", deprecated="true")
-    string userId (path="id")  // 绑定路径参数
-    string locale (query="locale")  // 绑定查询参数
+    string name (json="name", go.type="string")  // 指定JSON字段名为 name，并在Go中使用 string 类型
+    int age (json="age,omitempty", go.type="int32")  // JSON序列化时，如果值为空则不序列化，并显式指定Go类型为 int32
+    string description (json="desc,non-omitempty")  // 禁用omitempty行为，确保空字符串也会被序列化
+    string email (validate="email($)", deprecated="true")  // 对邮箱字段进行格式验证，并标记为已弃用
+    string userId (path="id")  // 将字段与路径参数 id 绑定
+    string locale (query="locale")  // 将字段与查询参数 locale 绑定
 }
 ```
 
 #### 4.5 嵌入类型
 
-可以在结构体中嵌入其他类型，代码生成时会把嵌入的类型进行展开：
+在结构体中，可以将其他类型作为嵌入类型。嵌入类型的字段会在代码生成时自动展开并合并到当前结构体中。嵌入类型本身不会作为一个独立字段存在，而是直接将其所有字段合并进当前类型。
 
-```
+例如：
+
+```idl
 type Address {
     string street
     string city
@@ -505,46 +509,58 @@ type Person {
 }
 ```
 
-嵌入类型在生成代码时的合并规则：
+在代码生成时，`Person` 类型将包含 `Address` 类型的所有字段，且不再有 `Address` 字段名。生成的结构体类似如下：
 
-1. 嵌入类型的所有字段会被直接合并到当前类型中
-2. 如果嵌入类型中有同名字段，会导致编译错误
-3. 嵌入类型本身不会作为一个独立字段存在
-4. 嵌入类型语法：直接使用类型名，无需字段名和类型声明
+```
+type Person struct {
+    street string // 来自 Address 类型
+    city   string // 来自 Address 类型
+    name   string
+}
+```
+
+**嵌入类型合并规则**：
+
+1. 嵌入类型的所有字段会被直接合并到当前类型中。
+2. 如果嵌入的类型和当前类型有同名字段，则会导致编译错误。
+3. 嵌入类型本身不会作为一个独立字段存在。
+4. 在语法中，嵌入类型只需使用类型名，省略字段名和类型声明。
 
 #### 4.6 联合类型定义
 
-使用 `oneof` 定义联合类型。
-联合类型在内部实现上会生成一个特殊结构，包含一个类型标识字段和多个可能的数据字段。
-在序列化时，只有被选择的那个字段会被包含在输出中，同时通过类型标识字段指示当前激活的选项：
+通过 `oneof`
+关键字，可以定义联合类型。联合类型允许字段具有多个可能的类型，在生成的代码中，联合类型会被转换为一个特殊的结构，包含一个类型标识字段以及多个可能的字段。在序列化时，只有被选择的那个字段会出现在输出中，类型标识字段则表明当前激活的选项。
 
-```
+例如：
+
+```idl
 oneof Value {
     User
     Manager
 }
 ```
 
-生成的结构通常类似：
+生成的结构体通常如下所示：
 
 ```
 type Value struct {
-    FieldType ValueType `json:"FieldType" form:"FieldType"`  // 类型标识字段
-    User      *User     `json:"User,omitempty" form:"User"`  // 可能的选项1
-    Manager   *Manager  `json:"Manager,omitempty" form:"Manager"`  // 可能的选项2
+    FieldType ValueType `json:"FieldType" form:"FieldType"` // 类型标识字段
+    User      *User     `json:"User,omitempty" form:"User"` // 可能的选项1
+    Manager   *Manager  `json:"Manager,omitempty" form:"Manager"` // 可能的选项2
 }
 ```
 
-其中 FieldType 是一个枚举类型，用于标识当前值的类型。
+在这个例子中，`FieldType` 是一个枚举类型，用于标识当前值的类型（例如，`User` 或 `Manager`）。在序列化时，只有被选择的字段会被包括在内，而其他字段会被排除。
 
 #### 4.7 序列化和反序列化
 
-为了支持可选和必选字段，以及默认值填充，生成的代码必须支持流式解析。
-这允许在解析过程中校验必选字段是否存在，以及为字段设置默认值。
+为了支持可选字段、必选字段以及默认值填充，生成的代码需要支持流式解析。这种解析方式允许在处理请求时对必选字段进行校验，并为缺失的字段填充默认值。
 
-- 必选字段（`required`）：在解析和验证阶段必须存在且非空
-- 可选字段（`optional`）：可以不存在，通常表示为指针类型
-- 默认值（`compat_default`）：为字段提供兼容性默认值
+* **必选字段（`required`）**：必选字段在解析和验证时必须存在且非空。
+* **可选字段（`optional`）**：可选字段在数据中可以不存在，通常会被生成为空指针类型。
+* **默认值（`compat_default`）**：为字段提供兼容性默认值，以确保字段在缺失时能够自动填充。
+
+这种机制确保了数据结构在序列化和反序列化过程中能够正确处理缺失字段和赋予字段合适的默认值。
 
 ### 5. Validate 注解
 
