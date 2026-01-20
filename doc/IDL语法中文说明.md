@@ -76,9 +76,24 @@ gs-http-gen 采用专门设计的接口定义语言（IDL）来描述数据模�
 
 ### 容器类型
 
-- `map<K, V>` - 映射类型，键类型只能是 `int` 或 `string`
-- `list<T>` - 列表类型
-- map 和 list 都支持嵌套，例如：`list<list<int>>` `map<string,map<string,int>` 等
+- `map<K, V>` - 映射类型，键类型只能是 `int` 或 `string`，值类型可以是任意类型
+- `list<T>` - 列表类型，元素类型可以是任意类型
+- `bytes` - 字节数组类型（传输时使用 base64 编码成字符串）
+
+**注意**：map 的键类型只能是 `int` 或 `string`，否则会在解析时抛出错误。
+
+map 和 list 都支持嵌套，例如：`list<list<int>>`、`map<string,map<string,int>>` 等
+
+示例：
+
+```
+list<string> tags                    // 字符串列表
+list<User> users                     // 用户对象列表
+map<string, int> scores             // 字符串到整数的映射
+map<int, User> userById             // 整数ID到用户的映射
+list<map<string, User>> groups      // 用户组列表（每个组是用户映射）
+map<string, list<User>> usersByDept // 按部门分组的用户映射
+```
 
 ## 语法详细说明
 
@@ -748,3 +763,8 @@ sse StreamEvents (StreamRequest) StreamResponse {
 3. 注解提供了灵活的元数据机制，用于控制生成代码的行为
 4. RPC接口可以包含路径参数、查询参数和请求体参数
 5. 支持通过注解指定HTTP方法、路径等路由信息
+6. map 的键类型只能是 `int` 或 `string`，否则会在解析时抛出错误
+7. 基础类型不能作为单独的字段类型使用，只能作为容器类型（如list、map）的元素类型或常量类型
+8. 在枚举定义中使用 `extends` 关键字时，扩展的枚举类型必须已经定义
+9. 路径参数对应的字段必须是必需的（required）
+10. 生成的代码使用基于哈希的字段调度机制进行高性能解析
