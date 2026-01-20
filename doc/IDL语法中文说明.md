@@ -272,9 +272,9 @@ enum <枚举名> {
 
 ```
 enum Color {
-    RED = 1
-    GREEN = 2
-    BLUE = 3
+    RED = 1 (desc="红色")
+    GREEN = 2 (desc="绿色")
+    BLUE = 3 (desc="蓝色")
 }
 ```
 
@@ -293,6 +293,8 @@ enum ErrCode {
 ```
 
 `errmsg` 注解会在代码生成时为每个错误码生成相应的可读错误消息映射。
+
+**注意**：普通枚举（如状态、分类等）应使用 `desc` 注解来描述枚举项含义，而错误码枚举必须使用 `errmsg` 注解。
 
 #### 3.2 错误码扩展
 
@@ -336,9 +338,9 @@ enum extends ErrCode {
 
 ```idl
 enum Department {
-    ENGINEERING = 1
-    MARKETING = 2
-    SALES = 3
+    ENGINEERING = 1 (desc="工程技术部")
+    MARKETING = 2 (desc="市场部")
+    SALES = 3 (desc="销售部")
 }
 
 type Manager {
@@ -876,19 +878,19 @@ type GetUserRequest {
 
 // 订单状态枚举
 enum OrderStatus {
-    PENDING_PAYMENT = 1 (errmsg="待支付")
-    PAID = 2 (errmsg="已支付")
-    SHIPPED = 3 (errmsg="已发货")
-    DELIVERED = 4 (errmsg="已送达")
-    CANCELLED = 5 (errmsg="已取消")
+    PENDING_PAYMENT = 1 (desc="待支付")
+    PAID = 2 (desc="已支付")
+    SHIPPED = 3 (desc="已发货")
+    DELIVERED = 4 (desc="已送达")
+    CANCELLED = 5 (desc="已取消")
 }
 
 // 商品分类枚举
 enum CategoryType {
-    ELECTRONICS = 1 (errmsg="电子产品")
-    BOOKS = 2 (errmsg="图书")
-    CLOTHING = 3 (errmsg="服装")
-    HOME = 4 (errmsg="家居用品")
+    ELECTRONICS = 1 (desc="电子产品")
+    BOOKS = 2 (desc="图书")
+    CLOTHING = 3 (desc="服装")
+    HOME = 4 (desc="家居用品")
 }
 
 // 错误码定义
