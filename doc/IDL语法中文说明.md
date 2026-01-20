@@ -204,9 +204,11 @@ type Manager {
 
 ### 4. 类型定义
 
-#### 4.1 结构体类型
+类型定义使用 `type` 关键字，有三种定义方式：
 
-用 type 关键字定义结构体，字段支持 optional（可选）和 required（必需）：
+#### 4.1 普通结构体定义
+
+最常见的是普通结构体，定义方式如下：
 
 ```
 type User {
@@ -217,38 +219,152 @@ type User {
 }
 ```
 
-#### 4.2 字段注解
+#### 4.2 泛型结构体定义
 
-在字段定义中可以使用注解来指定额外的元数据，常见的字段注解包括：
+支持简单的泛型定义，一般用于对返回值进行定义的场景：
+
+```
+type Response<T> {
+    int code
+    string message
+    T data
+}
+```
+
+语法格式，尖括号内定义泛型参数：
+
+```
+type <类型名><<泛型参数>> {
+    <字段定义>
+}
+```
+
+#### 4.3 泛型实例化
+
+对已定义的泛型进行实例化，注意语法格式：
+
+```
+type UserResponse Response<User>
+```
+
+语法格式：
+
+```
+type <新类型名> <已定义的泛型类型名><<具体类型>>
+```
+
+### 5. 结构体字段
+
+#### 5.1 普通字段
+
+普通字段定义格式：
+
+```
+<可选修饰符> <类型> <字段名>
+```
+
+修饰符：
+
+- `required` - 表示必需字段
+- `optional` - 表示可选字段（默认）
+
+示例：
+
+```
+type User {
+    required string name  // 必填字段
+    int age              // 可选字段（默认）
+    optional string email // 显式声明可选字段
+}
+```
+
+#### 5.2 泛型字段
+
+在结构体中可以使用泛型参数作为字段类型：
+
+```
+type Result<T> {
+    bool success
+    T data
+    string message
+}
+```
+
+#### 5.3 字段注解
+
+在字段定义中可以使用注解来指定额外的元数据。以下是常用注解的分类：
+
+**序列化注解**：
 
 - `json` - 指定JSON序列化字段名和选项
 - `form` - 指定表单绑定字段名
-- `path` - 指定路径参数绑定
-- `query` - 指定查询参数绑定
-- `validate` - 指定验证表达式
-- `deprecated` - 标记字段已弃用
+- `go.type` - 指定Go语言的具体类型
 - `enum_as_string` - 枚举作为字符串处理
 - `compat_default` - 兼容性默认值
 
-例如：
+**参数绑定注解**：
+
+- `path` - 指定路径参数绑定
+- `query` - 指定查询参数绑定
+
+**验证注解**：
+
+- `validate` - 指定验证表达式
+
+**其他注解**：
+
+- `deprecated` - 标记字段已弃用
+
+示例：
 
 ```
 type User {
     string name (json="name", go.type="string")
     int age (json="age,omitempty")
-    string email (validate="email", deprecated="true")
+    string email (validate="email($)", deprecated="true")
+    string userId (path="id")  // 绑定路径参数
+    string locale (query="locale")  // 绑定查询参数
 }
 ```
 
-##### 4.2.1 Validate 注解
+#### 5.4 嵌入类型
+
+可以在结构体中嵌入其他类型，代码生成时会把嵌入的类型进行展开：
+
+```
+type Address {
+    string street
+    string city
+}
+
+type Person {
+    Address  // 嵌入 Address 类型
+    string name
+}
+```
+
+嵌入类型在生成代码时的合并规则：
+
+1. 嵌入类型的所有字段会被直接合并到当前类型中
+2. 如果嵌入类型中有同名字段，会导致编译错误
+3. 嵌入类型本身不会作为一个独立字段存在
+
+### 6. 序列化和反序列化
+
+为了支持可选和必选字段，以及默认值填充，生成的代码必须支持流式解析。
+这允许在解析过程中校验必选字段是否存在，以及为字段设置默认值。
+
+- 必选字段（`required`）：在解析和验证阶段必须存在且非空
+- 可选字段（`optional`）：可以不存在，通常表示为指针类型
+- 默认值（`compat_default`）：为字段提供兼容性默认值
+
+### 7. Validate 注解详解
 
 Validate 注解用于对字段值进行验证，支持多种内置验证函数和复杂的表达式。
 
 内置验证函数包括：
 
 - `len` - 验证长度（字符串、列表、映射等）
-- `email` - 验证邮箱格式
-- `url` - 验证URL格式
 - 自定义验证函数
 
 验证表达式支持的操作符：
@@ -273,58 +389,7 @@ type User {
 
 如果字段是可选的（optional），验证仅在字段值存在时执行。
 
-todo（其实字段上可以添加很多注解，也可以介绍一下）
-
-#### 4.3 泛型类型
-
-支持简单的泛型定义，一般用于对返回值进行定义的场景，这时候一般只需要对 data 进行泛型定义：
-
-```
-type Response<T> {
-    int code
-    string message
-    T data
-}
-```
-
-#### 4.4 泛型实例化
-
-对泛型进行实例化，注意语法格式，只能对 user_type 泛型进行实例化：
-
-```
-type UserResponse Response<User>
-```
-
-### 5. 字段定义
-
-#### 5.1 普通字段
-
-```
-<可选修饰符> <类型> <字段名>
-```
-
-修饰符：
-
-- `required` - 表示必需字段
-- `optional` - 表示可选字段（默认）
-
-#### 5.2 嵌入类型
-
-可以在结构体中嵌入其他类型，代码生成的时候是把嵌入的类型进行展开：
-
-```
-type Address {
-    string street
-    string city
-}
-
-type Person {
-    Address  // 嵌入 Address 类型
-    string name
-}
-```
-
-### 6. 联合类型定义
+### 8. 联合类型定义
 
 使用 `oneof` 定义联合类型。联合类型在内部实现上会生成一个特殊结构，包含一个类型标识字段和多个可能的数据字段。
 在序列化时，只有被选择的那个字段会被包含在输出中，同时通过类型标识字段指示当前激活的选项：
@@ -348,7 +413,7 @@ type Value struct {
 
 其中 FieldType 是一个枚举类型，用于标识当前值的类型。
 
-### 7. RPC 接口定义
+### 9. RPC 接口定义
 
 定义服务接口：
 
@@ -368,7 +433,7 @@ sse StreamEvents (StreamRequest) Event {
 }
 ```
 
-#### 7.1 RPC 注解
+#### 9.1 RPC 注解
 
 RPC接口可以使用注解来指定HTTP方法、路径、超时时间等路由信息，常见的RPC注解包括：
 
@@ -390,7 +455,7 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 }
 ```
 
-#### 7.2 RESTful Path 参数
+#### 9.2 RESTful Path 参数
 
 RESTful路径参数用于定义动态路径，支持两种风格：
 
@@ -451,7 +516,7 @@ type GetUserRequest {
 
 todo（缺少很多注解，还是要参考语法和golang实现）
 
-### 8. 常量值类型
+### 10. 常量值类型
 
 支持以下类型的常量值，todo（这里应该说明是注解中的常量值吧）：
 
@@ -461,7 +526,7 @@ todo（缺少很多注解，还是要参考语法和golang实现）
 - 布尔值：`true`, `false`
 - 标识符：通常用于引用枚举成员
 
-### 9. 语句分隔
+### 11. 语句分隔
 
 - 使用换行符作为语句分隔符
 - 空行会被忽略
@@ -501,13 +566,26 @@ enum Department {
 // 用户信息结构
 type User {
     required string id
-    required string name (validate="$ != '' && len($) <= 64")
+    required string name (validate="$ != '' && len($) <= 64")  // 非空且长度不超过64
     optional string email (validate="email($)")
-    int age (validate="$ >= 0 && $ <= 150")
+    int age (validate="$ >= 0 && $ <= 150")                  // 年龄在0-150之间
     UserStatus status
     Department dept (enum_as_string)  // 使用 enum_as_string 特性
     list<string> roles
     map<string, string> metadata
+}
+
+// 地址信息结构
+type Address {
+    string street
+    string city
+}
+
+// 个人信息结构（嵌入地址）
+type Person {
+    Address  // 嵌入 Address 类型
+    string name
+    int age
 }
 
 // 获取用户请求
