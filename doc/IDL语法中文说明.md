@@ -62,7 +62,19 @@ const <基础类型> <标识符名称> = <常量值>
 
 ### 2. 枚举定义
 
-使用 `enum` 关键字定义枚举类型：
+使用 `enum` 关键字定义枚举类型。枚举的每个字段必须赋一个整数值。
+
+基本定义格式：
+
+```
+enum <枚举名> {
+    <字段名> = <整数值>
+    <字段名> = <整数值>
+    ...
+}
+```
+
+示例：
 
 ```
 enum Color {
@@ -72,25 +84,59 @@ enum Color {
 }
 ```
 
-有一种特殊的 enum 类型，叫错误码，标识一个 enum 类型是错误码的关键是在字段后面添加
-errmsg 注解，例如：
+#### 2.1 错误码枚举
+
+有一种特殊的 enum 类型，叫错误码。标识一个 enum 类型是错误码的关键是在字段后面添加 `errmsg` 注解，例如：
 
 ```
-enum extends ErrorCode {
-    SUCCESS = 0 (errmsg="success")
+enum ErrCode {
+    ERR_OK = 0 (errmsg="success")
+    PARAM_ERROR = 1003 (errmsg="parameter error")
+    NOT_FOUND = 404 (errmsg="resource not found")
 }
 ```
 
-然后我们还可以对错误码进行扩展，代码生成的时候基础错误码和扩展错误码会进行合并：
+错误码注解（errmsg）用于为错误码提供人类可读的消息描述，在生成代码时会创建相应的错误消息映射。
+
+#### 2.2 错误码扩展
+
+错误码可以通过 `extends` 关键字进行扩展，扩展后的错误码会与基础错误码合并：
 
 ```
-enum extends ErrorCode {
-    ERROR_PARAM = 1
-    ERROR_SERVER = 2
+// 基础错误码定义
+enum ErrCode {
+    ERR_OK = 0 (errmsg="success")
+    PARAM_ERROR = 1003 (errmsg="parameter error")
+}
+
+// 扩展错误码定义
+enum extends ErrCode {
+    USER_NOT_FOUND = 404
+    PERMISSION_DENIED = 403
 }
 ```
 
-note: 枚举类型的值不能重复，而且最好保持单调递增。todo（好像缺少格式说明）
+在代码生成过程中，扩展的错误码会与基础错误码合并，形成一个完整的错误码集合。扩展错误码需要注意：
+
+1. 扩展的错误码类型必须已经定义
+2. 扩展的错误码不能与已有错误码重复（字段名和值都不能重复）
+3. 扩展错误码的值也建议保持单调递增
+4. 合并后，基础错误码和扩展错误码会一起生成对应的Go代码
+
+#### 2.3 枚举字段注解
+
+枚举字段可以使用注解来添加额外信息：
+
+- `errmsg` - 为错误码提供描述信息，仅用于错误码枚举
+
+示例：
+
+```
+enum Status {
+    ACTIVE = 1 (errmsg="active status")
+    INACTIVE = 0 (errmsg="inactive status")
+}
+```
 
 ### 3. 注解（Annotations）
 
@@ -154,12 +200,14 @@ type User {
 Validate 注解用于对字段值进行验证，支持多种内置验证函数和复杂的表达式。
 
 内置验证函数包括：
+
 - `len` - 验证长度（字符串、列表、映射等）
 - `email` - 验证邮箱格式
 - `url` - 验证URL格式
 - 自定义验证函数
 
 验证表达式支持的操作符：
+
 - 比较操作符：`==`, `!=`, `<`, `<=`, `>`, `>=`
 - 逻辑操作符：`&&`, `||`, `!`
 - 算术操作符：`+`, `-`, `*`, `/`
@@ -168,6 +216,7 @@ Validate 注解用于对字段值进行验证，支持多种内置验证函数�
 特殊变量 `$` 代表当前字段的值。
 
 示例：
+
 ```
 type User {
     required string name (validate="$ != '' && len($) <= 64")  // 非空且长度不超过64
@@ -304,10 +353,12 @@ RESTful路径参数用于定义动态路径，支持两种风格：
 2. 大括号风格（Brace Style）：`{paramName}` 或 `{paramName...}`
 
 路径参数类型：
+
 - 普通参数：`:id` 或 `{id}` - 匹配单个路径段
 - 通配符参数：`:path*` 或 `{path...}` - 匹配多个路径段
 
 示例：
+
 ```
 // 冒号风格
 rpc GetUser (GetUserRequest) GetUserResponse {
@@ -348,6 +399,7 @@ type GetUserRequest {
 ```
 
 注意：
+
 - 路径参数对应的字段必须是必需的（required）
 - 支持的参数类型包括：int、string 等基本类型
 - 参数名必须与路径中定义的参数名匹配
@@ -385,8 +437,20 @@ todo（缺少很多注解，还是要参考语法和golang实现）
 
 // 用户状态枚举
 enum UserStatus {
-    ACTIVE = 1
-    INACTIVE = 0
+    ACTIVE = 1 (errmsg="active user")
+    INACTIVE = 0 (errmsg="inactive user")
+}
+
+// 错误码定义
+enum ErrCode {
+    ERR_OK = 0 (errmsg="success")
+    PARAM_ERROR = 1003 (errmsg="parameter error")
+}
+
+// 扩展错误码
+enum extends ErrCode {
+    USER_NOT_FOUND = 404 (errmsg="user not found")
+    PERMISSION_DENIED = 403 (errmsg="permission denied")
 }
 
 // 用户信息结构
