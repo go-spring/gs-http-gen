@@ -1177,6 +1177,7 @@ rpc Login (LoginRequest) LoginResponseWrapper {
 rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
     method = "GET"
     path = "/user/:id"
+    contentType = "json"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
@@ -1187,6 +1188,7 @@ rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
 rpc GetProducts (GetProductsRequest) GetProductsResponse {
     method = "GET"
     path = "/products"
+    contentType = "json"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
@@ -1211,6 +1213,7 @@ type GetProductsResponse {
 rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
     method = "GET"
     path = "/product/:id"
+    contentType = "json"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
@@ -1232,6 +1235,7 @@ rpc AddToCart (AddToCartRequest) AddToCartResponse {
 rpc CreateOrder (CreateOrderRequest) CreateOrderResponseWrapper {
     method = "POST"
     path = "/order/create"
+    contentType = "json"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
@@ -1248,6 +1252,7 @@ type GetOrderDetailResponse {
 rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
     method = "GET"
     path = "/order/:id"
+    contentType = "json"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
@@ -1283,6 +1288,7 @@ type OrderStatusChangeResponse {
 sse OrderStatusChange (GetOrderDetailRequest) OrderStatusChangeResponse {
     method = "GET"
     path = "/order/:id/stream"
+    contentType = "text/event-stream"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
