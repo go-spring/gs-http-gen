@@ -87,13 +87,13 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:     "string",
-			input:    `"hello"`,
-			expected: `"hello"`,
+			input:    `'hello'`,
+			expected: `'hello'`,
 		},
 		{
 			name:     "string_with_escape",
-			input:    `"hello \"world\""`,
-			expected: `"hello \"world\""`,
+			input:    `'hello "world"'`,
+			expected: `'hello "world"'`,
 		},
 
 		// Function calls
@@ -253,8 +253,8 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:     "string_with_multiple_escapes",
-			input:    `"hello \"world\" \n\t"`,
-			expected: `"hello \"world\" \n\t"`,
+			input:    `'hello "world" \n\t'`,
+			expected: `'hello "world" \n\t'`,
 		},
 		{
 			name:     "zero_integer",

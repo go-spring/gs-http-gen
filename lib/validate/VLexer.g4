@@ -37,10 +37,11 @@ COMMA       : ',' ;
 
 // --------------------
 // String literal
-// Supports escape sequences (e.g., \" for quote, \\ for backslash)
+// Single-quoted string
+// Supports escape sequences (e.g., \' for quote, \\ for backslash)
 // --------------------
 STRING
-    : '"' ( '\\' . | ~["\\] )* '"'
+    : '\'' ( '\\' . | ~['\\] )* '\''
     ;
 
 // --------------------
