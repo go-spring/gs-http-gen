@@ -898,111 +898,37 @@ type GetUserRequest {
 以下是一个完整的电商系统的IDL文件示例：
 
 ```
-// 电商系统接口定义
+// 核心功能接口定义
 
 // 订单状态枚举
 enum OrderStatus {
     PENDING_PAYMENT = 1 (desc="待支付")
     PAID = 2 (desc="已支付")
-    SHIPPED = 3 (desc="已发货")
-    DELIVERED = 4 (desc="已送达")
-    CANCELLED = 5 (desc="已取消")
-}
-
-// 商品分类枚举
-enum CategoryType {
-    ELECTRONICS = 1 (desc="电子产品")
-    BOOKS = 2 (desc="图书")
-    CLOTHING = 3 (desc="服装")
-    HOME = 4 (desc="家居用品")
 }
 
 // 错误码定义
 enum ErrCode {
     ERR_OK = 0 (errmsg="success")
     PARAM_ERROR = 1003 (errmsg="parameter error")
+}
+
+// 扩展错误码
+enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
-    PRODUCT_NOT_FOUND = 405 (errmsg="product not found")
-    ORDER_NOT_FOUND = 406 (errmsg="order not found")
-    INSUFFICIENT_STOCK = 407 (errmsg="insufficient stock")
-    PAYMENT_FAILED = 500 (errmsg="payment failed")
-}
-
-// 分页请求参数
-type Pagination {
-    int page (query="page", validate="$ >= 1")
-    int size (query="size", validate="$ >= 1 && $ <= 100")
-}
-
-// 分页响应结构 - 用户分页结果
-type UserPageResult {
-    list<User> items
-    int total
-    int page
-    int size
 }
 
 // 用户信息结构
 type User {
     required string id
-    required string username (validate="$ != '' && len($) >= 3 && len($) <= 32")
+    required string username (validate="$ != '' && len($) >= 3")
     required string email (validate="email($)")
-    optional string phone (validate="phone($)")
-    string nickname (validate="len($) <= 50")
-    int createdTime (json="created_time")
-    bool isActive (json="is_active")
-}
-
-// 地址信息结构
-type Address {
-    string id
-    string receiverName (json="receiver_name")
-    string phone (validate="phone($)")
-    string province
-    string city
-    string district
-    string detailAddress (json="detail_address")
-    bool isDefault (json="is_default")
 }
 
 // 商品信息结构
 type Product {
     required string id
-    required string name (validate="$ != '' && len($) <= 100")
-    string description (validate="len($) <= 500")
+    required string name
     float price (validate="$ > 0")
-    CategoryType category
-    int stock (validate="$ >= 0")
-    list<string> images
-    float rating (validate="$ >= 0 && $ <= 5")
-    int salesCount (json="sales_count")
-    bool isActive (json="is_active")
-}
-
-// 购物车商品项
-type CartItem {
-    string productId (json="product_id")
-    string productName (json="product_name")
-    float price
-    int quantity (validate="$ > 0")
-    list<string> productImages (json="product_images")
-}
-
-// 购物车信息
-type Cart {
-    string userId (json="user_id")
-    list<CartItem> items
-    float totalPrice (json="total_price")
-    int itemCount (json="item_count")
-}
-
-// 订单项
-type OrderItem {
-    string productId (json="product_id")
-    string productName (json="product_name")
-    float price
-    int quantity
-    float subtotal
 }
 
 // 订单信息结构
@@ -1011,21 +937,21 @@ type Order {
     string userId (json="user_id")
     list<OrderItem> items
     float totalPrice (json="total_price")
-    string currency (validate="$ == 'CNY' || $ == 'USD'")
     OrderStatus status
-    string shippingAddressId (json="shipping_address_id")
-    Address shippingAddress
-    string notes (validate="len($) <= 200")
-    int createdTime (json="created_time")
-    int updatedTime (json="updated_time")
+}
+
+// 订单项
+type OrderItem {
+    string productId (json="product_id")
+    float price
+    int quantity
 }
 
 // 用户注册请求
 type RegisterRequest {
-    required string username (validate="$ != '' && len($) >= 3 && len($) <= 32")
+    required string username (validate="$ != '' && len($) >= 3")
     required string email (validate="email($)")
-    required string password (validate="len($) >= 6 && len($) <= 128")
-    optional string phone (validate="phone($)")
+    required string password (validate="len($) >= 6")
 }
 
 // 用户登录请求
@@ -1034,43 +960,9 @@ type LoginRequest {
     required string password (validate="len($) >= 6")
 }
 
-// 用户登录响应
-type LoginResponse {
-    string token
-    User userInfo (json="user_info")
-}
-
-// 用户登录响应包装
-type LoginResponseWrapper {
-    int code
-    string message
-    LoginResponse data
-}
-
 // 获取用户信息请求
 type GetUserInfoRequest {
     required string userId (path="id", validate="$ != ''")
-}
-
-// 获取用户信息响应
-type GetUserInfoResponse {
-    User user
-}
-
-// 获取用户信息响应包装
-type GetUserInfoResponseWrapper {
-    int code
-    string message
-    User data
-}
-
-// 获取商品列表请求
-type GetProductsRequest {
-    optional string keyword (query="keyword", validate="len($) <= 50")
-    optional CategoryType category (query="category")
-    optional float minPrice (query="min_price", validate="$ >= 0")
-    optional float maxPrice (query="max_price", validate="$ >= 0")
-    Pagination pagination
 }
 
 // 获取商品详情请求
@@ -1078,67 +970,32 @@ type GetProductDetailRequest {
     required string productId (path="id", validate="$ != ''")
 }
 
-// 获取商品详情响应包装
-type GetProductDetailResponse {
-    int code
-    string message
-    Product data
-}
-
-// 添加购物车请求
-type AddToCartRequest {
-    required string userId (json="user_id")
-    required string productId (json="product_id", validate="$ != ''")
-    required int quantity (validate="$ > 0 && $ <= 99")
-}
-
-// 添加购物车响应包装
-type AddToCartResponse {
-    int code
-    string message
-    // 空数据或成功信息
-}
-
-// 创建订单请求
-type CreateOrderRequest {
-    required string userId (json="user_id")
-    required list<OrderItem> items
-    required string shippingAddressId (json="shipping_address_id")
-    optional string notes (validate="len($) <= 200")
-}
-
-// 创建订单响应
-type CreateOrderResponse {
-    string orderId (json="order_id")
-    float totalPrice (json="total_price")
-    string paymentUrl (json="payment_url")
-}
-
-// 创建订单响应包装
-type CreateOrderResponseWrapper {
-    int code
-    string message
-    CreateOrderResponse data
-}
-
-// 获取订单详情请求
-type GetOrderDetailRequest {
-    required string orderId (path="id", validate="$ != ''")
-}
-
-// 支付通知请求
-type PaymentNotifyRequest {
-    required string orderId (form="order_id", validate="$ != ''")
-    required string paymentId (form="payment_id", validate="$ != ''")
-    required float amount (form="amount", validate="$ > 0")
-    required string status (form="status", validate="$ == 'SUCCESS' || $ == 'FAILED'")
-}
-
 // 用户注册响应包装
 type RegisterResponse {
     int code
     string message
     User data
+}
+
+// 用户登录响应包装
+type LoginResponse {
+    int code
+    string message
+    User data
+}
+
+// 获取用户信息响应包装
+type GetUserInfoResponse {
+    int code
+    string message
+    User data
+}
+
+// 获取商品详情响应包装
+type GetProductDetailResponse {
+    int code
+    string message
+    Product data
 }
 
 // 用户服务接口
