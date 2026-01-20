@@ -80,7 +80,7 @@ enum extends ErrorCode {
     SUCCESS = 0 (errmsg="success")
 }
 ```
- 
+
 然后我们还可以对错误码进行扩展，代码生成的时候基础错误码和扩展错误码会进行合并：
 
 ```
@@ -160,7 +160,8 @@ type Person {
 
 ### 5. 联合类型定义
 
-使用 `oneof` 定义联合类型，todo（需要补充编码格式）：
+使用 `oneof` 定义联合类型。联合类型在内部实现上会生成一个特殊结构，包含一个类型标识字段和多个可能的数据字段。
+在序列化时，只有被选择的那个字段会被包含在输出中，同时通过类型标识字段指示当前激活的选项：
 
 ```
 oneof Value {
@@ -168,6 +169,18 @@ oneof Value {
     Manager
 }
 ```
+
+生成的结构通常类似：
+
+```
+type Value struct {
+    FieldType ValueType `json:"FieldType" form:"FieldType"`  // 类型标识字段
+    User      *User     `json:"User,omitempty" form:"User"`  // 可能的选项1
+    Manager   *Manager  `json:"Manager,omitempty" form:"Manager"`  // 可能的选项2
+}
+```
+
+其中 FieldType 是一个枚举类型，用于标识当前值的类型。
 
 ### 6. RPC 接口定义
 
@@ -193,7 +206,7 @@ todo（缺少很多注解，还是要参考语法和golang实现）
 
 ### 7. 注解（Annotations）
 
-字段和接口可以使用注解来添加元数据：
+字段和接口可以使用注解来添加元数据。注解语法支持多行定义：
 
 ```
 type User {
@@ -207,6 +220,26 @@ type User {
 ```
 (注解名 = 注解值, 注解名 = 注解值, ...)
 ```
+
+常见的字段注解包括：
+
+- `json` - 指定JSON序列化字段名和选项
+- `form` - 指定表单绑定字段名
+- `path` - 指定路径参数绑定
+- `query` - 指定查询参数绑定
+- `validate` - 指定验证表达式
+- `deprecated` - 标记字段已弃用
+- `enum_as_string` - 枚举作为字符串处理
+- `compat_default` - 兼容性默认值
+
+常见的RPC注解包括：
+
+- `method` - HTTP方法
+- `path` - 请求路径
+- `content-type` - 内容类型
+- `connTimeout` - 连接超时
+- `readTimeout` - 读取超时
+- `writeTimeout` - 写入超时
 
 ### 8. 常量值类型
 
@@ -223,6 +256,7 @@ type User {
 - 以字母开头
 - 可以包含字母、数字、下划线 `_` 和点号 `.`
 - 区分大小写
+- 常量名必须使用帕斯卡命名法（PascalCase），如 `MAX_SIZE`
 
 ### 10. 语句分隔
 
