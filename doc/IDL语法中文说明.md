@@ -869,15 +869,26 @@ type GetUserRequest {
 
 ## 示例
 
-以下是一个完整的IDL文件示例：
+以下是一个完整的电商系统的IDL文件示例：
 
 ```
-// 用户服务接口定义
+// 电商系统接口定义
 
-// 用户状态枚举
-enum UserStatus {
-    ACTIVE = 1 (errmsg="active user")
-    INACTIVE = 0 (errmsg="inactive user")
+// 订单状态枚举
+enum OrderStatus {
+    PENDING_PAYMENT = 1 (errmsg="待支付")
+    PAID = 2 (errmsg="已支付")
+    SHIPPED = 3 (errmsg="已发货")
+    DELIVERED = 4 (errmsg="已送达")
+    CANCELLED = 5 (errmsg="已取消")
+}
+
+// 商品分类枚举
+enum CategoryType {
+    ELECTRONICS = 1 (errmsg="电子产品")
+    BOOKS = 2 (errmsg="图书")
+    CLOTHING = 3 (errmsg="服装")
+    HOME = 4 (errmsg="家居用品")
 }
 
 // 错误码定义
@@ -889,107 +900,254 @@ enum ErrCode {
 // 扩展错误码
 enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
-    PERMISSION_DENIED = 403 (errmsg="permission denied")
+    PRODUCT_NOT_FOUND = 405 (errmsg="product not found")
+    ORDER_NOT_FOUND = 406 (errmsg="order not found")
+    INSUFFICIENT_STOCK = 407 (errmsg="insufficient stock")
+    PAYMENT_FAILED = 500 (errmsg="payment failed")
 }
 
-// 部分枚举
-enum Department {
-    ENGINEERING = 1
-    MARKETING = 2
-    SALES = 3
+// 通用响应结构
+type CommonResponse<T> {
+    int code (json="code")
+    string message (json="message")
+    T data (json="data")
+}
+
+// 分页请求参数
+type Pagination {
+    int page (query="page", validate="$ >= 1")
+    int size (query="size", validate="$ >= 1 && $ <= 100")
+}
+
+// 分页响应结构
+type PageResult<T> {
+    list<T> items
+    int total
+    int page
+    int size
 }
 
 // 用户信息结构
 type User {
-    required string id
-    required string name (validate="$ != '' && len($) <= 64")  // 非空且长度不超过64
-    optional string email (validate="email($)")
-    int age (validate="$ >= 0 && $ <= 150", go.type="int32")  // 显式指定Go类型为int32
-    UserStatus status
-    Department dept (enum_as_string)  // 使用 enum_as_string 特性
-    list<string> roles
-    map<string, string> metadata
+    required string id (json="id")
+    required string username (json="username", validate="$ != '' && len($) >= 3 && len($) <= 32")
+    required string email (json="email", validate="email($)")
+    optional string phone (json="phone", validate="phone($)")
+    string nickname (json="nickname", validate="len($) <= 50")
+    int createdTime (json="created_time")
+    bool isActive (json="is_active")
 }
 
 // 地址信息结构
 type Address {
-    string street
-    string city
+    string id (json="id")
+    string receiverName (json="receiver_name")
+    string phone (json="phone", validate="phone($)")
+    string province (json="province")
+    string city (json="city")
+    string district (json="district")
+    string detailAddress (json="detail_address")
+    bool isDefault (json="is_default")
 }
 
-// 个人信息结构（嵌入地址）
-type Person {
-    Address  // 嵌入 Address 类型
-    string name
-    int age
+// 商品信息结构
+type Product {
+    required string id (json="id")
+    required string name (json="name", validate="$ != '' && len($) <= 100")
+    string description (json="description", validate="len($) <= 500")
+    float price (json="price", validate="$ > 0")
+    CategoryType category (json="category")
+    int stock (json="stock", validate="$ >= 0")
+    list<string> images (json="images")
+    float rating (json="rating", validate="$ >= 0 && $ <= 5")
+    int salesCount (json="sales_count")
+    bool isActive (json="is_active")
 }
 
-// 获取用户请求
-type GetUserRequest {
-    required string userId (path="id", validate="$ != ''")  // 路径参数绑定
-    optional string locale (query="locale")  // 查询参数绑定
+// 购物车商品项
+type CartItem {
+    string productId (json="product_id")
+    string productName (json="product_name")
+    float price (json="price")
+    int quantity (json="quantity", validate="$ > 0")
+    list<string> productImages (json="product_images")
 }
 
-// 获取用户响应
-type GetUserResponse {
-    required User user
-    int code
-    string message
+// 购物车信息
+type Cart {
+    string userId (json="user_id")
+    list<CartItem> items (json="items")
+    float totalPrice (json="total_price")
+    int itemCount (json="item_count")
 }
 
-// 流式事件请求
-type StreamRequest {
-    required string clientId (path="id")
-    optional string eventType (query="type")
+// 订单项
+type OrderItem {
+    string productId (json="product_id")
+    string productName (json="product_name")
+    float price (json="price")
+    int quantity (json="quantity")
+    float subtotal (json="subtotal")
 }
 
-// 流式事件响应
-type StreamResponse {
-    string eventId
-    string eventType
-    string data
-    int timestamp
+// 订单信息结构
+type Order {
+    required string id (json="id")
+    string userId (json="user_id")
+    list<OrderItem> items (json="items")
+    float totalPrice (json="total_price")
+    string currency (json="currency", validate="$ == 'CNY' || $ == 'USD'")
+    OrderStatus status (json="status")
+    string shippingAddressId (json="shipping_address_id")
+    Address shippingAddress (json="shipping_address")
+    string notes (json="notes", validate="len($) <= 200")
+    int createdTime (json="created_time")
+    int updatedTime (json="updated_time")
 }
 
-// 通用响应包装
-type Response<T> {
-    int code
-    string message
-    T data
+// 用户注册请求
+type RegisterRequest {
+    required string username (json="username", validate="$ != '' && len($) >= 3 && len($) <= 32")
+    required string email (json="email", validate="email($)")
+    required string password (json="password", validate="len($) >= 6 && len($) <= 128")
+    optional string phone (json="phone", validate="phone($)")
+}
+
+// 用户登录请求
+type LoginRequest {
+    required string email (json="email", validate="email($)")
+    required string password (json="password", validate="len($) >= 6")
+}
+
+// 用户登录响应
+type LoginResponse {
+    string token (json="token")
+    User userInfo (json="user_info")
+}
+
+// 获取用户信息请求
+type GetUserInfoRequest {
+    required string userId (path="id", validate="$ != ''")
+}
+
+// 获取用户信息响应
+type GetUserInfoResponse {
+    User user (json="user")
+}
+
+// 获取商品列表请求
+type GetProductsRequest {
+    optional string keyword (query="keyword", validate="len($) <= 50")
+    optional CategoryType category (query="category")
+    optional float minPrice (query="min_price", validate="$ >= 0")
+    optional float maxPrice (query="max_price", validate="$ >= 0 && $ >= $.minPrice")
+    Pagination pagination
+}
+
+// 获取商品详情请求
+type GetProductDetailRequest {
+    required string productId (path="id", validate="$ != ''")
+}
+
+// 添加购物车请求
+type AddToCartRequest {
+    required string userId (json="user_id")
+    required string productId (json="product_id", validate="$ != ''")
+    required int quantity (json="quantity", validate="$ > 0 && $ <= 99")
+}
+
+// 创建订单请求
+type CreateOrderRequest {
+    required string userId (json="user_id")
+    required list<OrderItem> items (json="items")
+    required string shippingAddressId (json="shipping_address_id")
+    optional string notes (json="notes", validate="len($) <= 200")
+}
+
+// 创建订单响应
+type CreateOrderResponse {
+    string orderId (json="order_id")
+    float totalPrice (json="total_price")
+    string paymentUrl (json="payment_url")
+}
+
+// 获取订单详情请求
+type GetOrderDetailRequest {
+    required string orderId (path="id", validate="$ != ''")
+}
+
+// 支付通知请求
+type PaymentNotifyRequest {
+    required string orderId (form="order_id", validate="$ != ''")
+    required string paymentId (form="payment_id", validate="$ != ''")
+    required float amount (form="amount", validate="$ > 0")
+    required string status (form="status", validate="$ == 'SUCCESS' || $ == 'FAILED'")
 }
 
 // 用户服务接口
-rpc GetUser (GetUserRequest) GetUserResponse {
+rpc Register (RegisterRequest) CommonResponse<User> {
+    method = "POST"
+    path = "/auth/register"
+    summary = "用户注册"
+}
+
+rpc Login (LoginRequest) CommonResponse<LoginResponse> {
+    method = "POST"
+    path = "/auth/login"
+    summary = "用户登录"
+}
+
+rpc GetUserInfo (GetUserInfoRequest) CommonResponse<User> {
     method = "GET"
-    path = "/user/:id"  // RESTful路径参数
+    path = "/user/:id"
     summary = "获取用户信息"
 }
 
-// 批量获取用户
-rpc BatchGetUser (BatchGetUserRequest) Response<list<User>> {
-    method = "POST"
-    path = "/user/batch"
-    summary = "批量获取用户信息"
-}
-
-// SSE流式事件接口
-sse StreamEvents (StreamRequest) StreamResponse {
+// 商品服务接口
+rpc GetProducts (GetProductsRequest) CommonResponse<PageResult<Product>> {
     method = "GET"
-    path = "/events/:id"
-    summary = "流式事件推送，适用于实时数据更新"
+    path = "/products"
+    summary = "获取商品列表"
 }
 
-// 表单提交接口示例
-type FormData {
-    string name (form="username", validate="$ != ''")
-    int age (form="user_age", validate="$ > 0")
-    string email (form="user_email", validate="email($)")
+rpc GetProductDetail (GetProductDetailRequest) CommonResponse<Product> {
+    method = "GET"
+    path = "/product/:id"
+    summary = "获取商品详情"
 }
 
-rpc SubmitForm (FormData) Response {
+// 购物车服务接口
+rpc AddToCart (AddToCartRequest) CommonResponse {
     method = "POST"
-    path = "/form/submit"
-    contentType = "form"  // 使用表单编码
-    summary = "提交表单数据"
+    path = "/cart/add"
+    summary = "添加商品到购物车"
+}
+
+// 订单服务接口
+rpc CreateOrder (CreateOrderRequest) CommonResponse<CreateOrderResponse> {
+    method = "POST"
+    path = "/order/create"
+    summary = "创建订单"
+}
+
+rpc GetOrderDetail (GetOrderDetailRequest) CommonResponse<Order> {
+    method = "GET"
+    path = "/order/:id"
+    summary = "获取订单详情"
+}
+
+// 支付回调接口
+rpc PaymentNotify (PaymentNotifyRequest) CommonResponse {
+    method = "POST"
+    path = "/payment/notify"
+    contentType = "form"
+    summary = "支付结果通知回调"
+}
+
+// SSE流式接口 - 订单状态变更通知
+sse OrderStatusChange (GetOrderDetailRequest) CommonResponse<Order> {
+    method = "GET"
+    path = "/order/:id/stream"
+    summary = "订单状态变更实时推送"
 }
 ```
