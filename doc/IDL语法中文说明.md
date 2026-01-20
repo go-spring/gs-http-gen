@@ -149,6 +149,36 @@ type User {
 }
 ```
 
+##### 4.2.1 Validate 注解
+
+Validate 注解用于对字段值进行验证，支持多种内置验证函数和复杂的表达式。
+
+内置验证函数包括：
+- `len` - 验证长度（字符串、列表、映射等）
+- `email` - 验证邮箱格式
+- `url` - 验证URL格式
+- 自定义验证函数
+
+验证表达式支持的操作符：
+- 比较操作符：`==`, `!=`, `<`, `<=`, `>`, `>=`
+- 逻辑操作符：`&&`, `||`, `!`
+- 算术操作符：`+`, `-`, `*`, `/`
+- 函数调用：`len($)`、`email($)`
+
+特殊变量 `$` 代表当前字段的值。
+
+示例：
+```
+type User {
+    required string name (validate="$ != '' && len($) <= 64")  // 非空且长度不超过64
+    int age (validate="$ >= 0 && $ <= 150")                  // 年龄在0-150之间
+    string email (validate="email($)")                        // 邮箱格式验证
+    list<string> tags (validate="len($) <= 10")               // 标签数量不超过10个
+}
+```
+
+如果字段是可选的（optional），验证仅在字段值存在时执行。
+
 todo（其实字段上可以添加很多注解，也可以介绍一下）
 
 #### 4.3 泛型类型
@@ -266,6 +296,62 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 }
 ```
 
+#### 7.2 RESTful Path 参数
+
+RESTful路径参数用于定义动态路径，支持两种风格：
+
+1. 冒号风格（Colon Style）：`:paramName` 或 `:paramName*`
+2. 大括号风格（Brace Style）：`{paramName}` 或 `{paramName...}`
+
+路径参数类型：
+- 普通参数：`:id` 或 `{id}` - 匹配单个路径段
+- 通配符参数：`:path*` 或 `{path...}` - 匹配多个路径段
+
+示例：
+```
+// 冒号风格
+rpc GetUser (GetUserRequest) GetUserResponse {
+    method = "GET"
+    path = "/user/:id"  // 路径参数 :id
+}
+
+rpc GetFile (GetFileRequest) GetFileResponse {
+    method = "GET"
+    path = "/files/:path*"  // 通配符参数 :path*
+}
+
+// 大括号风格
+rpc GetUser (GetUserRequest) GetUserResponse {
+    method = "GET"
+    path = "/user/{id}"  // 路径参数 {id}
+}
+
+rpc GetFile (GetFileRequest) GetFileResponse {
+    method = "GET"
+    path = "/files/{path...}"  // 通配符参数 {path...}
+}
+
+// 复杂路径示例
+rpc ComplexPath (ComplexPathRequest) ComplexPathResponse {
+    method = "GET"
+    path = "/org/{orgId}/repos/:repoId/branches/{branch...}"  // 混合参数
+}
+```
+
+在请求类型中使用 path 绑定注解将字段与路径参数关联：
+
+```
+type GetUserRequest {
+    string userId (path="id")  // 将 userId 字段绑定到路径参数 :id 或 {id}
+    string locale (query="locale")  // 查询参数示例
+}
+```
+
+注意：
+- 路径参数对应的字段必须是必需的（required）
+- 支持的参数类型包括：int、string 等基本类型
+- 参数名必须与路径中定义的参数名匹配
+
 todo（缺少很多注解，还是要参考语法和golang实现）
 
 ### 8. 常量值类型
@@ -306,9 +392,9 @@ enum UserStatus {
 // 用户信息结构
 type User {
     required string id
-    required string name
-    optional string email (validate="email")
-    int age
+    required string name (validate="$ != '' && len($) <= 64")
+    optional string email (validate="email($)")
+    int age (validate="$ >= 0 && $ <= 150")
     UserStatus status
     list<string> roles
     map<string, string> metadata
@@ -316,7 +402,8 @@ type User {
 
 // 获取用户请求
 type GetUserRequest {
-    required string userId (json="userId", path="id")
+    required string userId (path="id", validate="$ != ''")  // 路径参数绑定
+    optional string locale (query="locale")  // 查询参数绑定
 }
 
 // 获取用户响应
@@ -336,7 +423,7 @@ type Response<T> {
 // 用户服务接口
 rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
-    path = "/user/:id"
+    path = "/user/:id"  // RESTful路径参数
 }
 
 // 批量获取用户
