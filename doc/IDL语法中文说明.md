@@ -934,14 +934,6 @@ type Pagination {
     int size (query="size", validate="$ >= 1 && $ <= 100")
 }
 
-// 分页响应结构 - 产品分页结果
-type ProductPageResult {
-    list<Product> items
-    int total
-    int page
-    int size
-}
-
 // 分页响应结构 - 用户分页结果
 type UserPageResult {
     list<User> items

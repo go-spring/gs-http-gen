@@ -283,6 +283,9 @@ func compileValidateExpr(fieldName, fieldType string, expr validate.Expr) (strin
 		if x.Value == "$" {
 			return fieldName, nil
 		}
+		if strings.HasPrefix(x.Value, "'") {
+			return "\"" + x.Value[1:len(x.Value)-1] + "\"", nil
+		}
 		return x.Value, nil
 
 	default:
