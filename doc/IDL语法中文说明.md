@@ -773,10 +773,9 @@ SSE接口特别适用于以下场景：
 - `method` - 指定HTTP方法（例如：GET、POST、PUT、DELETE等）
 - `path` - 请求路径，支持RESTful路径参数
 - `contentType` - 请求内容类型，支持 "form"（表单编码）或 "json"（JSON编码）
-- `connTimeout` - 连接超时
-- `readTimeout` - 读取超时
-- `writeTimeout` - 写入超时
-- `summary` - 接口的简要说明
+- `connTimeout` - 连接超时，单位毫秒
+- `readTimeout` - 读取超时，单位毫秒
+- `writeTimeout` - 写入超时，单位毫秒
 - `resp.go.type` - 指定RPC响应的Go类型
 
 示例：
@@ -786,9 +785,9 @@ rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id"
     contentType = "json"
-    connTimeout = "5"
-    readTimeout = "10"
-    writeTimeout = "10"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "获取用户信息"
 }
 ```
