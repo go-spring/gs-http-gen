@@ -5,6 +5,24 @@
 gs-http-gen 使用一种专门设计的接口定义语言（IDL）来描述数据模型和接口服务。
 该语言支持定义常量、枚举、结构体、联合类型以及RPC服务。
 
+## IDL文件整体构成
+
+一个IDL文件由以下几个主要部分组成：
+
+- 注释：用于说明和文档
+- 关键字：IDL预定义的保留字
+- 常量定义：定义固定值
+- 枚举定义：定义枚举类型
+- 类型定义：定义结构体、联合类型等
+- RPC接口定义：定义服务接口
+
+语句使用换行符作为分隔符，空行会被忽略。
+
+### 语句分隔
+
+- 使用换行符作为语句分隔符
+- 空行会被忽略
+
 ## 基本语法规则
 
 ### 注释
@@ -27,11 +45,22 @@ gs-http-gen 使用一种专门设计的接口定义语言（IDL）来描述数�
 - `optional` - 可选字段标记
 - `required` - 必需字段标记
 
+### 标识符规则
+
+- 以字母开头
+- 可以包含字母、数字、下划线 `_` 和点号 `.`
+- 区分大小写
+- **首字母必须大写**，推荐在以下场景使用大写：
+    - 常量名：必须使用帕斯卡命名法（PascalCase），如 `MAX_SIZE`
+    - 类型名：必须使用帕斯卡命名法（PascalCase），如 `User`
+    - 枚举名：必须使用帕斯卡命名法（PascalCase），如 `Status`
+    - 枚举字段：必须使用帕斯卡命名法（PascalCase），如 `ACTIVE`
+
 ### 基础类型
 
 - `bool` - 布尔类型
-- `int` - 整数类型（note：注意没有无符号整型）
-- `float` - 浮点数类型
+- `int` - 整数类型（映射到Go的int64，默认使用此类型，若需自定义可使用`go.type`注解）
+- `float` - 浮点数类型（映射到Go的float64，默认使用此类型，若需自定义可使用`go.type`注解）
 - `string` - 字符串类型（note：只能使用双引号，单引号不行）
 - `bytes` - 字节数组类型（note：传输时使用 base64 编码成字符串）
 
@@ -41,16 +70,11 @@ gs-http-gen 使用一种专门设计的接口定义语言（IDL）来描述数�
 - `list<T>` - 列表类型
 - map 和 list 都支持嵌套，例如：`list<list<int>>` 等
 
-### 标识符规则
-
-- 以字母开头
-- 可以包含字母、数字、下划线 `_` 和点号 `.`
-- 区分大小写
-- 常量名必须使用帕斯卡命名法（PascalCase），如 `MAX_SIZE`
-
 ## 语法详细说明
 
-### 1. 常量定义
+### 1. 常量（常量定义与常量值）
+
+#### 1.1 常量定义
 
 使用 `const` 关键字定义常量，常量的类型只能是 bool、int、float、string 四种：
 
@@ -66,6 +90,20 @@ const bool DEBUG = true
 ```
 const <基础类型> <标识符名称> = <常量值>
 ```
+
+**注意**：在常量定义中，不能使用枚举类型。
+
+#### 1.2 常量值
+
+支持以下类型的常量值：
+
+- 整数字面量：`42`, `-17`, `0x1A2B`
+- 浮点数字面量：`3.14`, `.5`, `-2.7e10`
+- 字符串字面量：`"hello"`, `"escaped \" quote"`
+- 布尔值：`true`, `false`
+- 标识符：通常用于引用枚举成员
+
+**注意**：在注解中可以使用枚举作为常量值。
 
 ### 2. 注解（Annotations）
 
@@ -298,7 +336,7 @@ type Result<T> {
 
 - `json` - 指定JSON序列化字段名和选项
 - `form` - 指定表单绑定字段名
-- `go.type` - 指定Go语言的具体类型
+- `go.type` - 指定Go语言的具体类型，例如 `go.type="int32"` 将int类型映射到Go的int32
 - `enum_as_string` - 枚举作为字符串处理
 - `compat_default` - 兼容性默认值
 
@@ -320,7 +358,7 @@ type Result<T> {
 ```
 type User {
     string name (json="name", go.type="string")
-    int age (json="age,omitempty")
+    int age (json="age,omitempty", go.type="int32")  // 显式指定Go类型为int32
     string email (validate="email($)", deprecated="true")
     string userId (path="id")  // 绑定路径参数
     string locale (query="locale")  // 绑定查询参数
@@ -487,7 +525,7 @@ rpc GetUser (GetUserRequest) GetUserResponse {
 }
 ```
 
-### 10. RESTful Path 规则
+#### 9.4 RESTful Path 规则和参数绑定
 
 RESTful路径参数用于定义动态路径，支持两种风格：
 
@@ -531,16 +569,14 @@ rpc ComplexPath (ComplexPathRequest) ComplexPathResponse {
 }
 ```
 
-### 11. 参数绑定
+**参数绑定**：
 
-#### 11.1 Path参数绑定
-
-在请求类型中使用 path 绑定注解将字段与路径参数关联：
+在请求类型中可以使用注解将字段与路径或查询参数关联：
 
 ```
 type GetUserRequest {
     string userId (path="id")  // 将 userId 字段绑定到路径参数 :id 或 {id}
-    string locale (query="locale")  // 查询参数示例
+    string locale (query="locale")  // 将 locale 字段绑定到查询参数 ?locale=value
 }
 ```
 
@@ -550,38 +586,11 @@ type GetUserRequest {
 - 支持的参数类型包括：int、string 等基本类型
 - 参数名必须与路径中定义的参数名匹配
 
-#### 11.2 Query参数绑定
-
-使用 query 绑定注解将字段与查询参数关联：
-
-```
-type ListUsersRequest {
-    int page (query="page")  // 将 page 字段绑定到查询参数 ?page=xxx
-    int pageSize (query="size")  // 将 pageSize 字段绑定到查询参数 ?size=xxx
-    string keyword (query="keyword")  // 搜索关键词
-}
-```
-
 Query参数绑定的特点：
 
 - 查询参数通常是可选的
 - 可以设置默认值
 - 适合传递过滤条件、分页参数等
-
-### 12. 常量值类型
-
-支持以下类型的常量值，todo（这里应该说明是注解中的常量值吧）：
-
-- 整数字面量：`42`, `-17`, `0x1A2B`
-- 浮点数字面量：`3.14`, `.5`, `-2.7e10`
-- 字符串字面量：`"hello"`, `"escaped \" quote"`
-- 布尔值：`true`, `false`
-- 标识符：通常用于引用枚举成员
-
-### 13. 语句分隔
-
-- 使用换行符作为语句分隔符
-- 空行会被忽略
 
 ## 示例
 
@@ -620,7 +629,7 @@ type User {
     required string id
     required string name (validate="$ != '' && len($) <= 64")  // 非空且长度不超过64
     optional string email (validate="email($)")
-    int age (validate="$ >= 0 && $ <= 150")                  // 年龄在0-150之间
+    int age (validate="$ >= 0 && $ <= 150", go.type="int32")  // 显式指定Go类型为int32
     UserStatus status
     Department dept (enum_as_string)  // 使用 enum_as_string 特性
     list<string> roles
