@@ -389,8 +389,9 @@ type Result<T> {
 
 **序列化注解**：
 
-- `json` - 指定JSON序列化字段名和选项
+- `json` - 指定JSON序列化字段名和选项，支持 `non-omitempty` 选项禁用omitempty行为
 - `enum_as_string` - 枚举作为字符串处理
+- `form` - 指定表单序列化字段名和选项
 
 **参数绑定注解**：
 
@@ -412,6 +413,7 @@ type Result<T> {
 type User {
     string name (json="name", go.type="string")
     int age (json="age,omitempty", go.type="int32")  // 显式指定Go类型为int32
+    string description (json="desc,non-omitempty")  // 禁用omitempty行为，即使为空也会序列化
     string email (validate="email($)", deprecated="true")
     string userId (path="id")  // 绑定路径参数
     string locale (query="locale")  // 绑定查询参数
@@ -660,11 +662,12 @@ RPC接口可以使用注解来指定HTTP方法、路径、超时时间等路由�
 
 - `method` - HTTP方法（GET、POST、PUT、DELETE等）
 - `path` - 请求路径，支持RESTful路径参数
-- `content-type` - 内容类型
+- `contentType` - 内容类型，支持 "form"（表单编码）或 "json"（JSON编码）
 - `connTimeout` - 连接超时
 - `readTimeout` - 读取超时
 - `writeTimeout` - 写入超时
 - `summary` - 接口摘要说明
+- `resp.go.type` - 指定RPC响应的Go类型
 
 例如：
 
@@ -867,6 +870,20 @@ sse StreamEvents (StreamRequest) StreamResponse {
     method = "GET"
     path = "/events/:id"
     summary = "流式事件推送，适用于实时数据更新"
+}
+
+// 表单提交接口示例
+type FormData {
+    string name (form="username", validate="$ != ''")
+    int age (form="user_age", validate="$ > 0")
+    string email (form="user_email", validate="email($)")
+}
+
+rpc SubmitForm (FormData) Response {
+    method = "POST"
+    path = "/form/submit"
+    contentType = "form"  // 使用表单编码
+    summary = "提交表单数据"
 }
 ```
 
