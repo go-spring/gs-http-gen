@@ -264,7 +264,7 @@ rpc GetUser (GetUserRequest) GetUserResponse {
     - `path` - 请求路径，支持RESTful路径参数
 - **内容类型**：
     - `contentType` - 请求内容类型，支持 "form"（表单编码）或 "json"（JSON编码）
-- **超时设置**：
+- **超时设置**（治理策略，必须设置）：
     - `connTimeout` - 连接超时，单位毫秒
     - `readTimeout` - 读取超时，单位毫秒
     - `writeTimeout` - 写入超时，单位毫秒
@@ -1159,9 +1159,9 @@ rpc Register (RegisterRequest) RegisterResponse {
     method = "POST"
     path = "/auth/register"
     contentType = "json"
-    connTimeout = "5"
-    readTimeout = "10"
-    writeTimeout = "10"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "用户注册"
 }
 
@@ -1169,18 +1169,18 @@ rpc Login (LoginRequest) LoginResponseWrapper {
     method = "POST"
     path = "/auth/login"
     contentType = "json"
-    connTimeout = "5"
-    readTimeout = "10"
-    writeTimeout = "10"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "用户登录"
 }
 
 rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
     method = "GET"
     path = "/user/:id"
-    connTimeout = "5"
-    readTimeout = "10"
-    writeTimeout = "10"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "获取用户信息"
 }
 
@@ -1188,6 +1188,9 @@ rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
 rpc GetProducts (GetProductsRequest) GetProductsResponse {
     method = "GET"
     path = "/products"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "获取商品列表"
 }
 
@@ -1209,6 +1212,9 @@ type GetProductsResponse {
 rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
     method = "GET"
     path = "/product/:id"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "获取商品详情"
 }
 
@@ -1217,9 +1223,9 @@ rpc AddToCart (AddToCartRequest) AddToCartResponse {
     method = "POST"
     path = "/cart/add"
     contentType = "json"
-    connTimeout = "5"
-    readTimeout = "10"
-    writeTimeout = "10"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "添加商品到购物车"
 }
 
@@ -1227,6 +1233,9 @@ rpc AddToCart (AddToCartRequest) AddToCartResponse {
 rpc CreateOrder (CreateOrderRequest) CreateOrderResponseWrapper {
     method = "POST"
     path = "/order/create"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "创建订单"
 }
 
@@ -1240,6 +1249,9 @@ type GetOrderDetailResponse {
 rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
     method = "GET"
     path = "/order/:id"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "获取订单详情"
 }
 
@@ -1255,9 +1267,9 @@ rpc PaymentNotify (PaymentNotifyRequest) PaymentNotifyResponse {
     method = "POST"
     path = "/payment/notify"
     contentType = "form"
-    connTimeout = "5"
-    readTimeout = "10"
-    writeTimeout = "10"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "支付结果通知回调"
 }
 
@@ -1272,6 +1284,9 @@ type OrderStatusChangeResponse {
 sse OrderStatusChange (GetOrderDetailRequest) OrderStatusChangeResponse {
     method = "GET"
     path = "/order/:id/stream"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
     summary = "订单状态变更实时推送"
 }
 ```
