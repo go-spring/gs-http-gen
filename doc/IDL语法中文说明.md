@@ -910,10 +910,6 @@ enum Status {
 enum ErrCode {
     ERR_OK = 0 (errmsg="success")
     PARAM_ERROR = 1003 (errmsg="parameter error")
-}
-
-// 扩展错误码
-enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
@@ -929,17 +925,8 @@ type User {
     required string id
     required string name (validate="$ != '' && len($) >= 3")
     string email (validate="email($)")
-    optional int age (json="user_age")  // 可选字段并指定JSON字段名
+    int age (json="user_age")  // 可选字段并指定JSON字段名
 }
-
-// 数组/列表类型
-type UserList {
-    list<User> users
-    int total
-}
-
-// 类型别名示例
-type UserID = string
 
 // 请求类型定义
 type CreateUserRequest {
@@ -948,29 +935,8 @@ type CreateUserRequest {
     required string password (validate="len($) >= 6")
 }
 
-type UpdateUserRequest {
-    required string id (path="id", validate="$ != ''")
-    string name (validate="$ == '' || len($) >= 3")  // 条件验证
-    string email (validate="email($)")
-    optional map<string, string> metadata (json="meta_data")  // map类型，可选字段
-    optional list<string> tags  // 列表类型，可选字段
-    optional Status status  // 枚举类型
-}
-
-type GetUserListRequest {
-    optional int page (query="page")  // 查询参数
-    optional int size (query="size")  // 查询参数
-    optional string sort (query="sort")  // 查询参数
-}
-
 // 响应类型定义
 type CreateUserResponse = BaseResponse<User>
-
-type GetUserResponse = BaseResponse<User>
-
-type UpdateUserResponse = BaseResponse<User>
-
-type GetUserListResponse = BaseResponse<UserList>
 
 // RPC 接口定义示例
 rpc CreateUser (CreateUserRequest) CreateUserResponse {
@@ -985,19 +951,16 @@ rpc CreateUser (CreateUserRequest) CreateUserResponse {
     validate = "$request.name != 'admin'"
 }
 
-type GetUserIDRequest {
+type UpdateUserRequest {
     required string id (path="id", validate="$ != ''")
+    string name (validate="$ == '' || len($) >= 3")  // 条件验证
+    string email (validate="email($)")
+    map<string, string> metadata (json="meta_data")  // map类型，可选字段
+    list<string> tags  // 列表类型，可选字段
+    Status status  // 枚举类型
 }
 
-rpc GetUser (GetUserIDRequest) GetUserResponse {
-    method = "GET"
-    path = "/user/:id"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "获取用户信息"
-}
+type UpdateUserResponse = BaseResponse<User>
 
 rpc UpdateUser (UpdateUserRequest) UpdateUserResponse {
     method = "PUT"
@@ -1008,6 +971,20 @@ rpc UpdateUser (UpdateUserRequest) UpdateUserResponse {
     writeTimeout = "300"
     summary = "更新用户信息"
 }
+
+type GetUserListRequest {
+    int page (query="page")  // 查询参数
+    int size (query="size")  // 查询参数
+    string sort (query="sort")  // 查询参数
+}
+
+// 数组/列表类型
+type UserList {
+    list<User> users
+    int total
+}
+
+type GetUserListResponse = BaseResponse<UserList>
 
 rpc GetUserList (GetUserListRequest) GetUserListResponse {
     method = "GET"
@@ -1023,6 +1000,8 @@ rpc GetUserList (GetUserListRequest) GetUserListResponse {
 type UserUpdatesRequest {
     required string id (path="id", validate="$ != ''")
 }
+
+type GetUserResponse = BaseResponse<User>
 
 sse UserUpdates (UserUpdatesRequest) GetUserResponse {
     method = "GET"
