@@ -899,116 +899,127 @@ type GetUserRequest {
 
 ```
 
-// 枚举定义示例
+// 状态枚举定义 - 演示基本枚举定义和 desc 注解
 enum Status {
     PENDING = 1 (desc="待处理")
     COMPLETED = 2 (desc="已完成")
 }
 
-// 错误码定义
+// 错误码定义 - 演示错误码枚举和 errmsg 注解
 enum ErrCode {
     ERR_OK = 0 (errmsg="success")
     PARAM_ERROR = 1003 (errmsg="parameter error")
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
-// 泛型类型定义示例
+// 泛型类型定义 - 演示泛型语法 <T>
 type BaseResponse<T> {
-    ErrCode code
-    string message
-    T data
+    ErrCode code    // 使用枚举类型作为返回码
+    string message  // 通用消息字段
+    T data          // 泛型数据字段
 }
 
-// 基础类型定义
+// 用户实体定义 - 演示字段验证、JSON映射等功能
 type User {
-    required string id
-    required string name (validate="$ != '' && len($) >= 3")
-    string email (validate="email($)")
-    int age (json="user_age")  // 可选字段并指定JSON字段名
+    required string id              // 必填字段示例
+    required string name (validate="$ != '' && len($) >= 3")  // 字段验证示例
+    string email (validate="email($)")                        // 邮箱格式验证
+    int age (json="user_age")      // 自定义JSON字段名
 }
 
-// 数组/列表类型
+// 用户列表类型 - 演示容器类型 list<T>
 type UserList {
-    list<User> users
-    int total
+    list<User> users  // 用户列表
+    int total         // 总数
 }
 
-// 请求类型定义
+// 创建用户请求 - 演示请求参数定义和字段验证
 type CreateUserRequest {
-    required string name (validate="$ != '' && len($) >= 3")
-    required string email (validate="email($)")
-    required string password (validate="len($) >= 6")
+    required string name (validate="$ != '' && len($) >= 3")  // 必填且长度验证
+    required string email (validate="email($)")                // 邮箱格式验证
+    required string password (validate="len($) >= 6")          // 密码长度验证
 }
 
-// 响应类型定义
+// 创建用户响应 - 演示泛型实例化
 type CreateUserResponse = BaseResponse<User>
 
-// RPC 接口定义示例
+// 创建用户接口 - 演示 RPC 接口定义
 rpc CreateUser (CreateUserRequest) CreateUserResponse {
-    method = "POST"
-    path = "/user/create"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "创建用户"
-    // 接口级别的验证规则
-    validate = "$request.name != 'admin'"
+    method = "POST"       // HTTP 方法
+    path = "/user/create" // 接口路径
+    contentType = "json"  // 内容类型
+    connTimeout = "100"   // 连接超时
+    readTimeout = "300"   // 读取超时
+    writeTimeout = "300"  // 写入超时
+    summary = "创建用户"    // 接口摘要
+    validate = "$request.name != 'admin'"  // 接口级别验证
 }
 
+// 更新用户请求 - 演示路径参数绑定、条件验证、容器类型等高级功能
 type UpdateUserRequest {
-    required string id (path="id", validate="$ != ''")
-    string name (validate="$ == '' || len($) >= 3")  // 条件验证
-    string email (validate="email($)")
-    map<string, string> metadata (json="meta_data")  // map类型，可选字段
-    list<string> tags  // 列表类型，可选字段
-    Status status  // 枚举类型
+    required string id (path="id", validate="$ != ''")          // 路径参数绑定和验证
+    string name (validate="$ == '' || len($) >= 3")             // 条件验证示例
+    string email (validate="email($)")                           // 邮箱验证
+    map<string, string> metadata (json="meta_data")              // map 类型，JSON字段映射
+    list<string> tags                                             // list 类型
+    Status status                                                 // 枚举类型
 }
 
+// 更新用户响应
 type UpdateUserResponse = BaseResponse<User>
 
+// 更新用户接口 - 演示 PUT 方法
 rpc UpdateUser (UpdateUserRequest) UpdateUserResponse {
-    method = "PUT"
-    path = "/user/:id"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "更新用户信息"
+    method = "PUT"        // HTTP PUT 方法
+    path = "/user/:id"    // 路径参数
+    contentType = "json"  // 内容类型
+    connTimeout = "100"   // 连接超时
+    readTimeout = "300"   // 读取超时
+    writeTimeout = "300"  // 写入超时
+    summary = "更新用户信息" // 接口摘要
 }
 
+// 获取用户列表请求 - 演示查询参数绑定
 type GetUserListRequest {
-    int page (query="page")  // 查询参数
-    int size (query="size")  // 查询参数
-    string sort (query="sort")  // 查询参数
+    int page (query="page")    // 分页参数 - 页码
+    int size (query="size")    // 分页参数 - 页大小
+    string sort (query="sort") // 排序参数
 }
 
+// 获取用户列表响应
 type GetUserListResponse = BaseResponse<UserList>
 
+// 获取用户列表接口 - 演示 GET 方法和查询参数
 rpc GetUserList (GetUserListRequest) GetUserListResponse {
-    method = "GET"
-    path = "/users"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "获取用户列表"
+    method = "GET"       // HTTP GET 方法
+    path = "/users"      // 接口路径
+    contentType = "json" // 内容类型
+    connTimeout = "100"  // 连接超时
+    readTimeout = "300"  // 读取超时
+    writeTimeout = "300" // 写入超时
+    summary = "获取用户列表" // 接口摘要
 }
 
-// SSE 流式接口示例
+// 用户更新流请求 - 演示 SSE 接口请求参数
+type UserUpdatesRequest {
+    required string id (path="id", validate="$ != ''")  // 路径参数绑定
+}
+
+// 获取用户响应
+type GetUserResponse = BaseResponse<User>
+
+// 用户更新流接口 - 演示 SSE 流式接口
 type UserUpdatesRequest {
     required string id (path="id", validate="$ != ''")
 }
 
-type GetUserResponse = BaseResponse<User>
-
 sse UserUpdates (UserUpdatesRequest) GetUserResponse {
-    method = "GET"
-    path = "/user/:id/updates"
-    contentType = "text/event-stream"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "用户更新事件流"
+    method = "GET"                    // HTTP GET 方法
+    path = "/user/:id/updates"        // SSE 接口路径
+    contentType = "text/event-stream" // SSE 内容类型
+    connTimeout = "100"               // 连接超时
+    readTimeout = "300"               // 读取超时
+    writeTimeout = "300"              // 写入超时
+    summary = "用户更新事件流"          // 接口摘要
 }
 ```
