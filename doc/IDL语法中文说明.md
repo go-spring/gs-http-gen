@@ -898,7 +898,7 @@ type GetUserRequest {
 以下是一个完整的电商系统的IDL文件示例：
 
 ```
-// 基础语法示例
+// 完整语法示例
 
 // 枚举定义示例
 enum Status {
@@ -917,6 +917,20 @@ enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
+// 基础类型定义
+type User {
+    required string id
+    required string name (validate="$ != '' && len($) >= 3")
+    string email (validate="email($)")
+    optional int age (json="user_age")  // 可选字段并指定JSON字段名
+}
+
+// 数组/列表类型
+type UserList {
+    list<User> users
+    int total
+}
+
 // 泛型类型定义示例
 type BaseResponse<T> {
     int code
@@ -924,12 +938,8 @@ type BaseResponse<T> {
     T data
 }
 
-// 数据结构定义示例
-type User {
-    required string id
-    required string name (validate="$ != '' && len($) >= 3")
-    string email (validate="email($)")
-}
+// 类型别名示例
+type UserID = string
 
 type CreateUserRequest {
     required string name (validate="$ != '' && len($) >= 3")
@@ -955,6 +965,8 @@ rpc CreateUser (CreateUserRequest) CreateUserResponse {
     readTimeout = "300"
     writeTimeout = "300"
     summary = "创建用户"
+    // 接口级别的验证规则
+    validate = "$request.name != 'admin'"
 }
 
 rpc GetUser (GetUserRequest) GetUserResponse {
@@ -976,5 +988,14 @@ sse UserUpdates (GetUserRequest) GetUserResponse {
     readTimeout = "300"
     writeTimeout = "300"
     summary = "用户更新事件流"
+}
+
+// 复杂字段类型示例
+type ComplexRequest {
+    required map<string, int> metadata (validate="len($) > 0")  // map类型
+    required list<string> tags  // 列表类型
+    optional User profile  // 嵌套对象
+    required string priority (validate="$ in ['low', 'medium', 'high']")  // 枚举验证
+    int timeout (validate="$ > 0 && $ < 300")  // 数值范围验证
 }
 ```
