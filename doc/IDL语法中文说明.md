@@ -898,7 +898,6 @@ type GetUserRequest {
 以下是一个完整的电商系统的IDL文件示例：
 
 ```
-// 完整语法示例
 
 // 枚举定义示例
 enum Status {
@@ -915,7 +914,7 @@ enum ErrCode {
 
 // 泛型类型定义示例
 type BaseResponse<T> {
-    int code
+    ErrCode code
     string message
     T data
 }
@@ -926,6 +925,12 @@ type User {
     required string name (validate="$ != '' && len($) >= 3")
     string email (validate="email($)")
     int age (json="user_age")  // 可选字段并指定JSON字段名
+}
+
+// 数组/列表类型
+type UserList {
+    list<User> users
+    int total
 }
 
 // 请求类型定义
@@ -976,12 +981,6 @@ type GetUserListRequest {
     int page (query="page")  // 查询参数
     int size (query="size")  // 查询参数
     string sort (query="sort")  // 查询参数
-}
-
-// 数组/列表类型
-type UserList {
-    list<User> users
-    int total
 }
 
 type GetUserListResponse = BaseResponse<UserList>
