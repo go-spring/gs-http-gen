@@ -985,7 +985,11 @@ rpc CreateUser (CreateUserRequest) CreateUserResponse {
     validate = "$request.name != 'admin'"
 }
 
-rpc GetUser (UserID) GetUserResponse {
+type GetUserIDRequest {
+    required string id (path="id", validate="$ != ''")
+}
+
+rpc GetUser (GetUserIDRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id"
     contentType = "json"
@@ -1016,7 +1020,11 @@ rpc GetUserList (GetUserListRequest) GetUserListResponse {
 }
 
 // SSE 流式接口示例
-sse UserUpdates (UserID) GetUserResponse {
+type UserUpdatesRequest {
+    required string id (path="id", validate="$ != ''")
+}
+
+sse UserUpdates (UserUpdatesRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id/updates"
     contentType = "text/event-stream"
