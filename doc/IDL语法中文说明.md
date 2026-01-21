@@ -994,6 +994,24 @@ type GetUserInfoResponse = BaseResponse<User>
 // 获取商品详情响应
 type GetProductDetailResponse = BaseResponse<Product>
 
+// 获取商品列表响应
+type GetProductsResponse = BaseResponse<ProductPageResult>
+
+// 添加到购物车响应
+type AddToCartResponse = BaseResponse<string>
+
+// 创建订单响应
+type CreateOrderResponse = BaseResponse<Order>
+
+// 获取订单详情响应
+type GetOrderDetailResponse = BaseResponse<Order>
+
+// 支付回调响应
+type PaymentNotifyResponse = BaseResponse<string>
+
+// SSE流式接口 - 订单状态变更通知
+type OrderStatusChangeResponse = BaseResponse<Order>
+
 // 用户服务接口
 rpc Register (RegisterRequest) RegisterResponse {
     method = "POST"
@@ -1005,7 +1023,7 @@ rpc Register (RegisterRequest) RegisterResponse {
     summary = "用户注册"
 }
 
-rpc Login (LoginRequest) LoginResponseWrapper {
+rpc Login (LoginRequest) LoginResponse {
     method = "POST"
     path = "/auth/login"
     contentType = "json"
@@ -1015,7 +1033,7 @@ rpc Login (LoginRequest) LoginResponseWrapper {
     summary = "用户登录"
 }
 
-rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponseWrapper {
+rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponse {
     method = "GET"
     path = "/user/:id"
     contentType = "json"
@@ -1044,13 +1062,6 @@ type ProductPageResult {
     int size
 }
 
-// 获取商品列表响应
-type GetProductsResponse {
-    int code
-    string message
-    ProductPageResult data
-}
-
 rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
     method = "GET"
     path = "/product/:id"
@@ -1073,7 +1084,7 @@ rpc AddToCart (AddToCartRequest) AddToCartResponse {
 }
 
 // 订单服务接口
-rpc CreateOrder (CreateOrderRequest) CreateOrderResponseWrapper {
+rpc CreateOrder (CreateOrderRequest) CreateOrderResponse {
     method = "POST"
     path = "/order/create"
     contentType = "json"
@@ -1081,13 +1092,6 @@ rpc CreateOrder (CreateOrderRequest) CreateOrderResponseWrapper {
     readTimeout = "300"
     writeTimeout = "300"
     summary = "创建订单"
-}
-
-// 获取订单详情响应包装
-type GetOrderDetailResponse {
-    int code
-    string message
-    Order data
 }
 
 rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
@@ -1098,13 +1102,6 @@ rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
     readTimeout = "300"
     writeTimeout = "300"
     summary = "获取订单详情"
-}
-
-// 支付回调响应包装
-type PaymentNotifyResponse {
-    int code
-    string message
-    // 空数据或成功信息
 }
 
 // 支付回调接口
@@ -1119,13 +1116,6 @@ rpc PaymentNotify (PaymentNotifyRequest) PaymentNotifyResponse {
 }
 
 // SSE流式接口 - 订单状态变更通知
-// SSE流式响应包装
-type OrderStatusChangeResponse {
-    int code
-    string message
-    Order data
-}
-
 sse OrderStatusChange (GetOrderDetailRequest) OrderStatusChangeResponse {
     method = "GET"
     path = "/order/:id/stream"
