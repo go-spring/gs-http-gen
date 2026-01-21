@@ -917,6 +917,13 @@ enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
+// 泛型类型定义示例
+type BaseResponse<T> {
+    int code
+    string message
+    T data
+}
+
 // 基础类型定义
 type User {
     required string id
@@ -931,16 +938,10 @@ type UserList {
     int total
 }
 
-// 泛型类型定义示例
-type BaseResponse<T> {
-    int code
-    string message
-    T data
-}
-
 // 类型别名示例
 type UserID = string
 
+// 请求类型定义
 type CreateUserRequest {
     required string name (validate="$ != '' && len($) >= 3")
     required string email (validate="email($)")
@@ -956,7 +957,13 @@ type UpdateUserRequest {
     optional Status status  // 枚举类型
 }
 
-// 使用泛型的响应类型
+type GetUserListRequest {
+    optional int page (query="page")  // 查询参数
+    optional int size (query="size")  // 查询参数
+    optional string sort (query="sort")  // 查询参数
+}
+
+// 响应类型定义
 type CreateUserResponse = BaseResponse<User>
 
 type GetUserResponse = BaseResponse<User>
@@ -1017,12 +1024,5 @@ sse UserUpdates (UserID) GetUserResponse {
     readTimeout = "300"
     writeTimeout = "300"
     summary = "用户更新事件流"
-}
-
-// 获取用户列表请求
-type GetUserListRequest {
-    optional int page (query="page")  // 查询参数
-    optional int size (query="size")  // 查询参数
-    optional string sort (query="sort")  // 查询参数
 }
 ```
