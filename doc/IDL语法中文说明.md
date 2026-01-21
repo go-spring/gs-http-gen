@@ -1791,7 +1791,6 @@ type GetUserRequest {
 同时也可作为新项目的参考模板。
 
 ```
-
 // 状态枚举定义
 enum Status {
     PENDING = 1 (desc="待处理")
