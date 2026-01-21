@@ -947,14 +947,23 @@ type CreateUserRequest {
     required string password (validate="len($) >= 6")
 }
 
+type UpdateUserRequest {
+    required string id (path="id", validate="$ != ''")
+    string name (validate="$ == '' || len($) >= 3")  // 条件验证
+    string email (validate="email($)")
+    optional map<string, string> metadata (json="meta_data")  // map类型，可选字段
+    optional list<string> tags  // 列表类型，可选字段
+    optional Status status  // 枚举类型
+}
+
 // 使用泛型的响应类型
 type CreateUserResponse = BaseResponse<User>
 
-type GetUserRequest {
-    required string id (path="id", validate="$ != ''")
-}
-
 type GetUserResponse = BaseResponse<User>
+
+type UpdateUserResponse = BaseResponse<User>
+
+type GetUserListResponse = BaseResponse<UserList>
 
 // RPC 接口定义示例
 rpc CreateUser (CreateUserRequest) CreateUserResponse {
@@ -969,7 +978,7 @@ rpc CreateUser (CreateUserRequest) CreateUserResponse {
     validate = "$request.name != 'admin'"
 }
 
-rpc GetUser (GetUserRequest) GetUserResponse {
+rpc GetUser (UserID) GetUserResponse {
     method = "GET"
     path = "/user/:id"
     contentType = "json"
@@ -979,8 +988,28 @@ rpc GetUser (GetUserRequest) GetUserResponse {
     summary = "获取用户信息"
 }
 
+rpc UpdateUser (UpdateUserRequest) UpdateUserResponse {
+    method = "PUT"
+    path = "/user/:id"
+    contentType = "json"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
+    summary = "更新用户信息"
+}
+
+rpc GetUserList (GetUserListRequest) GetUserListResponse {
+    method = "GET"
+    path = "/users"
+    contentType = "json"
+    connTimeout = "100"
+    readTimeout = "300"
+    writeTimeout = "300"
+    summary = "获取用户列表"
+}
+
 // SSE 流式接口示例
-sse UserUpdates (GetUserRequest) GetUserResponse {
+sse UserUpdates (UserID) GetUserResponse {
     method = "GET"
     path = "/user/:id/updates"
     contentType = "text/event-stream"
@@ -990,12 +1019,10 @@ sse UserUpdates (GetUserRequest) GetUserResponse {
     summary = "用户更新事件流"
 }
 
-// 复杂字段类型示例
-type ComplexRequest {
-    required map<string, int> metadata (validate="len($) > 0")  // map类型
-    required list<string> tags  // 列表类型
-    optional User profile  // 嵌套对象
-    required string priority (validate="$ in ['low', 'medium', 'high']")  // 枚举验证
-    int timeout (validate="$ > 0 && $ < 300")  // 数值范围验证
+// 获取用户列表请求
+type GetUserListRequest {
+    optional int page (query="page")  // 查询参数
+    optional int size (query="size")  // 查询参数
+    optional string sort (query="sort")  // 查询参数
 }
 ```
