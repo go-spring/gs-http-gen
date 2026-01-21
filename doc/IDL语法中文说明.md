@@ -898,12 +898,12 @@ type GetUserRequest {
 以下是一个完整的电商系统的IDL文件示例：
 
 ```
-// 核心功能接口定义
+// 基础语法示例
 
-// 订单状态枚举
-enum OrderStatus {
-    PENDING_PAYMENT = 1 (desc="待支付")
-    PAID = 2 (desc="已支付")
+// 枚举定义示例
+enum Status {
+    PENDING = 1 (desc="待处理")
+    COMPLETED = 2 (desc="已完成")
 }
 
 // 错误码定义
@@ -917,123 +917,47 @@ enum extends ErrCode {
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
-// 通用响应结构
+// 泛型类型定义示例
 type BaseResponse<T> {
     int code
     string message
     T data
 }
 
-// 用户信息结构
+// 数据结构定义示例
 type User {
     required string id
-    required string username (validate="$ != '' && len($) >= 3")
-    required string email (validate="email($)")
+    required string name (validate="$ != '' && len($) >= 3")
+    string email (validate="email($)")
 }
 
-// 商品信息结构
-type Product {
-    required string id
-    required string name
-    float price (validate="$ > 0")
-}
-
-// 订单信息结构
-type Order {
-    required string id
-    string userId (json="user_id")
-    list<OrderItem> items
-    float totalPrice (json="total_price")
-    OrderStatus status
-}
-
-// 订单项
-type OrderItem {
-    string productId (json="product_id")
-    float price
-    int quantity
-}
-
-// 用户注册请求
-type RegisterRequest {
-    required string username (validate="$ != '' && len($) >= 3")
+type CreateUserRequest {
+    required string name (validate="$ != '' && len($) >= 3")
     required string email (validate="email($)")
     required string password (validate="len($) >= 6")
 }
 
-// 用户登录请求
-type LoginRequest {
-    required string email (validate="email($)")
-    required string password (validate="len($) >= 6")
+// 使用泛型的响应类型
+type CreateUserResponse = BaseResponse<User>
+
+type GetUserRequest {
+    required string id (path="id", validate="$ != ''")
 }
 
-// 获取用户信息请求
-type GetUserInfoRequest {
-    required string userId (path="id", validate="$ != ''")
-}
+type GetUserResponse = BaseResponse<User>
 
-// 获取商品详情请求
-type GetProductDetailRequest {
-    required string productId (path="id", validate="$ != ''")
-}
-
-// 获取订单详情请求
-type GetOrderDetailRequest {
-    required string orderId (path="id", validate="$ != ''")
-}
-
-// 用户注册响应
-type RegisterResponse = BaseResponse<User>
-
-// 用户登录响应
-type LoginResponse = BaseResponse<User>
-
-// 获取用户信息响应
-type GetUserInfoResponse = BaseResponse<User>
-
-// 获取商品详情响应
-type GetProductDetailResponse = BaseResponse<Product>
-
-// 获取商品列表响应
-type GetProductsResponse = BaseResponse<ProductPageResult>
-
-// 添加到购物车响应
-type AddToCartResponse = BaseResponse<string>
-
-// 创建订单响应
-type CreateOrderResponse = BaseResponse<Order>
-
-// 获取订单详情响应
-type GetOrderDetailResponse = BaseResponse<Order>
-
-// 支付回调响应
-type PaymentNotifyResponse = BaseResponse<string>
-
-// SSE流式接口 - 订单状态变更通知
-type OrderStatusChangeResponse = BaseResponse<Order>
-
-// 用户服务接口
-rpc Register (RegisterRequest) RegisterResponse {
+// RPC 接口定义示例
+rpc CreateUser (CreateUserRequest) CreateUserResponse {
     method = "POST"
-    path = "/auth/register"
+    path = "/user/create"
     contentType = "json"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
-    summary = "用户注册"
+    summary = "创建用户"
 }
 
-rpc Login (LoginRequest) LoginResponse {
-    method = "POST"
-    path = "/auth/login"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "用户登录"
-}
-
-rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponse {
+rpc GetUser (GetUserRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id"
     contentType = "json"
@@ -1043,86 +967,14 @@ rpc GetUserInfo (GetUserInfoRequest) GetUserInfoResponse {
     summary = "获取用户信息"
 }
 
-// 商品服务接口
-rpc GetProducts (GetProductsRequest) GetProductsResponse {
+// SSE 流式接口示例
+sse UserUpdates (GetUserRequest) GetUserResponse {
     method = "GET"
-    path = "/products"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "获取商品列表"
-}
-
-// 商品分页结果类型
-type ProductPageResult {
-    list<Product> items
-    int total
-    int page
-    int size
-}
-
-rpc GetProductDetail (GetProductDetailRequest) GetProductDetailResponse {
-    method = "GET"
-    path = "/product/:id"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "获取商品详情"
-}
-
-// 购物车服务接口
-rpc AddToCart (AddToCartRequest) AddToCartResponse {
-    method = "POST"
-    path = "/cart/add"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "添加商品到购物车"
-}
-
-// 订单服务接口
-rpc CreateOrder (CreateOrderRequest) CreateOrderResponse {
-    method = "POST"
-    path = "/order/create"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "创建订单"
-}
-
-rpc GetOrderDetail (GetOrderDetailRequest) GetOrderDetailResponse {
-    method = "GET"
-    path = "/order/:id"
-    contentType = "json"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "获取订单详情"
-}
-
-// 支付回调接口
-rpc PaymentNotify (PaymentNotifyRequest) PaymentNotifyResponse {
-    method = "POST"
-    path = "/payment/notify"
-    contentType = "form"
-    connTimeout = "100"
-    readTimeout = "300"
-    writeTimeout = "300"
-    summary = "支付结果通知回调"
-}
-
-// SSE流式接口 - 订单状态变更通知
-sse OrderStatusChange (GetOrderDetailRequest) OrderStatusChangeResponse {
-    method = "GET"
-    path = "/order/:id/stream"
+    path = "/user/:id/updates"
     contentType = "text/event-stream"
     connTimeout = "100"
     readTimeout = "300"
     writeTimeout = "300"
-    summary = "订单状态变更实时推送"
+    summary = "用户更新事件流"
 }
 ```
