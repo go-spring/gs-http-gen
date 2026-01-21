@@ -391,9 +391,6 @@ list<map<string, User>> groups        // 用户组列表（每个元素是一个
 map<string, list<User>> usersByDept   // 按部门分组的用户列表映射
 ```
 
-在代码生成阶段，这些容器类型会被映射为目标语言中对应的集合类型，
-同时保持其嵌套结构和类型约束不变。
-
 ## 语法详细说明
 
 ### 1. 常量
@@ -1795,40 +1792,27 @@ type GetUserRequest {
 
 ```
 
-// ========================
-// 业务状态枚举定义
-// ========================
-// 用于描述订单或业务流程的处理状态
+// 状态枚举定义
 enum Status {
     PENDING = 1 (desc="待处理")
     COMPLETED = 2 (desc="已完成")
 }
 
-// ========================
-// 错误码枚举定义
-// ========================
-// 所有接口统一使用的错误码定义
-// errmsg 注解用于为每个错误码提供可读的错误信息
+// 错误码定义
 enum ErrCode {
     ERR_OK = 0 (errmsg="success")
     PARAM_ERROR = 1003 (errmsg="parameter error")
     USER_NOT_FOUND = 404 (errmsg="user not found")
 }
 
-// ========================
-// 通用泛型响应结构
-// ========================
-// 所有接口响应的基础结构，通过泛型参数 T 承载具体业务数据
+// 泛型类型定义
 type BaseResponse<T> {
-    ErrCode code        // 错误码
-    string message      // 错误描述信息
-    T data              // 实际业务数据
+    ErrCode code
+    string message
+    T data
 }
 
-// ========================
 // 用户实体定义
-// ========================
-// 描述系统中的用户基础信息
 type User {
     required string id
     required string name (validate="$ != '' && len($) >= 3")
@@ -1836,35 +1820,23 @@ type User {
     int age (json="user_age")
 }
 
-// ========================
-// 用户列表结构
-// ========================
-// 用于列表类接口的返回数据
+// 用户列表类型
 type UserList {
     list<User> users
     int total
 }
 
-// ========================
-// 创建用户请求结构
-// ========================
-// 创建用户接口的请求参数定义
+// 创建用户请求
 type CreateUserRequest {
     required string name (validate="$ != '' && len($) >= 3")
     required string email (validate="email($)")
     required string password (validate="len($) >= 6")
 }
 
-// ========================
-// 创建用户响应类型
-// ========================
-// 基于 BaseResponse<User> 的具体响应类型
+// 创建用户响应
 type CreateUserResponse BaseResponse<User>
 
-// ========================
-// 创建用户接口定义
-// ========================
-// 使用 POST 方法创建新用户
+// 创建用户接口
 rpc CreateUser (CreateUserRequest) CreateUserResponse {
     method = "POST"
     path = "/user/create"
@@ -1875,10 +1847,7 @@ rpc CreateUser (CreateUserRequest) CreateUserResponse {
     summary = "创建用户"
 }
 
-// ========================
-// 更新用户请求结构
-// ========================
-// 支持部分字段更新，未传字段将保持原值
+// 更新用户请求
 type UpdateUserRequest {
     required string id (path="id", validate="$ != ''")
     string name (validate="$ == '' || len($) >= 3")
@@ -1888,15 +1857,10 @@ type UpdateUserRequest {
     Status status
 }
 
-// ========================
-// 更新用户响应类型
-// ========================
+// 更新用户响应
 type UpdateUserResponse BaseResponse<User>
 
-// ========================
-// 更新用户接口定义
-// ========================
-// 通过路径参数指定需要更新的用户
+// 更新用户接口
 rpc UpdateUser (UpdateUserRequest) UpdateUserResponse {
     method = "PUT"
     path = "/user/:id"
@@ -1907,25 +1871,17 @@ rpc UpdateUser (UpdateUserRequest) UpdateUserResponse {
     summary = "更新用户信息"
 }
 
-// ========================
-// 获取用户列表请求结构
-// ========================
-// 使用查询参数进行分页与排序控制
+// 获取用户列表请求
 type GetUserListRequest {
     int page (query="page")
     int size (query="size")
     string sort (query="sort")
 }
 
-// ========================
-// 获取用户列表响应类型
-// ========================
+// 获取用户列表响应
 type GetUserListResponse BaseResponse<UserList>
 
-// ========================
-// 获取用户列表接口定义
-// ========================
-// 返回分页后的用户列表数据
+// 获取用户列表接口
 rpc GetUserList (GetUserListRequest) GetUserListResponse {
     method = "GET"
     path = "/users"
@@ -1936,23 +1892,15 @@ rpc GetUserList (GetUserListRequest) GetUserListResponse {
     summary = "获取用户列表"
 }
 
-// ========================
-// 用户更新事件流请求
-// ========================
-// 用于订阅指定用户的变更事件
+// 用户更新流请求
 type UserUpdatesRequest {
     required string id (path="id", validate="$ != ''")
 }
 
-// ========================
-// 获取单个用户响应类型
-// ========================
+// 获取用户响应
 type GetUserResponse BaseResponse<User>
 
-// ========================
-// 用户更新 SSE 流接口定义
-// ========================
-// 通过 SSE 方式持续推送用户更新事件
+// 用户更新流接口
 sse UserUpdates (UserUpdatesRequest) GetUserResponse {
     method = "GET"
     path = "/user/:id/updates"
