@@ -9,7 +9,7 @@
 
 // Chat message unit
 type Message {
-    string role (validate="$ in ['system','user','assistant']")
+    string role
     string content
 }
 
@@ -23,16 +23,6 @@ type AssistantReq {
 // ----------------------
 // Event & payload types
 // ----------------------
-
-// Streaming event type
-enum AssistantEventType {
-    MESSAGE = 1      // Full message
-    DELTA = 2        // Incremental content
-    TOOL_CALL = 3    // Tool invocation
-    IMAGE = 4        // Image output
-    DONE = 5         // Stream finished
-    ERROR = 6        // Error event
-}
 
 // Incremental message payload
 type MessageDelta {
@@ -67,7 +57,6 @@ oneof Payload {
 
 // Single SSE event
 type AssistantEvent {
-    AssistantEventType Type (json="type")
     string eventId
     Payload payload
 }
@@ -85,17 +74,5 @@ sse Assistant(AssistantReq) AssistantEvent {
 
     connTimeout=100
     readTimeout=0        // Long-lived connection
-    writeTimeout=0
-}
-
-// Versioned streaming assistant
-sse AssistantV2(AssistantReq) AssistantEvent {
-    method="POST"
-    path="/v2/assistant/stream"
-    contentType="json"
-    summary="Streaming assistant with extended capabilities"
-
-    connTimeout=100
-    readTimeout=0
     writeTimeout=0
 }
