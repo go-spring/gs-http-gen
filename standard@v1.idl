@@ -1,38 +1,21 @@
 // ==================================================
 // go-spring standard contract v1
-// Minimal shared conventions for service responses
 // ==================================================
 
 
 // ----------------------
-// Error code definition
+// Error code
 // ----------------------
 
-// Standard error code definition.
-//
-// Conventions:
-// - SUCCESS indicates a successful request
-// - Error codes other than SUCCESS are defined by individual services
-// - Numeric values must remain stable once published
 enum ErrorCode {
-    SUCCESS = 0 ( errmsg= "success")
+    SUCCESS = 0 ( errmsg="success" )
 }
 
 
 // ----------------------
-// Standard response envelope
+// Standard response
 // ----------------------
 
-// Standard response wrapper for service APIs.
-//
-// Conventions:
-// - code == SUCCESS means the request is successful
-// - data is meaningful only when code == SUCCESS
-// - errmsg provides human-readable error information
-//
-// Extension:
-// - Services may introduce additional error codes
-// - Error details can be extended via custom payloads if needed
 type Response<T> {
     required ErrorCode code
     string message
