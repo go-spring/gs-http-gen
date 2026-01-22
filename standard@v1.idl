@@ -1,0 +1,37 @@
+// ==================================================
+// go-spring standard contract v1
+// Minimal shared conventions for service responses
+// ==================================================
+
+
+// ----------------------
+// Success code definition
+// ----------------------
+
+// Standard success code.
+// Only SUCCESS is defined here.
+// Error codes are intentionally left to each service or domain.
+enum ResultCode {
+    SUCCESS = 0
+}
+
+
+// ----------------------
+// Standard response envelope
+// ----------------------
+
+// Standard response wrapper for service APIs.
+//
+// Conventions:
+// - code == SUCCESS indicates a successful request
+// - data is valid only when code == SUCCESS
+// - non-success codes are defined by individual services
+//
+// Extension:
+// - Services may extend error semantics via custom codes or payloads
+type Response<T> {
+    required ResultCode code
+    string message
+    string requestId
+    T data
+}
