@@ -11,47 +11,31 @@ import (
 
 // ManagerService defines the interface that service must implement.
 type ManagerService interface {
-	// Assistant ...
-	Assistant(context.Context, *AssistantReq, chan<- *httpsvr.Event[*AssistantResp])
-	// AssistantV2 ...
-	AssistantV2(context.Context, *AssistantReq, chan<- *httpsvr.Event[string])
+	// Streaming assistant interface
+	Assistant(context.Context, *AssistantReq, chan<- *httpsvr.Event[*AssistantEvent])
+	// Versioned streaming assistant
+	AssistantV2(context.Context, *AssistantReq, chan<- *httpsvr.Event[*AssistantEvent])
 	// Create a new manager
 	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
-	// Delete a manager
-	DeleteManager(context.Context, *ManagerReq) *DeleteManagerResp
+	// Delete manager
+	DeleteManager(context.Context, *GetManagerReq) *DeleteManagerResp
 	// Get manager by ID
-	GetManager(context.Context, *ManagerReq) *GetManagerResp
+	GetManager(context.Context, *GetManagerReq) *GetManagerResp
 	// List managers with pagination
-	ListManagersByPage(context.Context, *ListManagersByPageReq) *ListManagersByPageResp
-	// Update manager info
-	UpdateManager(context.Context, *UpdateManagerReq) map[string]any
+	ListManagers(context.Context, *ListManagersReq) *ListManagersResp
+	// Update manager
+	UpdateManager(context.Context, *UpdateManagerReq) *UpdateManagerResp
 }
 
 // Routers returns a list of HTTP routers for the service.
 func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Router {
 	return []httpsvr.Router{
 		{
-			Method:  "GET",
-			Pattern: "/assistant",
+			Method:  "POST",
+			Pattern: "/assistant/stream",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
 				httpsvr.HandleStream(w, r.WithContext(ctx), NewAssistantReq(), server.Assistant)
-			},
-		},
-		{
-			Method:  "GET",
-			Pattern: "/assistantV2",
-			Handler: func(w http.ResponseWriter, r *http.Request) {
-				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleStream(w, r.WithContext(ctx), NewAssistantReq(), server.AssistantV2)
-			},
-		},
-		{
-			Method:  "GET",
-			Pattern: "/managers/page",
-			Handler: func(w http.ResponseWriter, r *http.Request) {
-				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleJSON(w, r.WithContext(ctx), NewListManagersByPageReq(), server.ListManagersByPage)
 			},
 		},
 		{
@@ -59,7 +43,7 @@ func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Rout
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleJSON(w, r.WithContext(ctx), NewManagerReq(), server.DeleteManager)
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewGetManagerReq(), server.DeleteManager)
 			},
 		},
 		{
@@ -67,7 +51,7 @@ func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Rout
 			Pattern: "/managers/{id}",
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleJSON(w, r.WithContext(ctx), NewManagerReq(), server.GetManager)
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewGetManagerReq(), server.GetManager)
 			},
 		},
 		{
@@ -84,6 +68,22 @@ func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Rout
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
 				httpsvr.HandleJSON(w, r.WithContext(ctx), NewCreateManagerReq(), server.CreateManager)
+			},
+		},
+		{
+			Method:  "GET",
+			Pattern: "/managers",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleJSON(w, r.WithContext(ctx), NewListManagersReq(), server.ListManagers)
+			},
+		},
+		{
+			Method:  "POST",
+			Pattern: "/v2/assistant/stream",
+			Handler: func(w http.ResponseWriter, r *http.Request) {
+				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
+				httpsvr.HandleStream(w, r.WithContext(ctx), NewAssistantReq(), server.AssistantV2)
 			},
 		},
 	}

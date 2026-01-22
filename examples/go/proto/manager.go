@@ -24,14 +24,9 @@ var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
 var _ = formutil.EncodeInt[int]
 
-// years
-const MAX_AGE int64 = 150
-
 const MIN_AGE int64 = 18
 
-const DEFAULT_VIP bool = false
-
-const DEFAULT_ROLE string = "user"
+const MAX_AGE int64 = 150
 
 const DEFAULT_PAGE int64 = 1
 
@@ -111,7 +106,7 @@ func (x *ErrCodeAsString) UnmarshalJSON(data []byte) error {
 	return errutil.Explain(nil, "invalid ErrCodeAsString value: %q", str)
 }
 
-// Manager seniority levels
+// Manager seniority level
 type ManagerLevel int32
 
 const (
@@ -227,7 +222,7 @@ func (x *DepartmentAsString) UnmarshalJSON(data []byte) error {
 	return errutil.Explain(nil, "invalid DepartmentAsString value: %q", str)
 }
 
-// Pagination request and response
+// Pagination request
 type PageReq struct {
 	Page int64 `json:"page" query:"page" validate:"required"`
 	Size int64 `json:"size" query:"size" validate:"required"`
@@ -309,7 +304,6 @@ func (x *PageReq) Validate() error {
 	return nil
 }
 
-// Address & Contact info
 type Address struct {
 	City       *string `json:"city,omitempty" form:"city"`
 	Street     *string `json:"street,omitempty" form:"street"`
@@ -374,16 +368,14 @@ func (r *Address) DecodeJSON(d jsonflow.Decoder) (err error) {
 
 type ContactInfo struct {
 	Email   string   `json:"email" form:"email" validate:"required"`
-	Phone   string   `json:"phone" form:"phone" validate:"required" default:""`
+	Phone   *string  `json:"phone,omitempty" form:"phone"`
 	Address *Address `json:"address,omitempty" form:"address"`
 }
 
 // NewContactInfo creates a new ContactInfo instance
 // and initializes fields with default values.
 func NewContactInfo() *ContactInfo {
-	return &ContactInfo{
-		Phone: "",
-	}
+	return &ContactInfo{}
 }
 
 // DecodeJSON decodes a JSON object into ContactInfo using a hash-based
@@ -421,7 +413,7 @@ func (r *ContactInfo) DecodeJSON(d jsonflow.Decoder) (err error) {
 				return err
 			}
 		case hashPhone:
-			if r.Phone, err = jsonflow.DecodeString(d); err != nil {
+			if r.Phone, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashAddress:
@@ -453,85 +445,21 @@ func (x *ContactInfo) Validate() error {
 	return nil
 }
 
-// Department info
-type DepartmentInfo struct {
-	Dept     *Department `json:"dept,omitempty" form:"dept"`
-	DeptName *string     `json:"deptName,omitempty" form:"deptName"`
-}
-
-// NewDepartmentInfo creates a new DepartmentInfo instance
-// and initializes fields with default values.
-func NewDepartmentInfo() *DepartmentInfo {
-	return &DepartmentInfo{}
-}
-
-// DecodeJSON decodes a JSON object into DepartmentInfo using a hash-based
-// field dispatch mechanism for high-performance parsing.
-func (r *DepartmentInfo) DecodeJSON(d jsonflow.Decoder) (err error) {
-	const (
-		hashDept     = 0xa5ef04674280b406 // HashKey("dept")
-		hashDeptName = 0x63c798c819b02345 // HashKey("deptName")
-	)
-
-	if err = jsonflow.DecodeObjectBegin(d); err != nil {
-		return err
-	}
-
-	for {
-		if d.PeekKind() == '}' {
-			break
-		}
-
-		var key string
-		key, err = jsonflow.DecodeString(d)
-		if err != nil {
-			return err
-		}
-
-		switch hashutil.FNV1a64(key) {
-		case hashDept:
-			if r.Dept, err = jsonflow.DecodeIntPtr[Department](d); err != nil {
-				return err
-			}
-		case hashDeptName:
-			if r.DeptName, err = jsonflow.DecodeStringPtr(d); err != nil {
-				return err
-			}
-		default:
-			if err = d.SkipValue(); err != nil {
-				return err
-			}
-		}
-	}
-
-	if err = jsonflow.DecodeObjectEnd(d); err != nil {
-		return err
-	}
-	return
-}
-
-// Manager entity definition
 type Manager struct {
-	Id             *string                                 `json:"id,omitempty" form:"id"`
-	Name           *string                                 `json:"name,omitempty" form:"name"`
-	Age            *int64                                  `json:"age,omitempty" form:"age"`
-	Vip            *bool                                   `json:"vip,omitempty" form:"vip"`
-	Salary         *float64                                `json:"salary,omitempty" form:"salary"`
-	Role           *string                                 `json:"role,omitempty" form:"role"`
-	Level          *ManagerLevelAsString                   `json:"level,omitempty" form:"level"`
-	DeptInfo       *DepartmentInfo                         `json:"deptInfo,omitempty" form:"deptInfo"`
-	Contact        *ContactInfo                            `json:"contact,omitempty" form:"contact"`
-	ContactInfos   []*ContactInfo                          `json:"contactInfos,omitempty" form:"contactInfos"`
-	ContactInfoV2s [][]*ContactInfo                        `json:"contactInfoV2s,omitempty" form:"contactInfoV2s"`
-	ContactInfoV3s [][][]*ContactInfo                      `json:"contactInfoV3s,omitempty" form:"contactInfoV3s"`
-	ContactMaps    map[string]*ContactInfo                 `json:"contactMaps,omitempty" form:"contactMaps"`
-	ContactMapV2s  map[string][]*ContactInfo               `json:"contactMapV2s,omitempty" form:"contactMapV2s"`
-	ContactMapV3s  map[string]map[int64]*ContactInfo       `json:"contactMapV3s,omitempty" form:"contactMapV3s"`
-	Extra          map[string]string                       `json:"extra,omitempty" form:"extra"`
-	ExtraV2        map[string]map[string]string            `json:"extraV2,omitempty" form:"extraV2"`
-	ExtraV3        map[string]map[string]map[string]string `json:"extraV3,omitempty" form:"extraV3"`
-	ExtraV4        map[string]map[string][]string          `json:"extraV4,omitempty" form:"extraV4"`
-	ExtraV5        map[string][]string                     `json:"extraV5,omitempty" form:"extraV5"`
+	Id         *string               `json:"id,omitempty" form:"id"`
+	Name       *string               `json:"name,omitempty" form:"name"`
+	Age        *int64                `json:"age,omitempty" form:"age"`
+	Vip        *bool                 `json:"vip,omitempty" form:"vip"`
+	Salary     *float64              `json:"salary,omitempty" form:"salary"`
+	Level      *ManagerLevelAsString `json:"level,omitempty" form:"level"`
+	Department *Department           `json:"department,omitempty" form:"department"`
+	// Primary contact information
+	PrimaryContact *ContactInfo `json:"primaryContact,omitempty" form:"primaryContact"`
+	// Additional contacts
+	Contacts []*ContactInfo `json:"contacts,omitempty" form:"contacts"`
+	// Lightweight extensibility fields
+	Tags   map[string]string   `json:"tags,omitempty" form:"tags"`
+	Labels map[string][]string `json:"labels,omitempty" form:"labels"`
 }
 
 // NewManager creates a new Manager instance
@@ -549,21 +477,12 @@ func (r *Manager) DecodeJSON(d jsonflow.Decoder) (err error) {
 		hashAge            = 0xe715b4190539215c // HashKey("age")
 		hashVip            = 0x68e906194eba76f0 // HashKey("vip")
 		hashSalary         = 0x69c724098dbd2bc3 // HashKey("salary")
-		hashRole           = 0xa358ec1ff0c833b9 // HashKey("role")
 		hashLevel          = 0xe8ddc90a9d7c709d // HashKey("level")
-		hashDeptInfo       = 0x909196037ac21a36 // HashKey("deptInfo")
-		hashContact        = 0x623617b538360a63 // HashKey("contact")
-		hashContactInfos   = 0xe86fa0653a0df08c // HashKey("contactInfos")
-		hashContactInfoV2s = 0xd0c2fecd180f9960 // HashKey("contactInfoV2s")
-		hashContactInfoV3s = 0xd0bffecd180d6389 // HashKey("contactInfoV3s")
-		hashContactMaps    = 0xd342cef8b6401440 // HashKey("contactMaps")
-		hashContactMapV2s  = 0xb6aa83f0e06775cc // HashKey("contactMapV2s")
-		hashContactMapV3s  = 0xb6a783f0e0653ff5 // HashKey("contactMapV3s")
-		hashExtra          = 0xfd29ee12a979cb69 // HashKey("extra")
-		hashExtraV2        = 0x7eaf4c37ba38bf0d // HashKey("extraV2")
-		hashExtraV3        = 0x7eaf4b37ba38bd5a // HashKey("extraV3")
-		hashExtraV4        = 0x7eaf4637ba38b4db // HashKey("extraV4")
-		hashExtraV5        = 0x7eaf4537ba38b328 // HashKey("extraV5")
+		hashDepartment     = 0x9fe2b90fc81732c7 // HashKey("department")
+		hashPrimaryContact = 0xb6c6aac71fb849af // HashKey("primaryContact")
+		hashContacts       = 0x17f458ee83d31930 // HashKey("contacts")
+		hashTags           = 0xd91c3bef076f8580 // HashKey("tags")
+		hashLabels         = 0x4bc513f856980a8a // HashKey("labels")
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -602,64 +521,28 @@ func (r *Manager) DecodeJSON(d jsonflow.Decoder) (err error) {
 			if r.Salary, err = jsonflow.DecodeFloatPtr[float64](d); err != nil {
 				return err
 			}
-		case hashRole:
-			if r.Role, err = jsonflow.DecodeStringPtr(d); err != nil {
-				return err
-			}
 		case hashLevel:
 			if r.Level, err = jsonflow.DecodeAny[*ManagerLevelAsString](d); err != nil {
 				return err
 			}
-		case hashDeptInfo:
-			if r.DeptInfo, err = jsonflow.DecodeObject(NewDepartmentInfo)(d); err != nil {
+		case hashDepartment:
+			if r.Department, err = jsonflow.DecodeIntPtr[Department](d); err != nil {
 				return err
 			}
-		case hashContact:
-			if r.Contact, err = jsonflow.DecodeObject(NewContactInfo)(d); err != nil {
+		case hashPrimaryContact:
+			if r.PrimaryContact, err = jsonflow.DecodeObject(NewContactInfo)(d); err != nil {
 				return err
 			}
-		case hashContactInfos:
-			if r.ContactInfos, err = jsonflow.DecodeArray(jsonflow.DecodeObject(NewContactInfo))(d); err != nil {
+		case hashContacts:
+			if r.Contacts, err = jsonflow.DecodeArray(jsonflow.DecodeObject(NewContactInfo))(d); err != nil {
 				return err
 			}
-		case hashContactInfoV2s:
-			if r.ContactInfoV2s, err = jsonflow.DecodeArray(jsonflow.DecodeArray(jsonflow.DecodeObject(NewContactInfo)))(d); err != nil {
+		case hashTags:
+			if r.Tags, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeString)(d); err != nil {
 				return err
 			}
-		case hashContactInfoV3s:
-			if r.ContactInfoV3s, err = jsonflow.DecodeArray(jsonflow.DecodeArray(jsonflow.DecodeArray(jsonflow.DecodeObject(NewContactInfo))))(d); err != nil {
-				return err
-			}
-		case hashContactMaps:
-			if r.ContactMaps, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeObject(NewContactInfo))(d); err != nil {
-				return err
-			}
-		case hashContactMapV2s:
-			if r.ContactMapV2s, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeArray(jsonflow.DecodeObject(NewContactInfo)))(d); err != nil {
-				return err
-			}
-		case hashContactMapV3s:
-			if r.ContactMapV3s, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeMap(jsonflow.DecodeInt[int64], jsonflow.DecodeObject(NewContactInfo)))(d); err != nil {
-				return err
-			}
-		case hashExtra:
-			if r.Extra, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeString)(d); err != nil {
-				return err
-			}
-		case hashExtraV2:
-			if r.ExtraV2, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeString))(d); err != nil {
-				return err
-			}
-		case hashExtraV3:
-			if r.ExtraV3, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeString)))(d); err != nil {
-				return err
-			}
-		case hashExtraV4:
-			if r.ExtraV4, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeArray(jsonflow.DecodeString)))(d); err != nil {
-				return err
-			}
-		case hashExtraV5:
-			if r.ExtraV5, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeArray(jsonflow.DecodeString))(d); err != nil {
+		case hashLabels:
+			if r.Labels, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeArray(jsonflow.DecodeString))(d); err != nil {
 				return err
 			}
 		default:
@@ -695,26 +578,26 @@ func (x *Manager) Validate() error {
 	return nil
 }
 
-// Single manager by ID
-type ManagerReq struct {
-	ManagerReqBody
+// Query manager by ID
+type GetManagerReq struct {
+	GetManagerReqBody
 	Id string `json:"id" path:"id" validate:"required"`
 }
 
-// NewManagerReq creates a new ManagerReq instance
+// NewGetManagerReq creates a new GetManagerReq instance
 // and initializes fields with default values.
-func NewManagerReq() *ManagerReq {
-	return &ManagerReq{}
+func NewGetManagerReq() *GetManagerReq {
+	return &GetManagerReq{}
 }
 
 // QueryForm encodes query-bound fields into URL-encoded form data.
-func (x *ManagerReq) QueryForm() (string, error) {
+func (x *GetManagerReq) QueryForm() (string, error) {
 	return "", nil
 }
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *ManagerReq) Bind(r *http.Request) error {
+func (x *GetManagerReq) Bind(r *http.Request) error {
 	c := httpsvr.GetRequestContext(r.Context())
 	if s := c.PathValue("id"); s == "" {
 		return errutil.Explain(nil, "required path parameter \"id\" is missing")
@@ -725,40 +608,40 @@ func (x *ManagerReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *ManagerReq) Validate() error {
-	if err := x.ManagerReqBody.Validate(); err != nil {
-		return errutil.Explain(err, "validate failed on \"ManagerReq\"")
+func (x *GetManagerReq) Validate() error {
+	if err := x.GetManagerReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"GetManagerReq\"")
 	}
 	return nil
 }
 
-// ManagerReqBody represents the request body payload,
+// GetManagerReqBody represents the request body payload,
 // excluding path and query parameters.
-type ManagerReqBody struct {
+type GetManagerReqBody struct {
 }
 
-// NewManagerReqBody creates a new ManagerReqBody instance
+// NewGetManagerReqBody creates a new GetManagerReqBody instance
 // and initializes fields with default values.
-func NewManagerReqBody() *ManagerReqBody {
-	return &ManagerReqBody{}
+func NewGetManagerReqBody() *GetManagerReqBody {
+	return &GetManagerReqBody{}
 }
 
 // EncodeForm encodes the request body as application/x-www-form-urlencoded data.
-func (x *ManagerReqBody) EncodeForm() (string, error) {
+func (x *GetManagerReqBody) EncodeForm() (string, error) {
 	return "", nil
 }
 
 // DecodeForm decodes application/x-www-form-urlencoded data into the request body.
-func (x *ManagerReqBody) DecodeForm(b []byte) error {
+func (x *GetManagerReqBody) DecodeForm(b []byte) error {
 	return nil
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ManagerReqBody) Validate() error {
+func (x *GetManagerReqBody) Validate() error {
 	return nil
 }
 
-// Create new manager
+// Create manager
 type CreateManagerReq struct {
 	CreateManagerReqBody
 }
@@ -791,14 +674,13 @@ func (x *CreateManagerReq) Validate() error {
 // CreateManagerReqBody represents the request body payload,
 // excluding path and query parameters.
 type CreateManagerReqBody struct {
-	Name     *string               `json:"name,omitempty" form:"name"`
-	Age      *int64                `json:"age,omitempty" form:"age"`
-	Vip      *bool                 `json:"vip,omitempty" form:"vip"`
-	Salary   *float64              `json:"salary,omitempty" form:"salary"`
-	Role     *string               `json:"role,omitempty" form:"role"`
-	Level    *ManagerLevelAsString `json:"level,omitempty" form:"level"`
-	DeptInfo *DepartmentInfo       `json:"deptInfo,omitempty" form:"deptInfo"`
-	Contact  *ContactInfo          `json:"contact,omitempty" form:"contact"`
+	Name           *string               `json:"name,omitempty" form:"name"`
+	Age            *int64                `json:"age,omitempty" form:"age"`
+	Vip            *bool                 `json:"vip,omitempty" form:"vip"`
+	Salary         *float64              `json:"salary,omitempty" form:"salary"`
+	Level          *ManagerLevelAsString `json:"level,omitempty" form:"level"`
+	Department     *Department           `json:"department,omitempty" form:"department"`
+	PrimaryContact *ContactInfo          `json:"primaryContact,omitempty" form:"primaryContact"`
 }
 
 // NewCreateManagerReqBody creates a new CreateManagerReqBody instance
@@ -811,14 +693,13 @@ func NewCreateManagerReqBody() *CreateManagerReqBody {
 // field dispatch mechanism for high-performance parsing.
 func (r *CreateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashName     = 0xc4bcadba8e631b86 // HashKey("name")
-		hashAge      = 0xe715b4190539215c // HashKey("age")
-		hashVip      = 0x68e906194eba76f0 // HashKey("vip")
-		hashSalary   = 0x69c724098dbd2bc3 // HashKey("salary")
-		hashRole     = 0xa358ec1ff0c833b9 // HashKey("role")
-		hashLevel    = 0xe8ddc90a9d7c709d // HashKey("level")
-		hashDeptInfo = 0x909196037ac21a36 // HashKey("deptInfo")
-		hashContact  = 0x623617b538360a63 // HashKey("contact")
+		hashName           = 0xc4bcadba8e631b86 // HashKey("name")
+		hashAge            = 0xe715b4190539215c // HashKey("age")
+		hashVip            = 0x68e906194eba76f0 // HashKey("vip")
+		hashSalary         = 0x69c724098dbd2bc3 // HashKey("salary")
+		hashLevel          = 0xe8ddc90a9d7c709d // HashKey("level")
+		hashDepartment     = 0x9fe2b90fc81732c7 // HashKey("department")
+		hashPrimaryContact = 0xb6c6aac71fb849af // HashKey("primaryContact")
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -853,20 +734,16 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 			if r.Salary, err = jsonflow.DecodeFloatPtr[float64](d); err != nil {
 				return err
 			}
-		case hashRole:
-			if r.Role, err = jsonflow.DecodeStringPtr(d); err != nil {
-				return err
-			}
 		case hashLevel:
 			if r.Level, err = jsonflow.DecodeAny[*ManagerLevelAsString](d); err != nil {
 				return err
 			}
-		case hashDeptInfo:
-			if r.DeptInfo, err = jsonflow.DecodeObject(NewDepartmentInfo)(d); err != nil {
+		case hashDepartment:
+			if r.Department, err = jsonflow.DecodeIntPtr[Department](d); err != nil {
 				return err
 			}
-		case hashContact:
-			if r.Contact, err = jsonflow.DecodeObject(NewContactInfo)(d); err != nil {
+		case hashPrimaryContact:
+			if r.PrimaryContact, err = jsonflow.DecodeObject(NewContactInfo)(d); err != nil {
 				return err
 			}
 		default:
@@ -899,18 +776,18 @@ func (x *CreateManagerReqBody) Validate() error {
 			return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Salary\"")
 		}
 	}
-	if x.Contact != nil {
-		if err := x.Contact.Validate(); err != nil {
-			return errutil.Explain(err, "validate failed on \"CreateManagerReq.Contact\"")
+	if x.PrimaryContact != nil {
+		if err := x.PrimaryContact.Validate(); err != nil {
+			return errutil.Explain(err, "validate failed on \"CreateManagerReq.PrimaryContact\"")
 		}
 	}
 	return nil
 }
 
-// Update existing manager
+// Update manager
 type UpdateManagerReq struct {
 	UpdateManagerReqBody
-	ID string `json:"id" path:"id" validate:"required"`
+	Id string `json:"id" path:"id" validate:"required"`
 }
 
 // NewUpdateManagerReq creates a new UpdateManagerReq instance
@@ -931,7 +808,7 @@ func (x *UpdateManagerReq) Bind(r *http.Request) error {
 	if s := c.PathValue("id"); s == "" {
 		return errutil.Explain(nil, "required path parameter \"id\" is missing")
 	} else {
-		x.ID = s
+		x.Id = s
 	}
 	return nil
 }
@@ -947,14 +824,13 @@ func (x *UpdateManagerReq) Validate() error {
 // UpdateManagerReqBody represents the request body payload,
 // excluding path and query parameters.
 type UpdateManagerReqBody struct {
-	Name     *string         `json:"name,omitempty" form:"name"`
-	Age      *int64          `json:"age,omitempty" form:"age"`
-	Vip      *bool           `json:"vip" form:"vip"`
-	Salary   *float64        `json:"salary,omitempty" form:"salary"`
-	Role     *string         `json:"role,omitempty" form:"role"`
-	Level    *ManagerLevel   `json:"level,omitempty" form:"level"`
-	DeptInfo *DepartmentInfo `json:"dept_info,omitempty" form:"dept_info"`
-	Contact  *ContactInfo    `json:"contact,omitempty" form:"contact"`
+	Name           *string       `json:"name,omitempty" form:"name"`
+	Age            *int64        `json:"age,omitempty" form:"age"`
+	Vip            *bool         `json:"vip" form:"vip"`
+	Salary         *float64      `json:"salary,omitempty" form:"salary"`
+	Level          *ManagerLevel `json:"level,omitempty" form:"level"`
+	Department     *Department   `json:"department,omitempty" form:"department"`
+	PrimaryContact *ContactInfo  `json:"primaryContact,omitempty" form:"primaryContact"`
 }
 
 // NewUpdateManagerReqBody creates a new UpdateManagerReqBody instance
@@ -967,14 +843,13 @@ func NewUpdateManagerReqBody() *UpdateManagerReqBody {
 // field dispatch mechanism for high-performance parsing.
 func (r *UpdateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashName     = 0xc4bcadba8e631b86 // HashKey("name")
-		hashAge      = 0xe715b4190539215c // HashKey("age")
-		hashVip      = 0x68e906194eba76f0 // HashKey("vip")
-		hashSalary   = 0x69c724098dbd2bc3 // HashKey("salary")
-		hashRole     = 0xa358ec1ff0c833b9 // HashKey("role")
-		hashLevel    = 0xe8ddc90a9d7c709d // HashKey("level")
-		hashDeptInfo = 0x1048de984afc041f // HashKey("dept_info")
-		hashContact  = 0x623617b538360a63 // HashKey("contact")
+		hashName           = 0xc4bcadba8e631b86 // HashKey("name")
+		hashAge            = 0xe715b4190539215c // HashKey("age")
+		hashVip            = 0x68e906194eba76f0 // HashKey("vip")
+		hashSalary         = 0x69c724098dbd2bc3 // HashKey("salary")
+		hashLevel          = 0xe8ddc90a9d7c709d // HashKey("level")
+		hashDepartment     = 0x9fe2b90fc81732c7 // HashKey("department")
+		hashPrimaryContact = 0xb6c6aac71fb849af // HashKey("primaryContact")
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -1009,20 +884,16 @@ func (r *UpdateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 			if r.Salary, err = jsonflow.DecodeFloatPtr[float64](d); err != nil {
 				return err
 			}
-		case hashRole:
-			if r.Role, err = jsonflow.DecodeStringPtr(d); err != nil {
-				return err
-			}
 		case hashLevel:
 			if r.Level, err = jsonflow.DecodeIntPtr[ManagerLevel](d); err != nil {
 				return err
 			}
-		case hashDeptInfo:
-			if r.DeptInfo, err = jsonflow.DecodeObject(NewDepartmentInfo)(d); err != nil {
+		case hashDepartment:
+			if r.Department, err = jsonflow.DecodeIntPtr[Department](d); err != nil {
 				return err
 			}
-		case hashContact:
-			if r.Contact, err = jsonflow.DecodeObject(NewContactInfo)(d); err != nil {
+		case hashPrimaryContact:
+			if r.PrimaryContact, err = jsonflow.DecodeObject(NewContactInfo)(d); err != nil {
 				return err
 			}
 		default:
@@ -1050,33 +921,33 @@ func (x *UpdateManagerReqBody) Validate() error {
 			return errutil.Explain(nil, "validate failed on \"UpdateManagerReq.Salary\"")
 		}
 	}
-	if x.Contact != nil {
-		if err := x.Contact.Validate(); err != nil {
-			return errutil.Explain(err, "validate failed on \"UpdateManagerReq.Contact\"")
+	if x.PrimaryContact != nil {
+		if err := x.PrimaryContact.Validate(); err != nil {
+			return errutil.Explain(err, "validate failed on \"UpdateManagerReq.PrimaryContact\"")
 		}
 	}
 	return nil
 }
 
-// Paginated manager query
-type ListManagersByPageReq struct {
-	ListManagersByPageReqBody
-	Page     int64         `json:"page" query:"page" validate:"required"`
-	Size     int64         `json:"size" query:"size" validate:"required"`
-	Keyword  []string      `json:"keyword,omitempty" query:"keyword"`
-	Dept     *Department   `json:"dept,omitempty" query:"dept"`
-	MinLevel *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
-	Vip      *bool         `json:"vip,omitempty" query:"vip"`
+// List managers with filters
+type ListManagersReq struct {
+	ListManagersReqBody
+	Page       int64         `json:"page" query:"page" validate:"required"`
+	Size       int64         `json:"size" query:"size" validate:"required"`
+	Keyword    []string      `json:"keyword,omitempty" query:"keyword"`
+	Department *Department   `json:"department,omitempty" query:"department"`
+	MinLevel   *ManagerLevel `json:"minLevel,omitempty" query:"minLevel"`
+	Vip        *bool         `json:"vip,omitempty" query:"vip"`
 }
 
-// NewListManagersByPageReq creates a new ListManagersByPageReq instance
+// NewListManagersReq creates a new ListManagersReq instance
 // and initializes fields with default values.
-func NewListManagersByPageReq() *ListManagersByPageReq {
-	return &ListManagersByPageReq{}
+func NewListManagersReq() *ListManagersReq {
+	return &ListManagersReq{}
 }
 
 // QueryForm encodes query-bound fields into URL-encoded form data.
-func (x *ListManagersByPageReq) QueryForm() (string, error) {
+func (x *ListManagersReq) QueryForm() (string, error) {
 	form := make(url.Values)
 	if err := formutil.EncodeInt(form, "page", x.Page); err != nil {
 		return "", errutil.Explain(err, "encode form field \"page\" error")
@@ -1087,8 +958,8 @@ func (x *ListManagersByPageReq) QueryForm() (string, error) {
 	if err := formutil.EncodeList(form, "keyword", x.Keyword, formutil.EncodeString); err != nil {
 		return "", errutil.Explain(err, "encode form field \"keyword\" error")
 	}
-	if err := formutil.EncodeIntPtr(form, "dept", x.Dept); err != nil {
-		return "", errutil.Explain(err, "encode form field \"dept\" error")
+	if err := formutil.EncodeIntPtr(form, "department", x.Department); err != nil {
+		return "", errutil.Explain(err, "encode form field \"department\" error")
 	}
 	if err := formutil.EncodeIntPtr(form, "minLevel", x.MinLevel); err != nil {
 		return "", errutil.Explain(err, "encode form field \"minLevel\" error")
@@ -1101,7 +972,7 @@ func (x *ListManagersByPageReq) QueryForm() (string, error) {
 
 // Bind extracts path and query parameters from the HTTP request
 // and assigns them to the corresponding struct fields.
-func (x *ListManagersByPageReq) Bind(r *http.Request) error {
+func (x *ListManagersReq) Bind(r *http.Request) error {
 	form, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
 		return errutil.Explain(err, "parse query error")
@@ -1131,9 +1002,9 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) error {
 			if x.Keyword, err = formutil.DecodeList(key, values, formutil.DecodeString); err != nil {
 				return errutil.Explain(err, "decode form field \"keyword\" error")
 			}
-		case "dept":
-			if x.Dept, err = formutil.DecodeIntPtr[Department](key, values); err != nil {
-				return errutil.Explain(err, "decode form field \"dept\" error")
+		case "department":
+			if x.Department, err = formutil.DecodeIntPtr[Department](key, values); err != nil {
+				return errutil.Explain(err, "decode form field \"department\" error")
 			}
 		case "minLevel":
 			if x.MinLevel, err = formutil.DecodeIntPtr[ManagerLevel](key, values); err != nil {
@@ -1156,221 +1027,53 @@ func (x *ListManagersByPageReq) Bind(r *http.Request) error {
 }
 
 // Validate validates both bound parameters and request body fields.
-func (x *ListManagersByPageReq) Validate() error {
+func (x *ListManagersReq) Validate() error {
 	if !(x.Page >= 1) {
-		return errutil.Explain(nil, "validate failed on \"ListManagersByPageReq.Page\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersReq.Page\"")
 	}
 	if !(x.Size >= 1 && x.Size <= MAX_PAGE_SIZE) {
-		return errutil.Explain(nil, "validate failed on \"ListManagersByPageReq.Size\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersReq.Size\"")
 	}
 	if !(len(x.Keyword) <= 5) {
-		return errutil.Explain(nil, "validate failed on \"ListManagersByPageReq.Keyword\"")
+		return errutil.Explain(nil, "validate failed on \"ListManagersReq.Keyword\"")
 	}
-	if err := x.ListManagersByPageReqBody.Validate(); err != nil {
-		return errutil.Explain(err, "validate failed on \"ListManagersByPageReq\"")
+	if err := x.ListManagersReqBody.Validate(); err != nil {
+		return errutil.Explain(err, "validate failed on \"ListManagersReq\"")
 	}
 	return nil
 }
 
-// ListManagersByPageReqBody represents the request body payload,
+// ListManagersReqBody represents the request body payload,
 // excluding path and query parameters.
-type ListManagersByPageReqBody struct {
+type ListManagersReqBody struct {
 }
 
-// NewListManagersByPageReqBody creates a new ListManagersByPageReqBody instance
+// NewListManagersReqBody creates a new ListManagersReqBody instance
 // and initializes fields with default values.
-func NewListManagersByPageReqBody() *ListManagersByPageReqBody {
-	return &ListManagersByPageReqBody{}
+func NewListManagersReqBody() *ListManagersReqBody {
+	return &ListManagersReqBody{}
 }
 
 // EncodeForm encodes the request body as application/x-www-form-urlencoded data.
-func (x *ListManagersByPageReqBody) EncodeForm() (string, error) {
+func (x *ListManagersReqBody) EncodeForm() (string, error) {
 	return "", nil
 }
 
 // DecodeForm decodes application/x-www-form-urlencoded data into the request body.
-func (x *ListManagersByPageReqBody) DecodeForm(b []byte) error {
+func (x *ListManagersReqBody) DecodeForm(b []byte) error {
 	return nil
 }
 
 // Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageReqBody) Validate() error {
-	return nil
-}
-
-// Create / Update / Get responses
-type CreateManagerResp struct {
-	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
-	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
-	Data   *Manager `json:"data,omitempty" form:"data"`
-}
-
-// NewCreateManagerResp creates a new CreateManagerResp instance
-// and initializes fields with default values.
-func NewCreateManagerResp() *CreateManagerResp {
-	return &CreateManagerResp{}
-}
-
-// DecodeJSON decodes a JSON object into CreateManagerResp using a hash-based
-// field dispatch mechanism for high-performance parsing.
-func (r *CreateManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
-	const (
-		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
-		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
-		hashData   = 0x855b556730a34a05 // HashKey("data")
-	)
-
-	var (
-		hasErrno  bool
-		hasErrmsg bool
-	)
-
-	if err = jsonflow.DecodeObjectBegin(d); err != nil {
-		return err
-	}
-
-	for {
-		if d.PeekKind() == '}' {
-			break
-		}
-
-		var key string
-		key, err = jsonflow.DecodeString(d)
-		if err != nil {
-			return err
-		}
-
-		switch hashutil.FNV1a64(key) {
-		case hashErrno:
-			hasErrno = true
-			if r.Errno, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
-				return err
-			}
-		case hashErrmsg:
-			hasErrmsg = true
-			if r.Errmsg, err = jsonflow.DecodeString(d); err != nil {
-				return err
-			}
-		case hashData:
-			if r.Data, err = jsonflow.DecodeObject(NewManager)(d); err != nil {
-				return err
-			}
-		default:
-			if err = d.SkipValue(); err != nil {
-				return err
-			}
-		}
-	}
-
-	if err = jsonflow.DecodeObjectEnd(d); err != nil {
-		return err
-	}
-
-	if !hasErrno {
-		return errutil.Explain(err, "missing required field \"errno\"")
-	}
-	if !hasErrmsg {
-		return errutil.Explain(err, "missing required field \"errmsg\"")
-	}
-	return
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *CreateManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on \"CreateManagerResp.Errno\"")
-	}
-	return nil
-}
-
-type UpdateManagerResp struct {
-	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
-	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
-	Data   *Manager `json:"data,omitempty" form:"data"`
-}
-
-// NewUpdateManagerResp creates a new UpdateManagerResp instance
-// and initializes fields with default values.
-func NewUpdateManagerResp() *UpdateManagerResp {
-	return &UpdateManagerResp{}
-}
-
-// DecodeJSON decodes a JSON object into UpdateManagerResp using a hash-based
-// field dispatch mechanism for high-performance parsing.
-func (r *UpdateManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
-	const (
-		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
-		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
-		hashData   = 0x855b556730a34a05 // HashKey("data")
-	)
-
-	var (
-		hasErrno  bool
-		hasErrmsg bool
-	)
-
-	if err = jsonflow.DecodeObjectBegin(d); err != nil {
-		return err
-	}
-
-	for {
-		if d.PeekKind() == '}' {
-			break
-		}
-
-		var key string
-		key, err = jsonflow.DecodeString(d)
-		if err != nil {
-			return err
-		}
-
-		switch hashutil.FNV1a64(key) {
-		case hashErrno:
-			hasErrno = true
-			if r.Errno, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
-				return err
-			}
-		case hashErrmsg:
-			hasErrmsg = true
-			if r.Errmsg, err = jsonflow.DecodeString(d); err != nil {
-				return err
-			}
-		case hashData:
-			if r.Data, err = jsonflow.DecodeObject(NewManager)(d); err != nil {
-				return err
-			}
-		default:
-			if err = d.SkipValue(); err != nil {
-				return err
-			}
-		}
-	}
-
-	if err = jsonflow.DecodeObjectEnd(d); err != nil {
-		return err
-	}
-
-	if !hasErrno {
-		return errutil.Explain(err, "missing required field \"errno\"")
-	}
-	if !hasErrmsg {
-		return errutil.Explain(err, "missing required field \"errmsg\"")
-	}
-	return
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *UpdateManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on \"UpdateManagerResp.Errno\"")
-	}
+func (x *ListManagersReqBody) Validate() error {
 	return nil
 }
 
 type GetManagerResp struct {
-	Errno  ErrCode  `json:"errno" form:"errno" validate:"required"`
-	Errmsg string   `json:"errmsg" form:"errmsg" validate:"required"`
-	Data   *Manager `json:"data,omitempty" form:"data"`
+	Code      ErrCode  `json:"code" form:"code" validate:"required"`
+	Message   string   `json:"message" form:"message" validate:"required"`
+	RequestId *string  `json:"requestId,omitempty" form:"requestId"`
+	Data      *Manager `json:"data,omitempty" form:"data"`
 }
 
 // NewGetManagerResp creates a new GetManagerResp instance
@@ -1383,14 +1086,15 @@ func NewGetManagerResp() *GetManagerResp {
 // field dispatch mechanism for high-performance parsing.
 func (r *GetManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
-		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
-		hashData   = 0x855b556730a34a05 // HashKey("data")
+		hashCode      = 0xbb51791194b4414  // HashKey("code")
+		hashMessage   = 0x546401b5d2a8d2a4 // HashKey("message")
+		hashRequestId = 0xd9518651bf9ee11f // HashKey("requestId")
+		hashData      = 0x855b556730a34a05 // HashKey("data")
 	)
 
 	var (
-		hasErrno  bool
-		hasErrmsg bool
+		hasCode    bool
+		hasMessage bool
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -1409,14 +1113,18 @@ func (r *GetManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		case hashErrno:
-			hasErrno = true
-			if r.Errno, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
+		case hashCode:
+			hasCode = true
+			if r.Code, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
-		case hashErrmsg:
-			hasErrmsg = true
-			if r.Errmsg, err = jsonflow.DecodeString(d); err != nil {
+		case hashMessage:
+			hasMessage = true
+			if r.Message, err = jsonflow.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRequestId:
+			if r.RequestId, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashData:
@@ -1434,47 +1142,41 @@ func (r *GetManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		return err
 	}
 
-	if !hasErrno {
-		return errutil.Explain(err, "missing required field \"errno\"")
+	if !hasCode {
+		return errutil.Explain(err, "missing required field \"code\"")
 	}
-	if !hasErrmsg {
-		return errutil.Explain(err, "missing required field \"errmsg\"")
+	if !hasMessage {
+		return errutil.Explain(err, "missing required field \"message\"")
 	}
 	return
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *GetManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on \"GetManagerResp.Errno\"")
-	}
-	return nil
+type CreateManagerResp struct {
+	Code      ErrCode  `json:"code" form:"code" validate:"required"`
+	Message   string   `json:"message" form:"message" validate:"required"`
+	RequestId *string  `json:"requestId,omitempty" form:"requestId"`
+	Data      *Manager `json:"data,omitempty" form:"data"`
 }
 
-type DeleteManagerResp struct {
-	Errno  ErrCode `json:"errno" form:"errno" validate:"required"`
-	Errmsg string  `json:"errmsg" form:"errmsg" validate:"required"`
-	Data   *bool   `json:"data,omitempty" form:"data"`
-}
-
-// NewDeleteManagerResp creates a new DeleteManagerResp instance
+// NewCreateManagerResp creates a new CreateManagerResp instance
 // and initializes fields with default values.
-func NewDeleteManagerResp() *DeleteManagerResp {
-	return &DeleteManagerResp{}
+func NewCreateManagerResp() *CreateManagerResp {
+	return &CreateManagerResp{}
 }
 
-// DecodeJSON decodes a JSON object into DeleteManagerResp using a hash-based
+// DecodeJSON decodes a JSON object into CreateManagerResp using a hash-based
 // field dispatch mechanism for high-performance parsing.
-func (r *DeleteManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
+func (r *CreateManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
-		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
-		hashData   = 0x855b556730a34a05 // HashKey("data")
+		hashCode      = 0xbb51791194b4414  // HashKey("code")
+		hashMessage   = 0x546401b5d2a8d2a4 // HashKey("message")
+		hashRequestId = 0xd9518651bf9ee11f // HashKey("requestId")
+		hashData      = 0x855b556730a34a05 // HashKey("data")
 	)
 
 	var (
-		hasErrno  bool
-		hasErrmsg bool
+		hasCode    bool
+		hasMessage bool
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -1493,14 +1195,182 @@ func (r *DeleteManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		case hashErrno:
-			hasErrno = true
-			if r.Errno, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
+		case hashCode:
+			hasCode = true
+			if r.Code, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
-		case hashErrmsg:
-			hasErrmsg = true
-			if r.Errmsg, err = jsonflow.DecodeString(d); err != nil {
+		case hashMessage:
+			hasMessage = true
+			if r.Message, err = jsonflow.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRequestId:
+			if r.RequestId, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonflow.DecodeObject(NewManager)(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasCode {
+		return errutil.Explain(err, "missing required field \"code\"")
+	}
+	if !hasMessage {
+		return errutil.Explain(err, "missing required field \"message\"")
+	}
+	return
+}
+
+type UpdateManagerResp struct {
+	Code      ErrCode  `json:"code" form:"code" validate:"required"`
+	Message   string   `json:"message" form:"message" validate:"required"`
+	RequestId *string  `json:"requestId,omitempty" form:"requestId"`
+	Data      *Manager `json:"data,omitempty" form:"data"`
+}
+
+// NewUpdateManagerResp creates a new UpdateManagerResp instance
+// and initializes fields with default values.
+func NewUpdateManagerResp() *UpdateManagerResp {
+	return &UpdateManagerResp{}
+}
+
+// DecodeJSON decodes a JSON object into UpdateManagerResp using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *UpdateManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashCode      = 0xbb51791194b4414  // HashKey("code")
+		hashMessage   = 0x546401b5d2a8d2a4 // HashKey("message")
+		hashRequestId = 0xd9518651bf9ee11f // HashKey("requestId")
+		hashData      = 0x855b556730a34a05 // HashKey("data")
+	)
+
+	var (
+		hasCode    bool
+		hasMessage bool
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashCode:
+			hasCode = true
+			if r.Code, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
+				return err
+			}
+		case hashMessage:
+			hasMessage = true
+			if r.Message, err = jsonflow.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRequestId:
+			if r.RequestId, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashData:
+			if r.Data, err = jsonflow.DecodeObject(NewManager)(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+
+	if !hasCode {
+		return errutil.Explain(err, "missing required field \"code\"")
+	}
+	if !hasMessage {
+		return errutil.Explain(err, "missing required field \"message\"")
+	}
+	return
+}
+
+type DeleteManagerResp struct {
+	Code      ErrCode `json:"code" form:"code" validate:"required"`
+	Message   string  `json:"message" form:"message" validate:"required"`
+	RequestId *string `json:"requestId,omitempty" form:"requestId"`
+	Data      *bool   `json:"data,omitempty" form:"data"`
+}
+
+// NewDeleteManagerResp creates a new DeleteManagerResp instance
+// and initializes fields with default values.
+func NewDeleteManagerResp() *DeleteManagerResp {
+	return &DeleteManagerResp{}
+}
+
+// DecodeJSON decodes a JSON object into DeleteManagerResp using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *DeleteManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashCode      = 0xbb51791194b4414  // HashKey("code")
+		hashMessage   = 0x546401b5d2a8d2a4 // HashKey("message")
+		hashRequestId = 0xd9518651bf9ee11f // HashKey("requestId")
+		hashData      = 0x855b556730a34a05 // HashKey("data")
+	)
+
+	var (
+		hasCode    bool
+		hasMessage bool
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashCode:
+			hasCode = true
+			if r.Code, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
+				return err
+			}
+		case hashMessage:
+			hasMessage = true
+			if r.Message, err = jsonflow.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRequestId:
+			if r.RequestId, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashData:
@@ -1518,24 +1388,15 @@ func (r *DeleteManagerResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		return err
 	}
 
-	if !hasErrno {
-		return errutil.Explain(err, "missing required field \"errno\"")
+	if !hasCode {
+		return errutil.Explain(err, "missing required field \"code\"")
 	}
-	if !hasErrmsg {
-		return errutil.Explain(err, "missing required field \"errmsg\"")
+	if !hasMessage {
+		return errutil.Explain(err, "missing required field \"message\"")
 	}
 	return
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *DeleteManagerResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on \"DeleteManagerResp.Errno\"")
-	}
-	return nil
-}
-
-// Paginated response
 type ManagersPageData struct {
 	Total *int64     `json:"total,omitempty" form:"total"`
 	Page  *int64     `json:"page,omitempty" form:"page"`
@@ -1604,30 +1465,32 @@ func (r *ManagersPageData) DecodeJSON(d jsonflow.Decoder) (err error) {
 	return
 }
 
-type ListManagersByPageResp struct {
-	Errno  ErrCode           `json:"errno" form:"errno" validate:"required"`
-	Errmsg string            `json:"errmsg" form:"errmsg" validate:"required"`
-	Data   *ManagersPageData `json:"data,omitempty" form:"data"`
+type ListManagersResp struct {
+	Code      ErrCode           `json:"code" form:"code" validate:"required"`
+	Message   string            `json:"message" form:"message" validate:"required"`
+	RequestId *string           `json:"requestId,omitempty" form:"requestId"`
+	Data      *ManagersPageData `json:"data,omitempty" form:"data"`
 }
 
-// NewListManagersByPageResp creates a new ListManagersByPageResp instance
+// NewListManagersResp creates a new ListManagersResp instance
 // and initializes fields with default values.
-func NewListManagersByPageResp() *ListManagersByPageResp {
-	return &ListManagersByPageResp{}
+func NewListManagersResp() *ListManagersResp {
+	return &ListManagersResp{}
 }
 
-// DecodeJSON decodes a JSON object into ListManagersByPageResp using a hash-based
+// DecodeJSON decodes a JSON object into ListManagersResp using a hash-based
 // field dispatch mechanism for high-performance parsing.
-func (r *ListManagersByPageResp) DecodeJSON(d jsonflow.Decoder) (err error) {
+func (r *ListManagersResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashErrno  = 0x9f713ddd75d2f3ab // HashKey("errno")
-		hashErrmsg = 0xb91eb24f31be5e25 // HashKey("errmsg")
-		hashData   = 0x855b556730a34a05 // HashKey("data")
+		hashCode      = 0xbb51791194b4414  // HashKey("code")
+		hashMessage   = 0x546401b5d2a8d2a4 // HashKey("message")
+		hashRequestId = 0xd9518651bf9ee11f // HashKey("requestId")
+		hashData      = 0x855b556730a34a05 // HashKey("data")
 	)
 
 	var (
-		hasErrno  bool
-		hasErrmsg bool
+		hasCode    bool
+		hasMessage bool
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -1646,14 +1509,18 @@ func (r *ListManagersByPageResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		case hashErrno:
-			hasErrno = true
-			if r.Errno, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
+		case hashCode:
+			hasCode = true
+			if r.Code, err = jsonflow.DecodeInt[ErrCode](d); err != nil {
 				return err
 			}
-		case hashErrmsg:
-			hasErrmsg = true
-			if r.Errmsg, err = jsonflow.DecodeString(d); err != nil {
+		case hashMessage:
+			hasMessage = true
+			if r.Message, err = jsonflow.DecodeString(d); err != nil {
+				return err
+			}
+		case hashRequestId:
+			if r.RequestId, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashData:
@@ -1671,19 +1538,11 @@ func (r *ListManagersByPageResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		return err
 	}
 
-	if !hasErrno {
-		return errutil.Explain(err, "missing required field \"errno\"")
+	if !hasCode {
+		return errutil.Explain(err, "missing required field \"code\"")
 	}
-	if !hasErrmsg {
-		return errutil.Explain(err, "missing required field \"errmsg\"")
+	if !hasMessage {
+		return errutil.Explain(err, "missing required field \"message\"")
 	}
 	return
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *ListManagersByPageResp) Validate() error {
-	if !(OneOfErrCode(x.Errno)) {
-		return errutil.Explain(nil, "validate failed on \"ListManagersByPageResp.Errno\"")
-	}
-	return nil
 }

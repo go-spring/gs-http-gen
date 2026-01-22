@@ -24,24 +24,98 @@ var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
 var _ = formutil.EncodeInt[int]
 
+// Streaming event type
+type AssistantEventType int32
+
+const (
+
+	// Full message
+	AssistantEventType_MESSAGE AssistantEventType = 1
+	// Incremental content
+	AssistantEventType_DELTA AssistantEventType = 2
+	// Tool invocation
+	AssistantEventType_TOOL_CALL AssistantEventType = 3
+	// Image output
+	AssistantEventType_IMAGE AssistantEventType = 4
+	// Stream finished
+	AssistantEventType_DONE AssistantEventType = 5
+	// Error event
+	AssistantEventType_ERROR AssistantEventType = 6
+)
+
+var (
+	AssistantEventType_name = map[AssistantEventType]string{
+		1: "MESSAGE",
+		2: "DELTA",
+		3: "TOOL_CALL",
+		4: "IMAGE",
+		5: "DONE",
+		6: "ERROR",
+	}
+	AssistantEventType_value = map[string]AssistantEventType{
+		"MESSAGE":   1,
+		"DELTA":     2,
+		"TOOL_CALL": 3,
+		"IMAGE":     4,
+		"DONE":      5,
+		"ERROR":     6,
+	}
+)
+
+// OneOfAssistantEventType reports whether it's a valid AssistantEventType.
+func OneOfAssistantEventType(i AssistantEventType) bool {
+	_, ok := AssistantEventType_name[i]
+	return ok
+}
+
+// OneOfAssistantEventTypeAsString reports whether it's a valid AssistantEventTypeAsString.
+func OneOfAssistantEventTypeAsString(i AssistantEventTypeAsString) bool {
+	_, ok := AssistantEventType_name[AssistantEventType(i)]
+	return ok
+}
+
+// AssistantEventTypeAsString wraps AssistantEventType to encode/decode as a JSON string.
+type AssistantEventTypeAsString AssistantEventType
+
+// MarshalJSON encodes the enum value as its string name.
+func (x AssistantEventTypeAsString) MarshalJSON() ([]byte, error) {
+	if s, ok := AssistantEventType_name[AssistantEventType(x)]; ok {
+		return []byte(fmt.Sprintf("\"%s\"", s)), nil
+	}
+	return nil, errutil.Explain(nil, "invalid AssistantEventTypeAsString: %d", x)
+}
+
+// UnmarshalJSON decodes the enum value from its string name.
+func (x *AssistantEventTypeAsString) UnmarshalJSON(data []byte) error {
+	str := strings.Trim(string(data), "\"")
+	if v, ok := AssistantEventType_value[str]; ok {
+		*x = AssistantEventTypeAsString(v)
+		return nil
+	}
+	return errutil.Explain(nil, "invalid AssistantEventTypeAsString value: %q", str)
+}
+
 type PayloadType int32
 
 const (
-	PayloadType_PayloadOf1 PayloadType = 1
-	PayloadType_PayloadOf2 PayloadType = 2
-	PayloadType_PayloadOf3 PayloadType = 3
+	PayloadType_MessageDelta PayloadType = 1
+	PayloadType_ToolCall     PayloadType = 2
+	PayloadType_ImageData    PayloadType = 3
+	PayloadType_ErrorInfo    PayloadType = 4
 )
 
 var (
 	PayloadType_name = map[PayloadType]string{
-		1: "PayloadOf1",
-		2: "PayloadOf2",
-		3: "PayloadOf3",
+		1: "MessageDelta",
+		2: "ToolCall",
+		3: "ImageData",
+		4: "ErrorInfo",
 	}
 	PayloadType_value = map[string]PayloadType{
-		"PayloadOf1": 1,
-		"PayloadOf2": 2,
-		"PayloadOf3": 3,
+		"MessageDelta": 1,
+		"ToolCall":     2,
+		"ImageData":    3,
+		"ErrorInfo":    4,
 	}
 )
 
@@ -78,6 +152,74 @@ func (x *PayloadTypeAsString) UnmarshalJSON(data []byte) error {
 	return errutil.Explain(nil, "invalid PayloadTypeAsString value: %q", str)
 }
 
+// Chat message unit
+type Message struct {
+	Role    *string `json:"role,omitempty" form:"role"`
+	Content *string `json:"content,omitempty" form:"content"`
+}
+
+// NewMessage creates a new Message instance
+// and initializes fields with default values.
+func NewMessage() *Message {
+	return &Message{}
+}
+
+// DecodeJSON decodes a JSON object into Message using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *Message) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashRole    = 0xa358ec1ff0c833b9 // HashKey("role")
+		hashContent = 0x420c75b526b35282 // HashKey("content")
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashRole:
+			if r.Role, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashContent:
+			if r.Content, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
+// Validate checks field values using generated validation expressions.
+func (x *Message) Validate() error {
+	if x.Role != nil {
+		if !(*x.Role) {
+			return errutil.Explain(nil, "validate failed on \"Message.Role\"")
+		}
+	}
+	return nil
+}
+
+// Streaming assistant request
 type AssistantReq struct {
 	AssistantReqBody
 }
@@ -110,7 +252,9 @@ func (x *AssistantReq) Validate() error {
 // AssistantReqBody represents the request body payload,
 // excluding path and query parameters.
 type AssistantReqBody struct {
-	Items []*Item `json:"items,omitempty" form:"items"`
+	SessionId *string    `json:"sessionId,omitempty" form:"sessionId"`
+	UserId    *string    `json:"userId,omitempty" form:"userId"`
+	Messages  []*Message `json:"messages,omitempty" form:"messages"`
 }
 
 // NewAssistantReqBody creates a new AssistantReqBody instance
@@ -119,57 +263,13 @@ func NewAssistantReqBody() *AssistantReqBody {
 	return &AssistantReqBody{}
 }
 
-// EncodeForm encodes the request body as application/x-www-form-urlencoded data.
-func (x *AssistantReqBody) EncodeForm() (string, error) {
-	form := make(url.Values)
-	if err := formutil.EncodeList(form, "items", x.Items, formutil.EncodeJSON); err != nil {
-		return "", errutil.Explain(err, "encode form field \"items\" error")
-	}
-	return form.Encode(), nil
-}
-
-// DecodeForm decodes application/x-www-form-urlencoded data into the request body.
-func (x *AssistantReqBody) DecodeForm(b []byte) error {
-	form, err := url.ParseQuery(string(b))
-	if err != nil {
-		return errutil.Explain(err, "parse query error")
-	}
-
-	for key, values := range form {
-		if len(values) == 0 {
-			continue
-		}
-		switch key {
-		case "items":
-			if x.Items, err = formutil.DecodeList(key, values, formutil.DecodeJSON[*Item]); err != nil {
-				return errutil.Explain(err, "decode form field \"items\" error")
-			}
-		}
-	}
-
-	return nil
-}
-
-// Validate checks field values using generated validation expressions.
-func (x *AssistantReqBody) Validate() error {
-	return nil
-}
-
-type Item struct {
-	Id *string `json:"id,omitempty" form:"id"`
-}
-
-// NewItem creates a new Item instance
-// and initializes fields with default values.
-func NewItem() *Item {
-	return &Item{}
-}
-
-// DecodeJSON decodes a JSON object into Item using a hash-based
+// DecodeJSON decodes a JSON object into AssistantReqBody using a hash-based
 // field dispatch mechanism for high-performance parsing.
-func (r *Item) DecodeJSON(d jsonflow.Decoder) (err error) {
+func (r *AssistantReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashId = 0x8b72e07b55c3ac0 // HashKey("id")
+		hashSessionId = 0x154f245dce3e85fa // HashKey("sessionId")
+		hashUserId    = 0xf7d13faa74e2475f // HashKey("userId")
+		hashMessages  = 0xec1bef4f4de4355  // HashKey("messages")
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -188,8 +288,16 @@ func (r *Item) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		case hashId:
-			if r.Id, err = jsonflow.DecodeStringPtr(d); err != nil {
+		case hashSessionId:
+			if r.SessionId, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashUserId:
+			if r.UserId, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashMessages:
+			if r.Messages, err = jsonflow.DecodeArray(jsonflow.DecodeObject(NewMessage))(d); err != nil {
 				return err
 			}
 		default:
@@ -205,27 +313,36 @@ func (r *Item) DecodeJSON(d jsonflow.Decoder) (err error) {
 	return
 }
 
-type AssistantResp struct {
-	Id      *string  `json:"id,omitempty" form:"id"`
-	Data    *string  `json:"data,omitempty" form:"data"`
-	Payload *Payload `json:"payload,omitempty" form:"payload"`
-	Image   []byte   `json:"image,omitempty" form:"image"`
+// Validate checks field values using generated validation expressions.
+func (x *AssistantReqBody) Validate() error {
+	for _, v0 := range x.Messages {
+		if v0 != nil {
+			if err := v0.Validate(); err != nil {
+				return errutil.Explain(err, "validate failed on \"AssistantReq.Messages\"")
+			}
+		}
+	}
+	return nil
 }
 
-// NewAssistantResp creates a new AssistantResp instance
+// Incremental message payload
+type MessageDelta struct {
+	Content *string `json:"content,omitempty" form:"content"`
+	IsFinal *bool   `json:"isFinal,omitempty" form:"isFinal"`
+}
+
+// NewMessageDelta creates a new MessageDelta instance
 // and initializes fields with default values.
-func NewAssistantResp() *AssistantResp {
-	return &AssistantResp{}
+func NewMessageDelta() *MessageDelta {
+	return &MessageDelta{}
 }
 
-// DecodeJSON decodes a JSON object into AssistantResp using a hash-based
+// DecodeJSON decodes a JSON object into MessageDelta using a hash-based
 // field dispatch mechanism for high-performance parsing.
-func (r *AssistantResp) DecodeJSON(d jsonflow.Decoder) (err error) {
+func (r *MessageDelta) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashId      = 0x8b72e07b55c3ac0  // HashKey("id")
-		hashData    = 0x855b556730a34a05 // HashKey("data")
-		hashPayload = 0xcfb8a9d063b5e9e5 // HashKey("payload")
-		hashImage   = 0x2ab612888528489a // HashKey("image")
+		hashContent = 0x420c75b526b35282 // HashKey("content")
+		hashIsFinal = 0xce237000e53a0967 // HashKey("isFinal")
 	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
@@ -244,20 +361,183 @@ func (r *AssistantResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		case hashId:
-			if r.Id, err = jsonflow.DecodeStringPtr(d); err != nil {
+		case hashContent:
+			if r.Content, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashIsFinal:
+			if r.IsFinal, err = jsonflow.DecodeBoolPtr(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
+// Tool call payload
+type ToolCall struct {
+	Name      *string           `json:"name,omitempty" form:"name"`
+	Arguments map[string]string `json:"arguments,omitempty" form:"arguments"`
+}
+
+// NewToolCall creates a new ToolCall instance
+// and initializes fields with default values.
+func NewToolCall() *ToolCall {
+	return &ToolCall{}
+}
+
+// DecodeJSON decodes a JSON object into ToolCall using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *ToolCall) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashName      = 0xc4bcadba8e631b86 // HashKey("name")
+		hashArguments = 0xe42e0c2563a2219f // HashKey("arguments")
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashName:
+			if r.Name, err = jsonflow.DecodeStringPtr(d); err != nil {
+				return err
+			}
+		case hashArguments:
+			if r.Arguments, err = jsonflow.DecodeMap(jsonflow.DecodeString, jsonflow.DecodeString)(d); err != nil {
+				return err
+			}
+		default:
+			if err = d.SkipValue(); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
+// Image payload
+type ImageData struct {
+	Mime *string `json:"mime,omitempty" form:"mime"`
+	Data []byte  `json:"data,omitempty" form:"data"`
+}
+
+// NewImageData creates a new ImageData instance
+// and initializes fields with default values.
+func NewImageData() *ImageData {
+	return &ImageData{}
+}
+
+// DecodeJSON decodes a JSON object into ImageData using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *ImageData) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashMime = 0xda5205a2a792ac3d // HashKey("mime")
+		hashData = 0x855b556730a34a05 // HashKey("data")
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashMime:
+			if r.Mime, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		case hashData:
-			if r.Data, err = jsonflow.DecodeStringPtr(d); err != nil {
+			if r.Data, err = jsonflow.DecodeBytes(d); err != nil {
 				return err
 			}
-		case hashPayload:
-			if r.Payload, err = jsonflow.DecodeObject(NewPayload)(d); err != nil {
+		default:
+			if err = d.SkipValue(); err != nil {
 				return err
 			}
-		case hashImage:
-			if r.Image, err = jsonflow.DecodeBytes(d); err != nil {
+		}
+	}
+
+	if err = jsonflow.DecodeObjectEnd(d); err != nil {
+		return err
+	}
+	return
+}
+
+// Error payload
+type ErrorInfo struct {
+	Code    *ErrCode `json:"code,omitempty" form:"code"`
+	Message *string  `json:"message,omitempty" form:"message"`
+}
+
+// NewErrorInfo creates a new ErrorInfo instance
+// and initializes fields with default values.
+func NewErrorInfo() *ErrorInfo {
+	return &ErrorInfo{}
+}
+
+// DecodeJSON decodes a JSON object into ErrorInfo using a hash-based
+// field dispatch mechanism for high-performance parsing.
+func (r *ErrorInfo) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashCode    = 0xbb51791194b4414  // HashKey("code")
+		hashMessage = 0x546401b5d2a8d2a4 // HashKey("message")
+	)
+
+	if err = jsonflow.DecodeObjectBegin(d); err != nil {
+		return err
+	}
+
+	for {
+		if d.PeekKind() == '}' {
+			break
+		}
+
+		var key string
+		key, err = jsonflow.DecodeString(d)
+		if err != nil {
+			return err
+		}
+
+		switch hashutil.FNV1a64(key) {
+		case hashCode:
+			if r.Code, err = jsonflow.DecodeIntPtr[ErrCode](d); err != nil {
+				return err
+			}
+		case hashMessage:
+			if r.Message, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
 		default:
@@ -274,10 +554,11 @@ func (r *AssistantResp) DecodeJSON(d jsonflow.Decoder) (err error) {
 }
 
 type Payload struct {
-	FieldType  PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
-	PayloadOf1 *PayloadOf1         `json:"PayloadOf1,omitempty" form:"PayloadOf1"`
-	PayloadOf2 *PayloadOf2         `json:"PayloadOf2,omitempty" form:"PayloadOf2"`
-	PayloadOf3 *PayloadOf3         `json:"PayloadOf3,omitempty" form:"PayloadOf3"`
+	FieldType    PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
+	MessageDelta *MessageDelta       `json:"MessageDelta,omitempty" form:"MessageDelta"`
+	ToolCall     *ToolCall           `json:"ToolCall,omitempty" form:"ToolCall"`
+	ImageData    *ImageData          `json:"ImageData,omitempty" form:"ImageData"`
+	ErrorInfo    *ErrorInfo          `json:"ErrorInfo,omitempty" form:"ErrorInfo"`
 }
 
 // NewPayload creates a new Payload instance
@@ -290,10 +571,11 @@ func NewPayload() *Payload {
 // field dispatch mechanism for high-performance parsing.
 func (r *Payload) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashFieldType  = 0x924fb655ccf9c75f // HashKey("FieldType")
-		hashPayloadOf1 = 0xbf1a330ab6dde99b // HashKey("PayloadOf1")
-		hashPayloadOf2 = 0xbf1a340ab6ddeb4e // HashKey("PayloadOf2")
-		hashPayloadOf3 = 0xbf1a350ab6dded01 // HashKey("PayloadOf3")
+		hashFieldType    = 0x924fb655ccf9c75f // HashKey("FieldType")
+		hashMessageDelta = 0x28f9a6652f1ce6d2 // HashKey("MessageDelta")
+		hashToolCall     = 0x7612e8c3a2f00937 // HashKey("ToolCall")
+		hashImageData    = 0xee537da77a0db6a  // HashKey("ImageData")
+		hashErrorInfo    = 0x78d5dfce1dd7c7a9 // HashKey("ErrorInfo")
 	)
 
 	var (
@@ -321,16 +603,20 @@ func (r *Payload) DecodeJSON(d jsonflow.Decoder) (err error) {
 			if r.FieldType, err = jsonflow.DecodeAny[PayloadTypeAsString](d); err != nil {
 				return err
 			}
-		case hashPayloadOf1:
-			if r.PayloadOf1, err = jsonflow.DecodeObject(NewPayloadOf1)(d); err != nil {
+		case hashMessageDelta:
+			if r.MessageDelta, err = jsonflow.DecodeObject(NewMessageDelta)(d); err != nil {
 				return err
 			}
-		case hashPayloadOf2:
-			if r.PayloadOf2, err = jsonflow.DecodeObject(NewPayloadOf2)(d); err != nil {
+		case hashToolCall:
+			if r.ToolCall, err = jsonflow.DecodeObject(NewToolCall)(d); err != nil {
 				return err
 			}
-		case hashPayloadOf3:
-			if r.PayloadOf3, err = jsonflow.DecodeObject(NewPayloadOf3)(d); err != nil {
+		case hashImageData:
+			if r.ImageData, err = jsonflow.DecodeObject(NewImageData)(d); err != nil {
+				return err
+			}
+		case hashErrorInfo:
+			if r.ErrorInfo, err = jsonflow.DecodeObject(NewErrorInfo)(d); err != nil {
 				return err
 			}
 		default:
@@ -350,18 +636,27 @@ func (r *Payload) DecodeJSON(d jsonflow.Decoder) (err error) {
 	return
 }
 
-type PayloadOf1 struct {
+// Single SSE event
+type AssistantEvent struct {
+	Type    *AssistantEventType `json:"type,omitempty" form:"type"`
+	EventId *string             `json:"eventId,omitempty" form:"eventId"`
+	Payload *Payload            `json:"payload,omitempty" form:"payload"`
 }
 
-// NewPayloadOf1 creates a new PayloadOf1 instance
+// NewAssistantEvent creates a new AssistantEvent instance
 // and initializes fields with default values.
-func NewPayloadOf1() *PayloadOf1 {
-	return &PayloadOf1{}
+func NewAssistantEvent() *AssistantEvent {
+	return &AssistantEvent{}
 }
 
-// DecodeJSON decodes a JSON object into PayloadOf1 using a hash-based
+// DecodeJSON decodes a JSON object into AssistantEvent using a hash-based
 // field dispatch mechanism for high-performance parsing.
-func (r *PayloadOf1) DecodeJSON(d jsonflow.Decoder) (err error) {
+func (r *AssistantEvent) DecodeJSON(d jsonflow.Decoder) (err error) {
+	const (
+		hashType    = 0xa79439ef7bfa9c2d // HashKey("type")
+		hashEventId = 0xebce335bb0562572 // HashKey("eventId")
+		hashPayload = 0xcfb8a9d063b5e9e5 // HashKey("payload")
+	)
 
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
 		return err
@@ -379,90 +674,18 @@ func (r *PayloadOf1) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		default:
-			if err = d.SkipValue(); err != nil {
+		case hashType:
+			if r.Type, err = jsonflow.DecodeIntPtr[AssistantEventType](d); err != nil {
 				return err
 			}
-		}
-	}
-
-	if err = jsonflow.DecodeObjectEnd(d); err != nil {
-		return err
-	}
-	return
-}
-
-type PayloadOf2 struct {
-}
-
-// NewPayloadOf2 creates a new PayloadOf2 instance
-// and initializes fields with default values.
-func NewPayloadOf2() *PayloadOf2 {
-	return &PayloadOf2{}
-}
-
-// DecodeJSON decodes a JSON object into PayloadOf2 using a hash-based
-// field dispatch mechanism for high-performance parsing.
-func (r *PayloadOf2) DecodeJSON(d jsonflow.Decoder) (err error) {
-
-	if err = jsonflow.DecodeObjectBegin(d); err != nil {
-		return err
-	}
-
-	for {
-		if d.PeekKind() == '}' {
-			break
-		}
-
-		var key string
-		key, err = jsonflow.DecodeString(d)
-		if err != nil {
-			return err
-		}
-
-		switch hashutil.FNV1a64(key) {
-		default:
-			if err = d.SkipValue(); err != nil {
+		case hashEventId:
+			if r.EventId, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err
 			}
-		}
-	}
-
-	if err = jsonflow.DecodeObjectEnd(d); err != nil {
-		return err
-	}
-	return
-}
-
-type PayloadOf3 struct {
-}
-
-// NewPayloadOf3 creates a new PayloadOf3 instance
-// and initializes fields with default values.
-func NewPayloadOf3() *PayloadOf3 {
-	return &PayloadOf3{}
-}
-
-// DecodeJSON decodes a JSON object into PayloadOf3 using a hash-based
-// field dispatch mechanism for high-performance parsing.
-func (r *PayloadOf3) DecodeJSON(d jsonflow.Decoder) (err error) {
-
-	if err = jsonflow.DecodeObjectBegin(d); err != nil {
-		return err
-	}
-
-	for {
-		if d.PeekKind() == '}' {
-			break
-		}
-
-		var key string
-		key, err = jsonflow.DecodeString(d)
-		if err != nil {
-			return err
-		}
-
-		switch hashutil.FNV1a64(key) {
+		case hashPayload:
+			if r.Payload, err = jsonflow.DecodeObject(NewPayload)(d); err != nil {
+				return err
+			}
 		default:
 			if err = d.SkipValue(); err != nil {
 				return err

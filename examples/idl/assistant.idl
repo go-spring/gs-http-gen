@@ -59,15 +59,15 @@ type ErrorInfo {
 }
 
 oneof Payload {
-    MessageDelta message
-    ToolCall tool
-    ImageData image
-    ErrorInfo error
+    MessageDelta
+    ToolCall
+    ImageData
+    ErrorInfo
 }
 
 // Single SSE event
 type AssistantEvent {
-    AssistantEventType type
+    AssistantEventType Type (json="type")
     string eventId
     Payload payload
 }
