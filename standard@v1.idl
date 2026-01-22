@@ -5,14 +5,17 @@
 
 
 // ----------------------
-// Success code definition
+// Error code definition
 // ----------------------
 
-// Standard success code.
-// Only SUCCESS is defined here.
-// Error codes are intentionally left to each service or domain.
-enum ResultCode {
-    SUCCESS = 0
+// Standard error code definition.
+//
+// Conventions:
+// - SUCCESS indicates a successful request
+// - Error codes other than SUCCESS are defined by individual services
+// - Numeric values must remain stable once published
+enum ErrorCode {
+    SUCCESS = 0 ( errmsg= "success")
 }
 
 
@@ -23,14 +26,15 @@ enum ResultCode {
 // Standard response wrapper for service APIs.
 //
 // Conventions:
-// - code == SUCCESS indicates a successful request
-// - data is valid only when code == SUCCESS
-// - non-success codes are defined by individual services
+// - code == SUCCESS means the request is successful
+// - data is meaningful only when code == SUCCESS
+// - errmsg provides human-readable error information
 //
 // Extension:
-// - Services may extend error semantics via custom codes or payloads
+// - Services may introduce additional error codes
+// - Error details can be extended via custom payloads if needed
 type Response<T> {
-    required ResultCode code
+    required ErrorCode code
     string message
     string requestId
     T data
