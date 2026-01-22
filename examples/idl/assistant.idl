@@ -21,7 +21,7 @@ type AssistantReq {
 }
 
 // ----------------------
-// Event & payload types
+// Streaming payload types
 // ----------------------
 
 // Incremental message payload
@@ -48,6 +48,7 @@ type ErrorInfo {
     string message
 }
 
+// Union payload for SSE events
 oneof Payload {
     MessageDelta
     ToolCall
@@ -55,14 +56,18 @@ oneof Payload {
     ErrorInfo
 }
 
-// Single SSE event
+// ----------------------
+// SSE event envelope
+// ----------------------
+
+// Single Server-Sent Event
 type AssistantEvent {
     string eventId
     Payload payload
 }
 
 // ----------------------
-// SSE RPC definitions
+// SSE RPC definition
 // ----------------------
 
 // Streaming assistant interface
@@ -73,6 +78,6 @@ sse Assistant(AssistantReq) AssistantEvent {
     summary="Streaming assistant response (SSE)"
 
     connTimeout=100
-    readTimeout=0        // Long-lived connection
-    writeTimeout=0
+    readTimeout=100
+    writeTimeout=100
 }
