@@ -674,8 +674,8 @@ func (x *CreateManagerReq) Validate() error {
 // CreateManagerReqBody represents the request body payload,
 // excluding path and query parameters.
 type CreateManagerReqBody struct {
-	Name           *string               `json:"name,omitempty" form:"name"`
-	Age            *int64                `json:"age,omitempty" form:"age"`
+	Name           string                `json:"name" form:"name" validate:"required"`
+	Age            int64                 `json:"age" form:"age" validate:"required"`
 	Vip            *bool                 `json:"vip,omitempty" form:"vip"`
 	Salary         *float64              `json:"salary,omitempty" form:"salary"`
 	Level          *ManagerLevelAsString `json:"level,omitempty" form:"level"`
@@ -702,6 +702,11 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 		hashPrimaryContact = 0xb6c6aac71fb849af // HashKey("primaryContact")
 	)
 
+	var (
+		hasName bool
+		hasAge  bool
+	)
+
 	if err = jsonflow.DecodeObjectBegin(d); err != nil {
 		return err
 	}
@@ -719,11 +724,13 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 
 		switch hashutil.FNV1a64(key) {
 		case hashName:
-			if r.Name, err = jsonflow.DecodeStringPtr(d); err != nil {
+			hasName = true
+			if r.Name, err = jsonflow.DecodeString(d); err != nil {
 				return err
 			}
 		case hashAge:
-			if r.Age, err = jsonflow.DecodeIntPtr[int64](d); err != nil {
+			hasAge = true
+			if r.Age, err = jsonflow.DecodeInt[int64](d); err != nil {
 				return err
 			}
 		case hashVip:
@@ -756,20 +763,23 @@ func (r *CreateManagerReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 	if err = jsonflow.DecodeObjectEnd(d); err != nil {
 		return err
 	}
+
+	if !hasName {
+		return errutil.Explain(err, "missing required field \"name\"")
+	}
+	if !hasAge {
+		return errutil.Explain(err, "missing required field \"age\"")
+	}
 	return
 }
 
 // Validate checks field values using generated validation expressions.
 func (x *CreateManagerReqBody) Validate() error {
-	if x.Name != nil {
-		if !(len(*x.Name) > 0 && len(*x.Name) <= 64) {
-			return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Name\"")
-		}
+	if !(len(x.Name) > 0 && len(x.Name) <= 64) {
+		return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Name\"")
 	}
-	if x.Age != nil {
-		if !(*x.Age >= MIN_AGE && *x.Age <= MAX_AGE) {
-			return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Age\"")
-		}
+	if !(x.Age >= MIN_AGE && x.Age <= MAX_AGE) {
+		return errutil.Explain(nil, "validate failed on \"CreateManagerReq.Age\"")
 	}
 	if x.Salary != nil {
 		if !(*x.Salary >= SALARY_MIN && *x.Salary <= SALARY_MAX) {

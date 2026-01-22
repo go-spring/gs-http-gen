@@ -13,8 +13,6 @@ import (
 type ManagerService interface {
 	// Streaming assistant interface
 	Assistant(context.Context, *AssistantReq, chan<- *httpsvr.Event[*AssistantEvent])
-	// Versioned streaming assistant
-	AssistantV2(context.Context, *AssistantReq, chan<- *httpsvr.Event[*AssistantEvent])
 	// Create a new manager
 	CreateManager(context.Context, *CreateManagerReq) *CreateManagerResp
 	// Delete manager
@@ -76,14 +74,6 @@ func Routers(server ManagerService, fn httpsvr.NewRequestContext) []httpsvr.Rout
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
 				httpsvr.HandleJSON(w, r.WithContext(ctx), NewListManagersReq(), server.ListManagers)
-			},
-		},
-		{
-			Method:  "POST",
-			Pattern: "/v2/assistant/stream",
-			Handler: func(w http.ResponseWriter, r *http.Request) {
-				ctx := httpsvr.WithRequestContext(r.Context(), fn(r, w))
-				httpsvr.HandleStream(w, r.WithContext(ctx), NewAssistantReq(), server.AssistantV2)
 			},
 		},
 	}

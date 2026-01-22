@@ -24,77 +24,6 @@ var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
 var _ = formutil.EncodeInt[int]
 
-// Streaming event type
-type AssistantEventType int32
-
-const (
-
-	// Full message
-	AssistantEventType_MESSAGE AssistantEventType = 1
-	// Incremental content
-	AssistantEventType_DELTA AssistantEventType = 2
-	// Tool invocation
-	AssistantEventType_TOOL_CALL AssistantEventType = 3
-	// Image output
-	AssistantEventType_IMAGE AssistantEventType = 4
-	// Stream finished
-	AssistantEventType_DONE AssistantEventType = 5
-	// Error event
-	AssistantEventType_ERROR AssistantEventType = 6
-)
-
-var (
-	AssistantEventType_name = map[AssistantEventType]string{
-		1: "MESSAGE",
-		2: "DELTA",
-		3: "TOOL_CALL",
-		4: "IMAGE",
-		5: "DONE",
-		6: "ERROR",
-	}
-	AssistantEventType_value = map[string]AssistantEventType{
-		"MESSAGE":   1,
-		"DELTA":     2,
-		"TOOL_CALL": 3,
-		"IMAGE":     4,
-		"DONE":      5,
-		"ERROR":     6,
-	}
-)
-
-// OneOfAssistantEventType reports whether it's a valid AssistantEventType.
-func OneOfAssistantEventType(i AssistantEventType) bool {
-	_, ok := AssistantEventType_name[i]
-	return ok
-}
-
-// OneOfAssistantEventTypeAsString reports whether it's a valid AssistantEventTypeAsString.
-func OneOfAssistantEventTypeAsString(i AssistantEventTypeAsString) bool {
-	_, ok := AssistantEventType_name[AssistantEventType(i)]
-	return ok
-}
-
-// AssistantEventTypeAsString wraps AssistantEventType to encode/decode as a JSON string.
-type AssistantEventTypeAsString AssistantEventType
-
-// MarshalJSON encodes the enum value as its string name.
-func (x AssistantEventTypeAsString) MarshalJSON() ([]byte, error) {
-	if s, ok := AssistantEventType_name[AssistantEventType(x)]; ok {
-		return []byte(fmt.Sprintf("\"%s\"", s)), nil
-	}
-	return nil, errutil.Explain(nil, "invalid AssistantEventTypeAsString: %d", x)
-}
-
-// UnmarshalJSON decodes the enum value from its string name.
-func (x *AssistantEventTypeAsString) UnmarshalJSON(data []byte) error {
-	str := strings.Trim(string(data), "\"")
-	if v, ok := AssistantEventType_value[str]; ok {
-		*x = AssistantEventTypeAsString(v)
-		return nil
-	}
-	return errutil.Explain(nil, "invalid AssistantEventTypeAsString value: %q", str)
-}
-
 type PayloadType int32
 
 const (
@@ -209,16 +138,6 @@ func (r *Message) DecodeJSON(d jsonflow.Decoder) (err error) {
 	return
 }
 
-// Validate checks field values using generated validation expressions.
-func (x *Message) Validate() error {
-	if x.Role != nil {
-		if !(*x.Role) {
-			return errutil.Explain(nil, "validate failed on \"Message.Role\"")
-		}
-	}
-	return nil
-}
-
 // Streaming assistant request
 type AssistantReq struct {
 	AssistantReqBody
@@ -315,13 +234,6 @@ func (r *AssistantReqBody) DecodeJSON(d jsonflow.Decoder) (err error) {
 
 // Validate checks field values using generated validation expressions.
 func (x *AssistantReqBody) Validate() error {
-	for _, v0 := range x.Messages {
-		if v0 != nil {
-			if err := v0.Validate(); err != nil {
-				return errutil.Explain(err, "validate failed on \"AssistantReq.Messages\"")
-			}
-		}
-	}
 	return nil
 }
 
@@ -553,6 +465,7 @@ func (r *ErrorInfo) DecodeJSON(d jsonflow.Decoder) (err error) {
 	return
 }
 
+// Union payload for SSE events
 type Payload struct {
 	FieldType    PayloadTypeAsString `json:"FieldType" form:"FieldType" validate:"required"`
 	MessageDelta *MessageDelta       `json:"MessageDelta,omitempty" form:"MessageDelta"`
@@ -636,11 +549,10 @@ func (r *Payload) DecodeJSON(d jsonflow.Decoder) (err error) {
 	return
 }
 
-// Single SSE event
+// Single Server-Sent Event
 type AssistantEvent struct {
-	Type    *AssistantEventType `json:"type,omitempty" form:"type"`
-	EventId *string             `json:"eventId,omitempty" form:"eventId"`
-	Payload *Payload            `json:"payload,omitempty" form:"payload"`
+	EventId *string  `json:"eventId,omitempty" form:"eventId"`
+	Payload *Payload `json:"payload,omitempty" form:"payload"`
 }
 
 // NewAssistantEvent creates a new AssistantEvent instance
@@ -653,7 +565,6 @@ func NewAssistantEvent() *AssistantEvent {
 // field dispatch mechanism for high-performance parsing.
 func (r *AssistantEvent) DecodeJSON(d jsonflow.Decoder) (err error) {
 	const (
-		hashType    = 0xa79439ef7bfa9c2d // HashKey("type")
 		hashEventId = 0xebce335bb0562572 // HashKey("eventId")
 		hashPayload = 0xcfb8a9d063b5e9e5 // HashKey("payload")
 	)
@@ -674,10 +585,6 @@ func (r *AssistantEvent) DecodeJSON(d jsonflow.Decoder) (err error) {
 		}
 
 		switch hashutil.FNV1a64(key) {
-		case hashType:
-			if r.Type, err = jsonflow.DecodeIntPtr[AssistantEventType](d); err != nil {
-				return err
-			}
 		case hashEventId:
 			if r.EventId, err = jsonflow.DecodeStringPtr(d); err != nil {
 				return err

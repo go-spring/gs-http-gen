@@ -1,11 +1,13 @@
 {
   "name": "Manager",
-  "description": "Manager",
-  "version": "v0.0.1",
-  "import": [
+  "description": "IDL definitions for manager CRUD APIs and assistant streaming interfaces",
+  "version": "v1.0.0",
+  "imports": [
     "https://github.com/go-spring/common.idl"
   ],
   "config": {
-    "debug": true
+    "sse": {
+      "keepAlive": true
+    }
   }
 }

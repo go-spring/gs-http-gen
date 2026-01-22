@@ -128,8 +128,8 @@ type GetManagerReq {
 
 // Create manager
 type CreateManagerReq {
-    string name (validate="len($) > 0 && len($) <= 64")
-    int age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
+    required string name (validate="len($) > 0 && len($) <= 64")
+    required int age (validate="$ >= MIN_AGE && $ <= MAX_AGE")
     bool vip
     float salary (validate="$ >= SALARY_MIN && $ <= SALARY_MAX")
     ManagerLevel level (enum_as_string)
