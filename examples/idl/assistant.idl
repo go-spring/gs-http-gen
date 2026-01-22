@@ -1,52 +1,101 @@
-// assistant.idl
+// ==================================================
+// Assistant Service - Streaming (SSE) IDL
+// Real-time AI / Copilot style streaming interface
+// ==================================================
 
+// ----------------------
+// Request types
+// ----------------------
+
+// Chat message unit
+type Message {
+    string role (validate="$ in ['system','user','assistant']")
+    string content
+}
+
+// Streaming assistant request
 type AssistantReq {
-    list<Item> items
+    string sessionId
+    string userId
+    list<Message> messages
 }
 
-type Item {
-    string id
+// ----------------------
+// Event & payload types
+// ----------------------
+
+// Streaming event type
+enum AssistantEventType {
+    MESSAGE = 1      // Full message
+    DELTA = 2        // Incremental content
+    TOOL_CALL = 3    // Tool invocation
+    IMAGE = 4        // Image output
+    DONE = 5         // Stream finished
+    ERROR = 6        // Error event
 }
 
-type AssistantResp {
-    string id
-    string data
-    Payload payload
-    bytes image
+// Incremental message payload
+type MessageDelta {
+    string content
+    bool isFinal
+}
+
+// Tool call payload
+type ToolCall {
+    string name
+    map<string,string> arguments
+}
+
+// Image payload
+type ImageData {
+    string mime
+    bytes data
+}
+
+// Error payload
+type ErrorInfo {
+    ErrCode code
+    string message
 }
 
 oneof Payload {
-    PayloadOf1
-    PayloadOf2
-    PayloadOf3
+    MessageDelta message
+    ToolCall tool
+    ImageData image
+    ErrorInfo error
 }
 
-type PayloadOf1 {}
-type PayloadOf2 {}
-type PayloadOf3 {}
-
-// Assistant ...
-sse Assistant(AssistantReq) AssistantResp {
-    method="GET"
-    path="/assistant"
-    contentType="form"
-    summary="assistant"
-
-    // timeouts
-    connTimeout=100
-    readTimeout=100
-    writeTimeout=100
+// Single SSE event
+type AssistantEvent {
+    AssistantEventType type
+    string eventId
+    Payload payload
 }
 
-// AssistantV2 ...
-sse AssistantV2(AssistantReq) string {
-    method="GET"
-    path="/assistantV2"
-    contentType="form"
-    summary="assistantV2"
+// ----------------------
+// SSE RPC definitions
+// ----------------------
 
-    // timeouts
+// Streaming assistant interface
+sse Assistant(AssistantReq) AssistantEvent {
+    method="POST"
+    path="/assistant/stream"
+    contentType="json"
+    summary="Streaming assistant response (SSE)"
+
     connTimeout=100
-    readTimeout=100
-    writeTimeout=100
+    readTimeout=0        // Long-lived connection
+    writeTimeout=0
+}
+
+// Versioned streaming assistant
+sse AssistantV2(AssistantReq) AssistantEvent {
+    method="POST"
+    path="/v2/assistant/stream"
+    contentType="json"
+    summary="Streaming assistant with extended capabilities"
+
+    connTimeout=100
+    readTimeout=0
+    writeTimeout=0
 }
