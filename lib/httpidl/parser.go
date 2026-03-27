@@ -295,6 +295,10 @@ func processTypes(p Project) error {
 				t.Request = true
 				t.Encoding = v.Encoding
 			}
+
+			if err := checkFieldsHashKey(t); err != nil {
+				return err
+			}
 			doc.Types[i] = t // update
 		}
 		p.Files[file] = doc // update
@@ -426,6 +430,19 @@ func processRPCPaths(p Project) error {
 			doc.RPCs[i] = rpc // update
 		}
 		p.Files[file] = doc // update
+	}
+	return nil
+}
+
+// checkFieldsHashKey checks if a type has duplicate hash keys.
+func checkFieldsHashKey(t Type) error {
+	hashKeySet := make(map[string]string)
+	for _, f := range t.Fields {
+		prevName, ok := hashKeySet[f.JSONTag.HashKey]
+		if ok {
+			return errutil.Explain(nil, "type %s has duplicate hash key %s for field %s and %s", t.Name, f.JSONTag.HashKey, prevName, f.Name)
+		}
+		hashKeySet[f.JSONTag.HashKey] = f.Name
 	}
 	return nil
 }

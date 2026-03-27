@@ -19,6 +19,7 @@ package golang
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/go-spring/gs-http-gen/lib/httpidl"
@@ -98,11 +99,7 @@ type TypeField struct {
 	Name     string
 	Type     string
 	TypeKind []TypeKind
-}
-
-// IsPointer returns true if the field is a pointer
-func (x *TypeField) IsPointer() bool {
-	return IsPointer(x.TypeKind[0])
+	Default  any
 }
 
 // FieldTag returns the field tag
@@ -148,10 +145,7 @@ type RPC struct {
 	httpidl.RPC
 	Response     string     // Response type
 	RespTypeKind []TypeKind // Response type kind
-
-	FormatPath   string            // Formatted HTTP path
-	PathParams   map[string]string // HTTP path parameters
-	PathSegments []pathidl.Segment // HTTP path segments
+	FormatPath   string     // Formatted HTTP path
 }
 
 type GoSpec struct {
@@ -224,9 +218,6 @@ func Convert(dir string) (GoSpec, error) {
 				RPC:          r,
 				Response:     response,
 				RespTypeKind: typeKind,
-				FormatPath:   r.Path, // 假设是普通路径
-				PathParams:   r.PathParams,
-				PathSegments: r.PathSegments,
 			}
 			spec.RPCs = append(spec.RPCs, rpc)
 		}
@@ -340,12 +331,20 @@ func convertType(spec GoSpec, t httpidl.Type) (Type, error) {
 			return Type{}, errutil.Explain(nil, "field %s in type %s is not required but has nullable type", f.Name, r.Name)
 		}
 
+		var defaultValue any
+		if f.CompatDefault != nil {
+			if defaultValue, err = goDefaultValue(typeKind, *f.CompatDefault); err != nil {
+				return Type{}, errutil.Explain(nil, "convert default value for field %s in type %s error: %w", f.Name, r.Name, err)
+			}
+		}
+
 		// Add the field to the struct
 		field := TypeField{
 			TypeField: f,
 			Name:      fieldName,
 			Type:      typeName,
 			TypeKind:  typeKind,
+			Default:   defaultValue,
 		}
 		r.Fields = append(r.Fields, field)
 	}
@@ -528,5 +527,39 @@ func getTypeKind(spec GoSpec, typeName string) ([]TypeKind, error) {
 			}
 		}
 		return nil, errutil.Explain(nil, "unknown type: %s", typeName)
+	}
+}
+
+// goDefaultValue returns the default value for a given type.
+func goDefaultValue(typeKind []TypeKind, s string) (any, error) {
+	switch typeKind[0] {
+	case TypeKindBool:
+		v, err := strconv.ParseBool(s)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindInt:
+		v, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindUint:
+		v, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindFloat:
+		v, err := strconv.ParseFloat(s, 64)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	case TypeKindString:
+		return strconv.Quote(s), nil
+	default:
+		return nil, errutil.Explain(nil, "unsupported type for default value")
 	}
 }

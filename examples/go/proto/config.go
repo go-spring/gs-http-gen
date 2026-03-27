@@ -3,5 +3,7 @@
 package proto
 
 const Config = `{
-    "debug": true
+    "sse": {
+        "keepAlive": true
+    }
 }`

@@ -31,7 +31,7 @@ import (
 var clientTmpl = template.Must(template.New("client").
 	Funcs(map[string]any{
 		"formatComments": formatComments,
-		"makeRespReturn": func(r RPC) string {
+		"returnResponse": func(r RPC) string {
 			if r.RespTypeKind[0] == TypeKindStructPtr {
 				s := strings.TrimPrefix(r.Response, "*")
 				return fmt.Sprintf("httpclt.ObjectResponse(ctx, New%s(), meta)", s)
@@ -75,7 +75,7 @@ type Client struct {
 				Body:    req.{{$r.Request}}Body,
 				Header:  http.Header{"Content-Type": []string{"{{$r.ContentType}}"}},
 			}, opts...)
-			return {{makeRespReturn $r}}
+			return {{returnResponse $r}}
 		}
 	{{- end}}
 {{end}}

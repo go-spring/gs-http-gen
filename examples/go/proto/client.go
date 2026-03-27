@@ -33,8 +33,8 @@ func (c *Client) CreateManager(ctx context.Context, req *CreateManagerReq, opts 
 	return httpclt.ObjectResponse(ctx, NewCreateManagerResp(), meta)
 }
 
-// Delete a manager
-func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...httpclt.RequestOption) (*http.Response, *DeleteManagerResp, error) {
+// Delete manager
+func (c *Client) DeleteManager(ctx context.Context, req *GetManagerReq, opts ...httpclt.RequestOption) (*http.Response, *DeleteManagerResp, error) {
 	meta := httpclt.CombineMetadata(httpclt.Metadata{
 		Target:  c.Target,
 		Schema:  "http",
@@ -42,14 +42,14 @@ func (c *Client) DeleteManager(ctx context.Context, req *ManagerReq, opts ...htt
 		Pattern: "/managers/{id}",
 		RawPath: fmt.Sprintf("/managers/%v", req.Id),
 		Query:   req,
-		Body:    req.ManagerReqBody,
+		Body:    req.GetManagerReqBody,
 		Header:  http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}},
 	}, opts...)
 	return httpclt.ObjectResponse(ctx, NewDeleteManagerResp(), meta)
 }
 
 // Get manager by ID
-func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httpclt.RequestOption) (*http.Response, *GetManagerResp, error) {
+func (c *Client) GetManager(ctx context.Context, req *GetManagerReq, opts ...httpclt.RequestOption) (*http.Response, *GetManagerResp, error) {
 	meta := httpclt.CombineMetadata(httpclt.Metadata{
 		Target:  c.Target,
 		Schema:  "http",
@@ -57,38 +57,38 @@ func (c *Client) GetManager(ctx context.Context, req *ManagerReq, opts ...httpcl
 		Pattern: "/managers/{id}",
 		RawPath: fmt.Sprintf("/managers/%v", req.Id),
 		Query:   req,
-		Body:    req.ManagerReqBody,
+		Body:    req.GetManagerReqBody,
 		Header:  http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}},
 	}, opts...)
 	return httpclt.ObjectResponse(ctx, NewGetManagerResp(), meta)
 }
 
 // List managers with pagination
-func (c *Client) ListManagersByPage(ctx context.Context, req *ListManagersByPageReq, opts ...httpclt.RequestOption) (*http.Response, *ListManagersByPageResp, error) {
+func (c *Client) ListManagers(ctx context.Context, req *ListManagersReq, opts ...httpclt.RequestOption) (*http.Response, *ListManagersResp, error) {
 	meta := httpclt.CombineMetadata(httpclt.Metadata{
 		Target:  c.Target,
 		Schema:  "http",
 		Method:  "GET",
-		Pattern: "/managers/page",
-		RawPath: fmt.Sprintf("/managers/page"),
+		Pattern: "/managers",
+		RawPath: fmt.Sprintf("/managers"),
 		Query:   req,
-		Body:    req.ListManagersByPageReqBody,
+		Body:    req.ListManagersReqBody,
 		Header:  http.Header{"Content-Type": []string{"application/x-www-form-urlencoded"}},
 	}, opts...)
-	return httpclt.ObjectResponse(ctx, NewListManagersByPageResp(), meta)
+	return httpclt.ObjectResponse(ctx, NewListManagersResp(), meta)
 }
 
-// Update manager info
-func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httpclt.RequestOption) (*http.Response, map[string]any, error) {
+// Update manager
+func (c *Client) UpdateManager(ctx context.Context, req *UpdateManagerReq, opts ...httpclt.RequestOption) (*http.Response, *UpdateManagerResp, error) {
 	meta := httpclt.CombineMetadata(httpclt.Metadata{
 		Target:  c.Target,
 		Schema:  "http",
 		Method:  "PUT",
 		Pattern: "/managers/{id}",
-		RawPath: fmt.Sprintf("/managers/%v", req.ID),
+		RawPath: fmt.Sprintf("/managers/%v", req.Id),
 		Query:   req,
 		Body:    req.UpdateManagerReqBody,
 		Header:  http.Header{"Content-Type": []string{"application/json"}},
 	}, opts...)
-	return httpclt.JSONResponse[map[string]any](ctx, meta)
+	return httpclt.ObjectResponse(ctx, NewUpdateManagerResp(), meta)
 }

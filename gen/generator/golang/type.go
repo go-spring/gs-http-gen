@@ -22,7 +22,6 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -58,48 +57,9 @@ func formatComments(c httpidl.Comments) string {
 	return strings.Join(lines, "\n")
 }
 
-// genDefaultValue generates Go code to generate a default value for a field.
-func genDefaultValue(fieldName string, typeName string, typeKind []TypeKind, defaultValue string) string {
-	switch typeKind[0] {
-	case TypeKindBool:
-		_, err := strconv.ParseBool(defaultValue)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindInt:
-		_, err := strconv.ParseInt(defaultValue, 10, 64)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindUint:
-		_, err := strconv.ParseUint(defaultValue, 10, 64)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindFloat:
-		_, err := strconv.ParseFloat(defaultValue, 64)
-		if err != nil {
-			panic(errutil.Explain(err, "gen default value error for field %s", fieldName))
-		}
-		return defaultValue
-	case TypeKindString:
-		return strconv.Quote(defaultValue)
-	default:
-		panic(errutil.Explain(nil, "unsupported type %s for field %s", typeName, fieldName))
-	}
-}
-
 // decodePathValue generates Go code to decode a field value from path parameter.
 func decodePathValue(fieldName string, typeName string, typeKind []TypeKind, pathName string) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf(`if s := c.PathValue("%s"); s == "" {
-		return errutil.Explain(nil, "required path parameter \"%s\" is missing")
-	} else {
-	`, pathName, pathName))
-
 	switch typeKind[0] {
 	case TypeKindInt:
 		sb.WriteString(fmt.Sprintf(`if i, err := strconv.ParseInt(s, 10, 64); err != nil {
@@ -121,7 +81,6 @@ func decodePathValue(fieldName string, typeName string, typeKind []TypeKind, pat
 			typeName, fieldName, pathName,
 		))
 	}
-	sb.WriteString(fmt.Sprintf("\n}"))
 	return sb.String()
 }
 
@@ -263,7 +222,7 @@ func genValidateExpr(receiverType, fieldName, fieldType string, expr validate.Ex
 
 	// Wrap in an if statement returning an error on failure
 	str = fmt.Sprintf(`if !(%s) {
-		err = errutil.Stack(err,"validate failed on \"%s.%s\"")
+		return errutil.Explain(nil, "validate failed on \"%s.%s\"")
 	}`, str, receiverType, fieldName)
 
 	if pointer {
@@ -324,6 +283,9 @@ func compileValidateExpr(fieldName, fieldType string, expr validate.Expr) (strin
 		if x.Value == "$" {
 			return fieldName, nil
 		}
+		if strings.HasPrefix(x.Value, "'") {
+			return "\"" + x.Value[1:len(x.Value)-1] + "\"", nil
+		}
 		return x.Value, nil
 
 	default:
@@ -347,8 +309,8 @@ func genValidateNested(receiverType, fieldName string, itemName string, typeKind
 		return str
 	case TypeKindStructPtr:
 		str := fmt.Sprintf(`if %s != nil {
-				if validateErr := %s.Validate(); validateErr != nil {
-					err = errutil.Stack(err, "validate failed on \"%s.%s\": %%w", validateErr)
+				if err := %s.Validate(); err != nil {
+					return errutil.Explain(err, "validate failed on \"%s.%s\"")
 				}
 			}`, itemName, itemName, receiverType, fieldName)
 		return str
@@ -411,7 +373,6 @@ func genDecodeJSON(typeName string, typeKind []TypeKind) string {
 var typeTmpl = template.Must(template.New("type").
 	Funcs(map[string]any{
 		"formatComments":    formatComments,
-		"genDefaultValue":   genDefaultValue,
 		"decodePathValue":   decodePathValue,
 		"encodeFormValue":   encodeFormValue,
 		"decodeFormValue":   decodeFormValue,
@@ -440,11 +401,12 @@ import (
 )
 
 var _ = strings.Index
+var _ = url.ParseQuery
 var _ = strconv.FormatInt
-var _ = formutil.EncodeInt
 var _ = base64.StdEncoding
 var _ = http.StatusNotFound
 var _ = (*httpsvr.Router)(nil)
+var _ = formutil.EncodeInt[int]
 
 {{ range $c := .Consts }}
 	{{- if $c.Comments.Exists }}
@@ -546,8 +508,7 @@ var _ = (*httpsvr.Router)(nil)
 			return &{{$s.Name}}{
 				{{- range $f := $s.Fields }}
 					{{- if $f.CompatDefault}}
-						{{- $fieldName := printf "%s.%s" $s.Name $f.Name}}
-						{{$f.Name}}: {{genDefaultValue $fieldName $f.Type $f.TypeKind $f.CompatDefault}},
+						{{$f.Name}}: {{$f.Default}},
 					{{- end}}
 				{{- end}}
 			}
@@ -621,7 +582,7 @@ var _ = (*httpsvr.Router)(nil)
 				{{ range $f := $s.Fields }}
 					{{- if and $f.Required (not $f.CompatDefault) }}
 						if !has{{$f.Name}} {
-							err = errutil.Stack(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+							return errutil.Explain(err, "missing required field \"{{$f.JSONTag.Name}}\"")
 						}
 					{{- end}}
 				{{- end}}
@@ -641,7 +602,7 @@ var _ = (*httpsvr.Router)(nil)
 
 		{{- if $Validate}}
 			// Validate checks field values using generated validation expressions.
-			func (x *{{$s.Name}}) Validate() (err error) {
+			func (x *{{$s.Name}}) Validate() error {
 				{{- range $f := $s.Fields }}
 					{{- if $f.ValidateExpr }}
 						{{genValidateExpr $s.Name $f.Name $f.Type $f.ValidateExpr}}
@@ -651,7 +612,7 @@ var _ = (*httpsvr.Router)(nil)
 						{{genValidateNested $s.Name $f.Name $fieldName $f.TypeKind 0}}
 					{{- end}}
 				{{- end}}
-				return
+				return nil
 			}
 		{{- end}}
 	{{- end}} {{- /* end of struct (not request) */}}
@@ -679,8 +640,7 @@ var _ = (*httpsvr.Router)(nil)
 				{{- range $f := $s.Fields }}
 					{{- if $f.Binding }}
 						{{- if $f.CompatDefault}}
-							{{- $fieldName := printf "%s.%s" $s.Name $f.Name}}
-							{{$f.Name}}: {{genDefaultValue $fieldName $f.Type $f.TypeKind $f.CompatDefault}},
+							{{$f.Name}}: {{$f.Default}},
 						{{- end}}
 					{{- end}}
 				{{- end}}
@@ -713,8 +673,12 @@ var _ = (*httpsvr.Router)(nil)
 					c := httpsvr.GetRequestContext(r.Context())
 					{{- range $f := $s.Fields }}
 						{{- if and $f.Binding (eq $f.Binding.Source "path") }}
-							{{- $fieldName := printf "x.%s" $f.Name}}
-							{{decodePathValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
+							if s := c.PathValue("{{$f.Binding.Field}}"); s == "" {
+								return errutil.Explain(nil, "required path parameter \"{{$f.Binding.Field}}\" is missing")
+							} else {
+								{{- $fieldName := printf "x.%s" $f.Name}}
+								{{decodePathValue $fieldName $f.Type $f.TypeKind $f.Binding.Field}}
+							}
 						{{- end}}
 					{{- end}}
 				{{- end}}
@@ -784,7 +748,7 @@ var _ = (*httpsvr.Router)(nil)
 		}
 
 		// Validate validates both bound parameters and request body fields.
-		func (x *{{$s.Name}}) Validate() (err error) {
+		func (x *{{$s.Name}}) Validate() error {
 			{{- range $f := $s.Fields }}
 				{{- if $f.Binding }}
 					{{- if $f.ValidateExpr }}
@@ -796,10 +760,10 @@ var _ = (*httpsvr.Router)(nil)
 					{{- end}}
 				{{- end}}
 			{{- end}}
-			if validateErr := x.{{$s.Name}}Body.Validate(); validateErr != nil {
-				err = errutil.Stack(err, "validate failed on \"{{$s.Name}}\": %w", validateErr)
+			if err := x.{{$s.Name}}Body.Validate(); err != nil {
+				return errutil.Explain(err, "validate failed on \"{{$s.Name}}\"")
 			}
-			return
+			return nil
 		}
 
 		// {{$s.Name}}Body represents the request body payload,
@@ -822,8 +786,7 @@ var _ = (*httpsvr.Router)(nil)
 				{{- range $f := $s.Fields }}
 					{{- if not $f.Binding }}
 						{{- if $f.CompatDefault}}
-							{{- $fieldName := printf "%s.%s" $s.Name $f.Name}}
-							{{$f.Name}}: {{genDefaultValue $fieldName $f.Type $f.TypeKind $f.CompatDefault}},
+							{{$f.Name}}: {{$f.Default}},
 						{{- end}}
 					{{- end}}
 				{{- end}}
@@ -925,74 +888,74 @@ var _ = (*httpsvr.Router)(nil)
 							{{- end}}
 						{{- end}}
 					)
-				{{- end}}
 
-				{{- $HasRequired := false }}
-				{{- range $f := $s.Fields }}
-					{{- if not $f.Binding }}
-						{{- if and $f.Required (not $f.CompatDefault) }}
-							{{ $HasRequired = true }}
-						{{- end}}
-					{{- end}}
-				{{- end}}
-
-				{{- if $HasRequired }}
-					var (
-						{{- range $f := $s.Fields }}
-							{{- if not $f.Binding }}
-								{{- if and $f.Required (not $f.CompatDefault) }}
-									has{{$f.Name}} bool
-								{{- end}}
+					{{- $HasRequired := false }}
+					{{- range $f := $s.Fields }}
+						{{- if not $f.Binding }}
+							{{- if and $f.Required (not $f.CompatDefault) }}
+								{{ $HasRequired = true }}
 							{{- end}}
 						{{- end}}
-					)
-				{{- end}}
+					{{- end}}
 
-				if err = jsonflow.DecodeObjectBegin(d); err != nil {
-					return err
-				}
+					{{- if $HasRequired }}
+						var (
+							{{- range $f := $s.Fields }}
+								{{- if not $f.Binding }}
+									{{- if and $f.Required (not $f.CompatDefault) }}
+										has{{$f.Name}} bool
+									{{- end}}
+								{{- end}}
+							{{- end}}
+						)
+					{{- end}}
 
-				for {
-					if d.PeekKind() == '}' {
-						break
-					}
-
-					var key string
-					key, err = jsonflow.DecodeString(d)
-					if err != nil {
+					if err = jsonflow.DecodeObjectBegin(d); err != nil {
 						return err
 					}
 
-					switch hashutil.FNV1a64(key) {
-					{{- range $f := $s.Fields }}
-						{{- if not $f.Binding }}
-							case hash{{$f.Name}}:
-								{{- if and $f.Required (not $f.CompatDefault) }}
-									has{{$f.Name}} = true
-								{{- end}}
-								if r.{{$f.Name}}, err = {{genDecodeJSON $f.Type $f.TypeKind}}(d); err != nil {
-									return err
-								}
-						{{- end}}
-					{{- end}}
-					default:
-						if err = d.SkipValue(); err != nil {
+					for {
+						if d.PeekKind() == '}' {
+							break
+						}
+	
+						var key string
+						key, err = jsonflow.DecodeString(d)
+						if err != nil {
 							return err
 						}
+	
+						switch hashutil.FNV1a64(key) {
+						{{- range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								case hash{{$f.Name}}:
+									{{- if and $f.Required (not $f.CompatDefault) }}
+										has{{$f.Name}} = true
+									{{- end}}
+									if r.{{$f.Name}}, err = {{genDecodeJSON $f.Type $f.TypeKind}}(d); err != nil {
+										return err
+									}
+							{{- end}}
+						{{- end}}
+						default:
+							if err = d.SkipValue(); err != nil {
+								return err
+							}
+						}
 					}
-				}
 
-				if err = jsonflow.DecodeObjectEnd(d); err != nil {
-					return err
-				}
-
-				{{- if $HasRequired }}
-					{{ range $f := $s.Fields }}
-						{{- if not $f.Binding }}
-							{{- if and $f.Required (not $f.CompatDefault) }}
-								if !has{{$f.Name}} {
-									return errutil.Stack(err, "missing required field \"{{$f.JSONTag.Name}}\"")
-								}
+					if err = jsonflow.DecodeObjectEnd(d); err != nil {
+						return err
+					}
+	
+					{{- if $HasRequired }}
+						{{ range $f := $s.Fields }}
+							{{- if not $f.Binding }}
+								{{- if and $f.Required (not $f.CompatDefault) }}
+									if !has{{$f.Name}} {
+										return errutil.Explain(err, "missing required field \"{{$f.JSONTag.Name}}\"")
+									}
+								{{- end}}
 							{{- end}}
 						{{- end}}
 					{{- end}}
@@ -1002,7 +965,7 @@ var _ = (*httpsvr.Router)(nil)
 		{{end}} {{- /* end of json encoded */}}
 
 		// Validate checks field values using generated validation expressions.
-		func (x *{{$s.Name}}Body) Validate() (err error) {
+		func (x *{{$s.Name}}Body) Validate() error {
 			{{- range $f := $s.Fields }}
 				{{- if not $f.Binding }}
 					{{- if $f.ValidateExpr }}
@@ -1014,7 +977,7 @@ var _ = (*httpsvr.Router)(nil)
 					{{- end}}
 				{{- end}}
 			{{- end}}
-			return
+			return nil
 		}
 
 	{{end}} {{- /* end of struct (request) */}}

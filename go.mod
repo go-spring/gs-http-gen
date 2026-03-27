@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/antlr4-go/antlr/v4 v4.13.1
-	github.com/go-spring/stdlib v0.0.4
+	github.com/go-spring/stdlib v0.0.6
 	github.com/spf13/cobra v1.9.1
 )
 
